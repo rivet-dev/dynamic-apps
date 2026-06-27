@@ -82,12 +82,18 @@ CPU-bound, which picks the first lever. Adding targeted logs to get more info is
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
-- **L-A — Single kernel service thread serializes all RPCs.** Concurrency / multiplex. Highest
-  *suspected* value (the T-H ceiling, and the 5-app D-Bus-timeout cause). Risk: races across shared
-  kernel state (VFS / socket / process tables) in a `#![forbid(unsafe_code)]` crate — needs careful
-  locking / sharding. _status: OPEN, unprofiled._
-- **L-B — GObject `ffi_call` dispatch via JS shim.** Per-call cost on every signal/closure; GTK init
-  fires huge numbers. _status: OPEN, unprofiled (B1 isolates it)._
+- **L-B — Guest isolate compute (GObject `ffi_call` / wasm / JS shims). [TOP — profiled compute-bound]**
+  Single-app startup is **96% isolate compute** (178s/185s); RPCs (~1s) + service thread (~5s) are
+  noise. The dominant sub-cost — `ffi_call` (GObject dispatch) vs wasm exec vs the JS poll-loop
+  machinery — needs **P2** to split. _status: TOP; P2 to break down (B1 isolates ffi_call)._
+- **L-F — Main-loop busy-poll. [NEW, from baseline #1]** 640k poll iterations during startup;
+  `net.poll_wait` returns immediately (~1µs, not blocking) = the glib loops spinning. Unknown how much
+  of the 178s is loop machinery vs real GTK compute (P2 splits it). If it's a spin, fixing it (à la
+  T-J) could be a big win. _status: OPEN; P2 to quantify._
+- **L-A — Single kernel service thread serializes all RPCs.** Concurrency / multiplex. **DOWN for
+  single-app** — the service thread is **97% idle**, NOT the single-app bottleneck (refuted by baseline
+  #1). May still matter for the **5-app contention** case (the D-Bus-timeout ceiling). Risk: races
+  across shared kernel state in a `#![forbid(unsafe_code)]` crate. _status: DEFERRED to the 5-app phase._
 - **L-C — Per-RPC JSON/base64 marshaling.** Binary fast-path for hot ops (framebuffer already on the
   bulk-SAB path; generalize). _status: OPEN._
 - **L-D — Redundant startup scans** (fontconfig / icon-theme / gschemas), re-done every boot, each a
@@ -124,6 +130,20 @@ levers as profiling surfaces new costs (recursion).
 ---
 
 ### Verdict log (newest first)
+
+- **2026-06-27 — DECISIVE: single-app startup is COMPUTE-BOUND (the RPC-vs-CPU split, measured).**
+  mousepad dual-profile (P1 sidecar + P1-guest, ~185s wall): **guest-side RPC blocking = 952ms** (640k
+  RPCs, mostly ~1µs *in-process* `__agentOsSyncRpc.callSync` — NOT cross-process round-trips); sidecar
+  service = 5313ms (mostly poll-wait). So **~178s (96%) is guest ISOLATE COMPUTE** (wasm / GObject
+  `ffi_call` / JS shims), not RPCs and not the service thread. Most-expensive guest RPCs: a few
+  `fs.readSync` at 15-33ms each (large reads, ~390ms) + `fs.statSync` ×1957 (80ms, icon scans) — ~600ms
+  total, noise vs 178s. **Ledger re-rank (evidence-driven):** L-B (GObject `ffi_call`/compute) → **TOP**;
+  L-A (service-thread multiplex) → DOWN for single-app (thread 97% idle; keep for 5-app contention);
+  L-C (marshaling) → DOWN (RPCs ~1µs). **New candidate L-F: main-loop busy-poll** — 640k poll
+  iterations, `net.poll_wait` returning immediately (~1µs, not blocking) = the glib loops spinning;
+  unknown how much of the 178s is loop machinery vs real GTK compute. **Next: P2 (V8 CPU profile of the
+  guest isolate)** — the only tool that splits the 178s into wasm exec vs `ffi_call`/GObject vs JS
+  poll-loop machinery. Artifacts: `/tmp/p2lite-mousepad.log`, `/tmp/p1-mousepad.log`.
 
 - **2026-06-27 — Baseline #1 (mousepad startup+run, ~185s wall, 3 guests, P1): the service thread is
   NOT the bottleneck.** 456,000 RPCs total; `total_service_ms` = **4985ms (~5s)** → the single kernel
