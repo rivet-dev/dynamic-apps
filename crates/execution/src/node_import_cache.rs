@@ -8815,6 +8815,7 @@ const guestEnv = JSON.parse(process.env.AGENT_OS_GUEST_ENV ?? '{}');
 const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENT_OS_GUEST_PATH_MAPPINGS);
 const permissionTier = process.env.AGENT_OS_WASM_PERMISSION_TIER ?? 'full';
 try { if (process.env.SECURE_EXEC_RPCPROF === '1') globalThis.__rpcprof = true; } catch (_e) {}
+try { if (process.env.SECURE_EXEC_POLLSTAT === '1') globalThis.__pollstat = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_NET_TRACE === '1') globalThis.__nettrace = true; } catch (_e) {}
 function netTrace(msg) { if (globalThis.__nettrace) { try { process.stderr.write('NETTRACE ' + msg + '\n'); } catch (_e) {} } }
 try { if (process.env.SECURE_EXEC_FD_TRACE === '1') globalThis.__fdtrace = true; } catch (_e) {}
@@ -11568,6 +11569,17 @@ const hostNetImport = {
   net_poll(fdsPtr, nfds, timeoutMs, retReadyPtr) {
     const n = Number(nfds) >>> 0;
     const base0 = Number(fdsPtr) >>> 0;
+    // L-F probe (SECURE_EXEC_POLLSTAT, default-OFF): count net_poll invocations = glib main-loop
+    // iterations, bucketed by the requested timeout + avg fd-set size. A high iteration count with t0
+    // (zero-wait) dominating = the loop busy-spins rather than blocks; combined with the wall clock it
+    // gives the per-iteration cost. Counters only (no per-call print).
+    if (globalThis.__pollstat) {
+      const S = (globalThis.__pollS = globalThis.__pollS || { n: 0, t0: 0, tpos: 0, tinf: 0, nfdsSum: 0 });
+      const _t = Number(timeoutMs) | 0;
+      S.n++; S.nfdsSum += n;
+      if (_t === 0) S.t0++; else if (_t < 0) S.tinf++; else S.tpos++;
+      if (S.n % 20000 === 0) { try { process.stderr.write('[pollstat] iters=' + S.n + ' t0(zerowait)=' + S.t0 + ' tpos(timed)=' + S.tpos + ' tinf(block)=' + S.tinf + ' avgNfds=' + (S.nfdsSum / S.n).toFixed(1) + '\n'); } catch (_e) {} }
+    }
     // wasi sysroot <poll.h> bits: POLLIN=0x001, POLLPRI=0x002, POLLOUT=0x004. Guests compile against
     // this header, so net_poll must use 0x004 for POLLOUT or write-readiness is never reported and a
     // writer that waits on it (e.g. dbus-daemon flushing its auth "OK"/replies) blocks forever. The

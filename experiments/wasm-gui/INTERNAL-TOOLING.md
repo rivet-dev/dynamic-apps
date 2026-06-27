@@ -90,6 +90,14 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       the timing it measures (the observer-effect fix over `SECURE_EXEC_TRACE`). PERF-OPTIMIZATION.md's
       **P1**: answers "which syscalls dominate the service-thread wait" + the RPC-bound-vs-CPU-bound
       split. `*poll*` rows are WAIT, not work. (`crates/sidecar/src/execution.rs` `rpc_profile_record`.)
+- [x] **P1-guest RPC time** (`SECURE_EXEC_RPCPROF`) — guest-side `callSyncRpc` blocking time per method
+      (real clock, **opt-in, never guest-exposed** — module-scope `originalPerformance`). DELTA vs P1 =
+      bridge/marshaling cost; total vs wall = round-trip-bound vs compute-bound. Proved single-app
+      startup is compute-bound (RPCs are ~1µs *in-process*). (`node_import_cache.rs` `callSyncRpc`.)
+- [x] **L-F pollstat** (`SECURE_EXEC_POLLSTAT`) — counts `net_poll` invocations (= glib main-loop
+      iterations) bucketed by requested timeout (zero-wait / timed / blocking) + avg fd-set size.
+      Distinguishes a busy-spinning loop from a blocking one; with the wall clock gives per-iteration
+      cost. Counters only, no per-call print. (`node_import_cache.rs` `net_poll`.)
 - [~] **P2 poll fd-state in NET_TRACE** — `net_poll`'s `poll` trace line now also logs, per polled fd,
       `:cl=`(closed) `:ch=`(readChunks len) and a `:srv`/`:pipe`/`:nosock`/`:nosid` tag, plus a `spin0`
       line for zero-wait polls that found nothing ready. Partial coverage of the fd-table-dump below; it
