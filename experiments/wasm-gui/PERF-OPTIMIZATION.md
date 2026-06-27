@@ -2174,3 +2174,20 @@ native ~10ms) IS. This is a metric-definition ambiguity to flag, not paper over 
 distribution (no bimodality) because the runtime doesn't frame-quantize the same way; native's fast cluster
 is a best-case, its ~5ms median is fairer. Remaining gap to a strict median-3× (~15ms) is the structural
 cross-guest peerWait → lever D.
+
+## §7-NATIVE-RIGOROUS (2026-06-30): native median 4.4ms (36 samples) — corrects BOTH my 3.5ms and the goal's ~10ms
+
+36 clean native keystroke samples (6 Docker runs × 6): sorted 3.4 3.5×5 3.6×2 3.7×3 3.8×3 4.0 4.2×2 4.4
+4.5 4.7×2 4.9 5.7 5.9 6.4×2 7.2×2 7.3 7.8 9.6 10.1 10.7 10.8 10.9 11.8. **mean=5.67ms, median=4.4ms, p25=3.7,
+p75=7.2, min=3.4, max=11.8.** Right-skewed (frame-quantized tail), NOT bimodal-50/50. So:
+- My earlier "native 3.5ms" = the fast-cluster floor (too optimistic).
+- The goal's "native ~10ms" = near p90 (too pessimistic — favorable to the wasm target).
+- **Honest native = ~4.4ms median / ~5.67ms mean.**
+
+**Honest multiplier: wasm 28.5ms = 6.5× the native median (4.4ms) / 5.0× the mean (5.67ms).** Strict 3× target
+= ~13ms (median) or ~17ms (mean). **NOT met at 28.5ms.** The per-op levers (fd-poll bound + tighter-wake
+park/unpark) are now exhausted — they took ir 61→28.5ms. The remaining ~15ms to a median-3× (~13ms) is the
+structural cross-guest transport: mousepad↔Xvfb data goes through a HOST AF_UNIX socket + a reader thread +
+notify + pool per exchange (~20 exchanges × ~1.4ms). Lever D = route GUEST↔GUEST unix connections through an
+in-memory kernel path (no host round-trip / reader thread) while host↔guest (XTEST) stays host-backed. That
+is the remaining CORE lever and it is architectural (socket/connection-layer change).
