@@ -62,11 +62,15 @@ else
   CLIENTS=(--client "$EXP/xfwm4.wasm" --client "$EXP/mousepad.wasm" --client "$EXP/xfce4-panel.wasm")
   [ -z "${XU7_LITE:-}" ] && CLIENTS+=(--client "$EXP/xfdesktop.wasm" --client "$EXP/thunar.wasm")
 fi
+# NO_XFCONFD=1 drops the xfconfd dbus-service (the busy-spinner) — a causality test for whether its
+# spin blocks render. Apps that don't need xfconf (mousepad) should still render if the spin is the blocker.
+DBUSSVC=(--dbus-service "$EXP/xfconfd.wasm")
+[ -n "${NO_XFCONFD:-}" ] && DBUSSVC=()
 WM_SETTLE_QUIET_MS=3000 WM_SETTLE_CAP_S=50 APP_SETTLE_MS=4000 \
 timeout "$(( ${TIMEOUT:-120} + 45 ))" env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-120}" \
   --server "$EXP/Xvfb.wasm" \
   --dbus "$EXP/dbus-daemon.wasm" \
-  --dbus-service "$EXP/xfconfd.wasm" \
+  ${DBUSSVC[@]+"${DBUSSVC[@]}"} \
   "${CLIENTS[@]}" \
   --fonts-dir "$FONTS" --locale-dir "$LOCALE" \
   --vm-tree "$FIX" --vm-tree "$SESS" --vm-tree "$THEMES" --vm-tree "$WMDATA" --vm-tree "$XFT" --vm-tree /tmp/vmschemas \

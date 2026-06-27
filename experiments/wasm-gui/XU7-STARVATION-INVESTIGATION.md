@@ -254,6 +254,24 @@ This doc is **recursive**: investigation creates new theories.
 
 ### Verdict log (newest first)
 
+- **2026-06-27 — ★ CAUSALITY PROVEN: the xfconfd spin IS the render blocker.** Same client set
+  (xfwm4 + mousepad), only difference = xfconfd present or not: **WITH xfconfd → 0.0% nonblack** (black,
+  nothing renders); **WITHOUT xfconfd (NO_XFCONFD=1) → 69.6% nonblack** (mousepad + xfwm4 render a real
+  desktop). So xfconfd's busy-spin starves the other guests (CPU contention: 2 spinning isolate threads)
+  → multi-app render fails. Removing the spinner fixes render. ⇒ **T-I/T-J is THE root cause of XU7
+  multi-app starvation, proven end-to-end.** The fix = stop xfconfd spinning (drain its GWakeup pipe).
+  Artifacts: `gui-progress/2026-06-27T19/caus-{with,without}-xfconfd.png`.
+- **2026-06-27 — T-J mechanism PROVEN: GLib never drains a readable wakeup pipe.** New
+  `SECURE_EXEC_PIPE_TRACE` (sidecar-side, thread-tagged) shows xfconfd polls its kernel wakeup pipes
+  readable ~26k× and issues **ZERO reads** (guest-side `kpipe_read` trace confirms 0 attempts). Both
+  threads spin: **main** (thread=false, 16,665 polls) and the **GDBus worker** (thread=true, 10,841
+  polls) — so the worker IS running its loop; both fail to `g_wakeup_acknowledge` (gmain.c:4093) their
+  readable wakeup. xfwm4 doesn't spin (its wakeup is idle, never written). Ruled out: eventfd (no
+  emulation → GWakeup pipe-mode), frozen clock, sockets, lost-wake. Root class = GLib wakeup-pipe
+  not-drained in xfconfd's active main↔worker GDBus signaling on wasi-threads (the known "GDBus
+  worker-thread GMainContext wakeup" blocker). Exact GLib-internal reason (fd-match vs revents-propagation
+  in g_main_context_check) needs GLib-side tracing. **Causality test in flight** (render with vs without
+  xfconfd). Artifacts: `gui-progress/2026-06-27T19/{xu7-pipetrace,xu7-disc,xu7-thr}.log`.
 - **2026-06-27 — T-J root narrowed to a KERNEL PIPE; clock + socket framings REFUTED:** xfconfd's spin
   = ~13,419 polls all returning a perpetually-readable **kernel pipe** (`fd=0x50000005:re=1:pipe`) +
   a companion pipe `fd=0x50000007 re=0` wanting POLLOUT but not writable = **a pipe full of undrained
