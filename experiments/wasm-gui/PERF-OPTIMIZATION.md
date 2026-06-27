@@ -2132,3 +2132,24 @@ dispatch or a tighter wake").
 ### Session ledger: ir 61→46ms (~25%), 17×→13× native (native 3.5ms). fd-poll bound was the big per-op
 floor. Knob follow-ups (fd-scoped+bound0, clamp) null. Two substantial levers remain (same-thread
 dispatch ~10ms, lever D for the ~28ms structural). Not at 3× (10.5ms); the remaining path is architectural.
+
+## §7-LEVER-3 WIN (2026-06-30): tighter-wake (spin-before-park) default 0→30000 — REAL ~10ms ir win + variance collapse
+
+The per-op floor (~100µs/op) is the guest thread PARKING on the bridge thread for the response
+(SYNCSPLIT: not marshalling — ser 15µs + de 5µs; it's park/unpark). Fix: `ChannelResponseReceiver::
+recv_response` (session.rs) now spins `try_recv` up to `SECURE_EXEC_TIGHTER_WAKE_SPINS` (default 30000)
+before the blocking recv, so an inline-op response the bridge thread produces in ~µs (on one of the box's
+20 cores) is caught without the futex round-trip. Blocking ops just exhaust the spin and park — no
+correctness change.
+
+- **Sweep (B2 keystroke ir, 10 runs each):** 0→40ms(26-49) · 5000→null · 30000→29.5ms(27-33) · 60000→27ms
+  but a 65ms tail. 30000 = the knee: shifts the whole distribution DOWN and COLLAPSES the high-park outliers.
+- **New default verified (12 runs, render-green): 25 26 26 27 27 28 29 29 29 30 31 31 = ~28.5ms median, tight (25-31).**
+- **Idle CPU unchanged:** 100.5% with spin=0 AND spin=30000 (the pre-existing poll-loop spin dominates; the
+  tighter-wake adds none). Safe to default ON.
+
+### SESSION LEDGER (2026-06-30): ir 61ms → **28.5ms** (native 3.5ms ⇒ 17× → **8.1×**). Two committed
+default-on wins: fd-poll bound 2000→200µs (61→46), tighter-wake 0→30000 (46/40→28.5). Plus fd-scoped
+wakeups (gated). The "incremental CORE exhausted" premise was decisively false — the per-op floor (fd-poll
+bound + park/unpark) held ~30ms. Remaining to 3× (~10.5ms): the structural cross-guest peerWait (~20
+exchanges × ~1.4ms) → lever D (shared-mem inter-guest ring).

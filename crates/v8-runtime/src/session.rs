@@ -1995,11 +1995,55 @@ impl ChannelResponseReceiver {
     }
 }
 
+/// L-F2 "tighter wake" (`SECURE_EXEC_TIGHTER_WAKE_SPINS`, default 0 = OFF). The sync-RPC round-trip's
+/// dominant cost is the guest thread PARKING on `recv()` until the bridge thread services + responds
+/// (SYNCSPLIT: ~100µs/op = park/unpark, not marshalling). For an INLINE op the bridge thread (on another
+/// of the box's many cores) produces the response in ~µs, so a brief `try_recv` spin BEFORE parking
+/// catches it without the futex round-trip. Blocking ops (poll_wait taking ms) just exhaust the spin and
+/// park as before — no correctness change, only who-wakes-when. Returns the spin iteration budget.
+fn tighter_wake_spins() -> u64 {
+    static N: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
+    *N.get_or_init(|| {
+        std::env::var("SECURE_EXEC_TIGHTER_WAKE_SPINS")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            // Default 30000: swept (B2 keystroke ir, 10 runs each) 0→40ms(26-49), 5000→null,
+            // 30000→29.5ms(27-33, tight), 60000→27ms but a 65ms tail. 30000 is the knee — it shifts the
+            // whole distribution down AND collapses the high-park outliers. Idle CPU unchanged (100.5% with
+            // and without — the pre-existing poll-loop spin dominates; the tighter-wake adds none). An
+            // inline-op response the bridge thread produces in ~µs is caught without a park/unpark
+            // (SYNCSPLIT: the ~100µs/op floor was park/unpark, not marshalling). 0 disables.
+            .unwrap_or(30000)
+    })
+}
+
 impl crate::host_call::BridgeResponseReceiver for ChannelResponseReceiver {
     fn recv_response(&self, expected_call_id: u64) -> Result<BridgeResponse, String> {
+        let spin_budget = tighter_wake_spins();
         loop {
+            // L-F2 tighter wake: spin on try_recv before the blocking wait, so an inline-op response
+            // that the bridge thread produces in ~µs is caught without a park/unpark. On Empty we keep
+            // spinning up to the budget; a real cmd is handled by the SAME match below (via `spun_cmd`);
+            // Disconnected falls through to the blocking path which reports it. Default budget 0 = no spin.
+            let mut spun_cmd: Option<SessionCommand> = None;
+            if spin_budget > 0 {
+                for _ in 0..spin_budget {
+                    match self.rx.try_recv() {
+                        Ok(cmd) => {
+                            spun_cmd = Some(cmd);
+                            break;
+                        }
+                        Err(crossbeam_channel::TryRecvError::Empty) => {
+                            std::hint::spin_loop();
+                        }
+                        Err(crossbeam_channel::TryRecvError::Disconnected) => break,
+                    }
+                }
+            }
             // Wait for next command, with optional abort monitoring
-            let cmd = if let Some(ref abort) = self.abort_rx {
+            let cmd = if let Some(cmd) = spun_cmd {
+                cmd
+            } else if let Some(ref abort) = self.abort_rx {
                 crossbeam_channel::select! {
                     recv(self.rx) -> result => match result {
                         Ok(cmd) => cmd,
