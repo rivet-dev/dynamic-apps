@@ -20613,6 +20613,11 @@ where
                         last_seen,
                         deadline: std::time::Instant::now() + wait,
                         claimed: Some(claimed),
+                        registered_us: if crate::state::hopprof_enabled() {
+                            secure_exec_bridge::perf_now_micros()
+                        } else {
+                            0
+                        },
                     });
                     deferred.set(true);
                     return Ok(Value::Null);
@@ -20624,6 +20629,11 @@ where
                     last_seen,
                     deadline: std::time::Instant::now() + wait,
                     claimed: None,
+                    registered_us: if crate::state::hopprof_enabled() {
+                        secure_exec_bridge::perf_now_micros()
+                    } else {
+                        0
+                    },
                 });
                 deferred.set(true);
                 return Ok(Value::Null);

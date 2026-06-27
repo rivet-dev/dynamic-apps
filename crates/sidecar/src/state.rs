@@ -551,12 +551,84 @@ fn wakeprof_dump(reg: &BTreeMap<usize, [u64; 7]>) {
     }
 }
 
+/// D12 hop-profiler gate (SECURE_EXEC_HOPPROF=1, default-OFF). Decomposes ONE productive
+/// `net.poll_wait` hop into its host-side segments on the shared `perf_now_micros` clock so the FAT
+/// segment of the ~1.5-2ms hop is visible: (a) register->notify = legitimate cross-guest peer wait
+/// (NOT overhead), (b) notify->pool-resume = condvar wake latency (overhead suspect), (c)
+/// resume->responded = respond_success/channel-send cost (overhead). Anything in the guest-observed
+/// RTPROBE total NOT covered by a+b+c is the residual guest send + response-channel wake. Cheap
+/// OnceLock gate keeps the default path byte-for-byte unchanged.
+pub(crate) fn hopprof_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_HOPPROF").map(|v| v == "1").unwrap_or(false))
+}
+
+#[derive(Default)]
+struct HopProfAcc {
+    n: u64,
+    wait_us: u128,
+    wake_us: u128,
+    resp_us: u128,
+    wait_max: u64,
+    wake_max: u64,
+    resp_max: u64,
+    /// Productive wakes whose registered_us/notify_us were both stamped (clean segment data).
+    clean: u64,
+}
+
+fn hopprof_acc() -> &'static Mutex<HopProfAcc> {
+    static ACC: std::sync::OnceLock<Mutex<HopProfAcc>> = std::sync::OnceLock::new();
+    ACC.get_or_init(|| Mutex::new(HopProfAcc::default()))
+}
+
+/// Record one productive poll_wait hop's segments (µs). `wait` = register->notify (peer wait),
+/// `wake` = notify->resume (condvar wake), `resp` = resume->responded (send). Prints every 200.
+fn hopprof_record(wait: u64, wake: u64, resp: u64, clean: bool) {
+    if let Ok(mut a) = hopprof_acc().lock() {
+        a.n += 1;
+        a.wake_us += wake as u128;
+        a.resp_us += resp as u128;
+        if wake > a.wake_max {
+            a.wake_max = wake;
+        }
+        if resp > a.resp_max {
+            a.resp_max = resp;
+        }
+        if clean {
+            a.clean += 1;
+            a.wait_us += wait as u128;
+            if wait > a.wait_max {
+                a.wait_max = wait;
+            }
+        }
+        if a.n % 200 == 0 {
+            let c = a.clean.max(1) as u128;
+            let n = a.n as u128;
+            eprintln!(
+                "[hopprof] n={} clean={} | peerWait avgUs={} maxUs={} | wakeLag(notify->resume) avgUs={} maxUs={} | respond avgUs={} maxUs={}",
+                a.n,
+                a.clean,
+                a.wait_us / c,
+                a.wait_max,
+                a.wake_us / n,
+                a.wake_max,
+                a.resp_us / n,
+                a.resp_max,
+            );
+        }
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct SocketReadiness {
     generation: std::sync::Mutex<u64>,
     signal: std::sync::Condvar,
     /// Direct-completion registry (SECURE_EXEC_POLL_DIRECT). Empty/unused on the default path.
     direct: Mutex<Vec<DirectPollWaiter>>,
+    /// D12 (SECURE_EXEC_HOPPROF): perf-clock µs of the most recent `notify()`. Only written when the
+    /// hop-profiler is on; a pool worker reads it on a productive wake to size the notify->resume
+    /// condvar-wake latency. `0` = never notified under the profiler.
+    last_notify_us: std::sync::atomic::AtomicU64,
 }
 
 impl std::fmt::Debug for DirectPollWaiter {
@@ -571,6 +643,7 @@ impl SocketReadiness {
             generation: std::sync::Mutex::new(0),
             signal: std::sync::Condvar::new(),
             direct: Mutex::new(Vec::new()),
+            last_notify_us: std::sync::atomic::AtomicU64::new(0),
         }
     }
 
@@ -580,6 +653,14 @@ impl SocketReadiness {
     /// `claimed` CAS makes this race-safe against the deadline path; responses are sent after the locks
     /// drop so the response delivery never runs under the readiness lock.
     pub(crate) fn notify(&self) {
+        // D12: stamp the notify time BEFORE waking waiters so a freshly-woken pool worker reads the
+        // moment data became ready (gated; no clock read on the default path).
+        if hopprof_enabled() {
+            self.last_notify_us.store(
+                secure_exec_bridge::perf_now_micros(),
+                std::sync::atomic::Ordering::Relaxed,
+            );
+        }
         let new_generation = {
             let mut generation = match self.generation.lock() {
                 Ok(generation) => generation,
@@ -692,6 +773,9 @@ pub(crate) struct PendingPollWait {
     pub(crate) last_seen: u64,
     /// Hard deadline: complete with the current generation no later than this (the poll clamp).
     pub(crate) deadline: Instant,
+    /// D12 (SECURE_EXEC_HOPPROF): perf-clock µs when this wait was registered, else `0`. Used to size
+    /// the register->notify "peer wait" segment of a productive hop.
+    pub(crate) registered_us: u64,
     /// SECURE_EXEC_POLL_DIRECT: shared single-completer flag. `Some` => the reader thread may complete
     /// this wait directly (data path); the pool worker here only serves the deadline/fallback and must
     /// CAS-win `claimed` before responding so exactly one of {reader, pool} fires. `None` => legacy path
@@ -789,9 +873,36 @@ fn poll_waiter_loop(queue: Arc<PollQueue>) {
             std::sync::Arc::as_ptr(&wait.readiness) as usize,
             if changed { WAKE_POOL_NOTIFY } else { WAKE_POOL_DEADLINE },
         );
+        // D12 hop decomposition (productive wakes only): resume_us is now; notify_us is when the data
+        // became ready; registered_us is when the guest's poll was registered. Capture BEFORE respond
+        // so `resp` covers only the respond_success/channel-send cost.
+        let hopprof = changed && hopprof_enabled();
+        let resume_us = if hopprof {
+            secure_exec_bridge::perf_now_micros()
+        } else {
+            0
+        };
         let _ = wait
             .responder
             .respond_success(wait.call_id, serde_json::json!({ "generation": generation }));
+        if hopprof {
+            let notify_us = wait
+                .readiness
+                .last_notify_us
+                .load(std::sync::atomic::Ordering::Relaxed);
+            let responded_us = secure_exec_bridge::perf_now_micros();
+            // Clean segment data needs both a registered_us and a notify_us that bracket this wake.
+            let clean = wait.registered_us != 0 && notify_us >= wait.registered_us;
+            let wait_seg = if clean {
+                notify_us - wait.registered_us
+            } else {
+                0
+            };
+            // Guard against a stale/overlapping notify stamp (multiple waiters): clamp to non-negative.
+            let wake_seg = resume_us.saturating_sub(notify_us);
+            let resp_seg = responded_us.saturating_sub(resume_us);
+            hopprof_record(wait_seg, wake_seg, resp_seg, clean);
+        }
     }
 }
 
