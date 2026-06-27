@@ -2850,6 +2850,7 @@ print(json.dumps(result))
     );
 }
 
+#[allow(clippy::too_many_arguments)]
 fn execute_python_cli(
     sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
     request_id: RequestId,
@@ -2885,6 +2886,7 @@ fn execute_python_cli(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn execute_python_cli_with_env(
     sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
     request_id: RequestId,
