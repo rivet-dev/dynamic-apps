@@ -2900,19 +2900,50 @@ pub fn process_event_drain_pending() -> &'static std::sync::atomic::AtomicBool {
     &PENDING
 }
 
-/// F1 event-driven ingest is OFF by default (the global notify never fires, so the sidecar falls back to
-/// the 250µs `event_pump` timer — original behaviour, byte-for-byte). `SECURE_EXEC_EVENT_INGEST=1` turns it
-/// ON. MEASURED: ON cuts first-paint ~4.0s→~2.66s (cold init is throughput-bound) but REGRESSES
-/// input→response ~93→~131ms (the warm-redraw ping-pong is latency-bound and the aggressive per-event drain
-/// adds dispatch-thread contention). Kept gated until a form is found that wins fp without the ir cost
-/// (per-session drain / queue-depth-adaptive aggressiveness / cold-init-only). Diagnostic knob.
+/// Event-driven sync-RPC ingest. The producer pokes `process_event_notify` the instant a guest event
+/// lands so the sidecar drains it immediately instead of waiting up to one 250µs `event_pump` timer
+/// interval. F1 (always-eager) cut first-paint ~4.0s→~2.66s (cold boot is throughput-bound) but
+/// REGRESSED warm input→response ~91→~131ms (the warm-redraw ping-pong is latency-bound and the eager
+/// per-event drain adds dispatch-thread contention). F1b confines eager ingest to the cold-boot window
+/// (see `event_ingest_window_us`): MEASURED first-paint ~4.3s→~2.5s with NO ir regression (~91ms,
+/// matching baseline), render green. So it is now ON by default; set `SECURE_EXEC_EVENT_INGEST=0` to
+/// force the legacy timer-only path (A/B / byte-for-byte original behaviour).
 fn event_ingest_enabled() -> bool {
     static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *EN.get_or_init(|| {
         std::env::var("SECURE_EXEC_EVENT_INGEST")
-            .map(|v| v == "1")
-            .unwrap_or(false)
+            .map(|v| v != "0" && !v.eq_ignore_ascii_case("false"))
+            .unwrap_or(true)
     })
+}
+
+/// F1b cold-init-only refinement. The fp win and the ir regression of F1 are PHASE-separated, not
+/// queue-depth-separated: a serially-blocked guest is at queue-depth ~1 in BOTH cold boot and warm
+/// redraw, so a depth gate cannot tell them apart. The distinguishing axis is WALL-CLOCK PHASE: the
+/// throughput-bound, eager-ingest-loving work is VM boot up to first-paint (~2.7s under eager ingest);
+/// after that the desktop is interactive and warm input→response is latency-bound, where the extra
+/// per-event drain only adds contention. An inter-event-GAP latch proved too fragile (boot has natural
+/// >300ms stalls that latch early and forfeit the fp win, while an idle app still emits cursor-blink
+/// events every <1s so a 1s gap never trips before input) — so instead we gate eager ingest on a simple
+/// wall-clock window from VM start: eager while `now < WINDOW`, timer-only after. The window only needs
+/// to bracket boot (cover first-paint, expire before the interaction phase); default 3500ms, tunable via
+/// `SECURE_EXEC_EVENT_INGEST_WINDOW_MS`. Robust against blink/idle traffic since it ignores event timing.
+fn event_ingest_window_us() -> u64 {
+    static MS: std::sync::OnceLock<u64> = std::sync::OnceLock::new();
+    *MS.get_or_init(|| {
+        std::env::var("SECURE_EXEC_EVENT_INGEST_WINDOW_MS")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(3500)
+            .saturating_mul(1000)
+    })
+}
+
+/// Cheap, always-available monotonic clock for the event-ingest cold-init window (the shared perf clock
+/// is gated; this hot producer path must not depend on it). Micros since VM start (first call).
+fn event_ingest_monotonic_us() -> u64 {
+    static ORIGIN: std::sync::OnceLock<Instant> = std::sync::OnceLock::new();
+    ORIGIN.get_or_init(Instant::now).elapsed().as_micros() as u64
 }
 
 fn send_javascript_event(
@@ -2930,10 +2961,16 @@ fn send_javascript_event(
             // Coalesce: only wake the sidecar drain if one is not already pending (the drain empties the
             // whole queue, so a single wake per burst suffices). Avoids per-event drain contention on the
             // single dispatch thread during the X-redraw event burst. Gated OFF by default (timer fallback).
-            if event_ingest_enabled()
-                && !process_event_drain_pending().swap(true, std::sync::atomic::Ordering::AcqRel)
-            {
-                process_event_notify().notify_one();
+            if event_ingest_enabled() {
+                use std::sync::atomic::Ordering;
+                // F1b cold-init window: poke the drain immediately (coalesced) only while inside the boot
+                // window; after it expires, fall back to the 250µs timer so warm input→response keeps its
+                // baseline latency. The window brackets the throughput-bound boot phase (see above).
+                if event_ingest_monotonic_us() < event_ingest_window_us()
+                    && !process_event_drain_pending().swap(true, Ordering::AcqRel)
+                {
+                    process_event_notify().notify_one();
+                }
             }
             true
         }
