@@ -49,7 +49,21 @@ poll-waiter pool → guest channel → wasm re-entry. GTK init does thousands of
 a keystroke does a handful (→ ~240 ms). Earlier (L-J): ~3.3 ms per sync-RPC round-trip vs ~6 µs service =
 the latency is transport/scheduling, not work.
 
-### Phase-1 objective (the new contract — reduce per-round-trip latency)
+### ⚠ Phase-1 premise INVALIDATED (2026-06-29) — read before working
+The objective below was written on a FALSE premise ("98.6% parked in the poll loop = waiting"). It is
+proven WRONG: mousepad first-paint is **COMPUTE-bound** (importprof: only ~2.4s in ALL imports / 2776
+calls, ZERO `ffi_call`; ~7s is on-CPU in-wasm GObject/GTK compute that routes through NO host import).
+The X round-trips are already near-native (~174ms). **Within the goal's stated CORE scope (sidecar /
+kernel / v8-runtime / bridge) and Constraint #5 (immutable guest binaries), the bottleneck is UNREACHABLE
+— there is no host-import hop to optimize and V8 already runs the wasm optimally (tiering A/B null).** The
+runtime-side ROI is therefore FLAT for first-paint. The path to <2s is a TOOLCHAIN/build change (faster
+GObject/fpcast-emu dispatch, -O2 vs -Oz, faster libc primitives in `registry/native`) + guest rebuilds —
+which is OUTSIDE the goal's "CORE" list and conflicts with "guest binaries are immutable". **This needs an
+operator decision: either widen the scope to the toolchain/guest-rebuild track, or accept the runtime
+lever is exhausted.** (Input→response < 50ms may still be runtime-reachable — it is a few round-trips, not
+the GTK-init compute — and was not separately driven; that is the one remaining runtime sub-lever.)
+
+### Phase-1 objective (the new contract — reduce per-round-trip latency) — SUPERSEDED, see ⚠ above
 Matching native (~110 ms / ~6 ms) is unrealistic for a sandboxed wasm-in-V8 cross-isolate-IPC model
 (there is an inherent per-boundary floor). The grounded, ambitious-but-achievable objective, anchored on
 human perception (input < 100 ms feels instant; < 50 ms imperceptible) and a ~5× cut of the dominant
