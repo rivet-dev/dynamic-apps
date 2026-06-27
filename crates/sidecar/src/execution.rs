@@ -13790,11 +13790,15 @@ fn rpc_trace_enter(
     } else {
         None
     };
-    if !rpc_trace_enabled() {
+    // Start the timer if EITHER the verbose trace OR the P1 profiler is on (the profiler needs each
+    // call's duration but NOT the per-call print).
+    if !rpc_trace_enabled() && !rpc_profile_enabled() {
         return (None, seq);
     }
-    let ms = rpc_trace_base().elapsed().as_millis();
-    eprintln!("[rpc-trace +{ms:>8}ms] pid={pid:<6} -> {method} {}", rpc_trace_arg0(args));
+    if rpc_trace_enabled() {
+        let ms = rpc_trace_base().elapsed().as_millis();
+        eprintln!("[rpc-trace +{ms:>8}ms] pid={pid:<6} -> {method} {}", rpc_trace_arg0(args));
+    }
     (Some(std::time::Instant::now()), seq)
 }
 fn rpc_trace_exit(
@@ -13806,10 +13810,86 @@ fn rpc_trace_exit(
     let Some(t0) = t0 else {
         return;
     };
-    let ms = rpc_trace_base().elapsed().as_millis();
     let us = t0.elapsed().as_micros();
-    let tag = if result.is_ok() { "ok" } else { "ERR" };
-    eprintln!("[rpc-trace +{ms:>8}ms] pid={pid:<6} <- {method} {tag} ({us}us)");
+    if rpc_profile_enabled() {
+        rpc_profile_record(method, us);
+    }
+    if rpc_trace_enabled() {
+        let ms = rpc_trace_base().elapsed().as_millis();
+        let tag = if result.is_ok() { "ok" } else { "ERR" };
+        eprintln!("[rpc-trace +{ms:>8}ms] pid={pid:<6} <- {method} {tag} ({us}us)");
+    }
+}
+
+// P1 (PERF-OPTIMIZATION.md): per-method service-time accumulator. Sums (count, total_us) per RPC
+// method on the kernel service thread and dumps the cumulative histogram every N calls -- ACCUMULATE,
+// never per-call eprintln, so the profiler does not perturb the timing it measures. Default-OFF
+// (SECURE_EXEC_RPC_PROFILE=1; dump cadence SECURE_EXEC_RPC_PROFILE_EVERY, default 2000). Answers the
+// decisive first question: which syscalls dominate the service-thread wait, and how much total wall
+// time is spent in the single service thread (vs guest-isolate compute).
+fn rpc_profile_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_RPC_PROFILE")
+            .map(|v| !v.is_empty() && v != "0")
+            .unwrap_or(false)
+    })
+}
+struct RpcProfile {
+    methods: std::collections::HashMap<String, (u64, u128)>,
+    total_calls: u64,
+}
+fn rpc_profile_state() -> &'static std::sync::Mutex<RpcProfile> {
+    static P: std::sync::OnceLock<std::sync::Mutex<RpcProfile>> = std::sync::OnceLock::new();
+    P.get_or_init(|| {
+        std::sync::Mutex::new(RpcProfile {
+            methods: std::collections::HashMap::new(),
+            total_calls: 0,
+        })
+    })
+}
+fn rpc_profile_record(method: &str, us: u128) {
+    let Ok(mut p) = rpc_profile_state().lock() else {
+        return;
+    };
+    let entry = p.methods.entry(method.to_string()).or_insert((0, 0));
+    entry.0 += 1;
+    entry.1 += us;
+    p.total_calls += 1;
+    let dump_every: u64 = std::env::var("SECURE_EXEC_RPC_PROFILE_EVERY")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(2000);
+    if dump_every > 0 && p.total_calls % dump_every == 0 {
+        rpc_profile_dump(&p);
+    }
+}
+fn rpc_profile_dump(p: &RpcProfile) {
+    let grand: u128 = p.methods.values().map(|x| x.1).sum();
+    let mut rows: Vec<(&String, &(u64, u128))> = p.methods.iter().collect();
+    rows.sort_by(|a, b| b.1 .1.cmp(&a.1 .1));
+    eprintln!(
+        "[rpc-profile] total_calls={} total_service_ms={} distinct_methods={} (top 24 by total; poll_wait/*poll* is WAIT not work):",
+        p.total_calls,
+        grand / 1000,
+        p.methods.len()
+    );
+    for (method, (calls, us)) in rows.iter().take(24) {
+        let pct = if grand > 0 {
+            *us as f64 / grand as f64 * 100.0
+        } else {
+            0.0
+        };
+        let avg = if *calls > 0 {
+            *us as f64 / *calls as f64
+        } else {
+            0.0
+        };
+        eprintln!(
+            "[rpc-profile]   {method:<30} calls={calls:<8} total_ms={:<8} avg_us={avg:<9.1} {pct:>5.1}%",
+            us / 1000
+        );
+    }
 }
 
 pub(crate) fn service_javascript_sync_rpc<B>(

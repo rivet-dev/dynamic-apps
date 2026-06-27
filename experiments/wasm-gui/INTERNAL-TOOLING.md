@@ -83,6 +83,13 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       from latency from busy-spin. Sidecar-side, so it sees ALL guests (unlike NET_TRACE which traces
       the calling isolate). (`crates/sidecar/src/state.rs` `wakeprof_record`.) Flag/log only — never
       completes a wait (honors the CLAUDE.md "wakeups are event-driven, never timer-polled" constraint).
+- [x] **P1 RPC service-time profiler** (`SECURE_EXEC_RPC_PROFILE`) — per-method (count, total_us)
+      accumulator on the kernel service thread; dumps a cumulative histogram every N calls
+      (`SECURE_EXEC_RPC_PROFILE_EVERY`, default 2000) sorted by total µs, with `total_service_ms` =
+      total time in the single service thread. ACCUMULATE, never per-call print, so it does not perturb
+      the timing it measures (the observer-effect fix over `SECURE_EXEC_TRACE`). PERF-OPTIMIZATION.md's
+      **P1**: answers "which syscalls dominate the service-thread wait" + the RPC-bound-vs-CPU-bound
+      split. `*poll*` rows are WAIT, not work. (`crates/sidecar/src/execution.rs` `rpc_profile_record`.)
 - [~] **P2 poll fd-state in NET_TRACE** — `net_poll`'s `poll` trace line now also logs, per polled fd,
       `:cl=`(closed) `:ch=`(readChunks len) and a `:srv`/`:pipe`/`:nosock`/`:nosid` tag, plus a `spin0`
       line for zero-wait polls that found nothing ready. Partial coverage of the fd-table-dump below; it
@@ -159,3 +166,8 @@ For the current M8 bug first, maximizing downstream reuse:
   the user-facing catalog at `website/src/content/docs/docs/debugging-tools.mdx` ("Linux Debugging
   Tools", sidebar → Debugging) mirroring the shipped tools to their Linux parallels; keep it in sync
   with this doc (see the header note).
+- 2026-06-27: XU7 starvation (T-J) fixed; pivoted to runtime PERF (`PERF-OPTIMIZATION.md`, targets:
+  single app <10s, 5-app desktop <30s). Added **P1 RPC service-time profiler**
+  (`SECURE_EXEC_RPC_PROFILE`, accumulate-per-method, no observer effect) for the RPC-bound-vs-CPU-bound
+  split. Phase 0 in progress: benchmarks B0 (empty app) / B1 (pure GObject) / B2 (single app) / B3
+  (5-app desktop) + P2 (V8 CPU profile of the guest isolate), then baseline.
