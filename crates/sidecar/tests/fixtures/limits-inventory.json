@@ -929,5 +929,29 @@
 		"path": "packages/core/src/test-runtime.ts",
 		"class": "invariant",
 		"rationale": "Linux ELOOP mirror of the kernel invariant."
+	},
+	{
+		"name": "MAX_RECORD_BYTES",
+		"path": "crates/sidecar/src/sab_ring.rs",
+		"class": "invariant",
+		"rationale": "T1 SAB-ring defensive per-record ceiling bounding the hostile guest-written len field; the effective per-record cap is ring_size-5."
+	},
+	{
+		"name": "MAX_SEGMENTS",
+		"path": "crates/sidecar/src/shm_registry.rs",
+		"class": "policy-deferred",
+		"rationale": "Brokered shared-segment count cap (MIT-SHM); VmLimits wiring follows when the shm path is wired into the runtime."
+	},
+	{
+		"name": "MAX_SEGMENT_BYTES",
+		"path": "crates/sidecar/src/shm_registry.rs",
+		"class": "policy-deferred",
+		"rationale": "Brokered shared-segment per-segment byte cap (MIT-SHM); VmLimits wiring follows when the shm path is wired into the runtime."
+	},
+	{
+		"name": "MAX_TOTAL_BYTES",
+		"path": "crates/sidecar/src/shm_registry.rs",
+		"class": "policy-deferred",
+		"rationale": "Brokered shared-segment total byte cap across the VM (MIT-SHM); VmLimits wiring follows when the shm path is wired into the runtime."
 	}
 ]
