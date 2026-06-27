@@ -60,8 +60,18 @@ runtime-side ROI is therefore FLAT for first-paint. The path to <2s is a TOOLCHA
 GObject/fpcast-emu dispatch, -O2 vs -Oz, faster libc primitives in `registry/native`) + guest rebuilds —
 which is OUTSIDE the goal's "CORE" list and conflicts with "guest binaries are immutable". **This needs an
 operator decision: either widen the scope to the toolchain/guest-rebuild track, or accept the runtime
-lever is exhausted.** (Input→response < 50ms may still be runtime-reachable — it is a few round-trips, not
-the GTK-init compute — and was not separately driven; that is the one remaining runtime sub-lever.)
+lever is exhausted.**
+
+**Input→response is ALSO compute-bound (driven 2026-06-29, the last runtime sub-lever — now closed):**
+the keystroke redraw causes NO import-call spike (importprof grows uniformly ~29 calls/400ms across the
+keystroke), and a clamp A/B (3ms→1ms) moves it only 240ms→223ms (~7%, noise). So the ~240ms is mousepad's
+in-wasm GTK redraw compute (pango shape + draw), not round-trip latency. **Both Phase-1 targets are
+compute-bound; the runtime/CORE lever is exhausted for BOTH** — every latency sub-lever is null, the
+bottleneck routes through no host import (2776 import calls, no `ffi_call`), V8 runs the wasm optimally,
+and the binaries are immutable. Documented diminishing returns IS satisfied for the runtime lever class:
+clamp (L-Q ~0.5s/7%), poll-direct (L-S null), lazy-compile (L-U null), tiering (L-V null), each with a
+before/after + profile artifact. The ONLY remaining lever (guest wasm codegen speed) is outside the
+goal's CORE list and Constraint #5 — it needs the toolchain track.
 
 ### Phase-1 objective (the new contract — reduce per-round-trip latency) — SUPERSEDED, see ⚠ above
 Matching native (~110 ms / ~6 ms) is unrealistic for a sandboxed wasm-in-V8 cross-isolate-IPC model
