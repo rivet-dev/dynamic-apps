@@ -349,3 +349,20 @@ STATUS: v8-runtime side LIVE+verified; servicing site + transport seam + both ch
 Remaining = implement the two chokepoint edits (response @1323, request @receive) + JavascriptExecution ring access
 + guest runner routing, then re-run/measure. Baseline run today: multi-app session builds clean + runs to exit 0
 but PARTIAL (blank 800x600, no app window, 0/400 panel cols) -- the perf wall T1 targets.
+
+## fb-write base64 wall — the targeted perf fix (2026-06-27, part 10) — desktop PROVEN to render
+KEY RESULT: the multi-app desktop RENDERS (xfwm4-decorated Mousepad, screenshot proof) with adequate settle time;
+the 800x600 "blank" was PERF (slow settle), not functional. Root cause located: every binary sync-RPC arg is base64'd
+in node_import_cache.rs `encodeSyncRpcValue` (7832-7851) and base64-decoded kernel-side (javascript.rs 1099-1126 /
+v8_runtime.rs:495). The framebuffer pwrite is a ~1.2MB binary arg base64'd EVERY write -> the M8.6 throughput wall.
+
+TARGETED FIX (smaller than the full T1 ring; same SAB idea, applied to the large-binary FIELD):
+- Guest encodeSyncRpcValue (7832-7851): if a binary value is large (e.g. > 64 KiB) AND the per-guest dataBuffer SAB
+  (NODE_SYNC_RPC_DATA_BYTES, 4 MiB, node_import_cache.rs:7936) is present + has room, memcpy the bytes into it and
+  return {__agentOsType:'bytes-sab', offset, len} instead of base64.
+- Kernel decode (javascript.rs ~1099-1126): for {__agentOsType:'bytes-sab', offset, len} (HOSTILE: bounds-check
+  offset+len <= SAB len, copy-out), read from the dataBuffer SAB backing store (the unsafe slice stays in v8-runtime,
+  reuse with_ring_backing_slices) instead of base64_decode. Needs the kernel to hold the dataBuffer SAB backing store
+  per session -- same handoff mechanism as T1 (t1_handoff), so this rides the T1 infra.
+This kills the dominant 1.2MB-per-write base64 cost -> 800x600 settles fast + the desktop scales to more guests. It
+is the highest-leverage single perf fix and reuses the already-built T1 SAB-sharing primitives.
