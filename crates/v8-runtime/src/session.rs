@@ -1993,6 +1993,28 @@ fn push_deferred_sync_message(
     Ok(())
 }
 
+/// T1 SAB-ring control buffer (perf lever 2). Allocate a per-guest SharedArrayBuffer (16-byte header +
+/// `ring_bytes` data region, matching the layout in crates/sidecar/src/sab_ring.rs), expose it to the guest
+/// context under `global_name`, and return its backing-store handle (Send) so the sidecar servicing side can
+/// read/write the ring via SabRingEndpoint over raw slices. Inert until the kernel-forwarded sync-RPC servicing is
+/// pointed at the returned backing store (the remaining T1 wiring); compiling it verifies the V8 allocation +
+/// global-exposure path against the rusty_v8 API.
+#[allow(dead_code)]
+fn allocate_t1_ring_sab(
+    scope: &mut v8::HandleScope,
+    global_name: &str,
+    ring_bytes: usize,
+) -> Option<v8::SharedRef<v8::BackingStore>> {
+    let sab = v8::SharedArrayBuffer::new(scope, 16 + ring_bytes)?;
+    let backing = sab.get_backing_store();
+    if let Some(key) = v8::String::new(scope, global_name) {
+        let context = scope.get_current_context();
+        let global = context.global(scope);
+        let _ = global.set(scope, key.into(), sab.into());
+    }
+    Some(backing)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

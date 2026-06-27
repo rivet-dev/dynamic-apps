@@ -527,3 +527,14 @@ FIX: a workspace-local `.npmrc` (gitignored via .git/info/exclude) with `store-d
 shared-store prunes. Verified: pnpm rc=0 + a clean 15/15 sab_ring in-crate build. This unblocks the T1 V8 wiring +
 the Root-2 measurement (both need the full node_modules build). Not committed (machine+workspace-specific absolute
 path); recreate with: printf 'store-dir=<ws>/.pnpm-store-local\npackage-import-method=copy\n' > .npmrc && pnpm install.
+
+## Build-env fix (2026-06-27): repair truncated cc-crate extraction in the shared cargo registry
+SYMPTOM: `cargo build` fails with `could not compile cc` -> E0599 (no method `llvm_target`/`from_rustc_target` on
+target::TargetInfo) + E0583 (file not found for module). NOT a code error. ROOT CAUSE: a concurrent-extraction race
+in the SHARED ~/.cargo/registry left cc-1.2.65's src incomplete -- the entire `src/target/` submodule dir
+(apple.rs, generated.rs, llvm.rs, parser.rs) was missing, though target.rs referenced it. The immutable `.crate`
+cache was intact. FIX (deterministic, race-free): extract the cached `.crate` to /tmp and copy its complete `src/.`
+over the truncated installed src:
+  tar xzf ~/.cargo/registry/cache/*/cc-1.2.65.crate -C /tmp/cc-check
+  cp -rf /tmp/cc-check/cc-1.2.65/src/. ~/.cargo/registry/src/*/cc-1.2.65/src/
+This is the same shared-host churn class as the pnpm store + workspace target; the cargo registry is also shared.
