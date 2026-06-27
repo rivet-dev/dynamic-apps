@@ -63,13 +63,15 @@ serving N clients** is throughput-limited by that latency, so a 2nd client's sta
 - **Path A (service-thread multiplex) does NOT fix this** — the service path is idle and guests are already on
   separate threads; multiplexing an idle path adds no concurrency where the bottleneck is latency. **Do not invest
   the multi-day refactor in path A.** (This corrects task #19's framing.)
-- **Path C (adaptive spin-poll transport) — RECOMMENDED FIRST.** The whole problem is the kernel can't wake a blocked
-  guest, forcing the slow wake chain. Have the kernel write responses to the per-guest SAB and guests **spin-poll**
-  it (adaptive: spin a short budget, then fall back to today's blocking path). Cuts the hot-path round-trip ~180µs →
-  ~µs with NO co-location, NO Asyncify, NO TCB-concurrency refactor — just a gated transport change on the SAB infra
-  already in tree. Lowest-cost, lowest-risk shot at the real fix. (Details below.)
-- **Path B (co-location) — fallback if C's spin can't be tuned** — co-locate Xvfb + clients so X round-trips are
-  in-process; eliminates the wake entirely but needs Asyncify/fibers + a cooperative scheduler (heavier). (Details below.)
+- **Path C (adaptive spin-poll transport) — IMPLEMENTED + TESTED + REFUTED.** Built it (gated `SECURE_EXEC_SPIN_POLL`,
+  adaptive budget in session.rs) and measured: solo it looked good (~2× round-trip throughput — free cores absorb the
+  spin), but the **multi-app shell got WORSE: SPIN ON = 0% nonblack vs OFF = 7.3%** (the panel that paints under the
+  blocking path no longer paints). Reason: under multi-guest contention, all the spinning guests (clients + Xvfb +
+  dbus + xfconfd) compete for cores and starve each other worse than blocking — exactly the "busy-spin starves under
+  contention" failure mode. **Reverted (not committed).** Do not pursue spin-poll for multi-app.
+- **Path B (co-location) — the only remaining viable fix.** Co-locate Xvfb + clients (+ the dbus/xfconf service
+  daemons) so X/D-Bus round-trips are in-process function calls, eliminating the cross-thread wake entirely. Needs
+  Asyncify/fibers + a cooperative scheduler (heavier — details below), but it's the one approach not refuted.
 
 **Verify on a quiet box** with `SECURE_EXEC_RPCPROF=1` before building, but the threading model already rules out A.
 
@@ -133,7 +135,17 @@ isolate thread — you cannot "pause A and run B" in one thread without stack-sw
 currently built with it; or (b) a **fiber/coroutine** mechanism for the runner. This is the real cost of Path B
 (not the socket short-circuit, which is comparatively easy once scheduling exists). Evaluate (a) vs (b) first.
 
-## Path C — adaptive spin-poll transport (likely the MOST tractable; no TCB-concurrency, no Asyncify)
+## Path C — adaptive spin-poll transport — ❌ IMPLEMENTED, TESTED, REFUTED (kept for the record)
+
+**RESULT (measured, 2026-06-27):** built it gated (`SECURE_EXEC_SPIN_POLL`, adaptive budget `SECURE_EXEC_SPIN_US`,
+in session.rs) and reverted after measuring. Solo mousepad looked promising (~2× round-trip throughput: 520k vs 280k
+poll RPCs in 50s — free cores absorb a single spinner). **But the multi-app shell got WORSE: SPIN ON = 0% nonblack
+vs OFF = 7.3%** (panel+xfdesktop, 240s). Under multi-guest contention every spinning guest (clients + Xvfb + dbus +
+xfconfd) competes for cores and starves the others worse than blocking — the classic busy-spin-under-contention
+failure. Adaptive backoff didn't save it (the *active* round-trip phase is exactly when all guests want to spin).
+**Not committed.** The design below is left as a record of what was tried and why it fails.
+
+(original proposal:)
 
 The whole problem is that the kernel **can't wake a blocked guest** (V8 `Atomics.wait` is isolate-internal), forcing
 the slow multi-hop wake chain (deferred responder → pipe → worker `readSync` → `Atomics.notify` → main). **Sidestep
