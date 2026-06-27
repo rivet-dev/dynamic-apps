@@ -19,6 +19,10 @@ XFT="${VMXFT:-/tmp/vmxft}"; THEMES="${VMTHEMES:-/tmp/vmthemes}"; WMDATA="${VMXFW
 [ -d "$XFT" ]    || bash "$EXP/scripts/prepare-xftfonts.sh" "$XFT" >/dev/null 2>&1 || true
 bash "$EXP/scripts/prepare-themes.sh" "$THEMES" >/dev/null 2>&1 || true
 bash "$EXP/scripts/prepare-xfwm4.sh" "$WMDATA" >/dev/null 2>&1 || true
+# XKB keymap: activates the X keyboard device so host XTEST `type`/`key` injection works (without it the
+# server logs "XTest keyboard not activated"). Needed for the INJECT responsiveness path.
+XKB="${VMXKB:-/tmp/vmxkb}"
+[ -f "$XKB/xkb/default.xkm" ] || bash "$EXP/scripts/prepare-xkb.sh" "$XKB" >/dev/null 2>&1 || true
 
 # Use SEPARATE vm-trees (each prepare script rm -rf's its own tree); the host MERGES all --vm-tree into
 # the VM root, so the panel channel (panel tree) and the xfwm4 channel (dbus tree) land in the same
@@ -66,14 +70,23 @@ fi
 # spin blocks render. Apps that don't need xfconf (mousepad) should still render if the spin is the blocker.
 DBUSSVC=(--dbus-service "$EXP/xfconfd.wasm")
 [ -n "${NO_XFCONFD:-}" ] && DBUSSVC=()
+# INJECT=";"-separated XTEST commands (e.g. "button 1 320 240;type Hello") drives host input via XTEST
+# to test desktop RESPONSIVENESS (type/click), not just render. INJECT_DELAY_MS (before first inject)
+# + POST_INJECT_DELAY_MS (repaint before capture) are read by the host.
+INJECT_ARGS=()
+if [ -n "${INJECT:-}" ]; then
+  _OLDIFS="$IFS"; IFS=';'; read -ra _ICMDS <<< "$INJECT"; IFS="$_OLDIFS"
+  for _ic in "${_ICMDS[@]}"; do INJECT_ARGS+=(--inject "h=$_ic"); done
+fi
 WM_SETTLE_QUIET_MS=3000 WM_SETTLE_CAP_S=50 APP_SETTLE_MS=4000 \
 timeout "$(( ${TIMEOUT:-120} + 45 ))" env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-120}" \
   --server "$EXP/Xvfb.wasm" \
   --dbus "$EXP/dbus-daemon.wasm" \
   ${DBUSSVC[@]+"${DBUSSVC[@]}"} \
   "${CLIENTS[@]}" \
+  ${INJECT_ARGS[@]+"${INJECT_ARGS[@]}"} \
   --fonts-dir "$FONTS" --locale-dir "$LOCALE" \
-  --vm-tree "$FIX" --vm-tree "$SESS" --vm-tree "$THEMES" --vm-tree "$WMDATA" --vm-tree "$XFT" --vm-tree /tmp/vmschemas \
+  --vm-tree "$FIX" --vm-tree "$SESS" --vm-tree "$THEMES" --vm-tree "$WMDATA" --vm-tree "$XFT" --vm-tree /tmp/vmschemas --vm-tree "$XKB" \
   --fb-out "$FB" --sidecar "$SIDECAR" \
   -- :0 -screen 0 ${W}x${H}x24 -nolisten tcp -nolock -listen local -noreset -fbdir /data \
   > "$OUT" 2>&1 || true
