@@ -372,13 +372,21 @@ The toolchain/fpcast lever's ROI is flattened with documented diminishing return
   PR #153168 is UNMERGED and the WebAssembly maintainer states it won't make GLib work (runtime casts);
   the only shipped path (`ref.test` builtin, wasi-sdk-28+) needs multi-week per-call-site GLib source
   patching. No transparent rebuild exists. (The `__wasi_init_tp` blocker was never reached — moot.)
-- **(b) rusty_v8 bump — FEASIBLE-but-RISKY and INSUFFICIENT.** Feasible: newer rusty_v8 (current pin v8
-  130.0.7) ships prebuilts for the 4 publish targets, but it is a meaningful API-drift change against the
-  pinned-prebuilt setup. Insufficient: the new-V8 wins (trap-handler bounds checks ~25–30% on
-  memory-bound code; speculative `call_indirect` inlining on HOT/TurboFan code) do NOT target this
-  workload's actual dominant costs — which are DISTRIBUTED loading + cold-init + I/O (module base64-decode
-  in JS, V8 compile, ~1500 cold `fs.stat` sync-RPCs), none of them wasm-memory-bound and none hot (cold
-  single-pass Liftoff). Expected ~10–25%, not the ~5× needed for < 2 s. Not worth the bump risk for this.
+- **(b) rusty_v8 bump — FEASIBLE-but-RISKY and INSUFFICIENT (now MEASURED, not just reasoned).** Feasible:
+  latest is v8 150.0.0 (current pin 130.0.7) with prebuilts for the 4 publish targets, but a 20-major-
+  version jump is a meaningful API-drift risk. **Insufficient — measured before/after of (b)'s primary
+  mechanism (wasm inlining) on the CURRENT V8 (130 already has `--wasm-inlining` /
+  `--experimental-wasm-inlining` / `--wasm-inlining-ignore-call-counts`, which force inlining even for the
+  cold single-pass init that newer-V8 speculative inlining would target):**
+  - **B1 bench-gobject:** baseline 0.71 µs → +inlining 0.73 µs → +exp-inlining 0.75 µs = **NULL**.
+  - **B2 mousepad (≥3 runs, BOTH metrics):** baseline fp 10022/10190/9753 ms, ir 308/262/266 ms vs
+    +inlining fp 9968/9751/10529 ms, ir 237/296/228 ms = **NULL** (within noise, nowhere near 5×).
+  Inlining does not move either benchmark or either metric, because the cost is NOT inlinable hot compute —
+  it is DISTRIBUTED loading + cold-init + I/O (JS base64-decode of the 23 MB module, V8 compile, ~1500 cold
+  `fs.stat` sync-RPCs), none wasm-memory-bound (so the trap-handler ~25–30% win also can't apply) and none
+  hot (so M137 speculative inlining can't apply — first-paint is single-pass Liftoff). A newer V8's
+  incremental inlining cannot turn this measured NULL into the ~5× needed. Not worth the bump risk.
+  Artifact: `b2c-*` / `b1i2-*` logs.
 - **Verdict: the toolchain lever cannot reach the targets.** Targets remain UNMET (~9.77 s / ~250 ms).
   The REAL path is the RUNTIME loading/I-O levers L-W/L-X/L-Y (see verdict log 2026-06-29 top) — a new,
   CORE-scoped direction, not the toolchain. ⇒ retarget Phase-2 to those (new objective/goal).
