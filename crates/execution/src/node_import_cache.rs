@@ -11130,10 +11130,10 @@ function callSyncRpc(method, args = []) {
       const M = (globalThis.__rpcM = globalThis.__rpcM || {});
       const m = (M[method] = M[method] || { n: 0, ms: 0 });
       m.n++; m.ms += _dt;
-      const now = Date.now();
-      if (!globalThis.__rpcLast) globalThis.__rpcLast = now;
-      if (now - globalThis.__rpcLast >= 5000) {
-        globalThis.__rpcLast = now;
+      // Count-based trigger (every 20k calls): the guest wall clock (Date.now()) is frozen/virtualized here, so a
+      // time-interval trigger never fires. performance.now()-based _dt per-call timing is still accurate.
+      globalThis.__rpcCalls = (globalThis.__rpcCalls || 0) + 1;
+      if (globalThis.__rpcCalls % 20000 === 0) {
         let tn = 0, tms = 0; for (const k in M) { tn += M[k].n; tms += M[k].ms; }
         const top = Object.entries(M).sort((a, b) => b[1].ms - a[1].ms).slice(0, 6)
           .map(([k, v]) => `${k}(n=${v.n},ms=${v.ms.toFixed(0)},us/call=${(v.ms * 1000 / v.n).toFixed(0)})`).join(' ');

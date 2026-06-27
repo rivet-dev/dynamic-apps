@@ -981,6 +981,56 @@ fn wasm_internal_rpc_trace_enabled() -> bool {
     })
 }
 
+/// Host-side sync-RPC profiler (SECURE_EXEC_RPCPROF=1). Unlike the guest-side profiler it uses the real host clock
+/// (immune to the frozen guest wall clock) and sees EVERY wasm-guest sync RPC (the guest makes many direct
+/// `__agentOsSyncRpc.callSync` calls that bypass the guest `callSyncRpc` wrapper). Measures host servicing time per
+/// method; comparing the summed time to wall-clock reveals whether startup is RPC-bound (Root-2) or guest-compute-
+/// bound (Root-1). Accumulates per method; prints the top methods every 20k calls to stderr.
+fn rpcprof_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_RPCPROF").map(|v| v == "1").unwrap_or(false))
+}
+
+type RpcProfRegistry = std::sync::Mutex<(u64, std::collections::HashMap<String, (u64, u128)>)>;
+
+fn rpcprof_registry() -> &'static RpcProfRegistry {
+    static REG: std::sync::OnceLock<RpcProfRegistry> = std::sync::OnceLock::new();
+    REG.get_or_init(|| std::sync::Mutex::new((0, std::collections::HashMap::new())))
+}
+
+struct RpcProfGuard {
+    method: String,
+    start: std::time::Instant,
+}
+
+impl Drop for RpcProfGuard {
+    fn drop(&mut self) {
+        let dt = self.start.elapsed().as_nanos();
+        if let Ok(mut guard) = rpcprof_registry().lock() {
+            guard.0 += 1;
+            let entry = guard.1.entry(std::mem::take(&mut self.method)).or_insert((0, 0));
+            entry.0 += 1;
+            entry.1 += dt;
+            if guard.0 % 20000 == 0 {
+                let total = guard.0;
+                let mut rows: Vec<(String, u64, u128)> =
+                    guard.1.iter().map(|(k, v)| (k.clone(), v.0, v.1)).collect();
+                rows.sort_by(|a, b| b.2.cmp(&a.2));
+                let total_ms: u128 = rows.iter().map(|r| r.2).sum::<u128>() / 1_000_000;
+                let top: String = rows
+                    .iter()
+                    .take(8)
+                    .map(|(k, n, ns)| {
+                        format!("{k}(n={n},ms={},us/call={})", ns / 1_000_000, ns / 1000 / (*n as u128).max(1))
+                    })
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                eprintln!("[rpcprof-host] totalN={total} servicedMs={total_ms} | {top}");
+            }
+        }
+    }
+}
+
 fn handle_internal_wasm_sync_rpc_request(
     execution: &mut JavascriptExecution,
     internal_sync_rpc: &mut WasmInternalSyncRpc,
@@ -989,6 +1039,11 @@ fn handle_internal_wasm_sync_rpc_request(
     if wasm_internal_rpc_trace_enabled() {
         eprintln!("[rpc-trace-wasm-internal] -> {}", request.method);
     }
+    let _prof = if rpcprof_enabled() {
+        Some(RpcProfGuard { method: request.method.clone(), start: std::time::Instant::now() })
+    } else {
+        None
+    };
     // Module-resolution sync RPCs (the wasm runner imports node builtins +
     // its own ESM) are serviced host-directly via the execution's own
     // translator; the prewarm has no kernel/service loop.
