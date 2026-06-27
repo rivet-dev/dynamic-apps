@@ -366,6 +366,49 @@ impl ActiveProcess {
             next_sqlite_statement_id: 0,
             module_resolution_cache: secure_exec_execution::LocalModuleResolutionCache::default(),
             socket_readiness: std::sync::Arc::new(crate::state::SocketReadiness::new()),
+            unix_inline_registry: std::sync::Arc::new(std::sync::Mutex::new(
+                std::collections::HashMap::new(),
+            )),
+        }
+    }
+
+    /// Override the inline-net-drain registry with the one shared into this
+    /// process's event-bridge thread (so both sides reference the same map). Set
+    /// at spawn time, before the first unix socket is created.
+    pub(crate) fn with_unix_inline_registry(
+        mut self,
+        registry: crate::state::UnixInlineRegistry,
+    ) -> Self {
+        self.unix_inline_registry = registry;
+        self
+    }
+
+    /// Mirror a newly created unix socket into the inline-net-drain registry so
+    /// this process's event-bridge thread can drain it without the service loop.
+    /// Call BEFORE inserting the socket into `unix_sockets`.
+    pub(crate) fn register_inline_unix_socket(
+        &self,
+        socket_id: &str,
+        socket: &ActiveUnixSocket,
+    ) {
+        if let Ok(mut registry) = self.unix_inline_registry.lock() {
+            registry.insert(
+                socket_id.to_owned(),
+                crate::state::InlineSock {
+                    events: std::sync::Arc::clone(&socket.events),
+                    event_sender: socket.event_sender.clone(),
+                    remote_path: socket.remote_path.clone(),
+                },
+            );
+        }
+    }
+
+    /// Drop a unix socket from the inline-net-drain registry. Call whenever the
+    /// socket is removed from `unix_sockets` so the bridge thread stops seeing it
+    /// (after which an inline drain of that id falls through to the service loop).
+    pub(crate) fn deregister_inline_unix_socket(&self, socket_id: &str) {
+        if let Ok(mut registry) = self.unix_inline_registry.lock() {
+            registry.remove(socket_id);
         }
     }
 
@@ -1835,7 +1878,7 @@ impl ActiveUnixSocket {
 
         Ok(Self {
             stream,
-            events,
+            events: Arc::new(Mutex::new(events)),
             event_sender: sender,
             listener_id,
             local_path,
@@ -1847,11 +1890,15 @@ impl ActiveUnixSocket {
     }
 
     fn poll(&mut self, wait: Duration) -> Result<Option<JavascriptTcpSocketEvent>, SidecarError> {
+        let events = self
+            .events
+            .lock()
+            .map_err(|_| SidecarError::InvalidState(String::from("Unix socket events lock poisoned")))?;
         // Always check for an already-queued event first. `recv_timeout(Duration::ZERO)` can return
         // `Timeout` while a message is pending (it compares the deadline before draining), so a guest
         // non-blocking drain (`net.poll(fd, 0)`) could MISS a delivered request and park — the cross-VM
         // poll stall this fixes. For wait>0 this also returns ready data without sleeping.
-        match self.events.try_recv() {
+        match events.try_recv() {
             Ok(event) => return Ok(Some(event)),
             Err(mpsc::TryRecvError::Disconnected) => return Ok(None),
             Err(mpsc::TryRecvError::Empty) => {}
@@ -1859,7 +1906,7 @@ impl ActiveUnixSocket {
         if wait.is_zero() {
             return Ok(None);
         }
-        match self.events.recv_timeout(wait) {
+        match events.recv_timeout(wait) {
             Ok(event) => Ok(Some(event)),
             Err(RecvTimeoutError::Timeout) => Ok(None),
             Err(RecvTimeoutError::Disconnected) => Ok(None),
@@ -3088,6 +3135,22 @@ where
         let kernel_pid = kernel_handle.pid();
         crate::state::wakeprof_set_name(kernel_pid, &resolved.entrypoint);
 
+        // SECURE_EXEC_INLINE_DISPATCH gate (default OFF). When on, build the
+        // lever-A net-drain AND a C-lite kernel poll handle and hand them to the
+        // bridge thread; when off, pass `None` so every net.poll / fd.poll routes
+        // to the single shared service task (byte-for-byte the committed default).
+        let inline_dispatch = inline_dispatch_enabled();
+        let fd_poll_handle = if inline_dispatch {
+            Some((vm.kernel.poll_handle(), kernel_pid))
+        } else {
+            None
+        };
+        let (unix_inline_registry, unix_inline_drain) = new_unix_inline_drain(fd_poll_handle);
+        let net_drain_arg = if inline_dispatch {
+            Some(unix_inline_drain)
+        } else {
+            None
+        };
         let (execution, process_env) = match resolved.runtime {
             GuestRuntimeKind::JavaScript => {
                 let inline_code = load_javascript_entrypoint_source(
@@ -3109,7 +3172,7 @@ where
                     .map(|reader| Box::new(reader) as Box<dyn ModuleFsReader + Send>);
                 let execution = self
                     .javascript_engine
-                    .start_execution_with_module_reader(
+                    .start_execution_with_bridges(
                         StartJavascriptExecutionRequest {
                             guest_runtime: guest_runtime_identity(vm, None, None),
                             vm_id: vm_id.clone(),
@@ -3123,6 +3186,7 @@ where
                             inline_code,
                         },
                         module_reader,
+                        net_drain_arg,
                     )
                     .map_err(javascript_error)?;
                 (ActiveExecution::Javascript(execution), env.clone())
@@ -3205,16 +3269,19 @@ where
                 });
                 let execution = self
                     .wasm_engine
-                    .start_execution(StartWasmExecutionRequest {
-                        vm_id: vm_id.clone(),
-                        context_id: context.context_id,
-                        argv: resolved.process_args.clone(),
-                        env: env.clone(),
-                        cwd: resolved.host_cwd.clone(),
-                        permission_tier: execution_wasm_permission_tier(wasm_permission_tier),
-                        limits: wasm_limits,
-                        guest_runtime: wasm_guest_runtime,
-                    })
+                    .start_execution_with_net_drain(
+                        StartWasmExecutionRequest {
+                            vm_id: vm_id.clone(),
+                            context_id: context.context_id,
+                            argv: resolved.process_args.clone(),
+                            env: env.clone(),
+                            cwd: resolved.host_cwd.clone(),
+                            permission_tier: execution_wasm_permission_tier(wasm_permission_tier),
+                            limits: wasm_limits,
+                            guest_runtime: wasm_guest_runtime,
+                        },
+                        net_drain_arg,
+                    )
                     .map_err(wasm_error)?;
                 (ActiveExecution::Wasm(Box::new(execution)), env)
             }
@@ -3227,7 +3294,8 @@ where
                 .with_kernel_stdin_writer_fd(kernel_stdin_writer_fd)
                 .with_guest_cwd(resolved.guest_cwd.clone())
                 .with_env(process_env)
-                .with_host_cwd(resolved.host_cwd.clone()),
+                .with_host_cwd(resolved.host_cwd.clone())
+                .with_unix_inline_registry(unix_inline_registry),
         );
         self.bridge.emit_lifecycle(&vm_id, LifecycleState::Busy)?;
 
@@ -5660,22 +5728,40 @@ where
             Some(u64::from(parent_kernel_pid)),
         );
 
+        // C-lite: a worker thread shares the parent's kernel pid + fd table, so
+        // give its bridge thread an fd-poll-only inline drain (registry = None so
+        // net.poll still routes to the service loop). Worker threads, not the main
+        // process, drive the hot X connection-fd polling, so without this the
+        // dominant `__kernel_fd_poll` hops never leave the service-loop funnel.
+        let thread_net_drain: Option<std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>> =
+            if inline_dispatch_enabled() {
+                Some(std::sync::Arc::new(UnixInlineNetDrain::new(
+                    None,
+                    Some((vm.kernel.poll_handle(), parent_kernel_pid)),
+                )))
+            } else {
+                None
+            };
+
         let context = self.wasm_engine.create_context(CreateWasmContextRequest {
             vm_id: vm_id.to_owned(),
             module_path: Some(module_path.clone()),
         });
         let execution = self
             .wasm_engine
-            .start_execution(StartWasmExecutionRequest {
-                vm_id: vm_id.to_owned(),
-                context_id: context.context_id,
-                argv: vec![module_path],
-                env,
-                cwd: parent_host_cwd.clone(),
-                permission_tier: execution_wasm_permission_tier(WasmPermissionTier::Full),
-                limits: wasm_limits,
-                guest_runtime: wasm_guest_runtime,
-            })
+            .start_execution_with_net_drain(
+                StartWasmExecutionRequest {
+                    vm_id: vm_id.to_owned(),
+                    context_id: context.context_id,
+                    argv: vec![module_path],
+                    env,
+                    cwd: parent_host_cwd.clone(),
+                    permission_tier: execution_wasm_permission_tier(WasmPermissionTier::Full),
+                    limits: wasm_limits,
+                    guest_runtime: wasm_guest_runtime,
+                },
+                thread_net_drain,
+            )
             .map_err(wasm_error)?;
 
         // Register the worker as a TOP-LEVEL active process (not a child of the parent) so the event
@@ -12767,6 +12853,7 @@ fn terminate_child_process_tree(kernel: &mut SidecarKernel, process: &mut Active
 
     let unix_sockets = process.unix_sockets.keys().cloned().collect::<Vec<_>>();
     for socket_id in unix_sockets {
+        process.deregister_inline_unix_socket(&socket_id);
         if let Some(socket) = process.unix_sockets.remove(&socket_id) {
             let _ = socket.close();
         }
@@ -13823,6 +13910,212 @@ pub(crate) fn javascript_sync_rpc_bytes_value(bytes: &[u8]) -> Value {
         "__agentOsType": "bytes",
         "base64": base64::engine::general_purpose::STANDARD.encode(bytes),
     })
+}
+
+/// Shared `net.poll` per-event → result-Value mapping, called from BOTH the
+/// service-loop handler and the inline F10 fast path
+/// ([`UnixInlineNetDrain::try_poll`]) so the two cannot diverge on the wire
+/// shapes the guest receives. Returns `Some(value)` for the data / end / error /
+/// no-event cases (none of which mutate process state); returns `None` for a
+/// `Close` event, which the caller must handle itself (it removes the socket
+/// from `unix_sockets`/`tcp_sockets` and releases the listener connection — work
+/// the inline path cannot do, so it falls back to the service loop on Close).
+fn javascript_net_poll_event_value(event: Option<&JavascriptTcpSocketEvent>) -> Option<Value> {
+    match event {
+        Some(JavascriptTcpSocketEvent::Data(chunk)) => {
+            Some(json!({ "type": "data", "data": javascript_sync_rpc_bytes_value(chunk) }))
+        }
+        Some(JavascriptTcpSocketEvent::End) => Some(json!({ "type": "end" })),
+        Some(JavascriptTcpSocketEvent::Error { code, message }) => {
+            Some(json!({ "type": "error", "code": code, "message": message }))
+        }
+        Some(JavascriptTcpSocketEvent::Close { .. }) => None,
+        None => Some(Value::Null),
+    }
+}
+
+/// Inline servicer for the hot non-blocking unix `net.poll` drain (F10-INLINE),
+/// handed to a process's V8/wasm event-bridge thread via
+/// [`secure_exec_execution::InlineNetDrain`]. It holds an `Arc` clone of the
+/// process's [`UnixInlineRegistry`](crate::state::UnixInlineRegistry) (which the
+/// single service loop keeps in sync with `unix_sockets`) and drains a socket's
+/// event channel directly, off the single shared `select!` task — removing the
+/// dispatch-funnel latency (D16 `d12`) for those hops. It only handles cases
+/// that need NO process-state mutation; a `Close` (socket removal) or unknown id
+/// in the single form falls back to the service loop.
+pub(crate) struct UnixInlineNetDrain {
+    /// Per-process inline unix `net.poll` registry (lever A). `None` disables the
+    /// net.poll fast-path for this drain so every net.poll falls through to the
+    /// service loop. Worker threads use `None`: they share the parent's kernel
+    /// pid/fd table (so fd-poll inlines correctly) but their unix sockets are not
+    /// mirrored into a registry this drain can see, and inlining net.poll against
+    /// an empty registry would wrongly report "no event" for a ready socket.
+    registry: Option<crate::state::UnixInlineRegistry>,
+    /// Lock-free kernel poll handle + owning pid for the C-lite inline
+    /// `__kernel_fd_poll` fast-path. `None` keeps every `__kernel_fd_poll` on the
+    /// service loop (e.g. when the inline-dispatch gate is off).
+    fd_poll: Option<(secure_exec_kernel::kernel::KernelPollHandle, u32)>,
+}
+
+impl UnixInlineNetDrain {
+    pub(crate) fn new(
+        registry: Option<crate::state::UnixInlineRegistry>,
+        fd_poll: Option<(secure_exec_kernel::kernel::KernelPollHandle, u32)>,
+    ) -> Self {
+        Self { registry, fd_poll }
+    }
+}
+
+/// Build a fresh per-process inline-net-drain registry plus the
+/// [`InlineNetDrain`](secure_exec_execution::InlineNetDrain) view over it. The
+/// registry is stored on the `ActiveProcess` (so the service loop keeps it in
+/// sync with `unix_sockets`); the drain is handed to that process's event-bridge
+/// thread at execution start. Both reference the same map. `fd_poll` (Some only
+/// when the inline-dispatch gate is on) wires the C-lite kernel-fd-poll handle.
+fn new_unix_inline_drain(
+    fd_poll: Option<(secure_exec_kernel::kernel::KernelPollHandle, u32)>,
+) -> (
+    crate::state::UnixInlineRegistry,
+    std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>,
+) {
+    let registry: crate::state::UnixInlineRegistry =
+        std::sync::Arc::new(std::sync::Mutex::new(std::collections::HashMap::new()));
+    let drain = std::sync::Arc::new(UnixInlineNetDrain::new(Some(registry.clone()), fd_poll))
+        as std::sync::Arc<dyn secure_exec_execution::InlineNetDrain>;
+    (registry, drain)
+}
+
+/// Process-wide gate for the C-lite / lever-A inline-dispatch fast-paths
+/// (`SECURE_EXEC_INLINE_DISPATCH`). Default OFF: every `net.poll` /
+/// `__kernel_fd_poll` routes to the single shared service task (byte-for-byte the
+/// committed behavior). Set to `1`/`true` to inject the inline net-drain + kernel
+/// poll handle so those hops are serviced off the funnel on the per-session
+/// bridge thread.
+fn inline_dispatch_enabled() -> bool {
+    // DEFAULT-ON (2026-06-30): inline net.poll + non-blocking __kernel_fd_poll on the per-session bridge
+    // thread (levers A + C-lite). Measured against the TRUSTWORTHY glyph-render ir metric it is a clean
+    // ~32% win (~105ms→~71ms, render green, fp flat, no CPU-spin) — the earlier "null" was a confounded
+    // metric. Opt out with SECURE_EXEC_INLINE_DISPATCH=0.
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_INLINE_DISPATCH")
+            .map(|v| !(v == "0" || v.eq_ignore_ascii_case("false")))
+            .unwrap_or(true)
+    })
+}
+
+impl secure_exec_execution::InlineNetDrain for UnixInlineNetDrain {
+    fn try_poll(&self, socket_ids: &[String], single: bool) -> Option<Value> {
+        // No registry (e.g. a worker-thread drain) => net.poll always routes to
+        // the service loop. Avoids reporting a false "no event" for sockets this
+        // drain cannot see.
+        let registry = self.registry.as_ref()?;
+        // Snapshot the InlineSocks under a brief registry lock so we never hold
+        // the registry lock while touching a socket's event channel (the service
+        // loop's `poll()` locks the channel but never the registry, so this lock
+        // ordering cannot deadlock against it).
+        let socks: Vec<Option<crate::state::InlineSock>> = {
+            let registry = registry.lock().ok()?;
+            socket_ids
+                .iter()
+                .map(|id| registry.get(id).cloned())
+                .collect()
+        };
+
+        // Events consumed so far (one per socket). On a bail (a `Close`, an
+        // unknown id in the single form, or a poisoned channel lock) we re-queue
+        // them to their senders so the service loop re-poll observes them — never
+        // losing a delivered event. `Close` is terminal (the reader sends it last
+        // and exits), so re-queueing it preserves ordering.
+        let mut consumed: Vec<(Sender<JavascriptTcpSocketEvent>, JavascriptTcpSocketEvent)> =
+            Vec::new();
+        let mut values: Vec<Value> = Vec::with_capacity(socks.len());
+
+        for sock in &socks {
+            let sock = match sock {
+                Some(sock) => sock,
+                None => {
+                    // Unknown id. The single-socket service handler returns a
+                    // typed error for this, so fall through; the batch handler
+                    // pushes Null and continues, so match that here.
+                    if single {
+                        for (sender, event) in consumed.drain(..) {
+                            let _ = sender.send(event);
+                        }
+                        return None;
+                    }
+                    values.push(Value::Null);
+                    continue;
+                }
+            };
+
+            let event = match sock.events.lock() {
+                Ok(events) => match events.try_recv() {
+                    Ok(event) => Some(event),
+                    // Empty or Disconnected: no event. `poll()` maps Disconnected
+                    // to `None` → `Value::Null` too, so this matches the service
+                    // loop exactly.
+                    Err(_) => None,
+                },
+                Err(_) => {
+                    for (sender, event) in consumed.drain(..) {
+                        let _ = sender.send(event);
+                    }
+                    return None;
+                }
+            };
+
+            if matches!(event, Some(JavascriptTcpSocketEvent::Close { .. })) {
+                // The service loop owns socket removal on Close. Re-queue every
+                // consumed event plus this Close, then bail.
+                for (sender, ev) in consumed.drain(..) {
+                    let _ = sender.send(ev);
+                }
+                if let Some(ev) = event {
+                    let _ = sock.event_sender.send(ev);
+                }
+                return None;
+            }
+
+            let value = javascript_net_poll_event_value(event.as_ref()).unwrap_or(Value::Null);
+            if let Some(ev) = event {
+                consumed.push((sock.event_sender.clone(), ev));
+            }
+            values.push(value);
+        }
+
+        if single {
+            values.into_iter().next()
+        } else {
+            Some(Value::Array(values))
+        }
+    }
+
+    fn try_fd_poll(&self, fds: &[u32]) -> Option<Value> {
+        let (handle, kernel_pid) = self.fd_poll.as_ref()?;
+        // Mirror the service handler: an empty fd list yields an empty array,
+        // never a kernel poll.
+        if fds.is_empty() {
+            return Some(json!([]));
+        }
+        let poll_fds: Vec<PollFd> = fds.iter().map(|&fd| PollFd::new(fd, POLLIN)).collect();
+        // Non-blocking inline poll with the kernel's bounded event-driven wait
+        // baked in (busy-spin guard). On a kernel error (e.g. the pid is gone),
+        // return None so the service loop surfaces the typed error.
+        let result = match handle.poll_fds_nonblocking(EXECUTION_DRIVER_NAME, *kernel_pid, poll_fds) {
+            Ok(result) => result,
+            Err(err) => {
+                if pipe_trace_enabled() {
+                    eprintln!(
+                        "[fdpoll-fallthrough] pid={} fds={:?} err={}",
+                        kernel_pid, fds, err
+                    );
+                }
+                return None;
+            }
+        };
+        Some(json!(kernel_fd_poll_revents(&result)))
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -16824,7 +17117,24 @@ fn service_javascript_kernel_fd_poll_sync_rpc(
     let result = kernel
         .poll_fds(EXECUTION_DRIVER_NAME, process.kernel_pid, poll_fds, 0)
         .map_err(kernel_error)?;
-    let revents: Vec<u16> = result
+    let revents = kernel_fd_poll_revents(&result);
+    if pipe_trace_enabled() && revents.iter().any(|&r| r != 0) {
+        eprintln!(
+            "[pipetrace] pid={} thread={} poll  fds={:?} -> revents={:?}",
+            process.kernel_pid, process.is_thread, fd_list, revents
+        );
+    }
+    Ok(json!(revents))
+}
+
+/// Map a kernel [`PollResult`] to the per-fd revent bitmask list the
+/// `__kernel_fd_poll` wire result carries (POLLIN → 0x0001, POLLHUP → 0x0010).
+/// Shared by the service-loop handler
+/// ([`service_javascript_kernel_fd_poll_sync_rpc`]) and the inline C-lite
+/// fast-path ([`UnixInlineNetDrain::try_fd_poll`]) so the two cannot diverge on
+/// the wire shape the guest receives.
+fn kernel_fd_poll_revents(result: &secure_exec_kernel::poll::PollResult) -> Vec<u16> {
+    result
         .fds
         .iter()
         .map(|p| {
@@ -16837,14 +17147,7 @@ fn service_javascript_kernel_fd_poll_sync_rpc(
             }
             bits
         })
-        .collect();
-    if pipe_trace_enabled() && revents.iter().any(|&r| r != 0) {
-        eprintln!(
-            "[pipetrace] pid={} thread={} poll  fds={:?} -> revents={:?}",
-            process.kernel_pid, process.is_thread, fd_list, revents
-        );
-    }
-    Ok(json!(revents))
+        .collect()
 }
 
 /// Write to a guest kernel fd (the kernel-pipe write end).
@@ -20231,6 +20534,7 @@ where
                     Arc::clone(&process.socket_readiness),
                 )?;
                 let socket_id = process.allocate_unix_socket_id();
+                process.register_inline_unix_socket(&socket_id, &socket);
                 process.unix_sockets.insert(socket_id.clone(), socket);
                 Ok(json!({
                     "socketId": socket_id,
@@ -20456,18 +20760,15 @@ where
                         events.push(Value::Null);
                         continue;
                     };
-                    let ev = match event {
+                    let ev = match &event {
                         Some(JavascriptTcpSocketEvent::Data(chunk)) => {
-                            xtrace_dump(drain_path.as_deref(), "DRAIN", &chunk);
+                            xtrace_dump(drain_path.as_deref(), "DRAIN", chunk);
                             waketrace_drain(drain_path.as_deref(), chunk.len());
                             __dhp_bytes += chunk.len();
-                            json!({ "type": "data", "data": javascript_sync_rpc_bytes_value(&chunk) })
-                        }
-                        Some(JavascriptTcpSocketEvent::End) => json!({ "type": "end" }),
-                        Some(JavascriptTcpSocketEvent::Error { code, message }) => {
-                            json!({ "type": "error", "code": code, "message": message })
+                            javascript_net_poll_event_value(event.as_ref()).unwrap_or(Value::Null)
                         }
                         Some(JavascriptTcpSocketEvent::Close { had_error }) => {
+                            let had_error = *had_error;
                             if let Some(socket) = process.tcp_sockets.remove(sid) {
                                 if let Some(listener_id) = socket.listener_id.as_deref() {
                                     if let Some(listener) =
@@ -20485,9 +20786,11 @@ where
                                     }
                                 }
                             }
+                            process.deregister_inline_unix_socket(sid);
                             json!({ "type": "close", "hadError": had_error })
                         }
-                        None => Value::Null,
+                        // End / Error / no-event: shared shape (see helper).
+                        _ => javascript_net_poll_event_value(event.as_ref()).unwrap_or(Value::Null),
                     };
                     events.push(ev);
                 }
@@ -20518,31 +20821,15 @@ where
                 )));
             };
 
-            match event {
+            match &event {
                 Some(JavascriptTcpSocketEvent::Data(chunk)) => {
-                    xtrace_dump(drain_path.as_deref(), "DRAIN", &chunk);
+                    xtrace_dump(drain_path.as_deref(), "DRAIN", chunk);
                     waketrace_drain(drain_path.as_deref(), chunk.len());
                     drainhostprof_finish!(true, chunk.len());
-                    Ok(json!({
-                        "type": "data",
-                        "data": javascript_sync_rpc_bytes_value(&chunk),
-                    }))
-                }
-                Some(JavascriptTcpSocketEvent::End) => {
-                    drainhostprof_finish!(false, 0);
-                    Ok(json!({
-                    "type": "end",
-                    }))
-                }
-                Some(JavascriptTcpSocketEvent::Error { code, message }) => {
-                    drainhostprof_finish!(false, 0);
-                    Ok(json!({
-                    "type": "error",
-                    "code": code,
-                    "message": message,
-                    }))
+                    Ok(javascript_net_poll_event_value(event.as_ref()).unwrap_or(Value::Null))
                 }
                 Some(JavascriptTcpSocketEvent::Close { had_error }) => {
+                    let had_error = *had_error;
                     if let Some(socket) = process.tcp_sockets.remove(socket_id) {
                         if let Some(listener_id) = socket.listener_id.as_deref() {
                             if let Some(listener) = process.tcp_listeners.get_mut(listener_id) {
@@ -20556,15 +20843,17 @@ where
                             }
                         }
                     }
+                    process.deregister_inline_unix_socket(socket_id);
                     drainhostprof_finish!(false, 0);
                     Ok(json!({
                         "type": "close",
                         "hadError": had_error,
                     }))
                 }
-                None => {
+                // End / Error / no-event: shared shape (see helper).
+                _ => {
                     drainhostprof_finish!(false, 0);
-                    Ok(Value::Null)
+                    Ok(javascript_net_poll_event_value(event.as_ref()).unwrap_or(Value::Null))
                 }
             }
         }
@@ -20937,6 +21226,7 @@ where
                     if let Some(listener) = process.unix_listeners.get_mut(listener_id) {
                         listener.register_connection(&socket_id);
                     }
+                    process.register_inline_unix_socket(&socket_id, &socket);
                     process.unix_sockets.insert(socket_id.clone(), socket);
                     Ok(json!({
                         "type": "connection",
@@ -21061,6 +21351,7 @@ where
                     if let Some(listener) = process.unix_listeners.get_mut(listener_id) {
                         listener.register_connection(&socket_id);
                     }
+                    process.register_inline_unix_socket(&socket_id, &socket);
                     process.unix_sockets.insert(socket_id.clone(), socket);
                     javascript_net_json_string(
                         json!({
@@ -21174,6 +21465,7 @@ where
                 let socket = process.unix_sockets.remove(socket_id).ok_or_else(|| {
                     SidecarError::InvalidState(format!("unknown net socket {socket_id}"))
                 })?;
+                process.deregister_inline_unix_socket(socket_id);
                 if let Some(listener_id) = socket.listener_id.as_deref() {
                     if let Some(listener) = process.unix_listeners.get_mut(listener_id) {
                         listener.release_connection(socket_id);
