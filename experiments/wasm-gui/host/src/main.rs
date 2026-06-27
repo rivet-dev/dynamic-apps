@@ -1141,6 +1141,8 @@ async fn run_xdemo(
                     "SECURE_EXEC_RPCPROF",
                     "SECURE_EXEC_RPC_PROFILE",
                     "SECURE_EXEC_POLLSTAT",
+                    "SECURE_EXEC_IMPORTPROF",
+                    "SECURE_EXEC_IMPORTPROF_EVERY",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
                     if let Ok(v) = std::env::var(k) {
@@ -1228,6 +1230,8 @@ async fn run_xdemo(
                     "SECURE_EXEC_RPCPROF",
                     "SECURE_EXEC_RPC_PROFILE",
                     "SECURE_EXEC_POLLSTAT",
+                    "SECURE_EXEC_IMPORTPROF",
+                    "SECURE_EXEC_IMPORTPROF_EVERY",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
                     if let Ok(v) = std::env::var(k) {

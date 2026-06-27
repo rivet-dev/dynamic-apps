@@ -53,21 +53,31 @@ The per-cause split is currently a *hypothesis*. These two artifacts replace the
   attribution. The DELTA vs P1 (sidecar service time) = bridge/marshaling overhead; total guest-RPC-µs
   vs wall = round-trip-bound vs compute-bound. Uses the real clock **only** under the determinism
   guardrail in §7. (`crates/execution/src/node_import_cache.rs` `callSyncRpc`, `__rpcprof`.)
-- **P2 — V8 CPU profile of the guest isolate. ALREADY BUILT (`SECURE_EXEC_V8PROF=1`).** Enables V8's
-  `--prof` tick profiler (`crates/v8-runtime/src/isolate.rs` `init_v8_platform`): V8 writes
-  `/tmp/secure-exec-v8.log` (code-creation incl. wasm function names + sampled ticks); symbolize with
-  `experiments/wasm-gui/scripts/v8prof-top.py` to get top self-time functions. This is the CPU profile
-  — captures wasm/`ffi_call`/JS self-time. (Earlier wrong note: rusty_v8 v130 has no `v8::CpuProfiler`,
-  so I assumed an Inspector build was needed — but the `--prof` tick profiler was already wired and is
-  sufficient. The Inspector `Profiler` domain is an unnecessary alternative.) It's SIDECAR-side env, so
-  it sidesteps the guest-env-gate gap entirely.
-  - **Guest-env-gate gap (blocker for guest-side probes):** `SECURE_EXEC_*` debug vars set
-    `globalThis.__rpcprof`/`__pollstat` in the runner (node_import_cache.rs ~8817), but they did NOT
-    activate for **X-client** guests even after adding them to the host cenv allowlist + rebuilding —
-    `__pollstat` never fired. The host-side `[rpcprof-host]` aggregator works (it reads the RPC stream
-    host-side), which is why the RPC numbers exist. Fix the guest `process.env` plumbing for X clients
-    (or lower the dump thresholds + add a startup "[gate] enabled" confirmation to diagnose) before
-    relying on guest-side counters.
+- **P2 — V8 CPU profile of the guest isolate. ★ REVISED (side-thread research): `--prof` was the WRONG
+  tool, not "wasm is unprofilable".** `SECURE_EXEC_V8PROF=1` wires V8's legacy `--prof` TEXT log
+  (`crates/v8-runtime/src/isolate.rs`), which is the *one* V8 profiler that does NOT symbolize wasm —
+  hence the `wasm-function[N]` index names + the empty top-of-stack (the "blind" pivot to print-timing).
+  **The real picture:** wasm IS fully profilable; two preconditions, both ours to set: (1) the `.wasm`
+  must carry its **name section** (`SECURE_EXEC_KEEP_NAMES=1` — default/release strips it → 0 symbols);
+  (2) use a reader that consumes the name section. Options, best first:
+  - **Proper P2 = V8 Inspector `Profiler` domain → `.cpuprofile`** (the engine Chrome DevTools uses):
+    `Profiler.enable/start/stop` over an inspector session in the rusty_v8 embed; returns JSON with wasm
+    frames **already named**, self-time included; opens in DevTools / speedscope as a flamegraph. Node
+    `--cpu-prof` is the same machinery.
+  - **`--perf-prof` jitdump + Linux `perf`** — whole-stack flamegraph that includes our C++/JS import
+    handlers AND the wasm guest in one view (would attribute the ~3.3ms sync-RPC latency end-to-end).
+  - **Quick unblock for the existing `--prof` logs:** `wasm-dis app.wasm | grep '(func \$name'` → an
+    index→name map, rewrite `wasm-function[N]` in `/tmp/secure-exec-v8.log`, wire into `v8prof-top.py`
+    (validate `[N]` includes imports).
+  NOTE: the import-boundary profiler (`SECURE_EXEC_IMPORTPROF`) already answered the *headline* split
+  (WAIT-bound, see §6 L-J/L-K) without CPU symbols; the proper P2 is now needed mainly to break down the
+  residual ~8s of real COMPUTE (gtk_init / widget construction) and to confirm where the per-RPC latency
+  goes. _status: tick-log built but wasm-blind; build the Inspector `.cpuprofile` P2 next._
+  - **Guest-env-gate gap — FIXED.** `SECURE_EXEC_*` guest-side probes (`__rpcprof`/`__pollstat`/
+    `IMPORTPROF`) did not reach **X-client** guests because the wire/cenv allowlist never lands in the
+    guest isolate's `process.env`. Now forwarded from the sidecar host env into the guest env in
+    `crates/execution/src/wasm.rs` (`build_wasm_internal_env`, the `SECURE_EXEC_V8PROF`-style path).
+    Verified (`gate="1"`); all of IMPORTPROF/RPCPROF/POLLSTAT/RPC_PROFILE now activate for X clients.
 
 **The first number to get: service-thread-wait vs isolate-compute.** It decides RPC-bound vs
 CPU-bound, which picks the first lever. Adding targeted logs to get more info is fine.
@@ -124,6 +134,66 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **L-L — Spurious intra-process poll wakeups (thundering herd). [NEW TOP — revealed by lever #1's
+  measurement]** A `net_poll` outer call averages ~159ms = ~22 internal blocking-loop iterations, each a
+  `net.poll_wait` round-trip (~7ms) that woke because the process readiness generation advanced for
+  SOME fd — not necessarily the fd this poll awaits. So every blocked poll in a process re-scans +
+  re-blocks on every other fd's event. mousepad: net_poll 44-47s is dominated by these re-loops, NOT by
+  the probes (lever #1 proved skipping probes does nothing). **Fix (core):** make `net.poll_wait`
+  readiness fd-scoped (wake only polls whose awaited fds changed) — e.g. the guest passes its awaited
+  fd-set / a readiness mask to poll_wait, and the sidecar only completes the wait when one of THOSE
+  advanced; or per-fd generations. Cuts the ~22× re-loop to ~1-2. Compounds with L-J (each remaining
+  round-trip is still ~3.3ms). **CONFIRMED 2026-06-27: spin% = 94-96%** (mousepad 1116/1191 inner
+  poll_wait blocks woke with nothing ready; avgNfds=1.0, tinf-block=94%). **Addressability CONFIRMED
+  100%:** `blk[pureSock=176 pipe=0 lstn=0 other=0]` — every mousepad blocking poll is a pure host-net
+  POLLIN wait (the X socket), no GWakeup pipe in the set, so fd-scoping addresses all of them.
+  **Impl design (mechanism-precise):** `state.rs` `SocketReadiness` is per-process (generation + condvar
+  + a `direct: Vec<DirectPollWaiter>`); `notify()` — called by ANY socket's reader thread — bumps the
+  generation, wakes ALL condvar waiters, and completes ALL direct waiters, none socket-scoped = the herd.
+  Fix, building on `SECURE_EXEC_POLL_DIRECT`: (1) `notify()`→`notify(changed_socket_id)` (the per-socket
+  reader knows its id); (2) `DirectPollWaiter` carries the guest's awaited socket-id set, complete only
+  waiters whose set contains `changed_socket_id`; (3) guest `net_poll` passes its awaited host-net
+  socket-ids to `net.poll_wait`; (4) ensure the `PollWaiterPool` entry is DEADLINE-ONLY under POLL_DIRECT
+  (must not re-complete on a bare generation change, else the herd persists — CONFIRM in the pool wait
+  loop). **Safety net:** the wait is clamped to `JAVASCRIPT_NET_POLL_MAX_WAIT`, so a missed scoped-wake
+  degrades to ceiling-latency (guest re-scans, finds it ready) — never a hang. Sets with a pipe/listener
+  fall back to wake-on-any (GWakeup must wake promptly); the data shows mousepad's blocking polls have
+  none, so 100% is still covered. Validate on the spin% counter before/after. _status: TOP, evidence +
+  addressability + mechanism COMPLETE, ready to implement._
+  - **★ Deepened (2026-06-27, pre-implementation analysis):** the completion machinery is
+    `state.rs` `SocketReadiness` (per-process gen+condvar+`direct` list) + `PollWaiterPool` workers that
+    block on `wait_changed(gen)` and complete on ANY gen change — so even in `SECURE_EXEC_POLL_DIRECT`
+    mode the POOL worker re-creates the herd unless made DEADLINE-ONLY when `claimed`. **Critical scope
+    correction:** a socket-only `notify(socket_id)` is INSUFFICIENT — mousepad's blocking polls are
+    `pureSock` (the X socket), but a worker-threaded GTK app's spurious gen bumps plausibly come from
+    **GWakeup pipe writes** (the kernel-pipe `notify()` at execution.rs ~16760, T-J), which would still
+    `notify(None)`→wake-all the X-socket poll. So L-L must be **general fd-keyed scoping (host-net
+    sockets AND kernel-pipe fds)**: unify the awaited-id namespace, scope BOTH the socket-reader and the
+    kernel-pipe notifies. **Next diagnostic FIRST (cheap, safe):** instrument the notify sites to count
+    bumps by source (socket-data vs GWakeup-pipe-write) so the fix scopes the actual source rather than
+    guessing — avoids a socket-only fix that misses pipe-driven wakes. THEN implement behind
+    `SECURE_EXEC_POLL_DIRECT` (blast-radius-gated; default path unchanged), validate spin% before/after.
+- **L-J — Sync-RPC round-trip latency ~3.3ms/call. [TOP — import+rpc profiler, the root lever]**
+  Every guest↔sidecar sync-RPC blocks the guest ~3.3ms (`net.poll_wait` 3229µs, `__kernel_fd_poll`
+  3325µs, `net.server_accept` 3744-4496µs; the `net.poll` fast path is 642µs), while P1 measures
+  total *service* time at ~0.95s ⇒ ~3.3ms of each call is **transport/wakeup latency, not work**. The
+  transport (`requestRaw`, node_import_cache.rs ~8094): guest writes the request to a **pipe FD**, a
+  **worker thread** blocking-`readSync`s the response pipe, then hands off via SAB+`Atomics.notify` —
+  **2+ OS thread wakeups per round-trip**, contended by 8+ isolates × 2 threads. mousepad alone burns
+  ~44s in poll-loop RPCs at this latency. **Fix directions (core, ranked):** (a) deliver the response
+  straight from the sidecar into the SAB + `Atomics.notify` the main isolate thread, removing the
+  worker/response-pipe hop (1 wakeup, not 2-3); (b) parallelize sync-RPC service so isolates don't
+  serialize (this is L-A at real multi-isolate scale). HIGH impact (helps every RPC → could hit the
+  targets), higher risk (transport + `#![forbid(unsafe_code)]` concurrency). _status: TOP; needs a
+  focused turn + before/after._
+- **L-K — Redundant poll-loop RPCs. [NEW, from rpcprof]** Each `net_poll` cycle issues a separate
+  `__kernel_fd_poll` (mousepad 6557×, 21.8s) *and* a `net.poll_wait`; listeners add a `net.server_accept`
+  probe on EVERY blocking poll (srv 7681× = 28s, dbusd 5093× = 23s) even when no connection is pending —
+  a **timer-poll of the listener, violating the event-driven invariant**. **Fix:** (a) fold the
+  kernel-pipe readiness into `net.poll_wait`'s response so the separate `__kernel_fd_poll` RPC
+  disappears; (b) make listener connect EVENT-DRIVEN (notify the server's poll readiness on connect)
+  and probe `server_accept` only when readiness fired. Cuts RPC *count* (each ~3.3ms) without touching
+  the transport — lower risk than L-J, large win. _status: OPEN; verify the connect→readiness path first._
 - **L-B — GObject `ffi_call` / `fpcast-emu` dispatch. [REFUTED by B1 — GObject is ~native: 0.17-0.73 µs/op]**
   Was the prime suspect; B1 shows GObject dispatch (incl. the generic marshaler → `ffi_call`) is
   near-native, so it is NOT the cost. New top suspects = GTK non-GObject subsystems (L-G fontconfig /
@@ -143,10 +213,14 @@ levers as profiling surfaces new costs (recursion).
   `net.poll_wait` returns immediately (~1µs, not blocking) = the glib loops spinning. Unknown how much
   of the 178s is loop machinery vs real GTK compute (P2 splits it). If it's a spin, fixing it (à la
   T-J) could be a big win. _status: OPEN; P2 to quantify._
-- **L-A — Single kernel service thread serializes all RPCs.** Concurrency / multiplex. **DOWN for
-  single-app** — the service thread is **97% idle**, NOT the single-app bottleneck (refuted by baseline
-  #1). May still matter for the **5-app contention** case (the D-Bus-timeout ceiling). Risk: races
-  across shared kernel state in a `#![forbid(unsafe_code)]` crate. _status: DEFERRED to the 5-app phase._
+- **L-A — Single kernel service thread serializes all RPCs. [RE-RANKED UP — folded into L-J(b)]**
+  Baseline #1 called this "97% idle" for a lone isolate, but the REAL workload is **8+ isolates**
+  (server + dbus + dbussvc + N clients + wasi-thread children) and the import/rpc profilers show each
+  pays ~3.3ms/RPC of transport+queue latency — consistent with serialization on the single service
+  thread under contention. The `net.poll_wait` defer-pool already keeps *waits* off the main thread, but
+  the active probes (`server_accept`, `__kernel_fd_poll`, `net.poll`, fd ops) still serialize. The
+  service-time itself is tiny (~0.95s), so the win is latency/queueing, addressed by L-J + L-K. Risk:
+  races across shared kernel state in a `#![forbid(unsafe_code)]` crate. _status: ACTIVE via L-J/L-K._
 - **L-C — Per-RPC JSON/base64 marshaling.** Binary fast-path for hot ops (framebuffer already on the
   bulk-SAB path; generalize). _status: OPEN._
 - **L-D — Redundant startup scans** (fontconfig / icon-theme / gschemas), re-done every boot, each a
@@ -161,6 +235,12 @@ levers as profiling surfaces new costs (recursion).
 - **Fix in CORE secure-exec, never the guest layer.** No boutique Xubuntu / glib / GTK / app-source
   modifications (Constraint #5). The default diagnosis for slowness is "the runtime is slow," fixed in
   the sidecar / kernel / runtime / bridge.
+  - **Constraint #5 VERIFIED (2026-06-27)** for everything committed so far: all changes are in CORE
+    secure-exec — `crates/execution/src/node_import_cache.rs` (the V8 guest runner) and
+    `crates/execution/src/wasm.rs` (guest-env assembly). The only non-runtime edit is the wasm-gui
+    *experiment harness* env allowlist (`experiments/wasm-gui/host/src/main.rs`) which merely forwards
+    default-OFF diagnostic env vars — no guest/GTK/glib/Xubuntu source was touched. The planned L-L
+    fix targets the sidecar `net.poll_wait` / socket-reader path — also CORE.
 - **Caching is a fallback, not a crutch.** Allowed only when there's no clear runtime speedup; keep it
   simple, no overfitting the desktop workload.
 - **Regression gate green every iteration.** A fixed smoke suite (the GUI render tests + the GWakeup
@@ -183,6 +263,84 @@ levers as profiling surfaces new costs (recursion).
 ---
 
 ### Verdict log (newest first)
+
+- **2026-06-27 — ★★★ L-L IMPLEMENTED + MEASURED + REVERTED (null): the cost is 3ms-ceiling idle-polling,
+  NOT a thundering herd.** Built full socket-scoped completion (notify_socket(id), DirectPollWaiter.awaited,
+  pool deadline-only, guest awaited-ids) behind `SECURE_EXEC_POLL_DIRECT`; compiles + renders (scoping is
+  correct, no hang). **Result: net_poll TOTAL unchanged** — 43.3s (L-L) vs 44.7s (baseline). **Wakeprof
+  (the decisive view) shows why:** EVERY guest is ~94-99% `pool_DEADLINE` in BOTH baseline and L-L
+  (mousepad 94.5%→97%, Xvfb 98-100%, xfconfd 99.9%), with data-notifies RARE (mousepad pool_notify=287 ≈
+  L-L direct_notify=237; Xvfb 22; xfconfd 6). So the main loops spend startup doing thousands of 3ms idle
+  poll cycles, and data is mostly caught by the next 3ms-deadline drain, not by an instant notify — the
+  `JAVASCRIPT_NET_POLL_MAX_WAIT=3ms` clamp turns every blocking wait into a 3ms busy-poll. Scoping which
+  fd wakes a poll (L-L) is irrelevant when 97% of completions are the ceiling, not a wake. **Reverted L-L**
+  (no win, keep the core poll path clean). **REFRAMED real lever (L-M): the 3ms ceiling + ineffective
+  notify.** Endgame = make data-arrival reliably wake the blocked poll (so notify, not the 3ms deadline,
+  drives completion) THEN raise/remove the ceiling for true event-driven blocking — eliminating the idle
+  3ms busy-poll across ALL guests. Open question to settle first (cheap): are the 3ms-deadline blocks
+  GENUINELY idle (nothing to wake on → startup is dependency-latency-bound elsewhere) or is data arriving
+  during a block but failing to notify-wake (a broken notify → big win)? Correlate via a per-block
+  "data-arrived-during-this-wait" counter. Artifacts: `/tmp/mp-ll2.log`, `/tmp/mp-base-wake.log`.
+
+- **2026-06-27 — ★★★ KEY: the poll ceiling is 3ms — `net.poll_wait` is ALREADY a 3ms-granularity poll,
+  and L-L (socket-scoped completion) implemented but did NOT move spin%.** `JAVASCRIPT_NET_POLL_MAX_WAIT
+  = 3ms` (execution.rs): every blocking `poll_wait` is clamped to ≤3ms, so the 94% "spin" is mostly
+  IDLE 3ms-ceiling returns (the app genuinely waiting for an X reply that hasn't arrived) — which
+  scoped completion CANNOT remove, so spin% is the wrong yardstick for L-L. Implemented L-L (socket-id
+  `notify_socket`, `DirectPollWaiter.awaited`, pool deadline-only under `SECURE_EXEC_POLL_DIRECT`,
+  guest passes awaited socket-ids); it COMPILES + RENDERS (no hang → completion scoping is correct) but
+  spin% stayed 94-96%. **Root of the non-effect:** `register_direct_or_current`'s pre-advance guard
+  returns inline when the PER-PROCESS generation `!= last_seen` — and the gen bumps on ANY fd, so the
+  guest gets an immediate pre-advanced return, re-scans, finds nothing, re-polls. Scoping the COMPLETION
+  doesn't help while the PRE-ADVANCE is gen-based. **Reframe / real endgame:** the 3ms ceiling is a
+  safety net for missed/unscoped wakes; the true fix is **per-socket readiness** (the pre-advance +
+  completion BOTH keyed on whether an *awaited* socket got data, via per-socket pending flags rather
+  than the per-process gen) → then the 3ms ceiling can be raised/removed for pure event-driven blocking
+  (no idle spin). Next measurement (in flight): does net_poll TOTAL time (not spin%) drop under
+  POLL_DIRECT — i.e. did the direct inline completion cut per-reply latency even though idle spin
+  remains. Artifacts: `/tmp/mp-ll.log` (spin% unchanged), `/tmp/mp-ll2.log` (net_poll total + wakeprof).
+
+- **2026-06-27 — ★★★ L-L CONFIRMED by direct measurement: 94-96% of `poll_wait` blocks are SPURIOUS
+  cross-fd wakeups.** Added a spurious-wake counter to `net_poll` (`SECURE_EXEC_POLLSTAT`: `innerBlocks`
+  / `spuriousWakes` = woke with nothing ready / `spin%`). mousepad: **spin% = 94-96%** (e.g. 1116 of
+  1191 inner blocks woke with no fd ready), `avgNfds=1.0`, `tinf(block)=94%`. So even a 1-fd blocking
+  poll wakes on EVERY process-wide readiness bump (the generation is per-process: any other thread/
+  socket's I/O wakes it), re-scans its 1 fd, finds nothing, and re-blocks — a full ~3.3ms RPC round-trip
+  each time. This is THE startup cost (net_poll 44-47s) and it is now measured, not inferred. **Lever =
+  L-L: make `net.poll_wait` completion fd-scoped** — the guest passes its awaited socket-ids; the
+  sidecar loops internally on process readiness but returns to the guest ONLY when one of THOSE is
+  actually ready (or timeout), collapsing ~23 guest round-trips into 1. Compounds with L-J. Counter
+  committed (default-OFF). Artifact: `/tmp/mp-pollstat.log`.
+
+- **2026-06-27 — LEVER #1 (L-K guest-side `__kernel_fd_poll` skip) APPLIED, MEASURED, REVERTED — no
+  wall-time gain; sharpened the real lever.** Hypothesis: skip the per-cycle `__kernel_fd_poll` probe
+  when a socket is already ready. Implemented (guest-only, safe, gated on consumed POLLIN data so it
+  can't starve a GWakeup) + before/after run. **Result: NO measurable change** — mousepad imports
+  72.4s (after) vs 70.5s (before); net_poll 47.1s/296× vs 44.8s/298×; path_open 20.3s vs 21.2s. **Why:**
+  `__kernel_fd_poll` (6557×) runs ~22× *inside each `net_poll`'s internal blocking-wait loop* (296 outer
+  calls × ~22 iterations), and those iterations happen precisely when NO socket is ready — so a
+  "skip-when-ready" gate almost never fires. Reverted (no dead complexity). **★ Sharper lever (L-L):**
+  net_poll's ~159ms/outer-call = ~22 internal loop iterations × ~7ms each = the loop is woken ~22× per
+  poll by **readiness-generation bumps that aren't for THIS poll's awaited fd** (intra-process thundering
+  herd: any fd's data wakes every blocked poll in the process → re-scan → re-block). The fix is reducing
+  spurious wakeups (per-fd readiness / wakeup filtering) and/or the ~3.3ms per-round-trip latency (L-J),
+  NOT skipping probes. Artifact: `/tmp/mp-after.log` vs `/tmp/mp-imp.log`.
+
+- **2026-06-27 — ★★ IMPORT-BOUNDARY PROFILER (new tool) OVERTURNS "compute-bound": mousepad startup is
+  WAIT-bound (~90% blocked in imports).** Built `SECURE_EXEC_IMPORTPROF` (wraps every wasm import with
+  count + wall-ms, dumps a cumulative time-sorted histogram per isolate; `Date.now()` clock; forwarded
+  to the guest via `wasm.rs` since the X-client wire/cenv allowlist never reached the guest isolate —
+  same gap that bit POLLSTAT/RPCPROF, now all forwarded). **mousepad @78s wall: imports = 70.5s (90%)**
+  — `host_net.net_poll` 44.7s (298×, 150ms/call), `wasi.path_open` **21.2s (concentrated in the first
+  36s: ~31 opens @ ~683ms each; later opens ~free)**, `wasi.thread-spawn` 3.8s (4×, 958ms/call); actual
+  wasm compute only ~8s. **The server isolate is 97.5% net_poll (52.4s) and its framebuffer `fd_pwrite`
+  is only 515ms (1%) → REFUTES the framebuffer-base64-saturation theory for this path.** Reconciliation
+  with the old "96% compute": P1 measured RPC *service* time (~0.95s, sidecar-side); the guest *blocks*
+  for ~70s. "Not-in-RPC-service" was misread as "compute" — it is mostly **blocked-in-poll/open WAIT**.
+  **New top levers (data-driven):** (1) `path_open` ~683ms/call in early startup (an open should be µs —
+  unambiguously pathological); (2) `net_poll` round-trip wait (X request→reply across isolates — likely
+  inter-isolate wakeup latency). Next: split path_open RPC-vs-resolution via `SECURE_EXEC_RPCPROF`
+  (now forwarded). Artifact: `/tmp/mp-imp.log` (8 dumps, server+xclient0+dbusd histograms).
 
 - **2026-06-27 — Print-timing drill of gtk_init BLOCKED by wasm-ld segfault on direct fontconfig/pango
   symbols; method established + first report saved.** Per the print-timing pivot: instrumented

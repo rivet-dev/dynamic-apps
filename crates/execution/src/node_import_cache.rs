@@ -11578,7 +11578,7 @@ const hostNetImport = {
       const _t = Number(timeoutMs) | 0;
       S.n++; S.nfdsSum += n;
       if (_t === 0) S.t0++; else if (_t < 0) S.tinf++; else S.tpos++;
-      if (S.n % 20000 === 0) { try { process.stderr.write('[pollstat] iters=' + S.n + ' t0(zerowait)=' + S.t0 + ' tpos(timed)=' + S.tpos + ' tinf(block)=' + S.tinf + ' avgNfds=' + (S.nfdsSum / S.n).toFixed(1) + '\n'); } catch (_e) {} }
+      if (S.n % 100 === 0) { try { process.stderr.write('[pollstat] iters=' + S.n + ' t0(zerowait)=' + S.t0 + ' tpos(timed)=' + S.tpos + ' tinf(block)=' + S.tinf + ' avgNfds=' + (S.nfdsSum / S.n).toFixed(1) + ' innerBlocks=' + (S.iter || 0) + ' spuriousWakes=' + (S.spin || 0) + ' (spin%=' + (S.iter ? (100 * (S.spin || 0) / S.iter).toFixed(0) : '0') + ')\n'); } catch (_e) {} }
     }
     // wasi sysroot <poll.h> bits: POLLIN=0x001, POLLPRI=0x002, POLLOUT=0x004. Guests compile against
     // this header, so net_poll must use 0x004 for POLLOUT or write-readiness is never reported and a
@@ -11604,6 +11604,10 @@ const hostNetImport = {
     // removes one net.poll_wait round-trip from every such poll. The blocking path still snapshots the
     // generation before the drain/scan (the lost-wakeup guard) below.
     let readyGen = t === 0 ? 0 : readReadyGen();
+    // L-L evidence (SECURE_EXEC_POLLSTAT): per-outer-call, count inner poll_wait blocks and how many
+    // woke with NOTHING ready (spurious cross-fd wakeups). __blockedPrev tracks "the previous loop
+    // iteration blocked in poll_wait", so a re-scan finding ready==0 is a confirmed spurious wake.
+    let __blockedPrev = false;
     try {
       while (true) {
         // Drain any already-arrived bytes on each connected host-net socket (non-blocking) so the
@@ -11703,6 +11707,12 @@ const hostNetImport = {
           view.setUint16(base + 6, revents, true);
           if (revents) ready++;
         }
+        if (globalThis.__pollstat && __blockedPrev) {
+          const S2 = (globalThis.__pollS = globalThis.__pollS || { n: 0, t0: 0, tpos: 0, tinf: 0, nfdsSum: 0 });
+          S2.iter = (S2.iter || 0) + 1;
+          if (ready === 0) S2.spin = (S2.spin || 0) + 1;
+          __blockedPrev = false;
+        }
         if (ready > 0 || t === 0 || (deadline != null && Date.now() >= deadline)) {
           if (globalThis.__nettrace && ready > 0) {
             const v3 = new DataView(instanceMemory.buffer);
@@ -11755,6 +11765,7 @@ const hostNetImport = {
         }
         const r = callSyncRpc('net.poll_wait', [readyGen, remain]);
         readyGen = r && typeof r.generation === 'number' ? r.generation : readyGen;
+        __blockedPrev = true;
       }
     } catch (_e) {
       return WASI_ERRNO_FAULT;
@@ -14506,6 +14517,66 @@ if (guestSharedMemory) {
   instanceMemory = guestSharedMemory;
   wasmImportObject.env = { memory: guestSharedMemory };
   wasmImportObject.wasi = createWasiThreadsImport();
+}
+
+// Import-boundary profiler (PERF-OPTIMIZATION.md print-timing, default-OFF via SECURE_EXEC_IMPORTPROF=1).
+// The V8 --prof showed ~80% of wasm-running samples inside a JS import (WasmToJsWrapper). This wraps
+// every wasm import (wasi_snapshot_preview1 syscalls + host_net/fs/user/process) to attribute that
+// time to specific imports: per-import call count + total wall-ms. Clock = Date.now() (real ms; the
+// wasm runner has no originalPerformance in scope, and the dominant imports are ms-scale anyway).
+// Dumps a cumulative time-sorted histogram on a wall-clock interval (so it fires even when imports
+// are few-but-expensive, the compute-bound regime). CORE-secure-exec instrumentation — no guest/GTK
+// changes, sidesteps the wasm-ld probe-build instability entirely.
+let importProfEnabled = false;
+try { importProfEnabled = process.env.SECURE_EXEC_IMPORTPROF === '1'; } catch (_e) { importProfEnabled = false; }
+if (importProfEnabled) {
+  const __impClock = () => Date.now();
+  let __impIntervalMs = 3000;
+  try { const v = parseInt(process.env.SECURE_EXEC_IMPORTPROF_EVERY || '', 10); if (Number.isFinite(v) && v > 0) __impIntervalMs = v; } catch (_e) {}
+  const __impCount = Object.create(null);
+  const __impTime = Object.create(null);
+  let __impTotal = 0;
+  let __impLastDump = __impClock();
+  const __impDump = () => {
+    const keys = Object.keys(__impTime).sort((a, b) => __impTime[b] - __impTime[a]);
+    let sum = 0;
+    for (const k of keys) sum += __impTime[k];
+    console.error(`[importprof] ===== ${__impTotal} import calls, ${sum.toFixed(0)}ms total in imports =====`);
+    for (let i = 0; i < keys.length && i < 30; i++) {
+      const k = keys[i];
+      const t = __impTime[k];
+      const c = __impCount[k];
+      console.error(`[importprof] ${(100 * t / (sum || 1)).toFixed(1)}%  ${t.toFixed(0)}ms  ${c}x  ${(1000 * t / c).toFixed(2)}us/call  ${k}`);
+    }
+  };
+  for (const ns of Object.keys(wasmImportObject)) {
+    const tbl = wasmImportObject[ns];
+    if (!tbl || typeof tbl !== 'object') continue;
+    for (const name of Object.keys(tbl)) {
+      const fn = tbl[name];
+      // Skip already-wrapped fns: wasi_snapshot_preview1 and wasi_unstable alias the same object.
+      if (typeof fn !== 'function' || fn.__impWrapped) continue;
+      const key = `${ns}.${name}`;
+      __impCount[key] = 0;
+      __impTime[key] = 0;
+      const wrapped = function (...args) {
+        const t0 = __impClock();
+        try {
+          return fn.apply(this, args);
+        } finally {
+          __impTime[key] += __impClock() - t0;
+          __impCount[key]++;
+          __impTotal++;
+          const now = __impClock();
+          if (now - __impLastDump >= __impIntervalMs) { __impLastDump = now; __impDump(); }
+        }
+      };
+      wrapped.__impWrapped = true;
+      tbl[name] = wrapped;
+    }
+  }
+  // NOTE: __impDump is intentionally NOT exposed on globalThis — the §4 guardrail keeps all
+  // clock-derived state off any guest-reachable object. The periodic in-loop dump is sufficient.
 }
 
 const instance = new WebAssembly.Instance(module, wasmImportObject);

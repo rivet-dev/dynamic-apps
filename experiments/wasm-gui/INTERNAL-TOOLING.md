@@ -94,6 +94,17 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       (real clock, **opt-in, never guest-exposed** — module-scope `originalPerformance`). DELTA vs P1 =
       bridge/marshaling cost; total vs wall = round-trip-bound vs compute-bound. Proved single-app
       startup is compute-bound (RPCs are ~1µs *in-process*). (`node_import_cache.rs` `callSyncRpc`.)
+- [x] **P1 import-boundary profiler** (`SECURE_EXEC_IMPORTPROF`) — wraps EVERY wasm import
+      (`wasi_snapshot_preview1` syscalls + `host_net`/`host_fs`/`host_user`/`host_process`) with a
+      count + total-wall-ms accumulator (real clock via module-scope `originalPerformance`), dumping a
+      time-sorted histogram every N calls (`SECURE_EXEC_IMPORTPROF_EVERY`, default 200000). Built to
+      attribute the V8-`--prof` finding that ~80% of wasm-running samples sit inside a JS import
+      (`WasmToJsWrapper`) to SPECIFIC syscalls — names the dominant import by total time, call count,
+      and µs/call (fast-but-frequent boundary cost vs slow-but-rare sync-RPC). Sidesteps the wasm-ld
+      probe-build instability entirely (sidecar-only). Gate is forwarded from the sidecar host env into
+      the guest `process.env` in `wasm.rs` (the X-client wire/cenv allowlist does NOT reach the guest
+      isolate; the sidecar inherits the host env directly, same path as `SECURE_EXEC_V8PROF`).
+      (`node_import_cache.rs` `wasmImportObject` wrap; `wasm.rs` env forward.)
 - [x] **L-F pollstat** (`SECURE_EXEC_POLLSTAT`) — counts `net_poll` invocations (= glib main-loop
       iterations) bucketed by requested timeout (zero-wait / timed / blocking) + avg fd-set size.
       Distinguishes a busy-spinning loop from a blocking one; with the wall clock gives per-iteration

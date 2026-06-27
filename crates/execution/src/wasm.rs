@@ -2332,6 +2332,24 @@ fn build_wasm_internal_env(
         frozen_time_ms.to_string(),
     );
 
+    // Forward default-OFF perf diagnostics from the sidecar host env into the guest process.env
+    // (PERF-OPTIMIZATION.md). The X-client wire/cenv allowlist does not reliably reach the guest
+    // isolate, but the sidecar inherits the host env directly (same path SECURE_EXEC_V8PROF uses), so
+    // read them here. CORE-secure-exec instrumentation only; no effect unless explicitly set.
+    for key in [
+        "SECURE_EXEC_IMPORTPROF",
+        "SECURE_EXEC_IMPORTPROF_EVERY",
+        "SECURE_EXEC_POLLSTAT",
+        "SECURE_EXEC_RPCPROF",
+        "SECURE_EXEC_RPC_PROFILE",
+        "SECURE_EXEC_RPC_PROFILE_EVERY",
+        "SECURE_EXEC_WAKEPROF",
+    ] {
+        if let Ok(value) = std::env::var(key) {
+            internal_env.insert(key.to_string(), value);
+        }
+    }
+
     if prewarm_only {
         internal_env.insert(WASM_PREWARM_ONLY_ENV.to_string(), String::from("1"));
     } else {
