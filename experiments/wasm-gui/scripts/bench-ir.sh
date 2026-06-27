@@ -10,7 +10,19 @@
 # artifact). Override SECURE_EXEC_IR_TEXT to measure a multi-char typing scenario. See §6 RESOLUTION.
 # Build+deploy is the CALLER's job (edit code -> cargo build -> cp to target/debug). This only measures.
 set -u
+# TRUSTWORTHY ir metric (2026-06-30): measure the actual TYPED GLYPH, not pointer/caret artifacts.
+#  - IR_TEXT=H: single keystroke.
+#  - IR_WARMUP=Hello: warm the editor first so we measure steady-state, not the cold first-edit path.
+#  - FB_REGION_BYTES=480000: detect only the top 200 rows where the text line is (row ~70-92) — EXCLUDES
+#    the X mouse-cursor sprite (consistently rows ~392-410) that polluted every earlier number.
+#  - blink off: staged in the GTK settings.ini fixture (prepare-icons.sh: gtk-cursor-blink=false), so the
+#    glyph region only changes on real typing.
+#  - IR_POLL_US=500: tighter detect poll (the full-fb 2ms+hash gave ~5ms granularity).
+# Damage-confirmed at rows 70-92 = the glyph. True warm single-keystroke ir ~100ms (was mis-read as ~20-88ms).
 export SECURE_EXEC_IR_TEXT="${SECURE_EXEC_IR_TEXT:-H}"
+export SECURE_EXEC_IR_WARMUP="${SECURE_EXEC_IR_WARMUP:-Hello}"
+export SECURE_EXEC_FB_REGION_BYTES="${SECURE_EXEC_FB_REGION_BYTES:-480000}"
+export SECURE_EXEC_IR_POLL_US="${SECURE_EXEC_IR_POLL_US:-500}"
 EXP=/home/nathan/secure-exec-wasmgui/experiments/wasm-gui
 REPO=/home/nathan/secure-exec-wasmgui
 HOST="$REPO/target/debug/wasm-gui-host"

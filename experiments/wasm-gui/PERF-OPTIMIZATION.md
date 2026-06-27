@@ -246,7 +246,22 @@ HONESTLY now (single keystroke, no pacing artifact). Native ref ~6ms.
 ~100ms = box noise) — render green. Need ~2.5× down. **Dispatch levers A/C-lite are KNOWN-NULL for ir** (see
 the REFUTED block); this is now a RENDER-PATH + MEASUREMENT-PRECISION problem.
 
-**★★★ MEASUREMENT-VALIDITY BLOCKER (2026-06-30) — the ir number is confounded; resolve before optimizing ★★★**
+**★★★ RESOLVED → TRUSTWORTHY ir BASELINE = ~98ms (2026-06-30); ALL PRIOR LEVER RESULTS ARE INVALID ★★★**
+Built a trustworthy glyph-render metric (now the `bench-ir.sh` default): warm keystroke (`IR_WARMUP=Hello`)
++ caret-blink OFF (fixture `gtk-cursor-blink=false` in `prepare-icons.sh`) + glyph-region detection
+(`FB_REGION_BYTES=480000` = top 200 rows, EXCLUDES the mouse-cursor sprite at rows ~392-410) + tight poll
+(`IR_POLL_US=500`). The `[ir-damage]` probe CONFIRMS the detected change is at **rows 70-92 (the text line),
+~281 bytes = the glyph** — every run. **True warm single-keystroke ir = ~98ms (91-106ms), render green.**
+⇒ **The real input→response is ~98ms, NOT the ~20-88ms reported all session — those timed the X mouse-cursor
+sprite redraw / caret blink, NOT the typed glyph.** CONSEQUENCE: **every lever measurement to date is INVALID**
+— A (inline net.poll), C-lite (inline fd.poll), and the "inline-dispatch family REFUTED" verdict were all
+measured against the confounded ~88ms pointer change, so their effect on the REAL ~98ms render path was never
+observed. The KNOWN-NULL list for ir is VOID; A/C-lite and the dispatch theory must be RE-TESTED against this
+metric before being ruled out. The ~98ms render path is the real target (down toward <10ms): decompose it
+(FRAMEPROF ir-marks + xtrace windowed to the inject, now that the inject→glyph window is honest) and re-run
+the dispatch levers gate-on vs off.
+
+(superseded) **★★★ MEASUREMENT-VALIDITY BLOCKER (2026-06-30) — the ir number is confounded; resolve before optimizing ★★★**
 Drilling the ~25ms single-keystroke ir for the <10ms goal uncovered that the framebuffer-diff probe is NOT
 measuring typed-glyph latency. Evidence (host probes added: `SECURE_EXEC_FB_REGION_BYTES`,
 `SECURE_EXEC_IR_POLL_US`, `[ir-damage]` row-range logging — all default-OFF/robust):

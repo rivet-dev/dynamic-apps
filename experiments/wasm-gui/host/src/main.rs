@@ -1455,6 +1455,16 @@ async fn run_xdemo(
                     tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
                     let _ = xi.run("focus");
                     tokio::time::sleep(std::time::Duration::from_millis(300)).await;
+                    // Optional WARMUP: type some chars first and let them settle BEFORE capturing base, so
+                    // the measured keystroke is WARM (steady-state per-keystroke render latency), not the
+                    // one-time cold path (first edit after idle re-arms GTK redraw/glyph caches — ~5× slower).
+                    // SECURE_EXEC_IR_WARMUP=<string> (e.g. "Hello") types+settles first. Default: no warmup.
+                    if let Ok(warm) = std::env::var("SECURE_EXEC_IR_WARMUP") {
+                        if !warm.is_empty() {
+                            let _ = xi.run(&format!("type {warm}"));
+                            tokio::time::sleep(std::time::Duration::from_millis(400)).await;
+                        }
+                    }
                     let base = fingerprint(&fbpath);
                     let frameprof = std::env::var("SECURE_EXEC_FRAMEPROF").is_ok();
                     // Damage-localization diagnostic (frameprof): keep the base bytes so that on detection

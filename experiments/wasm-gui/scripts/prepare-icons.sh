@@ -73,6 +73,8 @@ cat > "$OUT/root/.config/gtk-3.0/settings.ini" <<'INI'
 [Settings]
 gtk-icon-theme-name=Adwaita
 gtk-fallback-icon-theme=hicolor
+gtk-cursor-blink=false
+gtk-cursor-blink-time=2000000
 INI
 
 echo "staged $n Adwaita PNG icons (sizes: $SIZES) + hicolor index + gtk settings into $OUT"
