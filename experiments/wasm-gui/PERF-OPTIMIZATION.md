@@ -219,6 +219,24 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★★★★ DECISIVE: first-paint <2s is UNREACHABLE for this workload EVEN WITH the out-of-scope provisioning
+  (2026-06-29).** Measured cold-init timeline (svcPerfUs consistent clock, fp=3949ms):
+  | phase | window | dur |
+  | --- | --- | --- |
+  | startup: X server + mousepad bootstrap + 553ms module read | 0→1168ms | **~1.17s** |
+  | GSettings + GTK init (compute) | 1168→1933ms | **~0.77s** |
+  | fontconfig cache build (provisioning-removable) | 1933→2300ms | ~0.37s |
+  | icon scan + final render (scan provisioning-removable) | 2300→3949ms | ~1.65s |
+  **Startup + GSettings/GTK alone ≈ 1.94s** — before any fontconfig/icon/paint. Even if provisioning made
+  the fontconfig + icon caches FREE (~1.4s), first-paint floors at **~2.6s — still >2s.** And every residual
+  is at its measured floor: module read 553ms (base64-optimal, L-W.3 bulk SLOWER), wasm compile 3–14ms
+  (L-X/L-Z null), GSettings/GTK = wasm compute (toolchain-dead, B1 0.72µs/op ≈2.9× native). **So <2s is not
+  reachable for a full GTK app cold-start in this runtime by ANY means short of a faster wasm toolchain
+  (refuted: LLVM PR unmerged) — not CORE levers, not even the out-of-scope cache provisioning.** input→
+  response similarly floored (~234ms, all 3 latency knobs null, guest-round-trip + compute bound). The
+  honest end state: L-W delivered the one real win (10.0s→4.0s, 2.26×, controlled); the targets are
+  fundamentally out of reach for this workload+toolchain. Stretch (<1s) is further still.
+
 - **★★ INPUT→RESPONSE — DIRECT LEVER SWEEP (2026-06-29, user-prioritized): all 3 CORE latency knobs NULL.**
   Per user direction ("focus on input→response, more important") I attacked ir directly with every relevant
   CORE knob (no rebuild — all existing env knobs), ≥3 runs each on the ir metric:
