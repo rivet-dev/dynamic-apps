@@ -210,6 +210,7 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
 
         tokio::select! {
             maybe_frame = stdin_rx.recv() => {
+                selprof_hit(0);
                 let Some(frame) = maybe_frame else {
                     break;
                 };
@@ -235,6 +236,7 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
                 }
             }
             maybe_ready = event_ready_rx.recv() => {
+                selprof_hit(1);
                 let Some(()) = maybe_ready else {
                     break;
                 };
@@ -279,6 +281,7 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
                 flush_sidecar_requests(&mut sidecar, &write_tx)?;
             }
             _ = secure_exec_execution::process_event_notify().notified() => {
+                selprof_hit(2);
                 // F1 event-driven ingest: the V8/wasm event-bridge thread poked the
                 // global notify the instant a guest sync-RPC (or stdout/exit) landed,
                 // so drain it now instead of waiting for the next event_pump.tick().
@@ -297,6 +300,7 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
                 flush_sidecar_requests(&mut sidecar, &write_tx)?;
             }
             _ = event_pump.tick() => {
+                selprof_hit(3);
                 // Slow safety-net for any event source that does not poke the notify
                 // above (e.g. deferred/internal sync-RPC completions). The notify is
                 // the hot path; this timer just guarantees liveness.
@@ -308,6 +312,7 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
                 flush_sidecar_requests(&mut sidecar, &write_tx)?;
             }
             maybe_write_error = write_error_rx.recv() => {
+                selprof_hit(4);
                 if let Some(error) = maybe_write_error {
                     return Err(io::Error::new(io::ErrorKind::BrokenPipe, error).into());
                 }
@@ -317,6 +322,30 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
 
     cleanup_connections(&mut sidecar, &active_connections).await;
     Ok(())
+}
+
+// SELPROF (SECURE_EXEC_SELPROF=1, default-OFF): count which select! branch fires, to find the idle
+// busy-spin (the dispatch loop hits ~100% CPU while the VM is idle; native is ~0%). idx: 0=stdin
+// 1=event_ready 2=process_event_notify 3=event_pump.tick 4=write_error. Dumps every 200k hits.
+fn selprof_hit(idx: usize) {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    if !*EN.get_or_init(|| std::env::var("SECURE_EXEC_SELPROF").as_deref() == Ok("1")) {
+        return;
+    }
+    static C: [AtomicU64; 5] = [
+        AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
+    ];
+    static N: AtomicU64 = AtomicU64::new(0);
+    C[idx].fetch_add(1, Ordering::Relaxed);
+    let n = N.fetch_add(1, Ordering::Relaxed) + 1;
+    if n % 200_000 == 0 {
+        eprintln!(
+            "[selprof] total={n} stdin={} event_ready={} notify={} pump_tick={} write_err={}",
+            C[0].load(Ordering::Relaxed), C[1].load(Ordering::Relaxed), C[2].load(Ordering::Relaxed),
+            C[3].load(Ordering::Relaxed), C[4].load(Ordering::Relaxed)
+        );
+    }
 }
 
 // [select-block] probe helper: coarse label for which wire frame held the single select! task.

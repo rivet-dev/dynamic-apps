@@ -223,6 +223,22 @@ levers as profiling surfaces new costs (recursion).
 ### ★ FRAME-BUDGET: CURRENT STATE, DIAGNOSIS & REMAINING LEVER MENU (2026-06-29) — the live working set
 The `/goal` references this section for detail; keep it current.
 
+#### ★★★ IDLE BUSY-SPIN (2026-07-01) — sidecar main thread ~87% CPU while the VM is IDLE (invariant violation) ★★★
+Measured via `/proc/<pid>/task/*/stat`: the sidecar MAIN dispatch thread burns **~87% of a core while the VM
+is idle** (mousepad painted, no input; next thread ~5%). Native is ~0%. Violates the CLAUDE.md "idle must be
+0% CPU, not busy-spin" invariant. `SECURE_EXEC_SELPROF` (default-OFF, select!-branch counter) pins it:
+**`event_pump.tick()` = ~92% of loop iterations.** The 250µs pump fires ~4000/s and `pump_process_events`
+costs ~217µs each (it iterates every vm/process and calls `poll_event(Duration::ZERO)` per process + String
+clones/HashMap lookups — NOT the "cheap no-op" the comment claims). So ~4000 × 217µs ≈ 87% CPU, idle or not.
+- **The pump is LOAD-BEARING for ir** (NOT freely slow-able): `PUMP_INTERVAL_US=2000` → ir WORSE (~75ms median
+  + a 730ms spike — some events are caught ONLY by the pump, not the F1 `process_event_notify`; slowing it
+  strands them). So the 250µs is at/near its ir optimum; the idle-spin is its cost.
+- **The real fixes (deeper):** (a) make `pump_process_events` cheap per-pump (it's ~217µs of clones/lookups +
+  per-process `poll_event(ZERO)`; a true try_recv would be ~µs → idle CPU ~1% AND frees main-thread CPU during
+  the render — the pump fires ~224× during a 56ms render = ~48ms of main-thread CPU competing with the render's
+  funnel RPCs), or (b) complete the F1 notify graph so EVERY event source pokes the notify → the pump becomes
+  a true rare safety-net that can be slow. (a) is the higher-ROI, lower-risk lever and is the next thing to try.
+
 #### ★★★ OP-COUNT + CROSS-GUEST SPLIT (2026-07-01, SECURE_EXEC_OPTRACE) — the render is 73% cross-guest, 27% compute ★★★
 `SECURE_EXEC_OPTRACE=1` (default-OFF) logs every guest sync-RPC on the bridge thread with an epoch stamp +
 guest thread-id. Windowed to the keystroke (ir ~64ms):
