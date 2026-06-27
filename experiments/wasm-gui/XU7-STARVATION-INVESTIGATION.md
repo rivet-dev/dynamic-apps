@@ -325,7 +325,8 @@ scale, which the investigation surfaced as a **distinct second root cause (T-H)*
 service thread can't service ~5 heavy guests' concurrent D-Bus startup handshakes before the 25s
 timeout. That is the **service-thread-multiplex perf frontier** (multiple levers: service-thread
 concurrency, GObject `ffi_call`/closure cost, encoder hot paths) — a large, separate effort, not a
-fix to the starvation spin. It needs its own investigation cycle.
+fix to the starvation spin. It needs its own investigation cycle → **now tracked in
+`PERF-OPTIMIZATION.md`** (targets: single app <10s, 5-app desktop <30s).
 
 ---
 
