@@ -268,6 +268,8 @@ impl BridgeCallContext {
             self.remove_call_route(call_id);
             return Err(format!("failed to write BridgeCall: {}", e));
         }
+        // D16 hopsplit point 0: BridgeCall enqueued (guest thread). Default-OFF.
+        crate::hopsplit::hopsplit_stamp(call_id, 0);
 
         // Receive BridgeResponse directly (no re-serialization)
         let response = {
@@ -277,10 +279,14 @@ impl BridgeCallContext {
                 Err(e) => {
                     self.pending_calls.lock().unwrap().remove(&call_id);
                     self.remove_call_route(call_id);
+                    crate::hopsplit::hopsplit_drop(call_id);
                     return Err(e);
                 }
             }
         };
+        // D16 hopsplit point 4 + finish: response received (guest thread). Default-OFF.
+        crate::hopsplit::hopsplit_stamp(call_id, 4);
+        crate::hopsplit::hopsplit_finish(call_id, method);
 
         // Remove from pending
         self.pending_calls.lock().unwrap().remove(&call_id);

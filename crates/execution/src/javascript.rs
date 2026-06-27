@@ -2797,6 +2797,8 @@ fn spawn_v8_event_bridge(
                     if let Ok(mut pending) = pending_sync_rpc.lock() {
                         *pending = Some(PendingSyncRpcState::Pending(call_id));
                     }
+                    // D16 hopsplit point 1: event-bridge thread forwards to service loop. Default-OFF.
+                    secure_exec_v8_runtime::hopsplit::hopsplit_stamp(call_id, 1);
 
                     Some(JavascriptExecutionEvent::SyncRpcRequest(
                         JavascriptSyncRpcRequest {

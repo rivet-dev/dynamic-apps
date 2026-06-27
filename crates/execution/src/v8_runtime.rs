@@ -1,6 +1,9 @@
 //! V8 isolate runtime manager backed by the embedded V8 runtime.
 
 use crate::v8_ipc::{self, BinaryFrame};
+/// Re-export the D16 hopsplit probe so downstream crates (sidecar) that only see this
+/// local `v8_runtime` module can stamp the service-loop hops. Default-OFF.
+pub use secure_exec_v8_runtime::hopsplit;
 use secure_exec_v8_runtime::embedded_runtime::{spawn_embedded_runtime_ipc, EmbeddedRuntimeHandle};
 use serde_json::Value;
 use std::io::{self, BufReader, Read, Write};

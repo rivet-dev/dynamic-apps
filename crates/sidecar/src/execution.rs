@@ -2629,6 +2629,8 @@ impl ActiveExecution {
         id: u64,
         result: Value,
     ) -> Result<(), SidecarError> {
+        // D16 hopsplit point 3: service loop sends the response. Default-OFF.
+        v8_runtime::hopsplit::hopsplit_stamp(id, 3);
         match self {
             Self::Javascript(execution) => execution
                 .respond_sync_rpc_success(id, result)
@@ -14007,6 +14009,8 @@ where
         poll_deferred,
         owner_socket_readiness,
     } = request;
+    // D16 hopsplit point 2: service loop begins servicing this call. Default-OFF.
+    v8_runtime::hopsplit::hopsplit_stamp(request.id, 2);
     let __rpc_pid = process.kernel_pid;
     let __rpc_method = request.method.clone();
     let (__rpc_t0, __rpc_seq) = rpc_trace_enter(__rpc_pid, &__rpc_method, &request.args);
