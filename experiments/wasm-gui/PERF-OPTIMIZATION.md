@@ -184,6 +184,20 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-27 — Print-timing drill of gtk_init BLOCKED by wasm-ld segfault on direct fontconfig/pango
+  symbols; method established + first report saved.** Per the print-timing pivot: instrumented
+  `css-bench.c` to call `FcInit()` + a pango first-shape before `gtk_init` (decompose the 11s into
+  fontconfig/pango/rest). But the rebuild **segfaults `wasm-ld`** — CONSISTENT when a guest directly
+  references fontconfig/pango symbols (`subsys-bench` + edited `css-bench` both crash; plain-`gtk_*`
+  `css-bench` builds). NOT memory (32GB free). So the *in-app* subsystem-call decomposition is
+  toolchain-blocked; reverted the edit to keep the tree buildable. **Also: timing varies ~30-50%
+  run-to-run** (gtk_init 11→14s, parse 1.4→2.1s) — timing reports need ≥2-3 runs / report a range.
+  **First report saved:** `timing-cssbench-baseline.txt` (gtk_init ~11-14s DOMINANT, CSS parse ~1.4-2.1s,
+  cascade ~0). **Next (fresh context): decompose gtk_init's 11s** by either (a) isolating which
+  fontconfig/pango symbol crashes wasm-ld and working around it, or (b) **a temporary timing patch
+  inside GTK's `gtk_init` (gtkmain.c)** with `fprintf` phase markers (needs a GTK rebuild) — the
+  Constraint-#5-clean diagnostic-patch path the user specified. Artifact: `/tmp/cssdrill-build.log`.
+
 - **2026-06-27 — P2 (V8 --prof) is BLIND to wasm subsystems → PIVOT to print-timing (§4b, user
   direction).** P2 works (captured 323-515k ticks of css-bench gtk_init), and the compute is confirmed
   in-wasm — but V8 logs wasm frames as `wasm-function[N]` *index* names (e.g. `wasm-function[5780]`),
