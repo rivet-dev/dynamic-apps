@@ -1927,3 +1927,56 @@ TLS is load-bearing). This is the one piece that blocks measuring ANY genuinely-
   guest-RPC-blocked-time vs guest-compute-time** (decides poll-reduction vs compute-optimization).
   Artifact: `/tmp/p1-mousepad.log`. (Caveat: includes dbus-daemon + xfconfd; ~42k polls are the dbus
   accept loop — per-pid attribution + a clean single-app B2 will sharpen this.)
+
+---
+
+## §7 — DECISIVE: render-ir is COMPUTE-BOUND (the 97%/3% split, measured 2026-06-30)
+
+Trustworthy single-keystroke metric (warm `Hello` + `H`, glyph region rows 70-92, blink off). **Native
+baseline (Docker, identical mousepad/Xvfb/GTK, trustworthy method): ~5.6ms.** Target: ir < 3× native ≈ 17ms.
+
+**Baseline this session (10 runs): ir = 59ms median (min 45, max 76), ~10.5× native.**
+
+### The decisive measurement (GAPTRACE/HOPPROF, render)
+For every cross-guest poll_wait hop that completes on a real notify:
+- **peerWait (register→notify = the PEER producing the data = peer wasm COMPUTE) = 1305µs avg = 97%**
+- wakeLag (notify→resume, the runtime wake path) = **11µs**
+- resp (respond/channel-send) = **27µs**
+- → **runtime wake+respond overhead = ~38µs = ~3% of each hop.**
+
+The render does ~30-40 such cross-guest X round-trips (Xvfb⇄mousepad: key event → GTK layout → draw
+commands → Xvfb rasterize → framebuffer). ~30-40 hops × ~1.3ms peer-compute ≈ 40-56ms = the measured ir.
+
+### Why CORE runtime optimization cannot reach 3×
+- The runtime overhead a CORE lever can attack is **~3% of the cost** (~38µs/hop, ~1.5ms total). Already
+  attacked via the inline-dispatch family (net.poll / fd.poll / accept / poll_wait fast path), which
+  landed ~98→56ms. What's left in the runtime is negligible vs the compute.
+- Reaching 17ms requires cutting the per-hop **compute** (1.3ms → ~0.4ms = beat the wasm/toolchain floor,
+  OUT OF SCOPE) **or** the hop **count** (~40 → ~13 = change the guest's X round-trip chattiness =
+  Constraint #5, forbidden — same mousepad/GTK/Xvfb binaries native runs). Neither is a CORE-runtime lever.
+- Confirms the 2026-06-27 P2 finding (single-app work is 96% guest isolate compute) for the render path.
+
+### The clamp / notify-graph is a SEPARATE (idle-CPU) issue, not the render-ir lever
+- **pwprof:** guests request 100ms+ poll timeouts (99.7%) — they are well-behaved blockers. The 3ms
+  clamp (`JAVASCRIPT_NET_POLL_MAX_WAIT`) forces a re-poll → the idle busy-spin is RUNTIME-induced.
+- **wakeprof / gaptrace-count:** 98.6% of pool completions are DEADLINE (clamp), only 1.4% notify — but
+  this is dominated by IDLE (during idle, deadline-wake is correct: nothing to notify).
+- **The render does NOT wait on the clamp:** the clamp curve is flat (clamp 3→8→16ms barely moves ir;
+  if render hops waited the clamp, 16ms would explode ir to 100s of ms — it stays ~60ms). Render hops
+  complete via the **pre-advanced inline fast path** (`current != last_seen` → return immediately),
+  because data is flowing and generations advance before the guest's wait call. So completing the notify
+  graph + removing the clamp would **fix the idle-CPU anti-pattern** (real, worth doing for CPU/the
+  "event-driven, never timer-polled" invariant) but would **NOT** move render-ir (already on the fast path).
+- Lowering the clamp 3→1ms showed a noisy ~10ms ir effect, but it is lost in the ±15ms run-to-run
+  variance and is the wrong fix (triples idle re-poll CPU). poll_direct=1: no clear effect through the noise.
+
+### Curve / variance (3 runs each unless noted)
+- clamp 1ms: 52/60/52 ; clamp 2ms: 68/64/52 ; clamp 3ms (baseline): 45..76 (n=10, median 59) ;
+  clamp 8ms: 58/64/73 ; clamp 16ms: 73/59/60. poll_direct=1: 113/51/53. Bimodal outliers (~113-140ms)
+  appear occasionally = a render eating a big multiple of some interval (rare missed-wake stall).
+
+### VERDICT (goal stop-clause)
+render-ir is **97% guest wasm compute / 3% runtime**. CORE runtime optimization has been exhausted of
+cheap levers and is structurally capped at the ~3% it can touch. Reaching ir < 3× native requires
+out-of-scope work (toolchain to beat the wasm compute floor) or a forbidden guest change (cut the X
+round-trip count). **Surfacing per the goal's explicit stop clause, not declaring done on exhaustion.**
