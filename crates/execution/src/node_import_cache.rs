@@ -8016,7 +8016,9 @@ function createNodeSyncRpcBridge() {
         nextStatus = STATUS_ERROR;
       }
 
-      data.fill(0);
+      // Only [0, payload.byteLength) is ever read back (the main thread reads data.slice(0, length)),
+      // so the full-buffer scrub was dead work — a multi-MB memset on every response. Just write the
+      // payload; the stale tail past `length` is never observed.
       data.set(payload, 0);
       Atomics.store(signal, STATUS_INDEX, nextStatus);
       Atomics.store(signal, KIND_INDEX, KIND_JSON);
@@ -8112,25 +8114,23 @@ function createNodeSyncRpcBridge() {
       throw new Error('secure-exec Node sync RPC bridge is already disposed');
     }
 
-    const payload = encoder.encode(
-      JSON.stringify({
-        id: nextRequestId++,
-        method,
-        args: encodeSyncRpcValue(args),
-      }),
-    );
+    const requestJson = JSON.stringify({
+      id: nextRequestId++,
+      method,
+      args: encodeSyncRpcValue(args),
+    });
+    const payload = encoder.encode(requestJson);
     if (payload.byteLength > data.byteLength) {
       const error = new Error('secure-exec Node sync RPC request exceeded shared buffer capacity');
       error.code = 'ERR_AGENT_OS_NODE_SYNC_RPC_PAYLOAD_TOO_LARGE';
       throw error;
     }
 
-    data.fill(0);
-    data.set(payload, 0);
-    hostFsWriteSync(
-      NODE_SYNC_RPC_REQUEST_FD,
-      `${decoder.decode(data.subarray(0, payload.byteLength))}\n`,
-    );
+    // The request travels to the sidecar over the request pipe; the `data` SAB only carries the
+    // RESPONSE. Staging the request through `data` (with a full-buffer `data.fill(0)` scrub and an
+    // encode/decode round-trip) was dead work that memset the whole multi-MB buffer on every hop.
+    // Write the JSON straight to the pipe.
+    hostFsWriteSync(NODE_SYNC_RPC_REQUEST_FD, `${requestJson}\n`);
     Atomics.store(signal, STATUS_INDEX, STATUS_OK);
     Atomics.store(signal, KIND_INDEX, KIND_JSON);
     Atomics.store(signal, REQUEST_LENGTH_INDEX, payload.byteLength);
