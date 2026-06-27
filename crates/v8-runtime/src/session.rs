@@ -2015,6 +2015,31 @@ fn allocate_t1_ring_sab(
     Some(backing)
 }
 
+/// SAFETY boundary for the T1 ring (perf lever 2). The unsafe raw-slice construction over the V8 backing stores
+/// lives HERE in v8-runtime; the sidecar (`#![forbid(unsafe_code)]`, which cannot depend on v8-runtime's caller
+/// anyway) invokes this with a closure that drives the SAFE SabRingEndpoint over the request + response ring
+/// slices. Returns `f`'s result, or `None` if a backing store has no data pointer.
+///
+/// # Safety contract
+/// The backing stores must outlive this synchronous call (the guest's SAB does -- it is held for the execution).
+/// The guest may concurrently mutate the request ring; that is exactly why the kernel ring reader
+/// copies-out-then-validates every hostile field. Servicing is single-threaded, so the constructed slices are not
+/// aliased elsewhere for the call's duration.
+#[allow(dead_code)]
+pub(crate) fn with_ring_backing_slices<R>(
+    req: &v8::SharedRef<v8::BackingStore>,
+    resp: &v8::SharedRef<v8::BackingStore>,
+    f: impl FnOnce(&mut [u8], &mut [u8]) -> R,
+) -> Option<R> {
+    let req_ptr = req.data()?.as_ptr() as *mut u8;
+    let resp_ptr = resp.data()?.as_ptr() as *mut u8;
+    let req_len = req.byte_length();
+    let resp_len = resp.byte_length();
+    let req_slice = unsafe { std::slice::from_raw_parts_mut(req_ptr, req_len) };
+    let resp_slice = unsafe { std::slice::from_raw_parts_mut(resp_ptr, resp_len) };
+    Some(f(req_slice, resp_slice))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
