@@ -219,6 +219,30 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★★ STRATEGIC FINDING (2026-06-29): the CORE-scoped path to <2s is FLATTENED — the dominant remaining
+  costs are OUT of CORE scope.** After L-W (10.0s→4.0s, re-verified ≥3 runs: fp 4755/3971/4164, ir
+  212/237/253, render green), the precise cold-init timeline (`SECURE_EXEC_PATHOPENPROF` `[pathopen-exec]`
+  svcPerfUs):
+  - **~1.4s fontconfig + icon CACHE REBUILD** = the single biggest remaining chunk (fontconfig ~475ms
+    building `/var/cache/fontconfig/*.cache-8`; GTK icon-theme scan ~900ms over Adwaita/hicolor, 39 dir
+    ops). **NO CORE FIX EXISTS**: the vm-trees ship NO `fontconfig` cache and NO `icon-theme.cache`
+    (verified — `find /tmp/vmicons /tmp/vmfonts -name '*.cache*'` is empty), so the guest cold-builds both
+    every run. The RPCs are NOT the cost (total sidecar service ~177ms; reads are in-process WASI
+    `fd_read`) — so the goal's "batch the fs.stat RPCs" premise for L-Y is FALSE; the cost is the
+    scan/hash COMPUTE, avoidable only by SHIPPING pre-built caches (run `fc-cache` /
+    `gtk-update-icon-cache` at fixture-build time in `scripts/prepare-{xftfonts,icons}.sh`). That is
+    FIXTURE PROVISIONING — not sidecar/kernel/v8-runtime/bridge — i.e. **outside Constraint #5's CORE
+    scope** (legitimate "ship like real Linux", but not a runtime fix).
+  - **~0.55s module read** = blocked on the off-by-default, unstable **T1 ring** (see L-W.3). Stabilizing
+    the whole opt-in transport for a one-time 0.55s is disproportionate.
+  - **~0.9s runner bootstrap** = the only sizable IN-SCOPE CORE lever left, but needs a large V8 code-cache
+    + runner-source-stabilization refactor, and even fully reclaimed lands at ~3.1s — **>2s by itself**.
+  - ~0.5s guest GTK/GSettings compute = toolchain-dead.
+  **Net: no combination of in-scope CORE levers reaches <2s** (CORE-only ceiling ≈ bootstrap → ~3.1s). <2s
+  REQUIRES widening scope: (A) provision the fontconfig/icon caches (~1.4s, biggest, fixture/base-FS,
+  legit-but-not-CORE), and/or (B) enable+stabilize the T1 ring (~0.55s + faster sync-RPC generally). This
+  is the documented CORE-scope ROI-flatten; the scope decision is the user's.
+
 - **★ POST-L-W re-profile of the new ~4.0s first-paint (2026-06-28) — re-ranks every remaining lever.**
   Measured split (host `[+Nms]` frame + `[moduleload]` + `SECURE_EXEC_RPC_PROFILE`):
   - **~1.0–1.5s wasm-runner isolate bootstrap** (spawn→`[moduleload]`): V8 compile of the large shared
