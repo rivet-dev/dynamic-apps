@@ -117,6 +117,16 @@ impl EmbeddedV8Runtime {
         )
     }
 
+    /// Resolve a large binary sync-RPC arg the guest staged in its per-session T1 bulk SAB. `declared_len` is the
+    /// guest-declared byte count from the `{__agentOsType:'bulk', len}` ref; it is HOSTILE and validated against the
+    /// actual backing-store size before any copy (see [`crate::session::read_bulk_arg`]). Returns `None` when T1 is
+    /// inactive for the session or the length is out of bounds, so the caller falls back to the base64 path.
+    pub fn read_t1_bulk_arg(&self, session_id: &str, declared_len: usize) -> Option<Vec<u8>> {
+        let handoff = self.t1_handoff();
+        let backing = crate::session::t1_handoff_get(&handoff, session_id)?;
+        crate::session::read_bulk_arg(&backing, declared_len)
+    }
+
     pub fn register_session(&self, session_id: &str) -> io::Result<mpsc::Receiver<RuntimeEvent>> {
         self.register_session_with_output_registration(session_id)
             .map(|(receiver, _registration)| receiver)
@@ -324,6 +334,12 @@ impl EmbeddedV8SessionHandle {
 
     pub fn session_id(&self) -> &str {
         &self.session_id
+    }
+
+    /// Resolve a large binary sync-RPC arg this session staged in its T1 bulk SAB. See
+    /// [`EmbeddedV8Runtime::read_t1_bulk_arg`]. `declared_len` is HOSTILE and bound-checked there.
+    pub fn read_t1_bulk_arg(&self, declared_len: usize) -> Option<Vec<u8>> {
+        self.runtime.read_t1_bulk_arg(&self.session_id, declared_len)
     }
 }
 

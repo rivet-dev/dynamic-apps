@@ -2092,6 +2092,27 @@ pub(crate) fn with_ring_backing_slices<R>(
     Some(f(req_slice, resp_slice))
 }
 
+/// Kernel side: copy a guest-staged bulk payload out of a session's bulk SAB. The guest layout written by
+/// `maybeBulkEncodeFsPayload` is `[len:u32 LE @0][payload @4]`. HOSTILE: `declared_len` (from the guest's
+/// `{__agentOsType:'bulk', len}` ref) and the in-band header are both guest-controlled. We reject unless
+/// `4 + declared_len <= bulk_len` (checked, overflow-safe) and never read past `min(header_len, declared_len)`,
+/// so neither a lying ref nor a lying header can over-read the backing store. Returns the copied bytes, or `None`
+/// on any bound violation (caller falls back to base64 / errors).
+pub(crate) fn read_bulk_arg(backing: &RingBacking, declared_len: usize) -> Option<Vec<u8>> {
+    let bulk = &backing.bulk;
+    let bulk_ptr = bulk.data()?.as_ptr() as *const u8;
+    let bulk_len = bulk.byte_length();
+    let end = declared_len.checked_add(4)?;
+    if end > bulk_len {
+        return None;
+    }
+    let slice = unsafe { std::slice::from_raw_parts(bulk_ptr, bulk_len) };
+    let header_len =
+        u32::from_le_bytes([slice[0], slice[1], slice[2], slice[3]]) as usize;
+    let n = header_len.min(declared_len);
+    Some(slice[4..4 + n].to_vec())
+}
+
 /// Two ring backing stores (request + response) for one guest's T1 SAB ring, carried from the session loop to the
 /// sidecar servicing side over the in-process RuntimeEvent channel. `SharedRef` is `Send` + `Clone`; we provide a
 /// pointer-identity `PartialEq` + a `Debug` impl so the enclosing `RuntimeEvent` (which derives Debug, Clone,

@@ -16,7 +16,7 @@ use crate::service::{
     log_stale_process_event, normalize_host_path, normalize_path, path_is_within_root,
 };
 use crate::state::{
-    ActiveExecutionEvent, ActiveProcess, BridgeError, SidecarKernel, VmState,
+    ActiveExecution, ActiveExecutionEvent, ActiveProcess, BridgeError, SidecarKernel, VmState,
     EXECUTION_DRIVER_NAME, PYTHON_VFS_RPC_GUEST_ROOT,
 };
 use crate::{DispatchResult, NativeSidecar, NativeSidecarBridge, SidecarError};
@@ -35,6 +35,36 @@ use secure_exec_execution::{
 use secure_exec_kernel::vfs::{VirtualStat, VirtualTimeSpec, VirtualUtimeSpec};
 use serde::Deserialize;
 use serde_json::{json, Value};
+
+/// Bytes-arg decode that first honors the T1 bulk SAB fast path. When the guest stages a large binary payload
+/// (e.g. the ~1.2MB framebuffer write) in its per-session bulk SAB, it sends `{__agentOsType:'bulk', len}` in place
+/// of a base64 blob to avoid encoding ~1.2MB on every damage. Resolve that out-of-band via the V8 session handle
+/// (the `len` is HOSTILE and bound-checked inside the runtime), otherwise fall back to the base64/string transport.
+fn javascript_sync_rpc_bytes_arg_bulk_aware(
+    process: &ActiveProcess,
+    args: &[Value],
+    index: usize,
+    label: &str,
+) -> Result<Vec<u8>, SidecarError> {
+    if let Some(value) = args.get(index) {
+        if value.get("__agentOsType").and_then(Value::as_str) == Some("bulk") {
+            let declared_len = value
+                .get("len")
+                .and_then(Value::as_u64)
+                .ok_or_else(|| SidecarError::InvalidState(format!("{label} bulk ref missing len")))?
+                as usize;
+            if let ActiveExecution::Javascript(js_exec) = &process.execution {
+                if let Some(bytes) = js_exec.v8_session_handle().read_t1_bulk_arg(declared_len) {
+                    return Ok(bytes);
+                }
+            }
+            return Err(SidecarError::InvalidState(format!(
+                "{label} bulk arg could not be resolved from the T1 bulk SAB"
+            )));
+        }
+    }
+    javascript_sync_rpc_bytes_arg(args, index, label)
+}
 use std::collections::{BTreeMap, BTreeSet};
 use std::ffi::OsString;
 use std::fmt;
@@ -999,8 +1029,12 @@ pub(crate) fn service_javascript_fs_sync_rpc(
         }
         "fs.write" | "fs.writeSync" => {
             let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "filesystem write fd")?;
-            let contents =
-                javascript_sync_rpc_bytes_arg(&request.args, 1, "filesystem write contents")?;
+            let contents = javascript_sync_rpc_bytes_arg_bulk_aware(
+                process,
+                &request.args,
+                1,
+                "filesystem write contents",
+            )?;
             let position = javascript_sync_rpc_arg_u64_optional(
                 &request.args,
                 2,

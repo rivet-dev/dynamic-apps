@@ -169,6 +169,14 @@ impl V8SessionHandle {
     pub fn session_id(&self) -> &str {
         self.inner.session_id()
     }
+
+    /// Resolve a large binary sync-RPC arg staged by the guest in this session's T1 bulk SAB (the framebuffer-write
+    /// throughput path). `declared_len` comes from the guest `{__agentOsType:'bulk', len}` ref and is HOSTILE; it is
+    /// bound-checked against the backing store before any copy. `None` when T1 is inactive or the length is out of
+    /// bounds, so the caller falls back to the base64 transport.
+    pub fn read_t1_bulk_arg(&self, declared_len: usize) -> Option<Vec<u8>> {
+        self.inner.read_t1_bulk_arg(declared_len)
+    }
 }
 
 impl Clone for V8SessionHandle {
