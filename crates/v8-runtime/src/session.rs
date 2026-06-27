@@ -958,6 +958,22 @@ fn session_thread(
                             }
                         }
 
+                        // T1 SAB ring (perf lever 2): when enabled, allocate the per-guest request + response ring
+                        // backing stores, expose them to the guest as globals (the runner's RingChannel reads
+                        // them), and publish the handles to the sidecar servicing side via the in-process handoff.
+                        // Best-effort -- if allocation fails the guest runner falls back to the base64 transport.
+                        if t1_ring_enabled() {
+                            let scope = &mut v8::HandleScope::new(iso);
+                            let ctx = v8::Local::new(scope, &exec_context);
+                            let scope = &mut v8::ContextScope::new(scope, ctx);
+                            if let (Some(req), Some(resp)) = (
+                                allocate_t1_ring_sab(scope, "__secure_exec_t1_req", T1_RING_BYTES),
+                                allocate_t1_ring_sab(scope, "__secure_exec_t1_resp", T1_RING_BYTES),
+                            ) {
+                                t1_handoff_set(&t1_handoff, &session_id, RingBacking { req, resp });
+                            }
+                        }
+
                         // Arm a per-execution abort channel so timeouts and external
                         // terminate requests can unblock sync bridge waits.
                         let (_active_execution_abort, abort_rx) =
@@ -2006,6 +2022,22 @@ fn push_deferred_sync_message(
     }
     queue.push_back(frame);
     Ok(())
+}
+
+/// T1 SAB ring control-buffer size (bytes) for EACH of the request + response rings. The per-record cap is this
+/// minus the 16-byte header and the 4-byte length prefix (see sab_ring.rs); 256 KiB comfortably holds the small
+/// kernel-forwarded poll RPCs the Root-2 baseline measured. Catalogued in limits-inventory (policy-deferred).
+pub(crate) const T1_RING_BYTES: usize = 256 * 1024;
+
+/// T1 ring transport is off by default; `SECURE_EXEC_T1_RING=1` activates per-guest ring allocation + the guest
+/// runner's RingChannel routing. Inert (base64 transport) when unset.
+pub(crate) fn t1_ring_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_T1_RING")
+            .map(|v| !v.is_empty() && v != "0")
+            .unwrap_or(false)
+    })
 }
 
 /// T1 SAB-ring control buffer (perf lever 2). Allocate a per-guest SharedArrayBuffer (16-byte header +
