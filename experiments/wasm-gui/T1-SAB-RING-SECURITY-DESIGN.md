@@ -228,3 +228,19 @@ wraps SabRingEndpoint. This keeps the sidecar #![forbid(unsafe_code)] intact.
 - v8-runtime unsafe boundary is COMPLETE + verified: allocate_t1_ring_sab (alloc+expose+handle) +
   with_ring_backing_slices (unsafe->safe callback). Remaining: RingBacking newtype + T1RingReady variant + session
   alloc/emit + sidecar store/service + guest runner routing.
+
+## Handoff CORRECTED (2026-06-27, part 3) — RuntimeEvent is a WIRE type; use an in-process side-channel
+RULED OUT the RuntimeEvent::T1RingReady variant: `impl From<RuntimeEvent> for BinaryFrame`
+(runtime_protocol.rs:188) means RuntimeEvent serializes to a wire frame (for the standalone out-of-process
+runtime), AND RuntimeEvent has an exhaustive session_id() match. A SharedRef<BackingStore> is neither serializable
+nor was it meant to cross a wire -- the ring SAB only exists in the EMBEDDED (in-process) path where the sidecar
+hosts the v8-runtime.
+
+CORRECTED handoff (embedded-only, no wire): a shared `Arc<Mutex<Option<RingBacking>>>` (or keyed by session_id)
+created by the embedded execution driver, passed INTO the session at creation, SET by the session loop right after
+it calls allocate_t1_ring_sab, and READ by the sidecar servicing loop (execution.rs:17013). RingBacking already
+lives in v8-runtime and the dep direction works (sidecar -> execution -> v8-runtime, all can name it). The standalone
+wire path simply never sets it (T1 is an in-process optimization; out-of-process keeps the base64 transport). This
+keeps RuntimeEvent's wire serialization intact and the sidecar forbid-unsafe (servicing calls
+with_ring_backing_slices). v8-runtime building blocks COMPLETE + verified: allocate_t1_ring_sab,
+with_ring_backing_slices, RingBacking. Next: the Arc<Mutex> side-channel + session set + sidecar read/service + runner route.
