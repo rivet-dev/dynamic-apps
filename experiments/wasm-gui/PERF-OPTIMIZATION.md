@@ -437,6 +437,38 @@ Guest (mousepad) does `XSync`/etc. = write request, then block for the reply. In
 
 ### Verdict log (newest first)
 
+- **2026-06-28 — L-R DRILL: round-trip is wait-bound + serialized through the single-threaded sidecar;
+  several hops REFUTED.** Built `[rt]`/`[rt-outer]` probes (`SECURE_EXEC_RTPROBE=1`, needs PERFCLOCK on;
+  perf-clock-stamp the blocking `net.poll_wait` inner + the whole outer `net_poll`). Findings on B2
+  mousepad (single-app):
+  - **Confirmed WAIT-bound, not CPU-bound.** pollstat: mousepad's polls are mostly `tinf` (blocking,
+    infinite timeout), 63% spurious wakes. The P2 cpuprofile's "98.6% on-CPU in wasm-function[14120]" is
+    a V8 ARTIFACT: V8 attributes time blocked in a synchronous host-call (net.poll_wait) to the calling
+    wasm function, so it shows as on-CPU. mousepad is blocked in poll_wait, not computing. ~175 blocking
+    polls to first-paint over 9.7s ≈ ~55 ms/round-trip; native is ~0.6 ms/round-trip (~90×).
+  - **REFUTED — poll clamp (extends L-Q):** lowering `SECURE_EXEC_POLL_MAX_WAIT_MS` 3→1 ms halved the
+    server's per-wake latency (prodAvg 1136→529 µs) but barely moved first-paint (9.8→9.3 s). Not the
+    bottleneck.
+  - **REFUTED — L-S poll-direct:** `SECURE_EXEC_POLL_DIRECT=1` gave no change (first-paint ~9.7 s, input
+    ~240 ms, prodAvg ~1 ms both). The pool-vs-direct scheduler hop is not the cost.
+  - **REFUTED — pump-starvation during first-paint:** the 143 pump-gaps >50 ms and 181 `[select-block]`s
+    (each ~80 ms, holding the single select! task on `Request::GuestFilesystemCallRequest`) are ALL in
+    the PRE-X-server fixture-install phase (the 15 s of host→VM font/icon/tree writes over the wire) —
+    ZERO in the X-launch→first-paint window (only 3 gaps, ~0.95 s of 9.7 s). So the install is a separate
+    ~15 s harness cost (pre-staged in real use), NOT the first-paint gate.
+  - **Narrowed lever:** the ~55 ms/round-trip is the mousepad↔X-server ping-pong serialized through the
+    **single-threaded sidecar** (`tokio::runtime::Builder::new_current_thread()`, stdio.rs:111). Both
+    isolates are on their own threads but every sync-RPC is serviced by ONE sidecar thread; each
+    round-trip needs several serviced RPCs interleaved with isolate-thread wakeups + wasm re-entry, and
+    that handoff chain (not the poll clamp, pool hop, or pump) is where the ms accumulate. Server
+    blocking polls are fast (<10 ms); mousepad rarely returns-with-data (<50×) — it spends the time
+    parked waiting for the next reply to be produced + delivered.
+  - **NEXT (L-R cont.):** measure the handoff chain directly (mousepad net_send perf-stamp → X-server
+    net_recv perf-stamp → reply → mousepad wake) to quantify the isolate-thread-wakeup + sidecar-service
+    latency per hop; then evaluate (a) a multi-threaded sidecar runtime (BIG lever, but the kernel/VFS/
+    socket-table must be made Sync — risky) or (b) reducing the per-round-trip hop COUNT (coalesce
+    send+poll+recv so one wakeup carries the reply, L-T). Probes committed default-OFF.
+
 - **2026-06-28 — ★★★★ NATIVE BASELINE MEASURED → PHASE-1 OPENED (40–88× headroom).** Built a native
   reference in a debian Docker container using the SAME method as the wasm probe (Xvfb `-fbdir` raw
   framebuffer; first-paint = first non-black; input→response = XTEST `type` → first fb change). Also

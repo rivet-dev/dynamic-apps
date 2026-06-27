@@ -131,6 +131,13 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       mousepad first-paint (~9.7s, <10s target), B3 multi-app desktop full-paint (~19.5s at
       `APP_SETTLE_MS=2500`, <30s target). All first-paint via the `SECURE_EXEC_FIRSTPAINT` probe + the
       `[milestone +Nms]` launch-timeline log in `run_xdemo`.
+- [x] **L-R round-trip probe** (`SECURE_EXEC_RTPROBE`, needs `SECURE_EXEC_PERFCLOCK=1`) — perf-clock-stamps
+      the guest's blocking `net.poll_wait`. `[rt]` aggregates inner-wait latency split by productive
+      (readiness generation advanced = data arrived) vs deadline/clamp wakes; `[rt-outer]` times the whole
+      blocking `net_poll` (the round-trip). `__perf_now` is answered locally in the v8-runtime bridge so
+      stamping adds no sidecar round-trip. NOTE: V8's CPU profiler mis-attributes time blocked in a
+      synchronous host-call to the calling wasm function (shows as on-CPU), so use THIS, not P2, to tell
+      wait from compute. (`crates/execution/src/node_import_cache.rs` `net_poll`.)
 - [x] **P2 guest CPU profiler** (`SECURE_EXEC_CPUPROFILE=<path>`) — a real V8 CPU profile of the guest
       isolate, written as a Chrome-DevTools `.cpuprofile` (one per isolate: `<path>.<n>`). rusty_v8
       exposes no `CpuProfiler`, so this drives the V8 **Inspector** Profiler domain: creates a

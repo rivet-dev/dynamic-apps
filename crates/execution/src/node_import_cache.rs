@@ -8815,6 +8815,7 @@ const guestEnv = JSON.parse(process.env.AGENT_OS_GUEST_ENV ?? '{}');
 const GUEST_PATH_MAPPINGS = parseGuestPathMappings(process.env.AGENT_OS_GUEST_PATH_MAPPINGS);
 const permissionTier = process.env.AGENT_OS_WASM_PERMISSION_TIER ?? 'full';
 try { if (process.env.SECURE_EXEC_RPCPROF === '1') globalThis.__rpcprof = true; } catch (_e) {}
+try { if (process.env.SECURE_EXEC_RTPROBE === '1') globalThis.__rtprobe = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_POLLSTAT === '1') globalThis.__pollstat = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_PATHOPENPROF === '1') globalThis.__pathopenprof = true; } catch (_e) {}
 try { if (process.env.SECURE_EXEC_NET_TRACE === '1') globalThis.__nettrace = true; } catch (_e) {}
@@ -11598,6 +11599,9 @@ const hostNetImport = {
     const POLLOUT_COMPAT = 0x002;
     const ACCEPT_POLL_INTERVAL_MS = 50;
     const t = Number(timeoutMs) | 0;
+    // [rt-outer] L-R: time the WHOLE blocking net_poll (entry → data-ready return) = the round-trip the
+    // guest experiences waiting for a peer reply. Only for blocking polls (t !== 0). __perf_now is local.
+    const __npEntry = (globalThis.__rtprobe && t !== 0) ? callSyncRpc('__perf_now', []) : 0;
     const deadline = t < 0 ? null : Date.now() + Math.max(0, t);
     // Generation of the process socket-readiness signal. Reading it here, BEFORE the first drain/scan,
     // is what makes the block below race-free: any data that lands during/after the scan advances the
@@ -11753,6 +11757,15 @@ const hostNetImport = {
             }
             netTrace('spin0 n=' + n + sp);
           }
+          if (__npEntry) {
+            const __npDur = callSyncRpc('__perf_now', []) - __npEntry;
+            const O = (globalThis.__npO = globalThis.__npO || { n: 0, us: 0, max: 0, ge10: 0, ge30: 0 });
+            O.n++; O.us += __npDur; if (__npDur > O.max) O.max = __npDur;
+            if (__npDur >= 10000) O.ge10++; if (__npDur >= 30000) O.ge30++;
+            if (O.n % 50 === 0) {
+              try { process.stderr.write('[rt-outer] blockingPolls=' + O.n + ' avgUs=' + (O.us / O.n).toFixed(0) + ' maxUs=' + O.max.toFixed(0) + ' >=10ms=' + O.ge10 + ' >=30ms=' + O.ge30 + '\n'); } catch (_e) {}
+            }
+          }
           new DataView(instanceMemory.buffer).setUint32(Number(retReadyPtr) >>> 0, ready >>> 0, true);
           return 0;
         }
@@ -11771,8 +11784,32 @@ const hostNetImport = {
           let pr = ''; pipeRevents.forEach((re, gfd) => { pr += ' gfd' + gfd + '(k' + kernelPipeKernelFd(gfd) + ')=' + re; });
           pollTrace('net_poll BLOCK n=' + n + ' hasPipes=' + pollSetHasPipes + ' pipeRevents{' + pr + ' } remain=' + remain);
         }
+        // [rt] L-R round-trip probe (SECURE_EXEC_RTPROBE, default-OFF): perf-clock-stamp the blocking
+        // net.poll_wait. __perf_now is answered LOCALLY in the v8-runtime bridge (no sidecar round-trip),
+        // so stamping is cheap. Splits productive wakes (data arrived → readiness generation advanced)
+        // from deadline/clamp wakes, and reports the avg blocked duration of each — the productive avg is
+        // the guest-observed X round-trip latency (peer-process + wakeup-propagation).
+        const __rt0 = globalThis.__rtprobe ? callSyncRpc('__perf_now', []) : 0;
+        const __genBefore = readyGen;
         const r = callSyncRpc('net.poll_wait', [readyGen, remain]);
         readyGen = r && typeof r.generation === 'number' ? r.generation : readyGen;
+        if (globalThis.__rtprobe) {
+          const __rt1 = callSyncRpc('__perf_now', []);
+          const dur = __rt1 - __rt0;
+          const productive = readyGen !== __genBefore;
+          const A = (globalThis.__rtA = globalThis.__rtA || { n: 0, pN: 0, pUs: 0, pMax: 0, dN: 0, dUs: 0 });
+          A.n++;
+          if (productive) { A.pN++; A.pUs += dur; if (dur > A.pMax) A.pMax = dur; }
+          else { A.dN++; A.dUs += dur; }
+          if (A.n % 200 === 0) {
+            try {
+              process.stderr.write('[rt] n=' + A.n + ' productive=' + A.pN +
+                ' prodAvgUs=' + (A.pN ? (A.pUs / A.pN).toFixed(0) : 0) +
+                ' prodMaxUs=' + A.pMax.toFixed(0) +
+                ' deadline=' + A.dN + ' deadAvgUs=' + (A.dN ? (A.dUs / A.dN).toFixed(0) : 0) + '\n');
+            } catch (_e) {}
+          }
+        }
         __blockedPrev = true;
       }
     } catch (_e) {
