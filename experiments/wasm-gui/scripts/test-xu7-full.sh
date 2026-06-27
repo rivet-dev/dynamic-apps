@@ -48,16 +48,17 @@ PNG="${PNG:-$HOME/tmp/gui-progress/$(date -u +%Y-%m-%dT%H)/xu7-session.png}"
 mkdir -p "$(dirname "$PNG")"
 
 echo "running XU3 session -> fb=$FB png=$PNG log=$OUT"
+# Client set: full (default) = xfwm4 + mousepad + panel + xfdesktop + thunar; XU7_LITE=1 drops xfdesktop+thunar
+# to stay under the concurrent-heavy-guest scheduling ceiling (diagnostic for whether the panel paints when
+# contention is lower).
+CLIENTS=(--client "$EXP/xfwm4.wasm" --client "$EXP/mousepad.wasm" --client "$EXP/xfce4-panel.wasm")
+[ -z "${XU7_LITE:-}" ] && CLIENTS+=(--client "$EXP/xfdesktop.wasm" --client "$EXP/thunar.wasm")
 WM_SETTLE_QUIET_MS=3000 WM_SETTLE_CAP_S=50 APP_SETTLE_MS=4000 \
 timeout "$(( ${TIMEOUT:-120} + 45 ))" env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-120}" \
   --server "$EXP/Xvfb.wasm" \
   --dbus "$EXP/dbus-daemon.wasm" \
   --dbus-service "$EXP/xfconfd.wasm" \
-  --client "$EXP/xfwm4.wasm" \
-  --client "$EXP/mousepad.wasm" \
-  --client "$EXP/xfce4-panel.wasm" \
-  --client "$EXP/xfdesktop.wasm" \
-  --client "$EXP/thunar.wasm" \
+  "${CLIENTS[@]}" \
   --fonts-dir "$FONTS" --locale-dir "$LOCALE" \
   --vm-tree "$FIX" --vm-tree "$SESS" --vm-tree "$THEMES" --vm-tree "$WMDATA" --vm-tree "$XFT" --vm-tree /tmp/vmschemas \
   --fb-out "$FB" --sidecar "$SIDECAR" \
