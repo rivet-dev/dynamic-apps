@@ -53,15 +53,14 @@ The per-cause split is currently a *hypothesis*. These two artifacts replace the
   attribution. The DELTA vs P1 (sidecar service time) = bridge/marshaling overhead; total guest-RPC-µs
   vs wall = round-trip-bound vs compute-bound. Uses the real clock **only** under the determinism
   guardrail in §7. (`crates/execution/src/node_import_cache.rs` `callSyncRpc`, `__rpcprof`.)
-- **P2 — V8 CPU profile of the guest isolate.** Capture the isolate self-time split (wasm exec vs JS
-  shims vs `ffi_call`/GObject vs encoders vs the RPC bridge). The *only* thing that captures the
-  GObject/JS-side cost. **BUILD NOTE (verified 2026-06-27):** rusty_v8 v130 does **NOT** expose
-  `v8::CpuProfiler` (no `cpu_profiler.rs`); only `inspector.rs` exists. So P2 must drive the **V8
-  Inspector `Profiler` domain** (Profiler.enable / setSamplingInterval / start / stop over an
-  `InspectorSession` in `crates/v8-runtime/`, then parse the returned CPU-profile JSON) — a substantial
-  build, not a quick attach. Alternative cheaper-but-narrower probe: instrument the `ffi_call` host
-  import directly (count + time, like P1-guest) to size GObject dispatch (L-B) without a full profile —
-  but it needs the guest-side env gate fixed first (see below).
+- **P2 — V8 CPU profile of the guest isolate. ALREADY BUILT (`SECURE_EXEC_V8PROF=1`).** Enables V8's
+  `--prof` tick profiler (`crates/v8-runtime/src/isolate.rs` `init_v8_platform`): V8 writes
+  `/tmp/secure-exec-v8.log` (code-creation incl. wasm function names + sampled ticks); symbolize with
+  `experiments/wasm-gui/scripts/v8prof-top.py` to get top self-time functions. This is the CPU profile
+  — captures wasm/`ffi_call`/JS self-time. (Earlier wrong note: rusty_v8 v130 has no `v8::CpuProfiler`,
+  so I assumed an Inspector build was needed — but the `--prof` tick profiler was already wired and is
+  sufficient. The Inspector `Profiler` domain is an unnecessary alternative.) It's SIDECAR-side env, so
+  it sidesteps the guest-env-gate gap entirely.
   - **Guest-env-gate gap (blocker for guest-side probes):** `SECURE_EXEC_*` debug vars set
     `globalThis.__rpcprof`/`__pollstat` in the runner (node_import_cache.rs ~8817), but they did NOT
     activate for **X-client** guests even after adding them to the host cenv allowlist + rebuilding —
