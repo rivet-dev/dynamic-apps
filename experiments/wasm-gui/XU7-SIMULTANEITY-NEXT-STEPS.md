@@ -37,22 +37,27 @@ type-feasible — but `Send` is necessary, not sufficient (see Path A constraint
 
 ---
 
-## ★ Which path? (refined by the idle-thread finding — read first)
+## ★ Which path? (settled by the threading model — read first)
 
-The sidecar sync-RPC service thread is **~99% idle**, yet the 2nd guest starves to 0% even at 450s. That means
-the bottleneck is **latency/dependency, not throughput**: guests are blocked *waiting* on cross-thread wakes and on
-**Xvfb** (the single X-server guest) serving multiple clients serially at ~180µs per round-trip — not on the
-service thread being saturated. Implication:
+Three established facts settle this:
+1. **Each guest isolate runs on its own dedicated thread** (`crates/v8-runtime/src/session.rs:1` — "V8 isolates on
+   dedicated threads"). So guests already execute **concurrently** on separate cores (20 cores, ~10 free).
+2. The sidecar sync-RPC **service path is ~99% idle** (~909ms serviced over 120s).
+3. The 2nd guest still starves to 0% even at a 450s timeout (starvation, not slowness).
 
-- **Path A (service multiplex) is questionable on its own** — multiplexing an *idle* thread adds little; the
-  interleaving-serialization penalty it removes is small when the loop is 99% idle. It may help at the margin but
-  is unlikely to be the decisive fix.
-- **Path B (co-location) directly attacks the root** — making client↔Xvfb X round-trips in-process eliminates the
-  ~180µs IPC wake latency that dominates, so the single X server can serve multiple clients fast enough.
+Together these mean the bottleneck is **per-round-trip cross-thread WAKE LATENCY**, not any thread being saturated.
+Each X/D-Bus round-trip hops guest-thread → sidecar dispatch → Xvfb-thread → back, ~180µs each; **Xvfb (one thread)
+serving N clients** is throughput-limited by that latency, so a 2nd client's startup request volume never drains.
 
-**Before committing to a path, confirm the bottleneck on a quiet box** with `SECURE_EXEC_RPCPROF=1`: check whether
-per-round-trip latency rises with a 2nd guest (→ interleaving, path A helps) or stays ~flat while Xvfb's request
-throughput is the limit (→ path B). Current evidence favors **B**.
+- **Path A (service-thread multiplex) does NOT fix this** — the service path is idle and guests are already on
+  separate threads; multiplexing an idle path adds no concurrency where the bottleneck is latency. **Do not invest
+  the multi-day refactor in path A.** (This corrects task #19's framing.)
+- **Path B (co-location) IS the fix** — co-locate Xvfb + its X clients so X-protocol round-trips become in-process
+  function calls (~µs) instead of cross-thread IPC (~180µs), eliminating the dominant latency so one X server can
+  serve many clients. The alternative is a fundamental cheaper guest-wake primitive (V8 `Atomics.wait` is
+  isolate-internal, so this is hard).
+
+**Verify on a quiet box** with `SECURE_EXEC_RPCPROF=1` before building, but the threading model already rules out A.
 
 ## Path A — intra-VM per-process concurrency
 
@@ -91,6 +96,19 @@ are mutually-untrusted-together already — co-location only couples their crash
 **Scope:** requires the wasm runner to host multiple wasm modules in one isolate with a cooperative scheduler
 (when one module's event loop blocks on poll, run the other), plus detecting + short-circuiting intra-isolate
 loopback sockets. Deep runtime change; deadlock-prone; also needs a quiet box to validate.
+
+**★ Critical dependency / hard part:** each guest is a *synchronous, blocking* event loop (Xvfb `WaitForSomething`,
+the client GTK main loop). When module A's wasm calls `poll()` it synchronously enters the V8 host and blocks the
+isolate thread — you cannot "pause A and run B" in one thread without stack-switching. So co-location needs ONE of:
+(a) **Asyncify** the guest wasm (build-time transform so blocking host calls can suspend/resume) — guests are NOT
+currently built with it; or (b) a **fiber/coroutine** mechanism for the runner. This is the real cost of Path B
+(not the socket short-circuit, which is comparatively easy once scheduling exists). Evaluate (a) vs (b) first.
+
+**Hybrid worth considering:** keep guests on their own threads (today's model, real concurrency) but short-circuit
+the *intra-VM loopback socket* path in the kernel so a client↔Xvfb round-trip completes with the **fewest possible
+cross-thread hops** (the reader-direct change is a first step). This doesn't reach in-process speed but avoids the
+Asyncify/fiber problem and may lift the multi-client ceiling enough to matter. Measure it before committing to full
+co-location.
 
 ## The 5th component — thunar
 
