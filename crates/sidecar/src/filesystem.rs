@@ -53,8 +53,14 @@ fn javascript_sync_rpc_bytes_arg_bulk_aware(
                 .and_then(Value::as_u64)
                 .ok_or_else(|| SidecarError::InvalidState(format!("{label} bulk ref missing len")))?
                 as usize;
-            if let ActiveExecution::Javascript(js_exec) = &process.execution {
-                if let Some(bytes) = js_exec.v8_session_handle().read_t1_bulk_arg(declared_len) {
+            // The bulk SAB is keyed by the V8 session id, which both JS and WASM (e.g. Xvfb) executions carry.
+            let v8_session = match &process.execution {
+                ActiveExecution::Javascript(js_exec) => Some(js_exec.v8_session_handle()),
+                ActiveExecution::Wasm(wasm_exec) => Some(wasm_exec.v8_session_handle()),
+                _ => None,
+            };
+            if let Some(handle) = v8_session {
+                if let Some(bytes) = handle.read_t1_bulk_arg(declared_len) {
                     return Ok(bytes);
                 }
             }

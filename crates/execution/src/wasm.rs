@@ -1416,11 +1416,31 @@ fn handle_internal_wasm_sync_rpc_request(
                 "missing fs.writeSync fd",
             )));
         };
-        let bytes = decode_wasm_bytes_arg(
-            request.args.get(1),
-            "fs.writeSync bytes",
-            WASM_CAPTURED_OUTPUT_LIMIT_BYTES,
-        )?;
+        // T1 bulk fast path: a large fs-write (the ~1.9MB framebuffer frame) arrives as a
+        // {__agentOsType:'bulk', len} ref instead of base64; resolve it out-of-band from the per-guest bulk SAB
+        // (the `len` is HOSTILE and bound-checked inside the runtime). Falls back to the base64 decode otherwise.
+        let bulk_len = request
+            .args
+            .get(1)
+            .and_then(Value::as_object)
+            .filter(|map| map.get("__agentOsType").and_then(Value::as_str) == Some("bulk"))
+            .and_then(|map| map.get("len").and_then(Value::as_u64));
+        let bytes = if let Some(declared_len) = bulk_len {
+            execution
+                .v8_session_handle()
+                .read_t1_bulk_arg(declared_len as usize)
+                .ok_or_else(|| {
+                    WasmExecutionError::RpcResponse(String::from(
+                        "fs.writeSync bulk arg could not be resolved from the T1 bulk SAB",
+                    ))
+                })?
+        } else {
+            decode_wasm_bytes_arg(
+                request.args.get(1),
+                "fs.writeSync bytes",
+                WASM_CAPTURED_OUTPUT_LIMIT_BYTES,
+            )?
+        };
         if fd == 1 || fd == 2 {
             let bytes_len = bytes.len();
             internal_sync_rpc.pending_events.push_back(if fd == 1 {

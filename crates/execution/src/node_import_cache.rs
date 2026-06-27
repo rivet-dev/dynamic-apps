@@ -13620,6 +13620,9 @@ wasiImport.fd_pwrite = (fd, iovs, iovsLen, offset, nwrittenPtr) => {
             runEnd = e2; p = e2;
           }
           const sub = bytes.subarray(runStart, runEnd);
+          // Small changed runs: keep the known-good 5-arg writeSync (it normalizes the subarray's offset/length);
+          // these are well under the bulk threshold so base64 cost is negligible. Only the full-frame write below
+          // (a fresh byteOffset-0 buffer) takes the T1 bulk fast path.
           fsModule.writeSync(handle.targetFd, sub, 0, sub.length, off + runStart);
           last.set(sub, runStart);
         }
