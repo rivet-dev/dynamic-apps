@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# XU1 linchpin: build the GDBus client probe (guest-xclient/gdbus-probe.c) against the THREADED
+# XU1 linchpin: build the GDBus client probe (guest-xclient/$NAME.c) against the THREADED
 # GLib/GIO stack + the dbus_creds host_net shims, so GIO's GDBus can reach the wasm dbus-daemon.
 # Proves GDBus-over-host_net before building xfconf/xfsettingsd on top of it (constraint #4).
 set -uo pipefail
@@ -11,7 +11,8 @@ GB="$EXP/third_party/glib"; BD="$GB/build-wasm-threads"
 [ -f "$BD/gio/libgio-2.0.a" ] || { echo "FATAL: threaded GIO not built"; exit 1; }
 [ -f "$PREFIX/lib/libdbuscreds.a" ] || { echo "FATAL: libdbuscreds.a missing (run build-dbus.sh)"; exit 1; }
 INC="-I$GB -I$GB/glib -I$GB/gmodule -I$GB/gobject -I$GB/gio -I$BD -I$BD/glib -I$BD/gio"
-OUT="$EXP/gdbus-probe.wasm"
+NAME="${1:-gdbus-probe}"
+OUT="$EXP/$NAME.wasm"
 rm -f "$OUT"
 # libhostcompat.a already bundles wasi-compat-threads.o + host_socket + the libc overrides; rebuild it
 # if a concurrent session churned it away (it is a gitignored artifact).
@@ -20,7 +21,7 @@ rm -f "$OUT"
 # GSocket/GCredentials EXTERNAL-auth path works over host_net AF_UNIX — same shims as the dbus binaries.
 "$CC" $CFLAGS $INC -Wl,--allow-undefined -Wl,--no-check-features \
   -Wl,--wrap=read -Wl,--wrap=getsockopt \
-  -o "$OUT.elf" "$EXP/guest-xclient/gdbus-probe.c" \
+  -o "$OUT.elf" "$EXP/guest-xclient/$NAME.c" \
   "$BD/gio/libgio-2.0.a" "$BD/gobject/libgobject-2.0.a" "$BD/gmodule/libgmodule-2.0.a" \
   "$BD/gthread/libgthread-2.0.a" "$BD/glib/libglib-2.0.a" \
   -L"$PREFIX/lib" -ldbuscreds -lhostcompat \

@@ -254,6 +254,23 @@ This doc is **recursive**: investigation creates new theories.
 
 ### Verdict log (newest first)
 
+- **2026-06-27 — ★ TIGHTEST REPRO: bare GDBus worker thread spins (1 guest).** `xfconfd` alone
+  (dbus-daemon + xfconfd, no X) spins identically (54k polls, 0 reads, both threads) → minimal 2-guest
+  repro. Then `gdbus-loop-probe` (a bare GDBus client: `g_bus_get_sync` + persistent `g_main_loop_run`,
+  no xfconf) → **the GDBus WORKER thread spins** (7,562 polls, 0 reads); main idles (1 poll). So the
+  spin is the **GDBusWorker's private GMainContext never acknowledging its readable wakeup pipe** — a
+  bare-GDBus, single-guest repro. (Pure-glib workers drain fine; GDBus-worker-context-specific.) The
+  wakeup pipe got a few writes during connection setup, never drained → perpetually readable → spin.
+  Why GLib's worker-context `check` doesn't acknowledge is glib-internal (would need glib-side tracing,
+  which touches Constraint #5). Pursuing #5-safe: GDBus-source analysis + platform fixes. Repros:
+  `guest-xclient/{gdbus-loop-probe,glib-twoctx-pingpong}.c`. Artifacts: `/tmp/{xfconfd-alone,gdbusloop}.log`.
+- **2026-06-27 — minimal cross-thread GWakeup WORKS (narrows the bug to GDBus's pattern).** Ran the
+  existing `glib-invoke-test` (a worker thread does `g_main_context_invoke()` → wakes the main loop via
+  GWakeup): **PASS, invoked=1 timed_out=0, ZERO spin polls**. So generic cross-thread main-context
+  wakeup is fine. ⇒ xfconfd's spin is NOT a plain-GWakeup gap; it's specific to **GDBus's threading
+  pattern** (a *persistent* worker thread running its own non-default GMainContext + the live D-Bus
+  connection, exchanging wakeups continuously). Next: a two-persistent-context ping-pong repro to
+  reproduce in isolation, then a GDBus/dbus-daemon repro if needed. Artifact: `/tmp/glib-invoke.err`.
 - **2026-06-27 — ★ CAUSALITY PROVEN: the xfconfd spin IS the render blocker.** Same client set
   (xfwm4 + mousepad), only difference = xfconfd present or not: **WITH xfconfd → 0.0% nonblack** (black,
   nothing renders); **WITHOUT xfconfd (NO_XFCONFD=1) → 69.6% nonblack** (mousepad + xfwm4 render a real
