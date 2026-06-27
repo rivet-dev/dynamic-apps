@@ -63,10 +63,13 @@ serving N clients** is throughput-limited by that latency, so a 2nd client's sta
 - **Path A (service-thread multiplex) does NOT fix this** — the service path is idle and guests are already on
   separate threads; multiplexing an idle path adds no concurrency where the bottleneck is latency. **Do not invest
   the multi-day refactor in path A.** (This corrects task #19's framing.)
-- **Path B (co-location) IS the fix** — co-locate Xvfb + its X clients so X-protocol round-trips become in-process
-  function calls (~µs) instead of cross-thread IPC (~180µs), eliminating the dominant latency so one X server can
-  serve many clients. The alternative is a fundamental cheaper guest-wake primitive (V8 `Atomics.wait` is
-  isolate-internal, so this is hard).
+- **Path C (adaptive spin-poll transport) — RECOMMENDED FIRST.** The whole problem is the kernel can't wake a blocked
+  guest, forcing the slow wake chain. Have the kernel write responses to the per-guest SAB and guests **spin-poll**
+  it (adaptive: spin a short budget, then fall back to today's blocking path). Cuts the hot-path round-trip ~180µs →
+  ~µs with NO co-location, NO Asyncify, NO TCB-concurrency refactor — just a gated transport change on the SAB infra
+  already in tree. Lowest-cost, lowest-risk shot at the real fix. (Details below.)
+- **Path B (co-location) — fallback if C's spin can't be tuned** — co-locate Xvfb + clients so X round-trips are
+  in-process; eliminates the wake entirely but needs Asyncify/fibers + a cooperative scheduler (heavier). (Details below.)
 
 **Verify on a quiet box** with `SECURE_EXEC_RPCPROF=1` before building, but the threading model already rules out A.
 
@@ -129,6 +132,30 @@ isolate thread — you cannot "pause A and run B" in one thread without stack-sw
 (a) **Asyncify** the guest wasm (build-time transform so blocking host calls can suspend/resume) — guests are NOT
 currently built with it; or (b) a **fiber/coroutine** mechanism for the runner. This is the real cost of Path B
 (not the socket short-circuit, which is comparatively easy once scheduling exists). Evaluate (a) vs (b) first.
+
+## Path C — adaptive spin-poll transport (likely the MOST tractable; no TCB-concurrency, no Asyncify)
+
+The whole problem is that the kernel **can't wake a blocked guest** (V8 `Atomics.wait` is isolate-internal), forcing
+the slow multi-hop wake chain (deferred responder → pipe → worker `readSync` → `Atomics.notify` → main). **Sidestep
+the wake entirely:** have the kernel write each sync-RPC response into the per-guest **SAB** (the T1 ring SABs are
+already allocated — `__secure_exec_t1_req/resp/bulk` in session.rs), and have the guest **spin-poll** the SAB for the
+response instead of blocking. No pipe, no worker, no `notify` — hot-path round-trip drops from ~180µs to ~µs, so the
+single-threaded service guests (Xvfb, dbus-daemon) can serve multiple clients. Guests already on dedicated threads;
+this changes only the *transport* (gated, default off = today's pipe+Atomics path → no regression, no TCB races).
+
+**The known objection + how to handle it:** a *pure* busy-spin "burns a core per blocked guest and starves under
+contention" (the earlier T1-ring analysis's reason for skepticism). Resolve with **ADAPTIVE spin**: spin for a small
+budget (catches the hot path — during the startup burst responses arrive in µs), then **fall back to the existing
+blocking wake chain** for idle waits (no CPU burn when truly idle). With 20 cores (~12 free during the burst), the
+brief multi-guest spin is affordable exactly when it's needed. **Crucially, the SERVER guests (Xvfb, dbus-daemon)
+must spin-poll their client sockets too** — else they're still slow to *produce* replies (a client spinning for a
+reply Xvfb hasn't sent yet doesn't help).
+
+**Why this may beat B:** no Asyncify/guest rebuild, no cooperative scheduler, no co-location, no kernel-concurrency
+refactor — just a gated transport change + adaptive backoff, built on the SAB infra already in tree. **Validate on a
+quiet box** and tune the spin budget; measure hot-path round-trip latency and multi-client render before/after.
+Risk: getting the adaptive backoff wrong (too-short → no win; too-long → CPU burn) — measure to tune. This is the
+recommended FIRST implementation attempt before the heavier A/B.
 
 **Hybrid (kernel-side loopback short-circuit) — likely INSUFFICIENT, here's why:** the intra-VM unix-socket X
 round-trip latency is the **cross-thread WAKE**, not the socket *delivery* (delivery = a fast buffer copy). Waking
