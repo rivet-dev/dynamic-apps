@@ -73,7 +73,22 @@ clamp (L-Q ~0.5s/7%), poll-direct (L-S null), lazy-compile (L-U null), tiering (
 before/after + profile artifact. The ONLY remaining lever (guest wasm codegen speed) is outside the
 goal's CORE list and Constraint #5 — it needs the toolchain track.
 
-### Phase-1 objective (the new contract — reduce per-round-trip latency) — SUPERSEDED, see ⚠ above
+### ★ Phase-2 objective (the ACTIVE contract — 2026-06-29): kill `fpcast-emu` via the toolchain
+Targets unchanged (**mousepad first-paint < 2 s AND input→response < 50 ms**; stretch < 1 s / < 20 ms),
+but the lever is now the PROVEN root: the guest wasm's per-op compute, dominated by Binaryen's
+`fpcast-emu` emulated indirect-call thunks (~23× on GObject `new+unref`). Build-flag tweaks are exhausted
+(measured null): `-O3` vs `-Oz` = no change, and dropping `--fpcast-emu` TRAPS (real signature
+mismatches). The fix is **toolchain modernization** so GObject-heavy C compiles WITHOUT whole-program
+fpcast-emu thunks. See §11 for the plan + decision gates.
+
+- **Both numbers are first-class** (they are DIFFERENT workloads, ~40× apart): first-paint = cold
+  one-time GTK/GObject construction; input→response = warm single-widget repaint. Both ride the same
+  fpcast-emu/GObject root, so a real toolchain fix should move BOTH — measure BOTH on every change.
+- **bench-gobject (B1) is the spike decider:** `new+unref` 0.69 µs/op (wasm) vs ~0.03 µs (native, ~23×).
+  A successful toolchain change must collapse this number; it is the cheap go/no-go before any full
+  GTK-stack rebuild.
+
+### Phase-1 objective (reduce per-round-trip latency) — SUPERSEDED (premise disproven, see ⚠ above)
 Matching native (~110 ms / ~6 ms) is unrealistic for a sandboxed wasm-in-V8 cross-isolate-IPC model
 (there is an inherent per-boundary floor). The grounded, ambitious-but-achievable objective, anchored on
 human perception (input < 100 ms feels instant; < 50 ms imperceptible) and a ~5× cut of the dominant
@@ -337,12 +352,22 @@ levers as profiling surfaces new costs (recursion).
 4. Every applied lever has a before/after number + a profile artifact. ✓ (L-O, L-P, L-Q)
 5. Regression gate green; Constraint #5 verified. ✓
 
-### Phase-1 bar — OPEN (the new round, per the native baseline in Section 2)
-Phase-0 is done but the loop is NOT — the native baseline shows ~40–88× headroom. Phase-1 DONE when:
-1. **mousepad first-paint < 2 s** AND **input→response < 50 ms** (Section 2 objective) — OR the
-   per-round-trip latency lever's ROI is flattened with documented diminishing returns.
-2. Each applied latency fix has a before/after on BOTH B2 first-paint and the input→response number.
-3. Constraint #5 + regression gate stay green; default-OFF diagnostics.
+### Phase-1 bar — CLOSED as misdirected (2026-06-29)
+The per-round-trip latency premise was DISPROVEN (compute-bound, not wait-bound; importprof shows only
+~2.4 s in imports vs ~7 s on-CPU). Surgical latency levers all null (clamp/poll-direct/lazy-compile/tiering)
+with before/after + artifacts. Superseded by Phase-2 (the real root: guest wasm compute / fpcast-emu).
+
+### Phase-2 bar — ACTIVE (toolchain modernization, §11)
+DONE when:
+1. **mousepad first-paint < 2 s** AND **input→response < 50 ms** hold (≥3 runs each) — OR the toolchain
+   lever's ROI is flattened with documented diminishing returns (e.g. the (a) spike comes back null and
+   (b) is verified infeasible/insufficient, each documented).
+2. The bench-gobject (B1) `new+unref` number is measured before/after every toolchain change (the spike
+   decider), AND each applied change carries a before/after on BOTH B2 first-paint and input→response.
+3. Render gate green (PNG, fontconfig 0, no traps) on B2 + B3; no regression vs the -Oz baseline.
+4. Constraint #5 respected: the fix is in the TOOLCHAIN (`registry/native` + cross-compile) and/or the
+   v8-runtime, applied SYSTEMICALLY (rebuild all guests from the improved toolchain) — not a per-guest
+   binary hack. (The user opted into the toolchain/guest-rebuild track on 2026-06-29.)
 
 ## 9. Phase-1 plan — cut per-X-round-trip cross-isolate latency (the 40–88× lever)
 
@@ -457,9 +482,73 @@ Guest (mousepad) does `XSync`/etc. = write request, then block for the reply. In
 - Pyodide/large assets exceed jj's snapshot size — commit with
   `jj --config snapshot.max-new-file-size=16777216 ...` or keep them untracked.
 
+## 11. Phase-2 plan — toolchain modernization (kill `fpcast-emu`), spike-gated
+
+The compute root is `fpcast-emu` (Binaryen's emulated indirect-call thunks: every mismatched-signature
+indirect call is routed through a fixed-wide-arity adaptor that re-marshals args). GObject/GTK is the
+worst case (vtables, closures, signal emission are nearly all indirect). It is REQUIRED today (dropping
+it traps) and OPAQUE to the optimizer (so `-O3` can't inline through it). The two ways to eliminate it,
+both toolchain-modernization:
+
+### Path (a) — PRIMARY: newer clang that emits per-call-site cast trampolines (no whole-program pass)
+LLVM **PR #153168** ("Handle casted function pointers with different number of arguments", WebAssembly
+target, motivated by GLib's casting ABI) makes clang emit correct localized fix-ups per call site,
+replacing the whole-program `--fpcast-emu` Binaryen pass with cheap local thunks. **Key fact:** it is
+needed only when *building GLib*, NOT when linking against it. Expected to recover most of the ~23× because
+the thunks become inline-able and cheap.
+
+**Spike FIRST (hours, not days — the go/no-go):**
+1. Determine if a *released* wasi-sdk/clang carries PR #153168 (or the typed-funcref codegen). If only an
+   unreleased branch has it, scope = build clang/wasi-sdk from source (bigger; decide then).
+2. Rebuild ONLY `glib` (where GObject lives) with that clang, dropping `--fpcast-emu` for the glib objects.
+3. Re-run **bench-gobject (B1)**. **Gate:** if `new+unref` drops materially toward native (~0.03 µs), the
+   hypothesis holds → commit to the full GTK-stack rebuild. If it doesn't move, STOP — re-evaluate (the
+   thunk cost may be elsewhere) and document the null.
+4. Only after a green spike: rebuild the full stack (glib → gtk → pango → gdk-pixbuf → … → mousepad)
+   with the new toolchain, re-measure B2/B3 first-paint AND input→response (≥3 runs), record before/after.
+
+### Path (b) — SECONDARY: rusty_v8 bump (only as plan-B or a verified cheap hedge)
+If the spike forces plan B, the fallback fpcast fix is wasm **typed function references / `call_ref`**
+(WasmGC; mismatched casts checked natively, ~1 pointer compare) — which needs a NEWER V8, i.e. a rusty_v8
+bump, AND a clang new enough to emit `call_ref`. A rusty_v8 bump ALSO unlocks: `EnableWebAssemblyTrapHandler`
+(~25–30% on memory-heavy code — note this workload is indirect-call-bound so the win may be smaller) and
+V8 speculative `call_indirect` inlining (M137, helps HOT/TurboFan code; first-paint is single-pass Liftoff
+so likely small). **Do NOT run (b) in parallel with (a)'s rebuild** — both are toolchain-modernization and
+collide. Run (b) ONLY if: (i) the spike forces the call_ref path, OR (ii) as a standalone hedge AFTER
+verifying the rusty_v8 bump doesn't break the pinned-prebuilt publish setup (4 sidecar targets, rusty_v8
+prebuilts — see the publish constraints) and that the win materializes for THIS workload (measure B1/B2).
+
+### Hard ordering + gates
+1. Spike (a) first; it commits to nothing.  2. Green spike → full (a) rebuild.  3. (b) only on plan-B or
+verified-hedge. Never both rebuilds at once.  4. Every applied change carries a before/after on BOTH
+first-paint AND input→response + the bench-gobject number + a render-gate-green check.
+
+### Known blocker to clear early
+`__wasi_init_tp` link error: a from-raw speed/no-`-Oz` mousepad build imports `env.__wasi_init_tp`
+(threaded TLS init) which the runtime doesn't supply, so it won't instantiate (the production `-Oz` build
+DCE'd the symbol). Re-optimizing the existing `-Oz` binary is NULL (proven), so a from-raw rebuild is
+required — which means this MUST be resolved (provide a correct `__wasi_init_tp` in the wasm-gui-host
+runtime imports — the runtime already sets up instance TLS, per build-mousepad.sh's comment — NOT a no-op,
+TLS is load-bearing). This is the one piece that blocks measuring ANY genuinely-faster build.
+
 ---
 
 ### Verdict log (newest first)
+
+- **2026-06-29 — INPUT→RESPONSE baselined across benchmarks + PHASE-2 direction set (toolchain).** Both
+  metrics are now first-class (they are different workloads, ~40× apart, but share the fpcast-emu root):
+  | benchmark | first-paint | input→response |
+  |---|---|---|
+  | B0 raw libX11 window | ~2.2–2.7 s | N/A (no keyboard handler → never redraws) |
+  | B1 pure GObject (headless) | N/A | N/A (compute metric = 0.69 µs/op) |
+  | B2 single GTK app (mousepad) | ~9.77 s | ~250 ms (236/256/275) |
+  | B3 5-app desktop | first-window ~12–13 s, full ~20 s | ~230 ms (224/240) |
+  - **Optimized-build re-run (B2, both metrics) = NULL:** -Oz 9.78s/256ms, -O3w 9.77s/248ms, -O4w
+    9.76s/272ms — the re-opts of the already-`-Oz`'d binary move NEITHER metric (the true from-raw speed
+    build still can't load, `__wasi_init_tp`). vs-native multiples: first-paint ~86×, input ~40×.
+  - **Direction (user-approved):** PRIMARY = Path (a) kill fpcast-emu via newer clang, gated by a
+    glib-only spike measured on bench-gobject; SECONDARY = Path (b) rusty_v8 bump only on plan-B or as a
+    verified hedge; never both rebuilds at once. Full plan + gates in §11; objective in §2 (Phase-2).
 
 - **2026-06-29 — BUILD-FLAG track tested: `-O3` vs `-Oz` is NULL, `fpcast-emu` is REQUIRED + is the root.**
   The user opted into the toolchain/build track. Tested the build-flag levers on B1 (bench-gobject, which
