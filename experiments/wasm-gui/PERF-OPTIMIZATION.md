@@ -155,6 +155,18 @@ levers as profiling surfaces new costs (recursion).
 
 ### Verdict log (newest first)
 
+- **2026-06-27 — Standalone subsystem probe (subsys-bench) BLOCKED: wasm-ld segfaults on the full-GTK
+  link (2× consistent).** Wrote `subsys-bench.c` (time FcInit / pango fontmap / first-layout-shape /
+  cairo render, no gtk_init) to decompose gtk_init's 11s, but `build-gtk-app.sh subsys-bench` crashes
+  the linker (`wasm-ld: Segmentation fault`) — the full GTK-stack link is at the toolchain's edge; a
+  standalone probe pulling the whole stack tips it over. Combined with the guest-env-gate gap (guest
+  probes don't reach X clients), the **cheap standalone-probe path keeps hitting walls.** ⇒ **Redirect
+  to the Inspector-based P2**, which profiles a *real running GTK app* (mousepad/css-bench) — no new
+  link, no guest-env gate, and it shows ALL the non-GObject subsystem costs (fontconfig/pango/cairo/
+  layout) at once. That is now the clear next build (`crates/v8-runtime/inspector.rs`, `Profiler`
+  domain). Source committed for later (reduce its deps to dodge the segfault if a standalone probe is
+  still wanted). Artifact: `/tmp/subsys-build.log`.
+
 - **2026-06-27 — ★ B1 REFUTES L-B: GObject dispatch is ~NATIVE speed (fpcast-emu is NOT the cost).**
   B1 (pure-GObject bench, no GTK/X/D-Bus): `g_object_new`+unref = **0.73 µs/op**; `g_signal_emit`
   (generic marshaler → `ffi_call`) = **0.17 µs/op**; `g_object_set`+get = **0.60 µs/op** (n=100k each)
