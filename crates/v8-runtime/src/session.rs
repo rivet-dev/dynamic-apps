@@ -966,11 +966,12 @@ fn session_thread(
                             let scope = &mut v8::HandleScope::new(iso);
                             let ctx = v8::Local::new(scope, &exec_context);
                             let scope = &mut v8::ContextScope::new(scope, ctx);
-                            if let (Some(req), Some(resp)) = (
+                            if let (Some(req), Some(resp), Some(bulk)) = (
                                 allocate_t1_ring_sab(scope, "__secure_exec_t1_req", T1_RING_BYTES),
                                 allocate_t1_ring_sab(scope, "__secure_exec_t1_resp", T1_RING_BYTES),
+                                allocate_t1_ring_sab(scope, "__secure_exec_t1_bulk", T1_BULK_BYTES),
                             ) {
-                                t1_handoff_set(&t1_handoff, &session_id, RingBacking { req, resp });
+                                t1_handoff_set(&t1_handoff, &session_id, RingBacking { req, resp, bulk });
                             }
                         }
 
@@ -2029,6 +2030,10 @@ fn push_deferred_sync_message(
 /// kernel-forwarded poll RPCs the Root-2 baseline measured. Catalogued in limits-inventory (policy-deferred).
 pub(crate) const T1_RING_BYTES: usize = 256 * 1024;
 
+/// T1 bulk data buffer size: holds the largest single binary sync-RPC arg (the framebuffer write). 8 MiB covers up
+/// to ~1920x1080x4; the common 800x600x4 fb is ~1.9 MiB. Catalogued in limits-inventory (policy-deferred).
+pub(crate) const T1_BULK_BYTES: usize = 8 * 1024 * 1024;
+
 /// T1 ring transport is off by default; `SECURE_EXEC_T1_RING=1` activates per-guest ring allocation + the guest
 /// runner's RingChannel routing. Inert (base64 transport) when unset.
 pub(crate) fn t1_ring_enabled() -> bool {
@@ -2096,6 +2101,10 @@ pub(crate) fn with_ring_backing_slices<R>(
 pub(crate) struct RingBacking {
     pub req: v8::SharedRef<v8::BackingStore>,
     pub resp: v8::SharedRef<v8::BackingStore>,
+    /// Bulk data buffer for large binary sync-RPC args (e.g. the ~1.2MB+ framebuffer writes) that exceed the small
+    /// control rings -- the guest memcpys the bytes here instead of base64'ing them; the kernel reads them via
+    /// `with_ring_backing_slices`. Layout: [len:u32 LE @0][payload @4]. HOSTILE: kernel bounds-checks len.
+    pub bulk: v8::SharedRef<v8::BackingStore>,
 }
 
 impl std::fmt::Debug for RingBacking {
@@ -2103,6 +2112,7 @@ impl std::fmt::Debug for RingBacking {
         f.debug_struct("RingBacking")
             .field("req_len", &self.req.byte_length())
             .field("resp_len", &self.resp.byte_length())
+            .field("bulk_len", &self.bulk.byte_length())
             .finish()
     }
 }
@@ -2110,7 +2120,9 @@ impl std::fmt::Debug for RingBacking {
 impl PartialEq for RingBacking {
     fn eq(&self, other: &Self) -> bool {
         let ptr = |b: &v8::SharedRef<v8::BackingStore>| b.data().map(|d| d.as_ptr());
-        ptr(&self.req) == ptr(&other.req) && ptr(&self.resp) == ptr(&other.resp)
+        ptr(&self.req) == ptr(&other.req)
+            && ptr(&self.resp) == ptr(&other.resp)
+            && ptr(&self.bulk) == ptr(&other.bulk)
     }
 }
 

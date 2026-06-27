@@ -959,5 +959,11 @@
 		"path": "crates/v8-runtime/src/session.rs",
 		"class": "policy-deferred",
 		"rationale": "T1 SAB-ring control-buffer size per request/response ring (256 KiB); VmLimits wiring follows when the T1 ring transport lands. Name is not MAX_*/LIMIT-shaped so the audit does not require it, catalogued for completeness."
+	},
+	{
+		"name": "T1_BULK_BYTES",
+		"path": "crates/v8-runtime/src/session.rs",
+		"class": "policy-deferred",
+		"rationale": "T1 bulk data buffer size (8 MiB) for the largest single binary sync-RPC arg (framebuffer writes) that exceeds the control ring; VmLimits wiring follows when the bulk path lands. Catalogued for completeness."
 	}
 ]
