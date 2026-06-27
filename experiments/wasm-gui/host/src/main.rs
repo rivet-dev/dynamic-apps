@@ -1138,6 +1138,9 @@ async fn run_xdemo(
                     "SECURE_EXEC_FD_TRACE",
                     "SECURE_EXEC_ROOT2_TRACE",
                     "SECURE_EXEC_TRACE",
+                    "SECURE_EXEC_RPCPROF",
+                    "SECURE_EXEC_RPC_PROFILE",
+                    "SECURE_EXEC_POLLSTAT",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
                     if let Ok(v) = std::env::var(k) {
@@ -1222,6 +1225,9 @@ async fn run_xdemo(
                     "SECURE_EXEC_FD_TRACE",
                     "SECURE_EXEC_ROOT2_TRACE",
                     "SECURE_EXEC_TRACE",
+                    "SECURE_EXEC_RPCPROF",
+                    "SECURE_EXEC_RPC_PROFILE",
+                    "SECURE_EXEC_POLLSTAT",
                     "LIBXCB_ALLOW_SLOPPY_LOCK",
                 ] {
                     if let Ok(v) = std::env::var(k) {
