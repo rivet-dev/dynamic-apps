@@ -226,18 +226,17 @@ The `/goal` references this section for detail; keep it current.
 #### ★★★ IDLE BUSY-SPIN (2026-07-01) — sidecar main thread ~87% CPU while the VM is IDLE (invariant violation) ★★★
 Measured via `/proc/<pid>/task/*/stat`: the sidecar MAIN dispatch thread burns **~87% of a core while the VM
 is idle** (mousepad painted, no input; next thread ~5%). Native is ~0%. Violates the CLAUDE.md "idle must be
-0% CPU, not busy-spin" invariant. `SECURE_EXEC_SELPROF` (default-OFF, select!-branch counter) pins it:
-**`event_pump.tick()` = ~92% of loop iterations.** The 250µs pump fires ~4000/s and `pump_process_events`
-costs ~217µs each (it iterates every vm/process and calls `poll_event(Duration::ZERO)` per process + String
-clones/HashMap lookups — NOT the "cheap no-op" the comment claims). So ~4000 × 217µs ≈ 87% CPU, idle or not.
-- **The pump is LOAD-BEARING for ir** (NOT freely slow-able): `PUMP_INTERVAL_US=2000` → ir WORSE (~75ms median
-  + a 730ms spike — some events are caught ONLY by the pump, not the F1 `process_event_notify`; slowing it
-  strands them). So the 250µs is at/near its ir optimum; the idle-spin is its cost.
-- **The real fixes (deeper):** (a) make `pump_process_events` cheap per-pump (it's ~217µs of clones/lookups +
-  per-process `poll_event(ZERO)`; a true try_recv would be ~µs → idle CPU ~1% AND frees main-thread CPU during
-  the render — the pump fires ~224× during a 56ms render = ~48ms of main-thread CPU competing with the render's
-  funnel RPCs), or (b) complete the F1 notify graph so EVERY event source pokes the notify → the pump becomes
-  a true rare safety-net that can be slow. (a) is the higher-ROI, lower-risk lever and is the next thing to try.
+0% CPU, not busy-spin" invariant. `SECURE_EXEC_SELPROF` (default-OFF, select!-branch counter): `event_pump.tick()` = ~92% of select!
+iterations — BUT **CORRECTION (PUMPTIME probe): the pump is NOT the CPU sink.** `pump_process_events` is only
+**~12µs/call, 1 process polled, ~4900 calls/s = ~6% CPU.** The select! loop iterates ~5000/s, so the whole
+loop is ~6-8% CPU. **So the ~87% idle CPU is NOT the dispatch loop / pump — it is elsewhere on the main thread
+and is UNDIAGNOSED** (candidates: a busy-looping spawned tokio task on the current-thread runtime, the tokio
+IO/timer driver, or poll_event_wire — NOT yet measured). My earlier "pump = 217µs = the spin" inference was
+WRONG (corrected per the CLAUDE.md "verify before asserting" lesson; `try_lock` on poll_event was null,
+consistent with the pump being cheap). The 87% idle spin is real (measured twice via /proc) and a genuine
+invariant violation, but its source needs a fresh diagnosis (e.g. a CPU sampler or per-tokio-task accounting).
+- `PUMP_INTERVAL_US=2000` → ir WORSE (~75ms + a 730ms spike) — the 250µs pump IS load-bearing for ir (some
+  events reach the guest only via the pump, not the F1 notify). Don't slow it. (This finding stands.)
 
 #### ★★★ OP-COUNT + CROSS-GUEST SPLIT (2026-07-01, SECURE_EXEC_OPTRACE) — the render is 73% cross-guest, 27% compute ★★★
 `SECURE_EXEC_OPTRACE=1` (default-OFF) logs every guest sync-RPC on the bridge thread with an epoch stamp +
