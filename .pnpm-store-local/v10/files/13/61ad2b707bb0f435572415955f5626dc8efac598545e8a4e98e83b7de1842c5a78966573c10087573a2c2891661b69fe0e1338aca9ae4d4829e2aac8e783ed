@@ -1,0 +1,62 @@
+import {
+  DEFAULT_AGENTS,
+  SANDBOX_AGENT_INSTALL_SCRIPT
+} from "../chunk-7BNDCDDU.js";
+
+// src/providers/computesdk.ts
+import { compute } from "computesdk";
+var DEFAULT_AGENT_PORT = 3e3;
+async function resolveCreateOptions(value) {
+  if (!value) return {};
+  return typeof value === "function" ? await value() : value;
+}
+function computesdk(options = {}) {
+  const agentPort = options.agentPort ?? DEFAULT_AGENT_PORT;
+  return {
+    name: "computesdk",
+    defaultCwd: "/root",
+    async create() {
+      const createOpts = await resolveCreateOptions(options.create);
+      const sandbox = await compute.sandbox.create({
+        ...createOpts,
+        envs: createOpts.envs && Object.keys(createOpts.envs).length > 0 ? createOpts.envs : void 0
+      });
+      const run = async (cmd, runOptions) => {
+        const result = await sandbox.runCommand(cmd, runOptions);
+        if (typeof result?.exitCode === "number" && result.exitCode !== 0) {
+          throw new Error(`computesdk command failed: ${cmd} (exit ${result.exitCode})
+${result.stderr || ""}`);
+        }
+        return result;
+      };
+      await run(`curl -fsSL ${SANDBOX_AGENT_INSTALL_SCRIPT} | sh`);
+      for (const agent of DEFAULT_AGENTS) {
+        await run(`sandbox-agent install-agent ${agent}`);
+      }
+      await run(`sandbox-agent server --no-token --host 0.0.0.0 --port ${agentPort}`, {
+        background: true
+      });
+      return sandbox.sandboxId;
+    },
+    async destroy(sandboxId) {
+      const sandbox = await compute.sandbox.getById(sandboxId);
+      if (sandbox) await sandbox.destroy();
+    },
+    async getUrl(sandboxId) {
+      const sandbox = await compute.sandbox.getById(sandboxId);
+      if (!sandbox) throw new Error(`computesdk sandbox not found: ${sandboxId}`);
+      return sandbox.getUrl({ port: agentPort });
+    },
+    async ensureServer(sandboxId) {
+      const sandbox = await compute.sandbox.getById(sandboxId);
+      if (!sandbox) throw new Error(`computesdk sandbox not found: ${sandboxId}`);
+      await sandbox.runCommand(`sandbox-agent server --no-token --host 0.0.0.0 --port ${agentPort}`, {
+        background: true
+      });
+    }
+  };
+}
+export {
+  computesdk
+};
+//# sourceMappingURL=computesdk.js.map

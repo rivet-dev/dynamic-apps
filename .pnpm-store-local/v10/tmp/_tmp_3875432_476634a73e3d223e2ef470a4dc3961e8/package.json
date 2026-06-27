@@ -1,0 +1,27 @@
+{
+  "name": "@rivet-dev/docs-theme",
+  "version": "0.1.0",
+  "description": "Shared Starlight docs theme and framework for Rivet OSS projects.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/site-config.d.ts",
+      "default": "./src/index.mjs"
+    },
+    "./styles/theme.css": "./src/styles/theme.css",
+    "./components/*": "./src/components/*",
+    "./assets/*": "./assets/*"
+  },
+  "files": [
+    "src",
+    "fonts",
+    "assets",
+    "LICENSE",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "astro": ">=5.0.0",
+    "@astrojs/starlight": ">=0.36.0"
+  }
+}

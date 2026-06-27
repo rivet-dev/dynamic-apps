@@ -1,0 +1,42 @@
+{
+  "name": "@img/sharp-libvips-linux-s390x",
+  "version": "1.0.4",
+  "description": "Prebuilt libvips and dependencies for use with sharp on Linux (glibc) s390x",
+  "author": "Lovell Fuller <npm@lovell.info>",
+  "homepage": "https://sharp.pixelplumbing.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lovell/sharp-libvips.git",
+    "directory": "npm/linux-s390x"
+  },
+  "license": "LGPL-3.0-or-later",
+  "funding": {
+    "url": "https://opencollective.com/libvips"
+  },
+  "preferUnplugged": true,
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "lib",
+    "versions.json"
+  ],
+  "exports": {
+    "./lib": "./lib/index.js",
+    "./package": "./package.json",
+    "./versions": "./versions.json"
+  },
+  "type": "commonjs",
+  "config": {
+    "glibc": ">=2.31"
+  },
+  "os": [
+    "linux"
+  ],
+  "libc": [
+    "glibc"
+  ],
+  "cpu": [
+    "s390x"
+  ]
+}

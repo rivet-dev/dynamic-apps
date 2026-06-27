@@ -1,0 +1,65 @@
+// src/index.ts
+function isBunRuntime() {
+  if (typeof process?.versions?.bun === "string") return true;
+  const userAgent = process?.env?.npm_config_user_agent || "";
+  return userAgent.includes("bun/");
+}
+var PERMISSION_ERRORS = /* @__PURE__ */ new Set(["EACCES", "EPERM", "ENOEXEC"]);
+function isPermissionError(error) {
+  if (!error || typeof error !== "object") return false;
+  const code = error.code;
+  return typeof code === "string" && PERMISSION_ERRORS.has(code);
+}
+function assertExecutable(binPath, fs) {
+  if (process.platform === "win32") {
+    return true;
+  }
+  try {
+    fs.accessSync(binPath, fs.constants.X_OK);
+    return true;
+  } catch {
+  }
+  try {
+    fs.chmodSync(binPath, 493);
+    return true;
+  } catch (error) {
+    if (isPermissionError(error)) {
+      return false;
+    }
+    throw error;
+  }
+}
+function formatNonExecutableBinaryMessage(options) {
+  const { binPath, trustPackages, bunInstallBlocks, genericInstallCommands, binaryName } = options;
+  const label = binaryName ?? "sandbox-agent";
+  const lines = [`${label} binary is not executable: ${binPath}`];
+  if (isBunRuntime()) {
+    lines.push("Allow Bun to run postinstall scripts for native binaries and reinstall:");
+    for (const block of bunInstallBlocks) {
+      lines.push(`${block.label}:`);
+      for (const command of block.commands) {
+        lines.push(`  ${command}`);
+      }
+    }
+    lines.push(`Or run: chmod +x "${binPath}"`);
+    return lines.join("\n");
+  }
+  lines.push("Postinstall scripts for native packages did not run, so the binary was left non-executable.");
+  if (genericInstallCommands && genericInstallCommands.length > 0) {
+    lines.push("Reinstall with scripts enabled:");
+    for (const command of genericInstallCommands) {
+      lines.push(`  ${command}`);
+    }
+  } else {
+    lines.push("Reinstall with scripts enabled for:");
+    lines.push(`  ${trustPackages}`);
+  }
+  lines.push(`Or run: chmod +x "${binPath}"`);
+  return lines.join("\n");
+}
+export {
+  assertExecutable,
+  formatNonExecutableBinaryMessage,
+  isBunRuntime
+};
+//# sourceMappingURL=index.js.map

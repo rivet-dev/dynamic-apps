@@ -1,0 +1,9 @@
+export declare function isI8(val: number): boolean;
+export declare function isI16(val: number): boolean;
+export declare function isI32(val: number): boolean;
+export declare function isI64(val: bigint): boolean;
+export declare function isU8(val: number): boolean;
+export declare function isU16(val: number): boolean;
+export declare function isU32(val: number): boolean;
+export declare function isU64(val: bigint): boolean;
+export declare function isU64Safe(val: number): boolean;

@@ -1,0 +1,104 @@
+import {
+  SandboxDestroyedError
+} from "../chunk-TVCDKGSM.js";
+import {
+  DEFAULT_AGENTS,
+  SANDBOX_AGENT_INSTALL_SCRIPT
+} from "../chunk-7BNDCDDU.js";
+
+// src/providers/e2b.ts
+import { NotFoundError, Sandbox } from "@e2b/code-interpreter";
+var DEFAULT_AGENT_PORT = 3e3;
+var DEFAULT_TIMEOUT_MS = 36e5;
+var SANDBOX_AGENT_PATH_EXPORT = 'export PATH="/usr/local/bin:$HOME/.local/bin:$PATH"';
+async function resolveOptions(value, sandboxId) {
+  if (!value) return {};
+  if (typeof value === "function") {
+    if (sandboxId) {
+      return await value(sandboxId);
+    }
+    return await value();
+  }
+  return value;
+}
+async function resolveTemplate(value) {
+  if (!value) return void 0;
+  return typeof value === "function" ? await value() : value;
+}
+function buildShellCommand(command, strict = false) {
+  const strictPrefix = strict ? "set -euo pipefail; " : "";
+  return `bash -lc '${strictPrefix}${SANDBOX_AGENT_PATH_EXPORT}; ${command}'`;
+}
+function e2b(options = {}) {
+  const agentPort = options.agentPort ?? DEFAULT_AGENT_PORT;
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const autoPause = options.autoPause ?? true;
+  return {
+    name: "e2b",
+    defaultCwd: "/home/user",
+    async create() {
+      const createOpts = await resolveOptions(options.create);
+      const rawTemplate = typeof createOpts.template === "string" ? createOpts.template : void 0;
+      const restCreateOpts = { ...createOpts };
+      delete restCreateOpts.template;
+      const template = await resolveTemplate(options.template) ?? rawTemplate;
+      const sandbox = template ? (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await Sandbox.betaCreate(template, { allowInternetAccess: true, ...restCreateOpts, timeoutMs, autoPause })
+      ) : (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await Sandbox.betaCreate({ allowInternetAccess: true, ...restCreateOpts, timeoutMs, autoPause })
+      );
+      await sandbox.commands.run(buildShellCommand(`curl -fsSL ${SANDBOX_AGENT_INSTALL_SCRIPT} | sh`, true)).then((r) => {
+        if (r.exitCode !== 0) throw new Error(`e2b install failed:
+${r.stderr}`);
+      });
+      for (const agent of DEFAULT_AGENTS) {
+        await sandbox.commands.run(buildShellCommand(`sandbox-agent install-agent ${agent}`)).then((r) => {
+          if (r.exitCode !== 0) throw new Error(`e2b agent install failed: ${agent}
+${r.stderr}`);
+        });
+      }
+      await sandbox.commands.run(buildShellCommand(`sandbox-agent server --no-token --host 0.0.0.0 --port ${agentPort}`), { background: true, timeoutMs: 0 });
+      return sandbox.sandboxId;
+    },
+    async destroy(sandboxId) {
+      await this.pause?.(sandboxId);
+    },
+    async reconnect(sandboxId) {
+      const connectOpts = await resolveOptions(options.connect, sandboxId);
+      try {
+        await Sandbox.connect(sandboxId, { ...connectOpts, timeoutMs });
+      } catch (error) {
+        if (error instanceof NotFoundError) {
+          throw new SandboxDestroyedError(sandboxId, "e2b", { cause: error });
+        }
+        throw error;
+      }
+    },
+    async pause(sandboxId) {
+      const connectOpts = await resolveOptions(options.connect, sandboxId);
+      const sandbox = await Sandbox.connect(sandboxId, { ...connectOpts, timeoutMs });
+      await sandbox.betaPause();
+    },
+    async kill(sandboxId) {
+      const connectOpts = await resolveOptions(options.connect, sandboxId);
+      const sandbox = await Sandbox.connect(sandboxId, { ...connectOpts, timeoutMs });
+      await sandbox.kill();
+    },
+    async getUrl(sandboxId) {
+      const connectOpts = await resolveOptions(options.connect, sandboxId);
+      const sandbox = await Sandbox.connect(sandboxId, { ...connectOpts, timeoutMs });
+      return `https://${sandbox.getHost(agentPort)}`;
+    },
+    async ensureServer(sandboxId) {
+      const connectOpts = await resolveOptions(options.connect, sandboxId);
+      const sandbox = await Sandbox.connect(sandboxId, { ...connectOpts, timeoutMs });
+      await sandbox.commands.run(buildShellCommand(`sandbox-agent server --no-token --host 0.0.0.0 --port ${agentPort}`), { background: true, timeoutMs: 0 });
+    }
+  };
+}
+export {
+  e2b
+};
+//# sourceMappingURL=e2b.js.map

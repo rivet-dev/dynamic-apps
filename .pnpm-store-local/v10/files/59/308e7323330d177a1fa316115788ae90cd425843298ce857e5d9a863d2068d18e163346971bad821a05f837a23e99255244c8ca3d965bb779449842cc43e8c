@@ -1,0 +1,14 @@
+import { type ByteCursor } from "../core/byte-cursor.js";
+export declare const readF32FixedArray: typeof readF32FixedArrayLe;
+declare function readF32FixedArrayLe(bc: ByteCursor, len: number): Float32Array;
+export declare const writeF32FixedArray: typeof writeF32FixedArrayLe;
+declare function writeF32FixedArrayLe(bc: ByteCursor, x: Float32Array): void;
+export declare function readF32Array(bc: ByteCursor): Float32Array;
+export declare function writeF32Array(bc: ByteCursor, x: Float32Array): void;
+export declare const readF64FixedArray: typeof readF64FixedArrayLe;
+declare function readF64FixedArrayLe(bc: ByteCursor, len: number): Float64Array;
+export declare const writeF64FixedArray: typeof writeF64FixedArrayLe;
+declare function writeF64FixedArrayLe(bc: ByteCursor, x: Float64Array): void;
+export declare function readF64Array(bc: ByteCursor): Float64Array;
+export declare function writeF64Array(bc: ByteCursor, x: Float64Array): void;
+export {};

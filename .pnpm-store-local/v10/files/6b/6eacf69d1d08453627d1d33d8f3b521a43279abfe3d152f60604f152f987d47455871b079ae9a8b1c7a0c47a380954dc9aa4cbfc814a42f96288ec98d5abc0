@@ -1,0 +1,251 @@
+// src/spawn.ts
+import { assertExecutable, formatNonExecutableBinaryMessage } from "@sandbox-agent/cli-shared";
+var PLATFORM_PACKAGES = {
+  "darwin-arm64": "@sandbox-agent/cli-darwin-arm64",
+  "darwin-x64": "@sandbox-agent/cli-darwin-x64",
+  "linux-x64": "@sandbox-agent/cli-linux-x64",
+  "linux-arm64": "@sandbox-agent/cli-linux-arm64",
+  "win32-x64": "@sandbox-agent/cli-win32-x64"
+};
+var TRUST_PACKAGES = "@sandbox-agent/cli-linux-x64 @sandbox-agent/cli-linux-arm64 @sandbox-agent/cli-darwin-arm64 @sandbox-agent/cli-darwin-x64 @sandbox-agent/cli-win32-x64";
+function isNodeRuntime() {
+  return typeof process !== "undefined" && !!process.versions?.node;
+}
+async function spawnSandboxAgent(options, fetcher) {
+  if (!isNodeRuntime()) {
+    throw new Error("Autospawn requires a Node.js runtime.");
+  }
+  const { spawn } = await import("child_process");
+  const crypto = await import("crypto");
+  const fs = await import("fs");
+  const path = await import("path");
+  const net = await import("net");
+  const { createRequire } = await import("module");
+  const bindHost = options.host ?? "127.0.0.1";
+  const port = options.port ?? await getFreePort(net, bindHost);
+  const connectHost = bindHost === "0.0.0.0" || bindHost === "::" ? "127.0.0.1" : bindHost;
+  const token = options.token ?? crypto.randomBytes(24).toString("hex");
+  const timeoutMs = options.timeoutMs ?? 15e3;
+  const logMode = options.log ?? "inherit";
+  const binaryPath = options.binaryPath ?? resolveBinaryFromEnv(fs, path) ?? resolveBinaryFromCliPackage(createRequire(import.meta.url), path, fs) ?? resolveBinaryFromPath(fs, path);
+  if (!binaryPath) {
+    throw new Error("sandbox-agent binary not found. Install @sandbox-agent/cli or set SANDBOX_AGENT_BIN.");
+  }
+  if (!assertExecutable(binaryPath, fs)) {
+    throw new Error(
+      formatNonExecutableBinaryMessage({
+        binPath: binaryPath,
+        trustPackages: TRUST_PACKAGES,
+        bunInstallBlocks: [
+          {
+            label: "Project install",
+            commands: [`bun pm trust ${TRUST_PACKAGES}`, "bun add sandbox-agent"]
+          },
+          {
+            label: "Global install",
+            commands: [`bun pm -g trust ${TRUST_PACKAGES}`, "bun add -g sandbox-agent"]
+          }
+        ]
+      })
+    );
+  }
+  const stdio = logMode === "inherit" ? "inherit" : logMode === "silent" ? "ignore" : "pipe";
+  const args = ["server", "--host", bindHost, "--port", String(port), "--token", token];
+  const child = spawn(binaryPath, args, {
+    stdio,
+    env: {
+      ...process.env,
+      ...options.env ?? {}
+    }
+  });
+  const cleanup = registerProcessCleanup(child);
+  const baseUrl = `http://${connectHost}:${port}`;
+  const ready = waitForHealth(baseUrl, fetcher ?? globalThis.fetch, timeoutMs, child, token);
+  await ready;
+  const dispose = async () => {
+    if (child.exitCode !== null) {
+      cleanup.dispose();
+      return;
+    }
+    child.kill("SIGTERM");
+    const exited = await waitForExit(child, 5e3);
+    if (!exited) {
+      child.kill("SIGKILL");
+    }
+    cleanup.dispose();
+  };
+  return { baseUrl, token, child, dispose };
+}
+function resolveBinaryFromEnv(fs, path) {
+  const value = process.env.SANDBOX_AGENT_BIN;
+  if (!value) {
+    return null;
+  }
+  const resolved = path.resolve(value);
+  if (fs.existsSync(resolved)) {
+    return resolved;
+  }
+  return null;
+}
+function resolveBinaryFromCliPackage(require2, path, fs) {
+  const key = `${process.platform}-${process.arch}`;
+  const pkg = PLATFORM_PACKAGES[key];
+  if (!pkg) {
+    return null;
+  }
+  try {
+    const pkgPath = require2.resolve(`${pkg}/package.json`);
+    const bin = process.platform === "win32" ? "sandbox-agent.exe" : "sandbox-agent";
+    const resolved = path.join(path.dirname(pkgPath), "bin", bin);
+    return fs.existsSync(resolved) ? resolved : null;
+  } catch {
+    return null;
+  }
+}
+function resolveBinaryFromPath(fs, path) {
+  const pathEnv = process.env.PATH ?? "";
+  const separator = process.platform === "win32" ? ";" : ":";
+  const candidates = pathEnv.split(separator).filter(Boolean);
+  const bin = process.platform === "win32" ? "sandbox-agent.exe" : "sandbox-agent";
+  for (const dir of candidates) {
+    const resolved = path.join(dir, bin);
+    if (fs.existsSync(resolved)) {
+      return resolved;
+    }
+  }
+  return null;
+}
+async function getFreePort(net, host) {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.unref();
+    server.on("error", reject);
+    server.listen(0, host, () => {
+      const address = server.address();
+      server.close(() => resolve(address.port));
+    });
+  });
+}
+async function waitForHealth(baseUrl, fetcher, timeoutMs, child, token) {
+  if (!fetcher) {
+    throw new Error("Fetch API is not available; provide a fetch implementation.");
+  }
+  const start = Date.now();
+  let lastError;
+  while (Date.now() - start < timeoutMs) {
+    if (child.exitCode !== null) {
+      throw new Error("sandbox-agent exited before becoming healthy.");
+    }
+    try {
+      const response = await fetcher(`${baseUrl}/v1/health`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        return;
+      }
+      lastError = `status ${response.status}`;
+    } catch (err) {
+      lastError = err instanceof Error ? err.message : String(err);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  throw new Error(`Timed out waiting for sandbox-agent health (${lastError ?? "unknown error"}).`);
+}
+async function waitForExit(child, timeoutMs) {
+  if (child.exitCode !== null) {
+    return true;
+  }
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(false), timeoutMs);
+    child.once("exit", () => {
+      clearTimeout(timer);
+      resolve(true);
+    });
+  });
+}
+function registerProcessCleanup(child) {
+  const handler = () => {
+    if (child.exitCode === null) {
+      child.kill("SIGTERM");
+    }
+  };
+  process.once("exit", handler);
+  process.once("SIGINT", handler);
+  process.once("SIGTERM", handler);
+  return {
+    dispose: () => {
+      process.off("exit", handler);
+      process.off("SIGINT", handler);
+      process.off("SIGTERM", handler);
+    }
+  };
+}
+
+// src/providers/local.ts
+var localSandboxes = /* @__PURE__ */ new Map();
+function local(options = {}) {
+  const provider = {
+    name: "local",
+    async create() {
+      const handle = await spawnSandboxAgent(
+        {
+          host: options.host,
+          port: options.port,
+          token: options.token,
+          binaryPath: options.binaryPath,
+          log: options.log,
+          env: options.env
+        },
+        globalThis.fetch?.bind(globalThis)
+      );
+      const rawSandboxId = baseUrlToSandboxId(handle.baseUrl);
+      localSandboxes.set(rawSandboxId, handle);
+      return rawSandboxId;
+    },
+    async destroy(sandboxId) {
+      const handle = localSandboxes.get(sandboxId);
+      if (!handle) {
+        return;
+      }
+      localSandboxes.delete(sandboxId);
+      await handle.dispose();
+    },
+    async getUrl(sandboxId) {
+      return `http://${sandboxId}`;
+    },
+    async getFetch(sandboxId) {
+      const handle = localSandboxes.get(sandboxId);
+      const token = options.token ?? handle?.token;
+      const fetcher = globalThis.fetch?.bind(globalThis);
+      if (!fetcher) {
+        throw new Error("Fetch API is not available; provide a fetch implementation.");
+      }
+      if (!token) {
+        return fetcher;
+      }
+      return async (input, init) => {
+        const request = new Request(input, init);
+        const targetUrl = new URL(request.url);
+        targetUrl.protocol = "http:";
+        targetUrl.host = sandboxId;
+        const headers = new Headers(request.headers);
+        if (!headers.has("authorization")) {
+          headers.set("authorization", `Bearer ${token}`);
+        }
+        const forwarded = new Request(targetUrl.toString(), request);
+        return fetcher(new Request(forwarded, { headers }));
+      };
+    },
+    async getToken(sandboxId) {
+      return options.token ?? localSandboxes.get(sandboxId)?.token;
+    }
+  };
+  return provider;
+}
+function baseUrlToSandboxId(baseUrl) {
+  return new URL(baseUrl).host;
+}
+export {
+  local
+};
+//# sourceMappingURL=local.js.map

@@ -1,0 +1,76 @@
+import {
+  DEFAULT_SANDBOX_AGENT_IMAGE
+} from "../chunk-7BNDCDDU.js";
+
+// src/providers/docker.ts
+import Docker from "dockerode";
+import getPort from "get-port";
+var DEFAULT_HOST = "127.0.0.1";
+var DEFAULT_AGENT_PORT = 3e3;
+async function resolveValue(value, fallback) {
+  if (value === void 0) {
+    return fallback;
+  }
+  if (typeof value === "function") {
+    return await value();
+  }
+  return value;
+}
+function extractMappedPort(inspect, containerPort) {
+  const hostPort = inspect.NetworkSettings?.Ports?.[`${containerPort}/tcp`]?.[0]?.HostPort;
+  if (!hostPort) {
+    throw new Error(`docker sandbox-agent port ${containerPort} is not published`);
+  }
+  return Number(hostPort);
+}
+function docker(options = {}) {
+  const image = options.image ?? DEFAULT_SANDBOX_AGENT_IMAGE;
+  const host = options.host ?? DEFAULT_HOST;
+  const agentPort = options.agentPort ?? DEFAULT_AGENT_PORT;
+  const client = new Docker({ socketPath: "/var/run/docker.sock" });
+  return {
+    name: "docker",
+    defaultCwd: "/home/sandbox",
+    async create() {
+      const hostPort = await getPort();
+      const env = await resolveValue(options.env, []);
+      const binds = await resolveValue(options.binds, []);
+      const container = await client.createContainer({
+        Image: image,
+        Cmd: ["server", "--no-token", "--host", "0.0.0.0", "--port", String(agentPort)],
+        Env: env,
+        ExposedPorts: { [`${agentPort}/tcp`]: {} },
+        HostConfig: {
+          AutoRemove: true,
+          Binds: binds,
+          PortBindings: {
+            [`${agentPort}/tcp`]: [{ HostPort: String(hostPort) }]
+          }
+        },
+        ...options.createContainerOptions ?? {}
+      });
+      await container.start();
+      return container.id;
+    },
+    async destroy(sandboxId) {
+      const container = client.getContainer(sandboxId);
+      try {
+        await container.stop({ t: 5 });
+      } catch {
+      }
+      try {
+        await container.remove({ force: true });
+      } catch {
+      }
+    },
+    async getUrl(sandboxId) {
+      const container = client.getContainer(sandboxId);
+      const hostPort = extractMappedPort(await container.inspect(), agentPort);
+      return `http://${host}:${hostPort}`;
+    }
+  };
+}
+export {
+  docker
+};
+//# sourceMappingURL=docker.js.map

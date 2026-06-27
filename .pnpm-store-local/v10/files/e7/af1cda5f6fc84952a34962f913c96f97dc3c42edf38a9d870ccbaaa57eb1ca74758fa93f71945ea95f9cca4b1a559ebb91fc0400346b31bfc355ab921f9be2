@@ -1,0 +1,62 @@
+import {
+  DEFAULT_SANDBOX_AGENT_IMAGE,
+  buildServerStartCommand
+} from "../chunk-7BNDCDDU.js";
+
+// src/providers/daytona.ts
+import { Daytona } from "@daytonaio/sdk";
+var DEFAULT_AGENT_PORT = 3e3;
+var DEFAULT_PREVIEW_TTL_SECONDS = 4 * 60 * 60;
+var DEFAULT_CWD = "/home/sandbox";
+async function resolveCreateOptions(value) {
+  if (!value) return void 0;
+  if (typeof value === "function") return await value();
+  return value;
+}
+function daytona(options = {}) {
+  const agentPort = options.agentPort ?? DEFAULT_AGENT_PORT;
+  const image = options.image ?? DEFAULT_SANDBOX_AGENT_IMAGE;
+  const cwd = options.cwd ?? DEFAULT_CWD;
+  const previewTtlSeconds = options.previewTtlSeconds ?? DEFAULT_PREVIEW_TTL_SECONDS;
+  const client = new Daytona();
+  return {
+    name: "daytona",
+    defaultCwd: cwd,
+    async create() {
+      const createOpts = await resolveCreateOptions(options.create);
+      const sandbox = await client.create({
+        image,
+        autoStopInterval: 0,
+        ...createOpts
+      });
+      await sandbox.process.executeCommand(buildServerStartCommand(agentPort));
+      return sandbox.id;
+    },
+    async destroy(sandboxId) {
+      const sandbox = await client.get(sandboxId);
+      if (!sandbox) {
+        return;
+      }
+      await sandbox.delete(options.deleteTimeoutSeconds);
+    },
+    async getUrl(sandboxId) {
+      const sandbox = await client.get(sandboxId);
+      if (!sandbox) {
+        throw new Error(`daytona sandbox not found: ${sandboxId}`);
+      }
+      const preview = await sandbox.getSignedPreviewUrl(agentPort, previewTtlSeconds);
+      return typeof preview === "string" ? preview : preview.url;
+    },
+    async ensureServer(sandboxId) {
+      const sandbox = await client.get(sandboxId);
+      if (!sandbox) {
+        throw new Error(`daytona sandbox not found: ${sandboxId}`);
+      }
+      await sandbox.process.executeCommand(buildServerStartCommand(agentPort));
+    }
+  };
+}
+export {
+  daytona
+};
+//# sourceMappingURL=daytona.js.map

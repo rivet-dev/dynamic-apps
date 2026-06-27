@@ -1,0 +1,16 @@
+import { SandboxCreateParams, Image } from 'modal';
+import { S as SandboxProvider } from '../types-DdcvY5CI.js';
+
+type ModalCreateOverrides = Omit<Partial<SandboxCreateParams>, "secrets" | "encryptedPorts"> & {
+    secrets?: Record<string, string>;
+    encryptedPorts?: number[];
+    appName?: string;
+};
+interface ModalProviderOptions {
+    create?: ModalCreateOverrides | (() => ModalCreateOverrides | Promise<ModalCreateOverrides>);
+    image?: string | Image;
+    agentPort?: number;
+}
+declare function modal(options?: ModalProviderOptions): SandboxProvider;
+
+export { type ModalProviderOptions, modal };

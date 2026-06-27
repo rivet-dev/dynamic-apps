@@ -1,0 +1,2517 @@
+"use strict";
+var __defProp = Object.defineProperty;
+var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropNames = Object.getOwnPropertyNames;
+var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+var __copyProps = (to, from, except, desc) => {
+  if (from && typeof from === "object" || typeof from === "function") {
+    for (let key of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key) && key !== except)
+        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+  }
+  return to;
+};
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
+
+// src/index.ts
+var src_exports = {};
+__export(src_exports, {
+  BASE_TAG: () => BASE_TAG,
+  CompilerError: () => CompilerError,
+  Config: () => Config,
+  ConfigError: () => ConfigError,
+  FIXED_NUMERIC_TAG: () => FIXED_NUMERIC_TAG,
+  FIXED_NUMERIC_TYPE_TO_TYPED_ARRAY: () => FIXED_NUMERIC_TYPE_TO_TYPED_ARRAY,
+  NULL_LITERAL_VAL: () => NULL_LITERAL_VAL,
+  NUMERIC_TAG: () => NUMERIC_TAG,
+  UNDEFINED_LITERAL_VAL: () => UNDEFINED_LITERAL_VAL,
+  configure: () => configure,
+  generate: () => generate,
+  haveDistinctTypeof: () => haveDistinctTypeof,
+  isBaseOrVoidType: () => isBaseOrVoidType,
+  isBaseTag: () => isBaseTag,
+  isBaseType: () => isBaseType,
+  isFixedNumericTag: () => isFixedNumericTag,
+  leadingDiscriminators: () => leadingDiscriminators,
+  literalVal: () => literalVal,
+  maxVal: () => maxVal,
+  noneVal: () => noneVal,
+  normalize: () => normalize,
+  parse: () => parse,
+  resolveAlias: () => resolveAlias,
+  rootAliases: () => rootAliases,
+  symbols: () => symbols,
+  transform: () => transform,
+  typeofValue: () => typeofValue,
+  withoutExtra: () => withoutExtra,
+  withoutOffset: () => withoutOffset
+});
+module.exports = __toCommonJS(src_exports);
+
+// src/ast/bare-ast.ts
+var NULL_LITERAL_VAL = { type: "null", val: null };
+var UNDEFINED_LITERAL_VAL = { type: "undefined", val: null };
+function literalVal(literal) {
+  switch (literal.type) {
+    case "bigint":
+      return BigInt(literal.val);
+    case "number":
+    case "string":
+      return literal.val;
+    case "false":
+      return false;
+    case "null":
+      return null;
+    case "true":
+      return true;
+    case "undefined":
+      return void 0;
+  }
+}
+function isBaseTag(tag) {
+  return BASE_TAG_SET.has(tag);
+}
+function isBaseType(type) {
+  return isBaseTag(type.tag);
+}
+function isBaseOrVoidType(type) {
+  return isBaseType(type) || type.tag === "void";
+}
+function isFixedNumericTag(tag) {
+  return FIXED_NUMERIC_TAG_SET.has(tag);
+}
+var FIXED_NUMERIC_TAG = [
+  "f32",
+  "f64",
+  "i8",
+  "i16",
+  "i32",
+  "i64",
+  "u8",
+  "u16",
+  "u32",
+  "u64"
+];
+var NUMERIC_TAG = [...FIXED_NUMERIC_TAG, "int", "uint"];
+var BASE_TAG = [...NUMERIC_TAG, "bool", "str"];
+var FIXED_NUMERIC_TAG_SET = new Set(FIXED_NUMERIC_TAG);
+var BASE_TAG_SET = new Set(BASE_TAG);
+var FIXED_NUMERIC_TYPE_TO_TYPED_ARRAY = /* @__PURE__ */ new Map([
+  ["f32", "Float32Array"],
+  ["f64", "Float64Array"],
+  ["i8", "Int8Array"],
+  ["i16", "Int16Array"],
+  ["i32", "Int32Array"],
+  ["i64", "BigInt64Array"],
+  ["u8", "Uint8Array"],
+  ["u16", "Uint16Array"],
+  ["u32", "Uint32Array"],
+  ["u64", "BigUint64Array"]
+]);
+function maxVal(data) {
+  return data.reduce((max, v) => Math.max(max, v.val), 0);
+}
+function symbols(schema) {
+  const result = /* @__PURE__ */ new Map();
+  for (const aliased of schema.defs) {
+    result.set(aliased.alias, aliased);
+  }
+  return result;
+}
+function resolveAlias(type, symbols2) {
+  if (type.tag === "alias") {
+    const aliasedType = symbols2.get(type.data);
+    if (aliasedType != null) {
+      return resolveAlias(aliasedType.type, symbols2);
+    }
+  }
+  return type;
+}
+function rootAliases(defs) {
+  const referred = new Set(defs.flatMap((x) => referredAliases(x.type)));
+  return defs.filter((x) => !referred.has(x.alias)).map((x) => x.alias);
+}
+function referredAliases(type) {
+  if (type.tag === "alias") {
+    return [type.data];
+  }
+  if (type.types != null) {
+    return type.types.flatMap((t) => referredAliases(t));
+  }
+  return [];
+}
+function typeofValue(type) {
+  switch (type.tag) {
+    case "bool":
+      return "boolean";
+    case "str":
+      return "string";
+    case "i64":
+    case "int":
+    case "u64":
+    case "uint":
+      return type.extra?.safe ? "number" : "bigint";
+  }
+  return "number";
+}
+function leadingDiscriminators(structs) {
+  if (structs.length > 0) {
+    const literals = /* @__PURE__ */ new Set();
+    const type0LeadingField = structs[0].data[0];
+    for (const struct of structs) {
+      const fields = struct.data;
+      if (fields.length === 0 || fields[0].name !== type0LeadingField.name || struct.types[0].tag !== "void" || struct.types[0].extra == null || literals.has(literalVal(struct.types[0].extra.literal))) {
+        return null;
+      }
+      literals.add(literalVal(struct.types[0].extra.literal));
+    }
+    return Array.from(literals.values());
+  }
+  return null;
+}
+function haveDistinctTypeof(types) {
+  const typeofValues = types.map(
+    (t) => isBaseType(t) ? typeofValue(t) : null
+  );
+  return types.length === new Set(typeofValues).size;
+}
+function withoutOffset(type) {
+  return JSON.parse(
+    JSON.stringify(type, (name, val) => name === "offset" ? 0 : val)
+  );
+}
+function withoutExtra(type) {
+  return JSON.parse(
+    JSON.stringify(
+      type,
+      (name, val) => name === "comment" ? "" : name === "extra" ? null : name === "offset" ? 0 : val
+    )
+  );
+}
+
+// src/ast/bare-configure.ts
+function configure(schema, config) {
+  const c = {
+    config,
+    aliasesInFlatUnion: /* @__PURE__ */ new Set(),
+    symbols: symbols(schema)
+  };
+  const defs = schema.defs.slice();
+  for (let i = 0; i < defs.length; i++) {
+    const type = configureType(c, defs[i].type, true);
+    if (defs[i].type !== type) {
+      const { alias, internal, comment, offset } = defs[i];
+      defs[i] = { alias, internal, type, comment, offset };
+    }
+  }
+  for (let i = 0; i < defs.length; i++) {
+    let type = defs[i].type;
+    if (c.aliasesInFlatUnion.has(defs[i].alias) && type.tag === "struct" && !type.extra?.class) {
+      const { alias, internal, comment, offset } = defs[i];
+      type = embeddedTag(type, defs[i].alias);
+      defs[i] = { alias, internal, comment, type, offset };
+    }
+  }
+  if (schema.defs.some((def, i) => def !== defs[i])) {
+    return { defs, filename: schema.filename, offset: schema.offset };
+  }
+  return schema;
+}
+function configureType(c, type, isAliased = false) {
+  const config = c.config;
+  let { data, extra } = type;
+  let types = type.types != null ? configureTypes(c, type.types) : type.types;
+  if (extra == null) {
+    const { useMutable: mut, useUndefined } = config;
+    switch (type.tag) {
+      case "enum": {
+        if (config.useIntEnum) {
+          extra = { intEnum: true };
+        }
+        break;
+      }
+      case "list": {
+        const typedArray = !config.useGenericArray && isFixedNumericTag(type.types[0].tag);
+        if (mut || typedArray) {
+          extra = { mut, typedArray, unique: false };
+        }
+        break;
+      }
+      case "map": {
+        if (mut) {
+          extra = { mut };
+        }
+        break;
+      }
+      case "optional":
+      case "void": {
+        if (useUndefined) {
+          const literal = useUndefined ? UNDEFINED_LITERAL_VAL : NULL_LITERAL_VAL;
+          extra = { literal };
+        }
+        break;
+      }
+      case "struct": {
+        data = configureFields(type.data, config);
+        if (isAliased && config.useClass) {
+          extra = { class: true };
+        }
+        break;
+      }
+      case "union": {
+        if (config.usePrimitiveFlatUnion && types != null && types.every(isBaseOrVoidType) && haveDistinctTypeof(type.types)) {
+          extra = { flat: true };
+        } else if (config.useStructFlatUnion && types != null && types.every(
+          (t) => t.tag === "alias" || t.tag === "struct"
+        ) && types.map(
+          (t) => t.tag === "alias" ? c.symbols.get(t.data)?.type ?? t : t
+        ).every(
+          (t) => t.tag === "struct" && t.data.every((f) => f.name !== "tag")
+        )) {
+          extra = { flat: true };
+          const newTypes = [];
+          for (let i = 0; i < types.length; i++) {
+            let subtype = types[i];
+            if (subtype.tag === "alias") {
+              c.aliasesInFlatUnion.add(subtype.data);
+            } else if (subtype.tag === "struct") {
+              subtype = embeddedTag(subtype, type.data[i].val);
+            }
+            newTypes.push(subtype);
+          }
+          types = newTypes.every(
+            (t, i) => types != null && t === types[i]
+          ) ? types : newTypes;
+        }
+        break;
+      }
+      case "i64":
+      case "int":
+      case "u64":
+      case "uint": {
+        if (config.useSafeInt) {
+          extra = { safe: true };
+        }
+        break;
+      }
+    }
+  }
+  if (type.data !== data || type.types !== types || type.extra !== extra) {
+    return {
+      tag: type.tag,
+      data,
+      types,
+      extra,
+      offset: type.offset
+    };
+  }
+  return type;
+}
+function configureTypes(c, types) {
+  const configuredTypes = types.map((t) => configureType(c, t));
+  if (configuredTypes.some((t, i) => t !== types[i])) {
+    return configuredTypes;
+  }
+  return types;
+}
+function configureFields(fields, config) {
+  const configuredFields = fields.map((f) => configureField(f, config));
+  if (configuredFields.some((f, i) => f !== fields[i])) {
+    return configuredFields;
+  }
+  return fields;
+}
+function configureField(field, config) {
+  const mut = config.useMutable;
+  if (field.extra == null && mut) {
+    const { name, val, comment, offset } = field;
+    return { name, val, extra: { mut }, comment, offset };
+  }
+  return field;
+}
+function embeddedTag(type, val) {
+  const { extra, offset } = type;
+  const data = type.data.slice();
+  data.splice(0, 0, {
+    name: "tag",
+    val: null,
+    comment: "",
+    extra: { mut: false },
+    offset
+  });
+  const literal = typeof val === "string" ? { type: "string", val } : { type: "number", val };
+  const types = type.types.slice();
+  types.splice(0, 0, {
+    tag: "void",
+    data: null,
+    types: null,
+    extra: { literal },
+    offset
+  });
+  return { tag: "struct", data, types, extra, offset };
+}
+
+// src/ast/bare-normalization.ts
+function normalize(schema) {
+  const n = { defs: [], dedup: /* @__PURE__ */ new Map(), aliasCount: 0 };
+  const defs = n.defs;
+  for (const def of schema.defs) {
+    const type = normalizeSubtypes(n, def.type);
+    if (def.type !== type) {
+      const { alias, internal, comment, offset } = def;
+      defs.push({ alias, internal, type, comment, offset });
+    } else {
+      defs.push(def);
+    }
+  }
+  return defs.length > schema.defs.length ? { defs, filename: schema.filename, offset: schema.offset } : schema;
+}
+function normalizeSubtypes(n, type) {
+  if (type.types != null && type.types.length > 0) {
+    const types = type.types.map((t) => maybeAlias(n, t));
+    if (type.types.some((t, i) => t !== types[i])) {
+      const { tag, data, extra, offset } = type;
+      return { tag, data, types, extra, offset };
+    }
+  }
+  return type;
+}
+function maybeAlias(n, type) {
+  switch (type.tag) {
+    case "list": {
+      if (!type.extra?.typedArray) {
+        return genAlias(n, type);
+      }
+      break;
+    }
+    case "map":
+    case "optional":
+    case "union":
+      return genAlias(n, type);
+  }
+  return normalizeSubtypes(n, type);
+}
+function genAlias(n, type) {
+  const stringifiedType = JSON.stringify(withoutOffset(type));
+  let alias = n.dedup.get(stringifiedType);
+  if (alias == null) {
+    const normalized = normalizeSubtypes(n, type);
+    alias = `${n.aliasCount++}`;
+    n.defs.push({
+      alias,
+      internal: true,
+      type: normalized,
+      comment: "",
+      offset: normalized.offset
+    });
+    n.dedup.set(stringifiedType, alias);
+  }
+  const offset = type.offset;
+  return { tag: "alias", data: alias, types: null, extra: null, offset };
+}
+
+// src/core/compiler-error.ts
+var CompilerError = class extends Error {
+  name = "CompilerError";
+  offset;
+  constructor(msg, offset) {
+    super(msg);
+    this.offset = offset;
+  }
+};
+
+// src/utils/formatting.ts
+var ALL_CASE_RE = /^\w+$/;
+var CAMEL_CASE_RE = /^[a-z][A-Za-z\d]*$/;
+var CONSTANT_CASE_RE = /^[A-Z][A-Z\d_]*$/;
+var PASCAL_CASE_RE = /^[A-Z][A-Za-z\d]*$/;
+function capitalize(s) {
+  return s.replace(/^./, (c) => c.toUpperCase());
+}
+function softSpace(s) {
+  return s[0] === "\n" ? s : ` ${s}`;
+}
+function jsDoc(content) {
+  if (content === "") {
+    return "";
+  }
+  const docBody = content.replace(/\n/g, "\n *");
+  return `/**
+ *${docBody}/
+`;
+}
+function jsRpr(v) {
+  return typeof v === "string" ? `"${v}"` : typeof v === "bigint" ? `${v}n` : `${v}`;
+}
+function toCamelCase(s) {
+  return normalize2(s).toLowerCase().replace(/_./g, (m0) => m0[1].toUpperCase());
+}
+function toPascalCase(s) {
+  return capitalize(toCamelCase(s));
+}
+function toConstantCase(s) {
+  return normalize2(s).toUpperCase();
+}
+function normalize2(s) {
+  return s.replace(/\B[A-Z][a-z\d]/g, (m0) => `_${m0}`).replace(/[-_ ]+/g, "_");
+}
+var NON_EMPTY_LINE_DELIM = /\n(?!\r|\n)/g;
+var INDENTATION = /\n[^\S\r\n]*(?!\s)/g;
+var LEADING_NEWLINE = /^\r?\n/;
+var TRAILING_INDENTATION = /\r?\n[^\S\n]*$/;
+var SPACE_ONLY_LINE = /\n[^\S\r\n]+(?=\r|\n)/g;
+function dent(chunks, ...values) {
+  const lastChunkIndex = chunks.length - 1;
+  assert(values.length === lastChunkIndex, "");
+  assert(
+    chunks.every((chunk) => chunk != null),
+    "invalid escape sequence are not permitted"
+  );
+  assert(LEADING_NEWLINE.test(chunks[0]), "must start with an empty newline");
+  assert(
+    TRAILING_INDENTATION.test(chunks[chunks.length - 1]),
+    "must end with a space-only line"
+  );
+  assert(
+    chunks.every((chunk) => !SPACE_ONLY_LINE.test(chunk)),
+    "lines that contain only spaces are not permitted"
+  );
+  let result = "";
+  let lastIndentation = "\n";
+  let commonIndentation = "";
+  for (let i = 0; i <= lastChunkIndex; i++) {
+    assert(chunks[i] != null, "wrong escape sequence");
+    if (i > 0) {
+      result += String(values[i - 1]).replace(
+        NON_EMPTY_LINE_DELIM,
+        lastIndentation
+      );
+    }
+    result += chunks[i];
+    const matches = chunks[i].match(INDENTATION);
+    if (matches != null) {
+      if (i === lastChunkIndex) {
+        matches.pop();
+      }
+      for (const match of matches) {
+        assert(
+          commonIndentation.startsWith(match) || match.startsWith(commonIndentation),
+          ""
+        );
+        if (match.length < commonIndentation.length || commonIndentation.length === 0) {
+          commonIndentation = match;
+        }
+        lastIndentation = match;
+      }
+    }
+  }
+  if (commonIndentation.length > 1) {
+    result = result.replaceAll(commonIndentation, "\n");
+  }
+  return result.replace(LEADING_NEWLINE, "").replace(TRAILING_INDENTATION, "");
+}
+function assert(x, msg) {
+  if (!x) {
+    throw new Error(msg);
+  }
+}
+
+// src/ast/bare-semantic-checker.ts
+function checkSemantic(schema, config) {
+  if (schema.defs.length === 0) {
+    throw new CompilerError("a schema cannot be empty.", schema.offset);
+  }
+  const c = {
+    config,
+    symbols: symbols(schema)
+  };
+  const aliases = /* @__PURE__ */ new Set();
+  for (const aliased of schema.defs) {
+    const { alias, type } = aliased;
+    checkTypeName(aliased);
+    if (aliases.has(alias)) {
+      throw new CompilerError(
+        `alias '${aliased.alias}' is already defined.`,
+        aliased.offset
+      );
+    }
+    checkTypeInvariants(c, type);
+    if (c.config.legacy) {
+      checkCircularRef(c, type, /* @__PURE__ */ new Set([alias]));
+    } else {
+      checkUsedBeforeDefined(c, type, aliases);
+    }
+    aliases.add(alias);
+  }
+  return schema;
+}
+function checkTypeName(aliased) {
+  const { alias, internal } = aliased;
+  if (alias.length !== 0 && /^\d/.test(alias[0])) {
+    if (!internal) {
+      throw new CompilerError(
+        `the type name '${alias}' must not start with a figure or must be internal.`,
+        aliased.offset
+      );
+    }
+  } else if (alias.length === 0 || !PASCAL_CASE_RE.test(alias)) {
+    throw new CompilerError(
+      `the type name '${alias}' must be in PascalCase.`,
+      aliased.offset
+    );
+  }
+}
+function checkTypeInvariants(c, type) {
+  if (type.types != null) {
+    for (const subtype of type.types) {
+      if (type.tag !== "union") {
+        checkNonVoid(c, subtype);
+      }
+      checkTypeInvariants(c, subtype);
+    }
+  }
+  switch (type.tag) {
+    case "alias": {
+      checkUndefinedAlias(c, type);
+      break;
+    }
+    case "data": {
+      checkLengthInvariants(type.data);
+      break;
+    }
+    case "list": {
+      checkListInvariants(type);
+      break;
+    }
+    case "map": {
+      checkMapInvariants(c, type);
+      break;
+    }
+    case "enum":
+    case "struct": {
+      checkMembersInvariants(c, type);
+      break;
+    }
+    case "union": {
+      checkMembersInvariants(c, type);
+      checkUnionInvariants(c, type);
+      break;
+    }
+  }
+}
+function checkMembersInvariants(c, type) {
+  const data = type.data;
+  if (data.length === 0) {
+    throw new CompilerError(
+      `a ${type.tag} must include at least one member.`,
+      type.offset
+    );
+  }
+  if (type.types != null && type.types.length !== data.length) {
+    throw new CompilerError(
+      "the number of types is not equal to the number of members. This is likely an internal error.",
+      type.offset
+    );
+  }
+  const names = /* @__PURE__ */ new Set();
+  const tags = /* @__PURE__ */ new Set();
+  let prevVal = -1;
+  for (const elt of data) {
+    if (elt.name != null) {
+      if (type.tag === "enum" && !CONSTANT_CASE_RE.test(elt.name) && !PASCAL_CASE_RE.test(elt.name)) {
+        throw new CompilerError(
+          "the name of an enum member must be in CONSTANT_CASE or PascalCase.",
+          elt.offset
+        );
+      }
+      if (type.tag === "struct" && !CAMEL_CASE_RE.test(elt.name)) {
+        throw new CompilerError(
+          "the name of a field must be in camelCase.",
+          elt.offset
+        );
+      }
+      if (names.has(elt.name)) {
+        throw new CompilerError(
+          `name of a ${type.tag} member must be unique.`,
+          elt.offset
+        );
+      }
+      names.add(elt.name);
+    }
+    if (elt.val != null) {
+      if (!Number.isSafeInteger(elt.val)) {
+        throw new CompilerError(
+          "only safe integers are supported.",
+          elt.offset
+        );
+      }
+      if (tags.has(elt.val)) {
+        throw new CompilerError(
+          `tag '${elt.val}' is assigned to a preceding member.`,
+          elt.offset
+        );
+      }
+      tags.add(elt.val);
+      if (c.config.pedantic && elt.val < prevVal) {
+        throw new CompilerError(
+          `in pedantic mode, all ${type.tag} tags must be in order.`,
+          elt.offset
+        );
+      }
+      prevVal = elt.val;
+    }
+  }
+}
+function checkLengthInvariants(len) {
+  if (len != null && len.val <= 0) {
+    throw new CompilerError(
+      "a fixed list or data must have a length strictly greater than 0.",
+      len.offset
+    );
+  }
+  if (len != null && len.val >>> 0 !== len.val) {
+    throw new CompilerError(
+      "only length encoded as a u32 are supported.",
+      len.offset
+    );
+  }
+}
+function checkListInvariants(type) {
+  checkLengthInvariants(type.data);
+  if (type.extra?.unique && type.extra.typedArray) {
+    throw new CompilerError(
+      "A list cannot be both typed (typedArray) and unique (Set).",
+      type.offset
+    );
+  }
+  const valType = type.types[0];
+  if (type.extra?.typedArray && !isFixedNumericTag(valType.tag)) {
+    throw new CompilerError(
+      `value type of a typed array cannot be '${valType.tag}'. This is likely an internal error.`,
+      valType.offset
+    );
+  }
+}
+function checkMapInvariants(c, type) {
+  const keyType = type.types[0];
+  const resolvedKeyType = resolveAlias(keyType, c.symbols);
+  if (!isBaseTag(resolvedKeyType.tag) && resolvedKeyType.tag !== "enum" || resolvedKeyType.tag === "f32" || resolvedKeyType.tag === "f64") {
+    throw new CompilerError(
+      "the key type must be a base type (except f32, f64) or an enum type.",
+      keyType.offset
+    );
+  }
+}
+function checkNonVoid(c, type) {
+  const resolved = resolveAlias(type, c.symbols);
+  if (resolved.tag === "void" && (resolved.extra == null || resolved.extra.literal.type === "null" || resolved.extra.literal.type === "undefined")) {
+    throw new CompilerError(
+      `types that resolve to 'void' are only allowed in unions.`,
+      resolved.offset
+    );
+  }
+}
+function checkUnionInvariants(c, type) {
+  const tags = type.data;
+  const stringifiedTypes = /* @__PURE__ */ new Set();
+  for (let i = 0; i < tags.length; i++) {
+    const stringifiedType = JSON.stringify(withoutExtra(type.types[i]));
+    if (stringifiedTypes.has(stringifiedType)) {
+      throw new CompilerError(
+        "a type cannot be repeated in an union.",
+        type.types[i].offset
+      );
+    }
+    stringifiedTypes.add(stringifiedType);
+  }
+  if (type.extra?.flat) {
+    let isFlatUnion = type.types.every(isBaseOrVoidType) && haveDistinctTypeof(type.types);
+    if (!isFlatUnion && type.types.every(
+      (t) => t.tag === "alias" || t.tag === "struct"
+    )) {
+      const resolved = type.types.map(
+        (t) => t.tag === "alias" ? c.symbols.get(t.data)?.type ?? t : t
+      );
+      isFlatUnion = resolved.every(
+        (t) => t.tag === "struct"
+      ) && (resolved.every((t) => t.extra?.class) || leadingDiscriminators(resolved) != null);
+    }
+    if (!isFlatUnion) {
+      throw new CompilerError("the union cannot be flatten.", type.offset);
+    }
+  }
+}
+function checkUndefinedAlias(c, type) {
+  if (!c.symbols.has(type.data)) {
+    const alias = type.data;
+    throw new CompilerError(`alias '${alias}' is not defined.`, type.offset);
+  }
+}
+function checkUsedBeforeDefined(c, type, defined) {
+  if (type.tag === "alias" && !defined.has(type.data)) {
+    throw new CompilerError(
+      `Alias '${type.data}' is used before its definition. To allow use-before-definition and recursive types set the option '--legacy'.`,
+      type.offset
+    );
+  }
+  if (type.types != null) {
+    for (const subtype of type.types) {
+      checkUsedBeforeDefined(c, subtype, defined);
+    }
+  }
+}
+function checkCircularRef(c, type, traversed) {
+  if (type.tag === "list" && type.data == null || type.tag === "map" || type.tag === "optional") {
+    return;
+  }
+  if (type.tag === "union") {
+    let circularCount = 0;
+    let firstError = null;
+    for (const subtype of type.types) {
+      try {
+        checkCircularRef(c, subtype, traversed);
+      } catch (e) {
+        if (e instanceof CompilerError) {
+          firstError = firstError ?? e;
+        }
+        circularCount++;
+      }
+    }
+    if (circularCount === type.types.length && firstError != null) {
+      throw firstError;
+    }
+    return;
+  }
+  if (type.tag === "struct" || type.tag === "list") {
+    for (const subtype of type.types) {
+      checkCircularRef(c, subtype, traversed);
+    }
+  } else if (type.tag === "alias") {
+    const alias = type.data;
+    if (traversed.has(alias)) {
+      throw new CompilerError(
+        "non-terminable circular references are not allowed.",
+        type.offset
+      );
+    }
+    const aliased = c.symbols.get(alias);
+    if (aliased != null) {
+      const subTraversed = new Set(traversed).add(alias);
+      checkCircularRef(c, aliased.type, subTraversed);
+    }
+  }
+}
+
+// src/core/config.ts
+var DEFAULT_GENERATOR = "ts";
+var ConfigError = class extends Error {
+  name = "ConfigError";
+};
+function Config({
+  generator,
+  legacy = false,
+  lib = false,
+  out = null,
+  pedantic = false,
+  schema = null,
+  useClass = false,
+  useGenericArray = false,
+  useIntEnum = false,
+  useIntTag = false,
+  useMutable = false,
+  usePrimitiveFlatUnion = false,
+  useSafeInt = false,
+  useStructFlatUnion = false,
+  useUndefined = false
+}) {
+  if (typeof schema === "string" && !schema.endsWith(".bare")) {
+    throw new ConfigError(
+      "a file containing a BARE schema must end with extension '.bare'."
+    );
+  }
+  const inferredGenerator = typeof out === "string" ? out.endsWith(".bare") ? "bare" : out.endsWith(".d.ts") ? "dts" : out.endsWith(".ts") ? "ts" : out.endsWith(".js") ? "js" : generator : generator == null && (typeof out === "number" || out == null) ? DEFAULT_GENERATOR : generator;
+  if (generator != null && inferredGenerator !== generator) {
+    throw new ConfigError(
+      `the inferred generator '${inferredGenerator}' from out '${out}' does not match the chosen generator '${generator}'.`
+    );
+  }
+  if (inferredGenerator == null) {
+    throw new ConfigError(
+      "the code generator to use cannot be determinate. Please set the option 'generator'."
+    );
+  }
+  return {
+    generator: inferredGenerator,
+    legacy,
+    lib,
+    out,
+    pedantic,
+    schema,
+    useClass,
+    useGenericArray,
+    useIntEnum,
+    useIntTag,
+    useMutable,
+    usePrimitiveFlatUnion,
+    useSafeInt,
+    useStructFlatUnion,
+    useUndefined
+  };
+}
+
+// src/generator/bare-generator.ts
+function generateBare(schema) {
+  let result = "";
+  for (const def of schema.defs) {
+    if (!def.internal) {
+      result += `${genAliased(def)}
+
+`;
+    }
+  }
+  return result.trim();
+}
+function genAliased(type) {
+  return `${genDoc(type.comment)}type ${type.alias} ${genType(type.type)}`;
+}
+function genType(type) {
+  switch (type.tag) {
+    case "alias":
+      return type.data;
+    case "data":
+      return genData(type);
+    case "enum":
+      return genEnum(type);
+    case "list":
+      return genList(type);
+    case "map":
+      return genMap(type);
+    case "optional":
+      return genOptional(type);
+    case "struct":
+      return genStruct(type);
+    case "union":
+      return genUnion(type);
+    default:
+      return type.tag;
+  }
+}
+function genData(type) {
+  return `data${genOptionalLength(type.data)}`;
+}
+function genEnum(type) {
+  let body = "";
+  for (const enumVal of type.data) {
+    body += `${genEnumVal(enumVal)}
+`;
+  }
+  return dent`
+        enum {
+            ${body.trim()}
+        }
+    `;
+}
+function genEnumVal(type) {
+  return `${genDoc(type.comment)}${toConstantCase(type.name)} = ${type.val}`;
+}
+function genList(type) {
+  return `list<${genType(type.types[0])}>${genOptionalLength(type.data)}`;
+}
+function genMap(type) {
+  const keyTypedef = genType(type.types[0]);
+  const valTypedef = genType(type.types[1]);
+  return `map<${keyTypedef}><${valTypedef}>`;
+}
+function genOptional(type) {
+  return `optional<${genType(type.types[0])}>`;
+}
+function genStruct(type) {
+  const fields = type.data;
+  let body = "";
+  for (let i = 0; i < fields.length; i++) {
+    body += `${genStructField(fields[i], type.types[i])}
+`;
+  }
+  return dent`
+        struct {
+            ${body.trim()}
+        }
+    `;
+}
+function genStructField(field, type) {
+  return `${genDoc(field.comment)}${field.name}: ${genType(type)}`;
+}
+function genUnion(type) {
+  const tags = type.data;
+  let body = "";
+  for (let i = 0; i < tags.length; i++) {
+    body += `${genUnionMember(tags[i], type.types[i])}
+`;
+  }
+  return dent`
+        union {
+            ${body.trim()}
+        }
+    `;
+}
+function genUnionMember(tag, type) {
+  return `| ${genType(type)} = ${tag.val}`;
+}
+function genOptionalLength(length) {
+  return length != null ? `[${length.val}]` : "";
+}
+function genDoc(comment) {
+  return comment !== "" ? `#${comment.trimEnd().replace(/\n/g, "\n#")}
+` : "";
+}
+
+// src/generator/bare-ast-utils.ts
+function unrecursive(type, symbols2) {
+  const result = innerUnrecursive(type, symbols2, /* @__PURE__ */ new Set());
+  if (result == null) {
+    throw new CompilerError(
+      "The recursive type cannot be simplified. This is likely an internal error. The recursive type may be invalid or the symbol table incomplete.",
+      type.offset
+    );
+  }
+  return result;
+}
+function innerUnrecursive(type, symbols2, traversed) {
+  if (type.tag === "optional") {
+    const simplified = innerUnrecursive(type.types[0], symbols2, traversed);
+    const extra = type.extra;
+    if (simplified == null) {
+      return { tag: "void", data: null, types: null, extra, offset: 0 };
+    }
+    if (type.types[0] !== simplified) {
+      return simplifyOptional({
+        tag: "optional",
+        data: null,
+        types: [simplified],
+        extra,
+        offset: 0
+      });
+    }
+  } else if (type.tag === "alias") {
+    const alias = type.data;
+    if (traversed.has(alias)) {
+      return null;
+    }
+    const aliased = symbols2.get(alias);
+    if (aliased != null) {
+      const subTraversed = new Set(traversed).add(alias);
+      const simplified = innerUnrecursive(
+        aliased.type,
+        symbols2,
+        subTraversed
+      );
+      if (aliased.type !== simplified) {
+        return simplified;
+      }
+    }
+  }
+  return type;
+}
+function simplifyOptional(type) {
+  const subtype = type.types[0];
+  if (subtype.tag === "void" || subtype.tag === "optional") {
+    const literal = type.extra?.literal ?? NULL_LITERAL_VAL;
+    const literal2 = subtype.extra?.literal ?? NULL_LITERAL_VAL;
+    if (literal.type === literal2.type && literal.val === literal2.val) {
+      const extra = { literal };
+      if (subtype.types != null) {
+        return simplifyOptional({
+          tag: "optional",
+          data: null,
+          types: subtype.types,
+          extra,
+          offset: 0
+        });
+      }
+      return { tag: "void", data: null, types: null, extra, offset: 0 };
+    }
+  }
+  return type;
+}
+
+// src/generator/js-generator.ts
+function generate(schema, config) {
+  const g = { config, symbols: symbols(schema) };
+  let body = "";
+  const rootAliases2 = rootAliases(schema.defs);
+  let hasEncodeDecode = false;
+  for (const aliased of schema.defs) {
+    const isVoid = resolveAlias(aliased.type, g.symbols).tag === "void";
+    switch (g.config.generator) {
+      case "dts": {
+        if (!aliased.internal) {
+          body += `${genAliasedType(g, aliased)}
+
+`;
+          if (!isVoid) {
+            body += `export ${genReaderHead(g, aliased)}
+
+`;
+            body += `export ${genWriterHead(g, aliased)}
+
+`;
+          }
+        }
+        break;
+      }
+      case "js": {
+        const code = genCode(g, aliased);
+        body += code !== "" ? `${code}
+
+` : "";
+        if (!isVoid) {
+          body += `${genAliasedReader(g, aliased)}
+
+`;
+          body += `${genAliasedWriter(g, aliased)}
+
+`;
+        }
+        break;
+      }
+      case "ts": {
+        if (!aliased.internal) {
+          const aliasedType = genAliasedType(g, aliased);
+          body += aliasedType !== "" ? `${aliasedType}
+
+` : "";
+        }
+        const code = genCode(g, aliased);
+        body += code !== "" ? `${code}
+
+` : "";
+        if (!isVoid) {
+          body += `${genAliasedReader(g, aliased)}
+
+`;
+          body += `${genAliasedWriter(g, aliased)}
+
+`;
+        }
+        break;
+      }
+    }
+    if (!(isVoid || config.lib) && rootAliases2.indexOf(aliased.alias) !== -1) {
+      hasEncodeDecode = true;
+      switch (g.config.generator) {
+        case "dts": {
+          body += `export ${genEncoderHead(g, aliased.alias)}
+
+`;
+          body += `export ${genDecoderHead(g, aliased.alias)}
+
+`;
+          break;
+        }
+        case "js":
+        case "ts": {
+          body += `export ${genEncoder(g, aliased.alias)}
+
+`;
+          body += `export ${genDecoder(g, aliased.alias)}
+
+`;
+          break;
+        }
+      }
+    }
+  }
+  let head = "";
+  if (/\bassert\(/.test(body)) {
+    head += 'import assert from "node:assert"\n';
+  }
+  if (/bare\./.test(body)) {
+    head += // Are values imported?
+    g.config.generator !== "ts" || /bare\.[a-z]/.test(body) || hasEncodeDecode ? 'import * as bare from "@bare-ts/lib"\n' : 'import type * as bare from "@bare-ts/lib"\n';
+  }
+  if (/ext\./.test(body)) {
+    head += '\nimport * as ext from "./ext.js"\n';
+  }
+  if (hasEncodeDecode && g.config.generator !== "dts") {
+    head += "\nconst DEFAULT_CONFIG = /* @__PURE__ */ bare.Config({})\n";
+  }
+  if (g.config.generator !== "js") {
+    head += "\n";
+    const predefinedTypes = NUMERIC_TAG.slice();
+    predefinedTypes.push("i64Safe", "intSafe", "u64Safe", "uintSafe");
+    for (const tag of predefinedTypes) {
+      if (RegExp(`\\b${tag}\\b`).test(body)) {
+        const typeofVal = tag === "i64" || tag === "int" || tag === "u64" || tag === "uint" ? "bigint" : "number";
+        head += `export type ${tag} = ${typeofVal}
+`;
+      }
+    }
+  }
+  return `${`${head.trim()}
+
+${body}`.trim()}
+`;
+}
+function genAliasedType(g, aliased) {
+  const { alias, comment, type } = aliased;
+  const doc = jsDoc(comment);
+  switch (type.tag) {
+    case "enum":
+      return `${doc}export ${genAliasedEnumType(g, alias, type)}`;
+    case "struct": {
+      const isClass = type.extra?.class;
+      if (!isClass) {
+        const structDef = genStructType(g, type);
+        return `${doc}export type ${alias} = ${structDef}`;
+      }
+      if (g.config.generator !== "dts") {
+        return "";
+      }
+      return dent`
+                ${doc}export declare class ${alias} {
+                    ${genStructTypeClassBody(g, type)}
+                }
+            `;
+    }
+  }
+  const def = genType2(g, type);
+  return `${doc}export type ${alias} =${softSpace(def)}`;
+}
+function namespaced(g, alias) {
+  return g.symbols.get(alias) != null ? "" : "ext.";
+}
+function genType2(g, type) {
+  switch (type.tag) {
+    case "alias":
+      return genAliasType(g, type);
+    case "bool":
+      return "boolean";
+    case "data":
+      return global(g, "ArrayBuffer");
+    case "enum":
+      return genEnumType(g, type);
+    case "list":
+      return genListType(g, type);
+    case "map":
+      return genMapType(g, type);
+    case "optional":
+      return genOptionalType(g, type);
+    case "str":
+      return "string";
+    case "struct":
+      return genStructType(g, type);
+    case "union":
+      return genUnionType(g, type);
+    case "void":
+      return noneVal(type);
+  }
+  if (type.extra?.safe) {
+    return `${type.tag}Safe`;
+  }
+  return type.tag;
+}
+function genAliasType(g, type) {
+  const alias = type.data;
+  const aliased = g.symbols.get(alias);
+  if (aliased?.internal) {
+    return genType2(g, aliased.type);
+  }
+  return `${namespaced(g, alias)}${alias}`;
+}
+function genListType(g, type) {
+  const valType = type.types[0];
+  const typedArray = FIXED_NUMERIC_TYPE_TO_TYPED_ARRAY.get(valType.tag);
+  if (type.extra?.typedArray && typedArray != null) {
+    return global(g, typedArray);
+  }
+  if (type.extra?.unique) {
+    return genSetType(g, type);
+  }
+  return genListRawType(g, type);
+}
+function genListRawType(g, type) {
+  const valTypedef = genType2(g, type.types[0]);
+  return type.extra?.mut ? `${valTypedef}[]` : /^\w+$/.test(valTypedef) ? `readonly ${valTypedef}[]` : `readonly (${valTypedef})[]`;
+}
+function genEnumType(_g, type) {
+  let result = "";
+  for (const { name, val } of type.data) {
+    if (result !== "") {
+      result += " | ";
+    }
+    result += type.extra?.intEnum ? `${val}` : jsRpr(name);
+  }
+  return result;
+}
+function genAliasedEnumType(g, alias, type) {
+  let body = "";
+  for (const { name, val, comment } of type.data) {
+    if (body !== "") {
+      body += "\n";
+    }
+    const enumJsVal = type.extra?.intEnum ? `${val}` : `"${name}"`;
+    body += `${jsDoc(comment)}${name} = ${enumJsVal},`;
+  }
+  const modifier = g.config.generator === "dts" ? "declare " : "";
+  return dent`
+        ${modifier}enum ${alias} {
+            ${body}
+        }
+    `;
+}
+function genOptionalType(g, type) {
+  const simplified = unrecursive(type, g.symbols);
+  if (simplified.tag === "optional") {
+    const typedef = genType2(g, simplified.types[0]);
+    return `${typedef} | ${noneVal(simplified)}`;
+  }
+  return genType2(g, simplified);
+}
+function genMapType(g, type) {
+  const genKeyType = genType2(g, type.types[0]);
+  const genValType = genType2(g, type.types[1]);
+  const mapType = type.extra?.mut ? "Map" : "ReadonlyMap";
+  return `${global(g, mapType)}<${genKeyType}, ${genValType}>`;
+}
+function genSetType(g, type) {
+  const typedef = genType2(g, type.types[0]);
+  const setType = type.extra?.mut ? "Set" : "ReadonlySet";
+  return `${global(g, setType)}<${typedef}>`;
+}
+function genStructType(g, type) {
+  return dent`
+        {
+            ${genStructTypeBody(g, type)}
+        }
+    `;
+}
+function genStructTypeBody(g, type) {
+  let result = "";
+  for (let i = 0; i < type.types.length; i++) {
+    const field = type.data[i];
+    const modifier = field.extra?.mut ? "" : "readonly ";
+    result += `${jsDoc(field.comment)}${modifier}${field.name}:${softSpace(
+      genType2(g, type.types[i])
+    )}
+`;
+  }
+  return result.trim();
+}
+function genStructTypeClassBody(g, type) {
+  let params = "";
+  for (let i = 0; i < type.data.length; i++) {
+    const { name } = type.data[i];
+    params += `${name}_:${softSpace(genType2(g, type.types[i]))},
+`;
+  }
+  return dent`
+        ${genStructTypeBody(g, type)}
+        constructor(
+            ${params.trim()}
+        )
+    `;
+}
+function genUnionType(g, type) {
+  let result = "";
+  for (let i = 0; i < type.types.length; i++) {
+    const subtype = type.types[i];
+    const doc = jsDoc(type.data[i].comment);
+    const valType = genType2(g, subtype);
+    const tagVal = g.config.useIntTag || subtype.tag !== "alias" || g.symbols.get(subtype.data)?.internal ? type.data[i].val : jsRpr(subtype.data);
+    result += type.extra?.flat ? `
+${doc}| ${valType}` : `
+${doc}| { readonly tag: ${tagVal}; readonly val: ${valType} }`;
+  }
+  return result.replace(/\n/g, "\n    ");
+}
+function genReaderHead(g, aliased) {
+  const alias = aliased.alias;
+  const rType = aliased.internal ? genType2(g, aliased.type) : alias;
+  return g.config.generator === "js" ? `function read${alias}(bc)` : `function read${alias}(bc: bare.ByteCursor):${softSpace(rType)}`;
+}
+function genWriterHead(g, aliased) {
+  const alias = aliased.alias;
+  const xType = aliased.internal ? genType2(g, aliased.type) : alias;
+  return g.config.generator === "js" ? `function write${alias}(bc, x)` : `function write${alias}(bc: bare.ByteCursor, x:${softSpace(
+    xType
+  )}): void`;
+}
+function genDecoderHead(g, alias) {
+  return g.config.generator === "js" ? `function decode${alias}(bytes)` : `function decode${alias}(bytes: Uint8Array): ${alias}`;
+}
+function genEncoderHead(g, alias) {
+  return g.config.generator === "js" ? `function encode${alias}(x, config = DEFAULT_CONFIG)` : g.config.generator === "ts" ? `function encode${alias}(x: ${alias}, config?: Partial<bare.Config>): Uint8Array` : `function encode${alias}(x: ${alias}, config?: Partial<bare.Config>): Uint8Array`;
+}
+function genCode(g, aliased) {
+  const modifier = aliased.internal ? "" : "export ";
+  if (aliased.type.tag === "enum" && g.config.generator === "js") {
+    return modifier + genAliasedEnumCode(g, aliased.alias, aliased.type);
+  }
+  if (aliased.type.tag === "struct" && aliased.type.extra?.class && !aliased.internal) {
+    return modifier + genAliasedStructCode(g, aliased.alias, aliased.type);
+  }
+  return "";
+}
+function genAliasedEnumCode(g, alias, type) {
+  if (g.config.generator !== "js") {
+    return "";
+  }
+  let body = "";
+  for (const { name, val } of type.data) {
+    body += type.extra?.intEnum ? `${name}: ${val},
+${val}: "${name}",
+` : `${name}: "${name}",
+`;
+  }
+  const constAssert = g.config.generator !== "js" ? "as const" : "";
+  return dent`
+        const ${alias} = {
+            ${body.trim()}
+        }${constAssert}
+    `;
+}
+function genAliasedStructCode(g, alias, type) {
+  const ts = g.config.generator === "ts";
+  const members = ts ? `${genStructTypeBody(g, type)}
+` : "";
+  let params = "";
+  let assignments = "";
+  for (let i = 0; i < type.data.length; i++) {
+    const { name } = type.data[i];
+    params += `${name}_${ts ? `:${softSpace(genType2(g, type.types[i]))},` : ","}
+`;
+    assignments += `this.${name} = ${name}_
+`;
+  }
+  return dent`
+        class ${alias} {
+            ${members}constructor(
+                ${params.trim()}
+            ) {
+                ${assignments.trim()}
+            }
+        }
+    `;
+}
+function genAliasedReader(g, aliased) {
+  let body = genReader(g, aliased.type, aliased.alias);
+  const mod = aliased.internal ? "" : "export ";
+  const head = genReaderHead(g, aliased);
+  switch (body[0]) {
+    case "{":
+      return `${mod}${head} ${body}`;
+    case "(": {
+      body = body.slice(1, -1);
+      return dent`
+                ${mod}${head} {
+                    return ${body}
+                }
+            `;
+    }
+  }
+  throw Error("[internal] invalid reader template");
+}
+function genReading(g, type) {
+  const body = genReader(g, type);
+  switch (body[0]) {
+    case "{":
+      return `(() => ${body})()`;
+    case "(":
+      return body.slice(1, -1);
+  }
+  throw Error("[internal] invalid reader template");
+}
+function genReader(g, type, alias = "") {
+  switch (type.tag) {
+    case "alias":
+      return `(${namespaced(g, type.data)}read${type.data}(bc))`;
+    case "bool":
+      return "(bare.readBool(bc))";
+    case "list":
+      return genListReader(g, type);
+    case "data":
+      return genDataReader(g, type);
+    case "enum":
+      return genEnumReader(g, type, alias);
+    case "map":
+      return genMapReader(g, type);
+    case "optional":
+      return genOptionalReader(g, type);
+    case "str":
+      return "(bare.readString(bc))";
+    case "struct":
+      return genStructReader(g, type, alias);
+    case "union":
+      return genUnionReader(g, type);
+    case "void":
+      return `(${noneVal(type)})`;
+  }
+  if (type.extra?.safe) {
+    return `(bare.read${capitalize(type.tag)}Safe(bc))`;
+  }
+  return `(bare.read${capitalize(type.tag)}(bc))`;
+}
+function genListReader(g, type) {
+  if (type.extra?.typedArray) {
+    return genTypedArrayReader(g, type);
+  }
+  if (type.extra?.unique) {
+    return genSetReader(g, type);
+  }
+  return genListRawReader(g, type);
+}
+function genListRawReader(g, type) {
+  const lenDecoding = type.data != null ? `${type.data.val}` : dent`
+                bare.readUintSafe(bc)
+                if (len === 0) {
+                    return []
+                }
+            `;
+  const valReading = genReading(g, type.types[0]);
+  return dent`
+        {
+            const len = ${lenDecoding}
+            const result = [${valReading}]
+            for (let i = 1; i < len; i++) {
+                result[i] = ${valReading}
+            }
+            return result
+        }
+    `;
+}
+function genDataReader(_g, type) {
+  if (type.data != null) {
+    return `(bare.readFixedData(bc, ${type.data.val}))`;
+  }
+  return "(bare.readData(bc))";
+}
+function genEnumReader(g, type, alias) {
+  let body;
+  const maxTag = maxVal(type.data);
+  const tagReader = maxTag < 128 ? "readU8" : "readUintSafe";
+  const intEnum = type.extra?.intEnum;
+  if (intEnum && maxTag === type.data.length - 1) {
+    const rType = alias === "" ? genType2(g, type) : alias;
+    const typeAssert = g.config.generator === "js" ? "" : ` as ${rType}`;
+    body = dent`
+            if (tag > ${maxTag}) {
+                bc.offset = offset
+                throw new bare.BareError(offset, "invalid tag")
+            }
+            return tag${typeAssert}
+        `;
+  } else {
+    let switchBody = "";
+    for (const { name, val } of type.data) {
+      const enumVal = alias !== "" ? `${alias}.${name}` : intEnum ? val : `"${name}"`;
+      switchBody += dent`
+            case ${val}:
+                return ${enumVal}
+
+            `;
+    }
+    body = dent`
+            switch (tag) {
+                ${switchBody.trim()}
+                default: {
+                    bc.offset = offset
+                    throw new bare.BareError(offset, "invalid tag")
+                }
+            }
+        `;
+  }
+  return dent`
+        {
+            const offset = bc.offset
+            const tag = bare.${tagReader}(bc)
+            ${body}
+        }
+    `;
+}
+function genMapReader(g, type) {
+  const [keyType, valType] = type.types;
+  const kType = genType2(g, keyType);
+  const vType = genType2(g, valType);
+  const mapGenerics = g.config.generator === "js" ? "" : `<${kType}, ${vType}>`;
+  const map = global(g, "Map");
+  return dent`
+        {
+            const len = bare.readUintSafe(bc)
+            const result = new ${map}${mapGenerics}()
+            for (let i = 0; i < len; i++) {
+                const offset = bc.offset
+                const key = ${genReading(g, keyType)}
+                if (result.has(key)) {
+                    bc.offset = offset
+                    throw new bare.BareError(offset, "duplicated key")
+                }
+                result.set(key, ${genReading(g, valType)})
+            }
+            return result
+        }
+    `;
+}
+function genOptionalReader(g, type) {
+  return dent`
+        (bare.readBool(bc) ? ${genReading(g, type.types[0])} : ${noneVal(type)})
+    `;
+}
+function genSetReader(g, type) {
+  const valType = type.types[0];
+  const setGenerics = g.config.generator === "js" ? "" : `<${genType2(g, valType)}>`;
+  const set = global(g, "Set");
+  return dent`
+        {
+            const len = bare.readUintSafe(bc)
+            const result = new ${set}${setGenerics}()
+            for (let i = 0; i < len; i++) {
+                const offset = bc.offset
+                const val = ${genReading(g, valType)}
+                if (result.has(val)) {
+                    bc.offset = offset
+                    throw new bare.BareError(offset, "duplicated value")
+                }
+                result.add(val)
+            }
+            return result
+        }
+    `;
+}
+function genStructReader(g, type, alias) {
+  let objCreation;
+  if (alias !== "" && type.extra?.class && g.symbols.get(alias)?.internal === false) {
+    let factoryArgs = "";
+    for (const fieldType of type.types) {
+      factoryArgs += `${genReading(g, fieldType)},
+`;
+    }
+    objCreation = dent`
+            (new ${alias}(
+                ${factoryArgs.trim()}
+            ))
+        `;
+  } else {
+    objCreation = genObjectReader(g, type);
+  }
+  return objCreation;
+}
+function genObjectReader(g, type) {
+  let objBody = "";
+  for (let i = 0; i < type.types.length; i++) {
+    const field = type.data[i];
+    objBody += `${field.name}: ${genReading(g, type.types[i])},
+`;
+  }
+  return dent`
+        ({
+            ${objBody.trim()}
+        })
+    `;
+}
+function genTypedArrayReader(_g, type) {
+  const typeName = capitalize(type.types[0].tag);
+  if (type.data != null) {
+    return `(bare.read${typeName}FixedArray(bc, ${type.data.val}))`;
+  }
+  return `(bare.read${typeName}Array(bc))`;
+}
+function genUnionReader(g, type) {
+  const tagReader = maxVal(type.data) < 128 ? "readU8" : "readUintSafe";
+  const flat = type.extra?.flat;
+  let switchBody = "";
+  for (let i = 0; i < type.types.length; i++) {
+    const subtype = type.types[i];
+    const resolvedType = resolveAlias(subtype, g.symbols);
+    const valExpr = resolvedType.tag === "void" ? genReading(g, resolvedType) : genReading(g, subtype);
+    const tagEncodedVal = type.data[i].val;
+    if (flat) {
+      switchBody += dent`
+            case ${tagEncodedVal}:
+                return ${valExpr}
+
+            `;
+    } else if (!g.config.useIntTag && subtype.tag === "alias" && !g.symbols.get(subtype.data)?.internal) {
+      switchBody += dent`
+            case ${tagEncodedVal}:
+                return { tag: ${jsRpr(subtype.data)}, val: ${valExpr} }
+
+            `;
+    } else {
+      switchBody += dent`
+            case ${tagEncodedVal}:
+                return { tag, val: ${valExpr} }
+
+            `;
+    }
+  }
+  return dent`
+        {
+            const offset = bc.offset
+            const tag = bare.${tagReader}(bc)
+            switch (tag) {
+                ${switchBody.trim()}
+                default: {
+                    bc.offset = offset
+                    throw new bare.BareError(offset, "invalid tag")
+                }
+            }
+        }
+    `;
+}
+function genAliasedWriter(g, aliased) {
+  let body = genWriter(g, aliased.type, aliased.alias).replace(/\$x\b/g, "x");
+  const mod = aliased.internal ? "" : "export ";
+  const head = genWriterHead(g, aliased);
+  switch (body[0]) {
+    case "{":
+      return `${mod}${head} ${body}`;
+    case "(": {
+      body = body.slice(1, -1);
+      if (body.length === 0) {
+        body = "// do nothing";
+      }
+      return dent`
+                ${mod}${head} {
+                    ${body}
+                }
+            `;
+    }
+  }
+  throw Error("[internal] invalid writer template");
+}
+function genWriting(g, type, x) {
+  const body = genWriter(g, type).replace(/\$x\b/g, x);
+  switch (body[0]) {
+    case "{":
+      return body;
+    case "(":
+      return body.slice(1, -1);
+  }
+  throw Error("[internal] invalid writer template");
+}
+function genWriter(g, type, alias = "") {
+  switch (type.tag) {
+    case "alias":
+      return `(${namespaced(g, type.data)}write${type.data}(bc, $x))`;
+    case "bool":
+      return "(bare.writeBool(bc, $x))";
+    case "list":
+      return genListWriter(g, type);
+    case "data":
+      return genDataWriter(g, type);
+    case "enum":
+      return genEnumWriter(g, type, alias);
+    case "map":
+      return genMapWriter(g, type);
+    case "optional":
+      return genOptionalWriter(g, type);
+    case "str":
+      return "(bare.writeString(bc, $x))";
+    case "struct":
+      return genStructWriter(g, type);
+    case "union":
+      return genUnionWriter(g, type);
+    case "void":
+      return "()";
+  }
+  if (type.extra?.safe) {
+    return `(bare.write${capitalize(type.tag)}Safe(bc, $x))`;
+  }
+  return `(bare.write${capitalize(type.tag)}(bc, $x))`;
+}
+function genListWriter(g, type) {
+  if (type.extra?.typedArray) {
+    return genTypedArrayWriter(g, type);
+  }
+  if (type.extra?.unique) {
+    return genSetWriter(g, type);
+  }
+  return genListRawWriter(g, type);
+}
+function genListRawWriter(g, type) {
+  const lenEncoding = type.data != null ? `assert($x.length === ${type.data.val}, "Unmatched length")` : "bare.writeUintSafe(bc, $x.length)";
+  const writingElt = genWriting(g, type.types[0], "$x[i]");
+  return dent`
+        {
+            ${lenEncoding}
+            for (let i = 0; i < $x.length; i++) {
+                ${writingElt}
+            }
+        }
+    `;
+}
+function genDataWriter(_g, type) {
+  if (type.data == null) {
+    return "(bare.writeData(bc, $x))";
+  }
+  return dent`
+        {
+            assert($x.byteLength === ${type.data.val})
+            bare.writeFixedData(bc, $x)
+        }
+    `;
+}
+function genEnumWriter(_g, type, alias) {
+  let body;
+  const intEnum = type.extra?.intEnum;
+  if (intEnum) {
+    const tagWriter = maxVal(type.data) < 128 ? "writeU8" : "writeUintSafe";
+    body = `bare.${tagWriter}(bc, $x)`;
+  } else {
+    let switchBody = "";
+    for (const { name, val } of type.data) {
+      const tagWriter = val < 128 ? "writeU8" : "writeUintSafe";
+      const enumVal = alias !== "" ? `${alias}.${name}` : intEnum ? val : `"${name}"`;
+      switchBody += dent`
+            case ${enumVal}: {
+                bare.${tagWriter}(bc, ${val})
+                break
+            }
+
+            `;
+    }
+    body = dent`
+            switch ($x) {
+                ${switchBody.trim()}
+            }
+        `;
+  }
+  return dent`
+        {
+            ${body}
+        }
+    `;
+}
+function genMapWriter(g, type) {
+  const writingKey = genWriting(g, type.types[0], "kv[0]");
+  const writingVal = genWriting(g, type.types[1], "kv[1]");
+  return dent`
+        {
+            bare.writeUintSafe(bc, $x.size)
+            for (const kv of $x) {
+                ${writingKey}
+                ${writingVal}
+            }
+        }
+    `;
+}
+function genOptionalWriter(g, type) {
+  const none = noneVal(type);
+  const cmp = none === "null" || none === "undefined" ? "$x != null" : `$x !== ${none}`;
+  return dent`
+        {
+            bare.writeBool(bc, ${cmp})
+            if (${cmp}) {
+                ${genWriting(g, type.types[0], "$x")}
+            }
+        }
+    `;
+}
+function genSetWriter(g, type) {
+  return dent`
+        {
+            bare.writeUintSafe(bc, $x.size)
+            for (const v of $x) {
+                ${genWriter(g, type.types[0], "v")}
+            }
+        }
+    `;
+}
+function genStructWriter(g, type) {
+  let fieldEncoding = "";
+  for (let i = 0; i < type.data.length; i++) {
+    const { name } = type.data[i];
+    const writing = genWriting(g, type.types[i], `$x.${name}`);
+    if (writing !== "") {
+      fieldEncoding += `${writing}
+`;
+    }
+  }
+  return dent`
+        {
+            ${fieldEncoding.trim()}
+        }
+    `;
+}
+function genTypedArrayWriter(_g, type) {
+  const typeName = capitalize(type.types[0].tag);
+  if (type.data == null) {
+    return `(bare.write${typeName}Array(bc, $x))`;
+  }
+  return dent`
+        {
+            assert($x.length === ${type.data.val})
+            bare.write${typeName}FixedArray(bc, $x)
+        }
+    `;
+}
+function genUnionWriter(g, union) {
+  if (union.extra?.flat && union.types.every(isBaseOrVoidType)) {
+    return genBaseFlatUnionWriter(g, union);
+  }
+  if (union.extra?.flat && union.types.every((t) => t.tag === "alias" || t.tag === "struct")) {
+    return genStructFlatUnionWriter(g, union);
+  }
+  return genTaggedUnionWriter(g, union);
+}
+function genStructFlatUnionWriter(g, union) {
+  const resolved = union.types.map((t) => resolveAlias(t, g.symbols));
+  if (!resolved.every((t) => t.tag === "struct")) {
+    throw new Error("all types should be structs.");
+  }
+  const discriminators = leadingDiscriminators(resolved);
+  let body = "";
+  if (resolved.every((t) => t.extra?.class) && resolved.length === new Set(resolved).size) {
+    for (let i = 0; i < union.types.length; i++) {
+      if (body !== "") {
+        body += " else ";
+      }
+      const tagVal = union.data[i].val;
+      const tagWriter = tagVal < 128 ? "writeU8" : "writeUintSafe";
+      const className = union.types[i].data;
+      const valWriting = genWriting(g, union.types[i], "$x");
+      body += dent`
+                if ($x instanceof ${className}) {
+                    bare.${tagWriter}(bc, ${tagVal})
+                    ${valWriting}
+                }
+            `;
+    }
+  } else if (resolved.every((t) => !t.extra?.class) && discriminators != null) {
+    const leadingFieldName = resolved[0].data[0].name;
+    let switchBody = "";
+    for (let i = 0; i < union.types.length; i++) {
+      const tagVal = union.data[i].val;
+      const tagWriter = tagVal < 128 ? "writeU8" : "writeUintSafe";
+      const valWriting = genWriting(g, union.types[i], "$x");
+      switchBody += dent`
+                case ${jsRpr(discriminators[i])}: {
+                    bare.${tagWriter}(bc, ${tagVal})
+                    ${valWriting}
+                    break
+                }
+
+            `;
+    }
+    body = dent`
+        switch ($x.${leadingFieldName}) {
+            ${switchBody.trim()}
+        }
+        `;
+  }
+  return dent`
+        {
+            ${body.trim()}
+        }
+    `;
+}
+function genBaseFlatUnionWriter(g, union) {
+  if (!haveDistinctTypeof(union.types)) {
+    throw new Error("all types should have distinct typeof values.");
+  }
+  let switchBody = "";
+  let defaultCase = "";
+  for (let i = 0; i < union.types.length; i++) {
+    const tagVal = union.data[i].val;
+    const tagWriter = tagVal < 128 ? "writeU8" : "writeUintSafe";
+    const type = union.types[i];
+    if (type.tag === "void") {
+      defaultCase = dent`
+            default: {
+                bare.${tagWriter}(bc, ${tagVal})
+                break
+            }
+
+            `;
+    } else {
+      const valWriting = genWriting(g, type, "$x");
+      switchBody += dent`
+            case "${typeofValue(type)}": {
+                bare.${tagWriter}(bc, ${tagVal})
+                ${valWriting}
+                break
+            }
+
+            `;
+    }
+  }
+  return dent`
+        {
+            switch (typeof $x) {
+                ${switchBody.trim()}
+                ${defaultCase.trim()}
+            }
+        }
+    `;
+}
+function genTaggedUnionWriter(g, type) {
+  const tagWriter = maxVal(type.data) < 128 ? "writeU8" : "writeUintSafe";
+  let switchBody = "";
+  let hasStrTags = false;
+  for (let i = 0; i < type.types.length; i++) {
+    const subtype = type.types[i];
+    const tagEncodedVal = type.data[i].val;
+    if (resolveAlias(subtype, g.symbols).tag !== "void") {
+      const tagVal = g.config.useIntTag || subtype.tag !== "alias" || g.symbols.get(subtype.data)?.internal ? tagEncodedVal : jsRpr(subtype.data);
+      const valWriting = genWriting(g, subtype, "$x.val");
+      const maybeTagWriting2 = typeof tagVal === "string" ? `bare.${tagWriter}(bc, ${tagEncodedVal})
+` : "";
+      hasStrTags ||= typeof tagVal === "string";
+      const caseBody = `${maybeTagWriting2}${valWriting}`;
+      switchBody += dent`
+                case ${tagVal}: {
+                    ${caseBody}
+                    break
+                }
+
+            `;
+    } else if (!g.config.useIntEnum && subtype.tag === "alias" && !g.symbols.get(subtype.data)?.internal) {
+      hasStrTags ||= true;
+      switchBody += dent`
+                case ${jsRpr(subtype.data)}: {
+                    bare.${tagWriter}(bc, ${tagEncodedVal})
+                    break
+                }
+
+            `;
+    }
+  }
+  const maybeTagWriting = hasStrTags ? "" : `bare.${tagWriter}(bc, $x.tag)
+`;
+  return dent`
+        {
+            ${maybeTagWriting}switch ($x.tag) {
+                ${switchBody.trim()}
+            }
+        }
+    `;
+}
+function genDecoder(g, alias) {
+  return dent`
+        ${genDecoderHead(g, alias)} {
+            const bc = new bare.ByteCursor(bytes, DEFAULT_CONFIG)
+            const result = read${alias}(bc)
+            if (bc.offset < bc.view.byteLength) {
+                throw new bare.BareError(bc.offset, "remaining bytes")
+            }
+            return result
+        }
+    `;
+}
+function genEncoder(g, alias) {
+  const uint8Array = global(g, "Uint8Array");
+  return dent`
+        ${genEncoderHead(g, alias)} {
+            const fullConfig = config != null ? bare.Config(config) : DEFAULT_CONFIG
+            const bc = new bare.ByteCursor(
+                new ${uint8Array}(fullConfig.initialBufferLength),
+                fullConfig,
+            )
+            write${alias}(bc, x)
+            return new ${uint8Array}(bc.view.buffer, bc.view.byteOffset, bc.offset)
+        }
+    `;
+}
+function global(g, name) {
+  return g.symbols.has(name) ? `globalThis.${name}` : name;
+}
+function noneVal(type) {
+  return type.extra != null ? jsRpr(literalVal(type.extra.literal)) : "null";
+}
+
+// src/parser/bare-lexer.ts
+var WHITE_SPACE_PATTERN = /\s/;
+var PUNCTUATION_PATTERN = /[{}[\]()<>=|:,;.!?~+\\/$@#-]/;
+var ID_PATTERN = /\w+/;
+function create(content) {
+  const result = {
+    content,
+    offset: 0,
+    comment: "",
+    token: ""
+  };
+  nextToken(result);
+  return result;
+}
+function nextToken(lex) {
+  let { content, offset, comment, token } = lex;
+  if (token !== "") {
+    comment = "";
+  }
+  offset += token.length;
+  token = "";
+  while (offset < content.length) {
+    const c = content[offset];
+    if (c === "#") {
+      let index = content.indexOf("\n", offset + 1);
+      if (index === -1) {
+        index = content.length;
+      }
+      comment += content.slice(offset + 1, index);
+      offset = index;
+    } else if (WHITE_SPACE_PATTERN.test(c)) {
+      if (c === "\n") {
+        if (comment !== "") {
+          comment += "\n";
+          if (comment.endsWith("\n\n")) {
+            comment = "";
+          }
+        }
+      }
+      offset++;
+    } else {
+      if (PUNCTUATION_PATTERN.test(c)) {
+        token = c;
+        break;
+      }
+      const suffix = content.slice(offset);
+      const match = suffix.match(ID_PATTERN);
+      if (match == null) {
+        throw new CompilerError(
+          `character '${c}' cannot be handled. BARE only supports ASCII characters for identifiers.`,
+          offset
+        );
+      }
+      token = match[0];
+      break;
+    }
+  }
+  lex.offset = offset;
+  lex.comment = comment;
+  lex.token = token;
+}
+
+// src/parser/bare-parser.ts
+function parse(content, config) {
+  const p = { config, lex: create(content) };
+  const offset = p.lex.offset;
+  const defs = [];
+  while (p.lex.token !== "") {
+    defs.push(parseAliased(p));
+  }
+  return { defs, filename: config.schema, offset };
+}
+function parseAliased(p) {
+  const comment = p.lex.comment;
+  const keyword = p.lex.token;
+  const offset = p.lex.offset;
+  if (keyword !== "enum" && keyword !== "struct" && keyword !== "type") {
+    throw new CompilerError("'type' is expected.", offset);
+  }
+  eatToken(p);
+  const alias = p.lex.token;
+  eatToken(p);
+  if (p.lex.token === "=") {
+    throw new CompilerError(
+      "a type definition and its body cannot be separated by '='.",
+      p.lex.offset
+    );
+  }
+  if ((keyword === "enum" || keyword === "struct") && !p.config.legacy) {
+    throw new CompilerError(
+      `use 'type ${alias} ${keyword} { ... }' or allow '${keyword} ${alias} { ... }' with option '--legacy'.`,
+      p.lex.offset
+    );
+  }
+  const type = keyword === "enum" ? parseEnumBody(p, p.lex.offset) : keyword === "struct" ? parseStructBody(p) : parseTypeCheckUnion(p);
+  checkSeparator(p);
+  return { alias, internal: false, comment, type, offset };
+}
+function parseType(p) {
+  switch (p.lex.token) {
+    case "":
+      throw new CompilerError("a type is expected.", p.lex.offset);
+    case "[":
+      return parseLegacyList(p);
+    case "(":
+      return parseLegacyUnion(p);
+    case "{": {
+      if (!p.config.legacy) {
+        throw new CompilerError(
+          "use 'struct { ... } or allow '{ ... }' with option '--legacy'.",
+          p.lex.offset
+        );
+      }
+      return parseStructBody(p);
+    }
+    case "data":
+      return parseData(p);
+    case "enum":
+      return parseEnum(p);
+    case "list":
+      return parseList(p);
+    case "map":
+      return parseMap(p);
+    case "optional":
+      return parseOptional(p);
+    case "struct":
+      return parseStruct(p);
+    case "union":
+      return parseUnion(p);
+    default:
+      return parseTypeName(p);
+  }
+}
+function parseTypeCheckUnion(p) {
+  const result = parseType(p);
+  if (p.lex.token === "|" || p.lex.token === "=") {
+    throw new CompilerError(
+      "a union must be enclosed by 'union {}'.",
+      p.lex.offset
+    );
+  }
+  return result;
+}
+function parseTypeName(p) {
+  const alias = p.lex.token;
+  const offset = p.lex.offset;
+  eatToken(p);
+  if (alias === "string" && !p.config.legacy) {
+    throw new CompilerError(
+      "use 'str' or allow 'string' with option '--legacy'.",
+      offset
+    );
+  }
+  const tag = alias === "string" ? "str" : alias;
+  if (isBaseTag(tag) || tag === "void") {
+    return { tag, data: null, types: null, extra: null, offset };
+  }
+  return { tag: "alias", data: alias, types: null, extra: null, offset };
+}
+function parseData(p) {
+  let len;
+  const offset = p.lex.offset;
+  expect(p, "data");
+  if (p.lex.token === "<") {
+    if (!p.config.legacy) {
+      throw new CompilerError(
+        "use 'data[n]' or allow 'data<n>' with option '--legacy'.",
+        p.lex.offset
+      );
+    }
+    eatToken(p);
+    const offset2 = p.lex.offset;
+    len = {
+      name: null,
+      val: parseUnsignedNumber(p),
+      comment: null,
+      extra: null,
+      offset: offset2
+    };
+    expect(p, ">");
+  } else {
+    len = parseOptionalLength(p);
+  }
+  return { tag: "data", data: len, types: null, extra: null, offset };
+}
+function parseList(p) {
+  const offset = p.lex.offset;
+  expect(p, "list");
+  const valType = parseTypeParameter(p);
+  const len = parseOptionalLength(p);
+  return {
+    tag: "list",
+    data: len,
+    types: [valType],
+    extra: null,
+    offset
+  };
+}
+function parseLegacyList(p) {
+  if (!p.config.legacy) {
+    throw new CompilerError(
+      "use 'list<A>[n]' or allow '[n]A' with option '--legacy'.",
+      p.lex.offset
+    );
+  }
+  let len = null;
+  const offset = p.lex.offset;
+  expect(p, "[");
+  if (p.lex.token !== "]") {
+    const offset2 = p.lex.offset;
+    len = {
+      name: null,
+      val: parseUnsignedNumber(p),
+      comment: null,
+      extra: null,
+      offset: offset2
+    };
+    expect(p, "]");
+  } else {
+    eatToken(p);
+  }
+  return {
+    tag: "list",
+    data: len,
+    types: [parseType(p)],
+    extra: null,
+    offset
+  };
+}
+function parseOptional(p) {
+  const offset = p.lex.offset;
+  expect(p, "optional");
+  return {
+    tag: "optional",
+    data: null,
+    types: [parseTypeParameter(p)],
+    extra: null,
+    offset
+  };
+}
+function parseMap(p) {
+  const offset = p.lex.offset;
+  expect(p, "map");
+  let keyType;
+  let valType;
+  if (p.lex.token === "[") {
+    if (!p.config.legacy) {
+      throw new CompilerError(
+        "use 'map<A><B>' or allow 'map[A]B' with option '--legacy'.",
+        p.lex.offset
+      );
+    }
+    eatToken(p);
+    keyType = parseType(p);
+    expect(p, "]");
+    valType = parseType(p);
+  } else {
+    keyType = parseTypeParameter(p);
+    valType = parseTypeParameter(p);
+  }
+  return {
+    tag: "map",
+    data: null,
+    types: [keyType, valType],
+    extra: null,
+    offset
+  };
+}
+function parseUnion(p) {
+  const offset = p.lex.offset;
+  expect(p, "union");
+  expect(p, "{");
+  const result = parseUnionBody(p, offset);
+  expect(p, "}");
+  return result;
+}
+function parseLegacyUnion(p) {
+  if (!p.config.legacy) {
+    throw new CompilerError(
+      "use 'union { A | B } or allow '( A | B )' with option '--legacy'.",
+      p.lex.offset
+    );
+  }
+  const offset = p.lex.offset;
+  expect(p, "(");
+  const result = parseUnionBody(p, offset);
+  expect(p, ")");
+  return result;
+}
+function parseUnionBody(p, offset) {
+  const tags = [];
+  const types = [];
+  let tagVal = 0;
+  do {
+    let comment = p.lex.comment;
+    if (p.lex.token === "|") {
+      eatToken(p);
+      if (p.lex.comment !== "") {
+        comment = p.lex.comment;
+      }
+    }
+    if (p.lex.token === ")" || p.lex.token === "}") {
+      break;
+    }
+    const type = parseType(p);
+    let offset2 = p.lex.offset;
+    if (p.lex.token === "=") {
+      eatToken(p);
+      offset2 = p.lex.offset;
+      tagVal = parseUnsignedNumber(p);
+    } else if (p.config.pedantic) {
+      throw new CompilerError(
+        "in pedantic mode, all union tags must be set. '=' is expected.",
+        p.lex.offset
+      );
+    }
+    tags.push({
+      name: null,
+      val: tagVal,
+      comment,
+      extra: null,
+      offset: offset2
+    });
+    types.push(type);
+    tagVal++;
+    if (p.lex.token === "," || p.lex.token === ";") {
+      throw new CompilerError(
+        "union members must be separated with '|'.",
+        p.lex.offset
+      );
+    }
+  } while (p.lex.token === "|");
+  return { tag: "union", data: tags, types, extra: null, offset };
+}
+function parseEnum(p) {
+  const offset = p.lex.offset;
+  expect(p, "enum");
+  const result = parseEnumBody(p, offset);
+  return result;
+}
+function parseEnumBody(p, offset) {
+  expect(p, "{");
+  const vals = [];
+  let val = 0;
+  while (ALL_CASE_RE.test(p.lex.token)) {
+    const comment = p.lex.comment;
+    let name = p.lex.token;
+    if (!CONSTANT_CASE_RE.test(name)) {
+      throw new CompilerError(
+        "the name of an enum member must be in CONSTANT_CASE.",
+        p.lex.offset
+      );
+    }
+    const valLoc = p.lex.offset;
+    eatToken(p);
+    if (p.lex.token === "=") {
+      eatToken(p);
+      val = parseUnsignedNumber(p);
+    } else if (p.config.pedantic) {
+      throw new CompilerError(
+        "in pedantic mode, all enum tags must be set. '=' is expected.",
+        p.lex.offset
+      );
+    }
+    name = toPascalCase(name);
+    vals.push({ name, val, comment, extra: null, offset: valLoc });
+    val++;
+    checkSeparator(p);
+  }
+  expect(p, "}");
+  return { tag: "enum", data: vals, types: null, extra: null, offset };
+}
+function parseStruct(p) {
+  expect(p, "struct");
+  return parseStructBody(p);
+}
+function parseStructBody(p) {
+  const offset = p.lex.offset;
+  expect(p, "{");
+  const fields = [];
+  const types = [];
+  while (ALL_CASE_RE.test(p.lex.token)) {
+    const comment = p.lex.comment;
+    const name = p.lex.token;
+    const offset2 = p.lex.offset;
+    eatToken(p);
+    expect(p, ":");
+    const type = parseTypeCheckUnion(p);
+    checkSeparator(p);
+    fields.push({ name, val: null, comment, extra: null, offset: offset2 });
+    types.push(type);
+  }
+  expect(p, "}");
+  return { tag: "struct", data: fields, types, extra: null, offset };
+}
+function parseOptionalLength(p) {
+  if (p.lex.token === "[") {
+    eatToken(p);
+    const offset = p.lex.offset;
+    const val = parseUnsignedNumber(p);
+    expect(p, "]");
+    return { name: null, val, comment: null, extra: null, offset };
+  }
+  return null;
+}
+function parseTypeParameter(p) {
+  expect(p, "<");
+  const result = parseType(p);
+  if (p.lex.token === "," || p.lex.token === ";") {
+    throw new CompilerError(
+      "every type must be enclosed with '<>'. e.g. 'map<Key><Val>'.",
+      p.lex.offset
+    );
+  }
+  expect(p, ">");
+  return result;
+}
+function checkSeparator(p) {
+  if (p.lex.token === "," || p.lex.token === ";") {
+    throw new CompilerError(
+      `members cannot be separated by '${p.lex.token}'.`,
+      p.lex.offset
+    );
+  }
+}
+function parseUnsignedNumber(p) {
+  const token = p.lex.token;
+  if (!/^\d+$/.test(token)) {
+    throw new CompilerError(
+      "an unsigned integer is expected.",
+      p.lex.offset
+    );
+  }
+  eatToken(p);
+  return Number.parseInt(token, 10);
+}
+function expect(p, token) {
+  if (p.lex.token !== token) {
+    throw new CompilerError(`'${token}' is expected.`, p.lex.offset);
+  }
+  eatToken(p);
+}
+function eatToken(p) {
+  nextToken(p.lex);
+}
+
+// src/index.ts
+function transform(content, conf = {}) {
+  const completedConfig = Config(conf);
+  const schema = parse(content, completedConfig);
+  const configured = configure(schema, completedConfig);
+  checkSemantic(configured, completedConfig);
+  if (completedConfig.generator === "bare") {
+    return generateBare(schema);
+  }
+  const normalizedSchema = normalize(configured);
+  return generate(normalizedSchema, completedConfig);
+}
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  BASE_TAG,
+  CompilerError,
+  Config,
+  ConfigError,
+  FIXED_NUMERIC_TAG,
+  FIXED_NUMERIC_TYPE_TO_TYPED_ARRAY,
+  NULL_LITERAL_VAL,
+  NUMERIC_TAG,
+  UNDEFINED_LITERAL_VAL,
+  configure,
+  generate,
+  haveDistinctTypeof,
+  isBaseOrVoidType,
+  isBaseTag,
+  isBaseType,
+  isFixedNumericTag,
+  leadingDiscriminators,
+  literalVal,
+  maxVal,
+  noneVal,
+  normalize,
+  parse,
+  resolveAlias,
+  rootAliases,
+  symbols,
+  transform,
+  typeofValue,
+  withoutExtra,
+  withoutOffset
+});
+//! Copyright (c) 2022 Victorien Elvinger
+//! Licensed under the MIT License (https://mit-license.org/)

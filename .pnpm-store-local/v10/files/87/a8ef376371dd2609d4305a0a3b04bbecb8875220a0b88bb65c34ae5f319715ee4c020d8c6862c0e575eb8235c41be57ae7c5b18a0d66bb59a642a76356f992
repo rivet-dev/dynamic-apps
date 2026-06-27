@@ -1,0 +1,161 @@
+---
+/**
+ * Sidebar sublist override — a reimplementation of Starlight's SidebarSublist
+ * that renders a per-item icon before each leaf link, matching the Rivet docs
+ * sidebar. This is the narrow exception to the "Starlight components only" rule
+ * (Starlight's sidebar has no icon slot). Structure/behaviour otherwise mirrors
+ * the upstream component; group labels (section headers) stay icon-less.
+ *
+ * Route-agnostic: the icon for each page comes from that page's frontmatter via
+ * `sidebar.attrs.data-icon` (Starlight forwards `sidebar.attrs` onto the link
+ * entry), so the theme never hardcodes a route→icon map.
+ */
+import { Badge, Icon } from "@astrojs/starlight/components";
+import { ICONS } from "../icons.mjs";
+
+interface SidebarEntry {
+	type: "link" | "group";
+	label: string;
+	href?: string;
+	isCurrent?: boolean;
+	attrs?: Record<string, any>;
+	badge?: { variant?: any; class?: string; text: string };
+	entries?: SidebarEntry[];
+	collapsed?: boolean;
+}
+
+interface Props {
+	sublist: SidebarEntry[];
+	nested?: boolean;
+}
+
+const { sublist, nested } = Astro.props;
+
+function containsCurrent(items: SidebarEntry[]): boolean {
+	return items.some((item) =>
+		item.type === "link" ? item.isCurrent : !!item.entries && containsCurrent(item.entries),
+	);
+}
+
+const iconFor = (attrs?: Record<string, any>) => {
+	const key = attrs?.["data-icon"];
+	return (key && ICONS[key]) || ICONS.dot;
+};
+---
+
+<ul class:list={{ "top-level": !nested }}>
+	{
+		sublist.map((entry) => (
+			<li>
+				{entry.type === "link" ? (
+					<a
+						href={entry.href}
+						aria-current={entry.isCurrent ? "page" : undefined}
+						class:list={[{ large: !nested }, entry.attrs?.class]}
+						{...entry.attrs}
+					>
+						<svg
+							class="se-sidebar-icon"
+							viewBox={`0 0 ${iconFor(entry.attrs).w} 512`}
+							fill="currentColor"
+							aria-hidden="true"
+						>
+							<path d={iconFor(entry.attrs).d} />
+						</svg>
+						<span>{entry.label}</span>
+						{entry.badge && (
+							<Badge variant={entry.badge.variant} class={entry.badge.class} text={entry.badge.text} />
+						)}
+					</a>
+				) : nested ? (
+					// Nested sub-group: a collapsible link-style row with a right
+					// chevron, collapsed unless it contains the current page —
+					// matches Rivet's nested sidebar groups.
+					<details open={containsCurrent(entry.entries ?? [])} class="se-subgroup">
+						<summary>
+							<span class="se-subgroup-label">{entry.label}</span>
+							<Icon name="right-caret" class="caret" size="1rem" />
+						</summary>
+						<Astro.self sublist={entry.entries} nested />
+					</details>
+				) : (
+					// Top-level group: a static bold section label, always shown.
+					// Pure grouping — NOT collapsible (a plain <div>, no <summary>
+					// to click), matching the static group headers in the Rivet
+					// sitemap.
+					<div class="se-topgroup">
+						<div class="se-topgroup-label">
+							<span class="group-label">
+								<span class="large">{entry.label}</span>
+								{entry.badge && (
+									<Badge
+										variant={entry.badge.variant}
+										class={entry.badge.class}
+										text={entry.badge.text}
+									/>
+								)}
+							</span>
+						</div>
+						<Astro.self sublist={entry.entries} nested />
+					</div>
+				)}
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	@layer starlight.core {
+		ul {
+			--sl-sidebar-item-padding-inline: 0.5rem;
+			list-style: none;
+			padding: 0;
+		}
+		li {
+			overflow-wrap: anywhere;
+		}
+		.top-level > li + li {
+			margin-top: 0.75rem;
+		}
+		summary {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 0.2em var(--sl-sidebar-item-padding-inline);
+			line-height: 1.4;
+			cursor: pointer;
+			user-select: none;
+		}
+		summary::marker,
+		summary::-webkit-details-marker {
+			display: none;
+		}
+		.caret {
+			transition: transform 0.2s ease-in-out;
+			flex-shrink: 0;
+		}
+		[open] > summary .caret {
+			transform: rotateZ(90deg);
+		}
+		a {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			text-decoration: none;
+			line-height: 1.4;
+		}
+		/* Rivet's sidebar icons inherit the link text colour (ink-soft, ink when
+		   active/hover) — no separate icon colour. */
+		.se-sidebar-icon {
+			width: 0.875rem;
+			height: 0.875rem;
+			flex: none;
+			color: inherit;
+		}
+		@media (min-width: 50rem) {
+			.top-level > li + li {
+				margin-top: 0.5rem;
+			}
+		}
+	}
+</style>

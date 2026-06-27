@@ -1,0 +1,3029 @@
+// src/desktop-stream.ts
+var WS_READY_STATE_OPEN = 1;
+var WS_READY_STATE_CLOSED = 3;
+var NEKO_OP_MOVE = 1;
+var NEKO_OP_SCROLL = 2;
+var NEKO_OP_KEY_DOWN = 3;
+var NEKO_OP_KEY_UP = 4;
+var NEKO_OP_BTN_DOWN = 5;
+var NEKO_OP_BTN_UP = 6;
+function mouseButtonToX11(button) {
+  switch (button) {
+    case "middle":
+      return 2;
+    case "right":
+      return 3;
+    default:
+      return 1;
+  }
+}
+function keyToX11Keysym(key) {
+  if (key.length === 1) {
+    const cp = key.charCodeAt(0);
+    if (cp >= 32 && cp <= 126) return cp;
+    return 16777216 + cp;
+  }
+  const map = {
+    Backspace: 65288,
+    Tab: 65289,
+    Return: 65293,
+    Enter: 65293,
+    Escape: 65307,
+    Delete: 65535,
+    Home: 65360,
+    Left: 65361,
+    ArrowLeft: 65361,
+    Up: 65362,
+    ArrowUp: 65362,
+    Right: 65363,
+    ArrowRight: 65363,
+    Down: 65364,
+    ArrowDown: 65364,
+    PageUp: 65365,
+    PageDown: 65366,
+    End: 65367,
+    Insert: 65379,
+    F1: 65470,
+    F2: 65471,
+    F3: 65472,
+    F4: 65473,
+    F5: 65474,
+    F6: 65475,
+    F7: 65476,
+    F8: 65477,
+    F9: 65478,
+    F10: 65479,
+    F11: 65480,
+    F12: 65481,
+    Shift: 65505,
+    ShiftLeft: 65505,
+    ShiftRight: 65506,
+    Control: 65507,
+    ControlLeft: 65507,
+    ControlRight: 65508,
+    Alt: 65513,
+    AltLeft: 65513,
+    AltRight: 65514,
+    Meta: 65515,
+    MetaLeft: 65515,
+    MetaRight: 65516,
+    CapsLock: 65509,
+    NumLock: 65407,
+    ScrollLock: 65300,
+    " ": 32,
+    Space: 32
+  };
+  return map[key] ?? 0;
+}
+var DesktopStreamSession = class {
+  socket;
+  closed;
+  pc = null;
+  dataChannel = null;
+  mediaStream = null;
+  connected = false;
+  pendingCandidates = [];
+  cachedReadyStatus = null;
+  readyListeners = /* @__PURE__ */ new Set();
+  trackListeners = /* @__PURE__ */ new Set();
+  connectListeners = /* @__PURE__ */ new Set();
+  disconnectListeners = /* @__PURE__ */ new Set();
+  errorListeners = /* @__PURE__ */ new Set();
+  closedResolve;
+  PeerConnection;
+  rtcConfig;
+  constructor(socket, options = {}) {
+    this.socket = socket;
+    this.PeerConnection = options.RTCPeerConnection ?? globalThis.RTCPeerConnection;
+    this.rtcConfig = options.rtcConfig ?? {};
+    this.closed = new Promise((resolve) => {
+      this.closedResolve = resolve;
+    });
+    this.socket.addEventListener("message", (event) => {
+      this.handleMessage(event.data);
+    });
+    this.socket.addEventListener("error", () => {
+      this.emitError(new Error("Desktop stream signaling connection failed."));
+    });
+    this.socket.addEventListener("close", () => {
+      this.teardownPeerConnection();
+      this.closedResolve();
+      for (const listener of this.disconnectListeners) {
+        listener();
+      }
+    });
+  }
+  onReady(listener) {
+    this.readyListeners.add(listener);
+    if (this.cachedReadyStatus) {
+      listener(this.cachedReadyStatus);
+    }
+    return () => {
+      this.readyListeners.delete(listener);
+    };
+  }
+  onTrack(listener) {
+    this.trackListeners.add(listener);
+    if (this.mediaStream) {
+      listener(this.mediaStream);
+    }
+    return () => {
+      this.trackListeners.delete(listener);
+    };
+  }
+  onConnect(listener) {
+    this.connectListeners.add(listener);
+    return () => {
+      this.connectListeners.delete(listener);
+    };
+  }
+  onDisconnect(listener) {
+    this.disconnectListeners.add(listener);
+    return () => {
+      this.disconnectListeners.delete(listener);
+    };
+  }
+  onError(listener) {
+    this.errorListeners.add(listener);
+    return () => {
+      this.errorListeners.delete(listener);
+    };
+  }
+  /** @deprecated Use onDisconnect instead. */
+  onClose(listener) {
+    return this.onDisconnect(listener);
+  }
+  /** @deprecated No longer emits JPEG frames. Use onTrack for WebRTC media. */
+  onFrame(_listener) {
+    return () => {
+    };
+  }
+  getMediaStream() {
+    return this.mediaStream;
+  }
+  /** Build a neko data channel message with the 3-byte header (event + length). */
+  buildNekoMsg(event, payloadSize) {
+    const totalLen = 3 + payloadSize;
+    const buf = new ArrayBuffer(totalLen);
+    const view = new DataView(buf);
+    view.setUint8(0, event);
+    view.setUint16(1, payloadSize, false);
+    return { buf, view };
+  }
+  moveMouse(x, y) {
+    const { buf, view } = this.buildNekoMsg(NEKO_OP_MOVE, 4);
+    view.setUint16(3, x, false);
+    view.setUint16(5, y, false);
+    this.sendDataChannel(buf);
+  }
+  mouseDown(button, x, y) {
+    if (x != null && y != null) {
+      this.moveMouse(x, y);
+    }
+    const { buf, view } = this.buildNekoMsg(NEKO_OP_BTN_DOWN, 4);
+    view.setUint32(3, mouseButtonToX11(button), false);
+    this.sendDataChannel(buf);
+  }
+  mouseUp(button, x, y) {
+    if (x != null && y != null) {
+      this.moveMouse(x, y);
+    }
+    const { buf, view } = this.buildNekoMsg(NEKO_OP_BTN_UP, 4);
+    view.setUint32(3, mouseButtonToX11(button), false);
+    this.sendDataChannel(buf);
+  }
+  scroll(x, y, deltaX, deltaY) {
+    this.moveMouse(x, y);
+    const { buf, view } = this.buildNekoMsg(NEKO_OP_SCROLL, 5);
+    view.setInt16(3, deltaX ?? 0, false);
+    view.setInt16(5, deltaY ?? 0, false);
+    view.setUint8(7, 0);
+    this.sendDataChannel(buf);
+  }
+  keyDown(key) {
+    const keysym = keyToX11Keysym(key);
+    if (keysym === 0) return;
+    const { buf, view } = this.buildNekoMsg(NEKO_OP_KEY_DOWN, 4);
+    view.setUint32(3, keysym, false);
+    this.sendDataChannel(buf);
+  }
+  keyUp(key) {
+    const keysym = keyToX11Keysym(key);
+    if (keysym === 0) return;
+    const { buf, view } = this.buildNekoMsg(NEKO_OP_KEY_UP, 4);
+    view.setUint32(3, keysym, false);
+    this.sendDataChannel(buf);
+  }
+  close() {
+    this.teardownPeerConnection();
+    if (this.socket.readyState !== WS_READY_STATE_CLOSED) {
+      this.socket.close();
+    }
+  }
+  handleMessage(data) {
+    let msg;
+    try {
+      msg = JSON.parse(data);
+    } catch {
+      return;
+    }
+    const event = msg.event ?? "";
+    const payload = msg.payload ?? msg.data;
+    switch (event) {
+      case "system/init": {
+        const screenData = payload?.screen_size;
+        if (screenData) {
+          const status = {
+            type: "ready",
+            width: Number(screenData.width) || 0,
+            height: Number(screenData.height) || 0
+          };
+          this.cachedReadyStatus = status;
+          for (const listener of this.readyListeners) {
+            listener(status);
+          }
+        }
+        this.sendSignaling("control/request", {});
+        this.sendSignaling("signal/request", { video: {}, audio: {} });
+        break;
+      }
+      case "signal/provide":
+      case "signal/offer": {
+        if (payload?.sdp) {
+          void this.handleNekoOffer(payload);
+        }
+        break;
+      }
+      case "signal/restart": {
+        if (payload?.sdp) {
+          void this.handleNekoOffer(payload);
+        }
+        break;
+      }
+      case "signal/candidate": {
+        if (payload) {
+          void this.handleNekoCandidate(payload);
+        }
+        break;
+      }
+      case "signal/close": {
+        this.teardownPeerConnection();
+        break;
+      }
+      case "system/disconnect": {
+        const message = payload?.message;
+        this.emitError(new Error(message ?? "Server disconnected."));
+        this.close();
+        break;
+      }
+      default:
+        break;
+    }
+  }
+  async handleNekoOffer(data) {
+    try {
+      const iceServers = [];
+      const nekoIce = data.iceservers ?? data.ice;
+      if (nekoIce) {
+        for (const server of nekoIce) {
+          if (server.urls) {
+            iceServers.push(server);
+          }
+        }
+      }
+      if (iceServers.length === 0) {
+        iceServers.push({ urls: "stun:stun.l.google.com:19302" });
+      }
+      const config = { ...this.rtcConfig, iceServers };
+      const pc = new this.PeerConnection(config);
+      this.pc = pc;
+      pc.ontrack = (event) => {
+        const stream = event.streams[0] ?? new MediaStream([event.track]);
+        this.mediaStream = stream;
+        for (const listener of this.trackListeners) {
+          listener(stream);
+        }
+      };
+      pc.onicecandidate = (event) => {
+        if (event.candidate) {
+          this.sendSignaling("signal/candidate", event.candidate.toJSON());
+        }
+      };
+      pc.onconnectionstatechange = () => {
+        switch (pc.connectionState) {
+          case "connected":
+            if (!this.connected) {
+              this.connected = true;
+              for (const listener of this.connectListeners) {
+                listener();
+              }
+            }
+            break;
+          case "closed":
+          case "failed":
+            this.emitError(new Error(`WebRTC connection ${pc.connectionState}.`));
+            break;
+        }
+      };
+      pc.oniceconnectionstatechange = () => {
+        switch (pc.iceConnectionState) {
+          case "connected":
+            if (!this.connected) {
+              this.connected = true;
+              for (const listener of this.connectListeners) {
+                listener();
+              }
+            }
+            break;
+          case "closed":
+          case "failed":
+            this.emitError(new Error(`WebRTC ICE ${pc.iceConnectionState}.`));
+            break;
+        }
+      };
+      pc.ondatachannel = (event) => {
+        this.dataChannel = event.channel;
+        this.dataChannel.binaryType = "arraybuffer";
+        this.dataChannel.onerror = () => {
+          this.emitError(new Error("WebRTC data channel error."));
+        };
+        this.dataChannel.onclose = () => {
+          this.dataChannel = null;
+        };
+      };
+      const sdp = data.sdp;
+      await pc.setRemoteDescription({ type: "offer", sdp });
+      for (const pending of this.pendingCandidates) {
+        try {
+          await pc.addIceCandidate(pending);
+        } catch {
+        }
+      }
+      this.pendingCandidates = [];
+      const answer = await pc.createAnswer();
+      if (answer.sdp) {
+        answer.sdp = answer.sdp.replace(/(stereo=1;)?useinbandfec=1/, "useinbandfec=1;stereo=1");
+      }
+      await pc.setLocalDescription(answer);
+      this.sendSignaling("signal/answer", { sdp: answer.sdp });
+    } catch (error) {
+      this.emitError(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+  async handleNekoCandidate(data) {
+    if (!this.pc) {
+      this.pendingCandidates.push(data);
+      return;
+    }
+    try {
+      const candidate = data;
+      await this.pc.addIceCandidate(candidate);
+    } catch (error) {
+      this.emitError(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+  sendSignaling(event, payload) {
+    if (this.socket.readyState !== WS_READY_STATE_OPEN) return;
+    this.socket.send(JSON.stringify({ event, payload }));
+  }
+  sendDataChannel(buf) {
+    if (this.dataChannel && this.dataChannel.readyState === "open") {
+      this.dataChannel.send(buf);
+    }
+  }
+  /** Tear down the peer connection, nullifying handlers first to prevent stale
+   *  callbacks. Matches the reference disconnect() pattern.
+   *  Ref: https://github.com/demodesk/neko-client/blob/37f93ea/src/component/internal/webrtc.ts#L321-L363 */
+  teardownPeerConnection() {
+    if (this.dataChannel) {
+      this.dataChannel.onerror = null;
+      this.dataChannel.onmessage = null;
+      this.dataChannel.onopen = null;
+      this.dataChannel.onclose = null;
+      try {
+        this.dataChannel.close();
+      } catch {
+      }
+      this.dataChannel = null;
+    }
+    if (this.pc) {
+      this.pc.onicecandidate = null;
+      this.pc.onicecandidateerror = null;
+      this.pc.onconnectionstatechange = null;
+      this.pc.oniceconnectionstatechange = null;
+      this.pc.onsignalingstatechange = null;
+      this.pc.onnegotiationneeded = null;
+      this.pc.ontrack = null;
+      this.pc.ondatachannel = null;
+      try {
+        this.pc.close();
+      } catch {
+      }
+      this.pc = null;
+    }
+    this.mediaStream = null;
+    this.connected = false;
+  }
+  emitError(error) {
+    for (const listener of this.errorListeners) {
+      listener(error);
+    }
+  }
+};
+
+// src/types.ts
+var DEFAULT_MAX_SESSIONS = 1024;
+var DEFAULT_MAX_EVENTS_PER_SESSION = 500;
+var DEFAULT_LIST_LIMIT = 100;
+var InMemorySessionPersistDriver = class {
+  maxSessions;
+  maxEventsPerSession;
+  sessions = /* @__PURE__ */ new Map();
+  eventsBySession = /* @__PURE__ */ new Map();
+  constructor(options = {}) {
+    this.maxSessions = normalizeCap(options.maxSessions, DEFAULT_MAX_SESSIONS);
+    this.maxEventsPerSession = normalizeCap(options.maxEventsPerSession, DEFAULT_MAX_EVENTS_PER_SESSION);
+  }
+  async getSession(id) {
+    const session = this.sessions.get(id);
+    return session ? cloneSessionRecord(session) : void 0;
+  }
+  async listSessions(request = {}) {
+    const sorted = [...this.sessions.values()].sort((a, b) => {
+      if (a.createdAt !== b.createdAt) {
+        return a.createdAt - b.createdAt;
+      }
+      return a.id.localeCompare(b.id);
+    });
+    const page = paginate(sorted, request);
+    return {
+      items: page.items.map(cloneSessionRecord),
+      nextCursor: page.nextCursor
+    };
+  }
+  async updateSession(session) {
+    this.sessions.set(session.id, { ...session });
+    if (!this.eventsBySession.has(session.id)) {
+      this.eventsBySession.set(session.id, []);
+    }
+    if (this.sessions.size <= this.maxSessions) {
+      return;
+    }
+    const overflow = this.sessions.size - this.maxSessions;
+    const removable = [...this.sessions.values()].sort((a, b) => {
+      if (a.createdAt !== b.createdAt) {
+        return a.createdAt - b.createdAt;
+      }
+      return a.id.localeCompare(b.id);
+    }).slice(0, overflow).map((sessionToRemove) => sessionToRemove.id);
+    for (const sessionId of removable) {
+      this.sessions.delete(sessionId);
+      this.eventsBySession.delete(sessionId);
+    }
+  }
+  async listEvents(request) {
+    const all = [...this.eventsBySession.get(request.sessionId) ?? []].sort((a, b) => {
+      if (a.eventIndex !== b.eventIndex) {
+        return a.eventIndex - b.eventIndex;
+      }
+      return a.id.localeCompare(b.id);
+    });
+    const page = paginate(all, request);
+    return {
+      items: page.items.map(cloneSessionEvent),
+      nextCursor: page.nextCursor
+    };
+  }
+  async insertEvent(sessionId, event) {
+    const events = this.eventsBySession.get(sessionId) ?? [];
+    events.push(cloneSessionEvent(event));
+    if (events.length > this.maxEventsPerSession) {
+      events.splice(0, events.length - this.maxEventsPerSession);
+    }
+    this.eventsBySession.set(sessionId, events);
+  }
+};
+function cloneSessionRecord(session) {
+  return {
+    ...session,
+    sessionInit: session.sessionInit ? JSON.parse(JSON.stringify(session.sessionInit)) : void 0,
+    configOptions: session.configOptions ? JSON.parse(JSON.stringify(session.configOptions)) : void 0,
+    modes: session.modes ? JSON.parse(JSON.stringify(session.modes)) : session.modes
+  };
+}
+function cloneSessionEvent(event) {
+  return {
+    ...event,
+    payload: JSON.parse(JSON.stringify(event.payload))
+  };
+}
+function normalizeCap(value, fallback) {
+  if (!Number.isFinite(value) || (value ?? 0) < 1) {
+    return fallback;
+  }
+  return Math.floor(value);
+}
+function paginate(items, request) {
+  const offset = parseCursor(request.cursor);
+  const limit = normalizeCap(request.limit, DEFAULT_LIST_LIMIT);
+  const slice = items.slice(offset, offset + limit);
+  const nextOffset = offset + slice.length;
+  return {
+    items: slice,
+    nextCursor: nextOffset < items.length ? String(nextOffset) : void 0
+  };
+}
+function parseCursor(cursor) {
+  if (!cursor) {
+    return 0;
+  }
+  const parsed = Number.parseInt(cursor, 10);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return 0;
+  }
+  return parsed;
+}
+
+// src/client.ts
+import {
+  AcpHttpClient,
+  AcpRpcError,
+  PROTOCOL_VERSION
+} from "acp-http-client";
+var API_PREFIX = "/v1";
+var FS_PATH = `${API_PREFIX}/fs`;
+var DEFAULT_BASE_URL = "http://sandbox-agent";
+var DEFAULT_REPLAY_MAX_EVENTS = 50;
+var DEFAULT_REPLAY_MAX_CHARS = 12e3;
+var EVENT_INDEX_SCAN_EVENTS_LIMIT = 500;
+var MAX_EVENT_INDEX_INSERT_RETRIES = 3;
+var SESSION_CANCEL_METHOD = "session/cancel";
+var MANUAL_CANCEL_ERROR = "Manual session/cancel calls are not allowed. Use destroySession(sessionId) instead.";
+var HEALTH_WAIT_MIN_DELAY_MS = 500;
+var HEALTH_WAIT_MAX_DELAY_MS = 15e3;
+var HEALTH_WAIT_LOG_AFTER_MS = 5e3;
+var HEALTH_WAIT_LOG_EVERY_MS = 1e4;
+var HEALTH_WAIT_ENSURE_SERVER_AFTER_FAILURES = 3;
+var SandboxAgentError = class extends Error {
+  status;
+  problem;
+  response;
+  constructor(status, problem, response) {
+    super(problem?.title ?? `Request failed with status ${status}`);
+    this.name = "SandboxAgentError";
+    this.status = status;
+    this.problem = problem;
+    this.response = response;
+  }
+};
+var SandboxDestroyedError = class extends Error {
+  sandboxId;
+  provider;
+  constructor(sandboxId, provider, options) {
+    super(`Sandbox '${provider}/${sandboxId}' no longer exists and cannot be reconnected.`, options);
+    this.name = "SandboxDestroyedError";
+    this.sandboxId = sandboxId;
+    this.provider = provider;
+  }
+};
+var UnsupportedSessionCategoryError = class extends Error {
+  sessionId;
+  category;
+  availableCategories;
+  constructor(sessionId, category, availableCategories) {
+    super(`Session '${sessionId}' does not support category '${category}'. Available categories: ${availableCategories.join(", ") || "(none)"}`);
+    this.name = "UnsupportedSessionCategoryError";
+    this.sessionId = sessionId;
+    this.category = category;
+    this.availableCategories = availableCategories;
+  }
+};
+var UnsupportedSessionValueError = class extends Error {
+  sessionId;
+  category;
+  configId;
+  requestedValue;
+  allowedValues;
+  constructor(sessionId, category, configId, requestedValue, allowedValues) {
+    super(
+      `Session '${sessionId}' does not support value '${requestedValue}' for category '${category}' (configId='${configId}'). Allowed values: ${allowedValues.join(", ") || "(none)"}`
+    );
+    this.name = "UnsupportedSessionValueError";
+    this.sessionId = sessionId;
+    this.category = category;
+    this.configId = configId;
+    this.requestedValue = requestedValue;
+    this.allowedValues = allowedValues;
+  }
+};
+var UnsupportedSessionConfigOptionError = class extends Error {
+  sessionId;
+  configId;
+  availableConfigIds;
+  constructor(sessionId, configId, availableConfigIds) {
+    super(`Session '${sessionId}' does not expose config option '${configId}'. Available configIds: ${availableConfigIds.join(", ") || "(none)"}`);
+    this.name = "UnsupportedSessionConfigOptionError";
+    this.sessionId = sessionId;
+    this.configId = configId;
+    this.availableConfigIds = availableConfigIds;
+  }
+};
+var UnsupportedPermissionReplyError = class extends Error {
+  permissionId;
+  requestedReply;
+  availableReplies;
+  constructor(permissionId, requestedReply, availableReplies) {
+    super(`Permission '${permissionId}' does not support reply '${requestedReply}'. Available replies: ${availableReplies.join(", ") || "(none)"}`);
+    this.name = "UnsupportedPermissionReplyError";
+    this.permissionId = permissionId;
+    this.requestedReply = requestedReply;
+    this.availableReplies = availableReplies;
+  }
+};
+var Session = class {
+  record;
+  sandbox;
+  constructor(sandbox, record) {
+    this.sandbox = sandbox;
+    this.record = { ...record };
+  }
+  get id() {
+    return this.record.id;
+  }
+  get agent() {
+    return this.record.agent;
+  }
+  get agentSessionId() {
+    return this.record.agentSessionId;
+  }
+  get lastConnectionId() {
+    return this.record.lastConnectionId;
+  }
+  get createdAt() {
+    return this.record.createdAt;
+  }
+  get destroyedAt() {
+    return this.record.destroyedAt;
+  }
+  async refresh() {
+    const latest = await this.sandbox.getSession(this.id);
+    if (!latest) {
+      throw new Error(`session '${this.id}' no longer exists`);
+    }
+    this.apply(latest.toRecord());
+    return this;
+  }
+  async rawSend(method, params = {}, options = {}) {
+    const updated = await this.sandbox.rawSendSessionMethod(this.id, method, params, options);
+    this.apply(updated.session.toRecord());
+    return updated.response;
+  }
+  async prompt(prompt) {
+    const response = await this.rawSend("session/prompt", { prompt });
+    return response;
+  }
+  async setMode(modeId) {
+    const updated = await this.sandbox.setSessionMode(this.id, modeId);
+    this.apply(updated.session.toRecord());
+    return updated.response;
+  }
+  async setConfigOption(configId, value) {
+    const updated = await this.sandbox.setSessionConfigOption(this.id, configId, value);
+    this.apply(updated.session.toRecord());
+    return updated.response;
+  }
+  async setModel(model) {
+    const updated = await this.sandbox.setSessionModel(this.id, model);
+    this.apply(updated.session.toRecord());
+    return updated.response;
+  }
+  async setThoughtLevel(thoughtLevel) {
+    const updated = await this.sandbox.setSessionThoughtLevel(this.id, thoughtLevel);
+    this.apply(updated.session.toRecord());
+    return updated.response;
+  }
+  async getConfigOptions() {
+    return this.sandbox.getSessionConfigOptions(this.id);
+  }
+  async getModes() {
+    return this.sandbox.getSessionModes(this.id);
+  }
+  onEvent(listener) {
+    return this.sandbox.onSessionEvent(this.id, listener);
+  }
+  onPermissionRequest(listener) {
+    return this.sandbox.onPermissionRequest(this.id, listener);
+  }
+  async respondPermission(permissionId, reply) {
+    await this.sandbox.respondPermission(permissionId, reply);
+  }
+  async rawRespondPermission(permissionId, response) {
+    await this.sandbox.rawRespondPermission(permissionId, response);
+  }
+  toRecord() {
+    return { ...this.record };
+  }
+  apply(record) {
+    this.record = { ...record };
+  }
+};
+var LiveAcpConnection = class _LiveAcpConnection {
+  connectionId;
+  agent;
+  acp;
+  sessionByLocalId = /* @__PURE__ */ new Map();
+  localByAgentSessionId = /* @__PURE__ */ new Map();
+  pendingNewSessionLocals = [];
+  pendingRequestSessionById = /* @__PURE__ */ new Map();
+  pendingReplayByLocalSessionId = /* @__PURE__ */ new Map();
+  lastAdapterExit = null;
+  lastAdapterExitAt = 0;
+  onObservedEnvelope;
+  onPermissionRequest;
+  constructor(agent, connectionId, acp, onObservedEnvelope, onPermissionRequest) {
+    this.agent = agent;
+    this.connectionId = connectionId;
+    this.acp = acp;
+    this.onObservedEnvelope = onObservedEnvelope;
+    this.onPermissionRequest = onPermissionRequest;
+  }
+  static async create(options) {
+    const connectionId = randomId();
+    let live = null;
+    const acp = new AcpHttpClient({
+      baseUrl: options.baseUrl,
+      token: options.token,
+      fetch: options.fetcher,
+      headers: options.headers,
+      transport: {
+        path: `${API_PREFIX}/acp/${encodeURIComponent(options.serverId)}`,
+        bootstrapQuery: { agent: options.agent }
+      },
+      client: {
+        requestPermission: async (request) => {
+          if (!live) {
+            return cancelledPermissionResponse();
+          }
+          return live.handlePermissionRequest(request);
+        },
+        sessionUpdate: async (_notification) => {
+        },
+        extNotification: async (method, params) => {
+          if (!live) return;
+          live.handleAdapterNotification(method, params);
+        }
+      },
+      onEnvelope: (envelope, direction) => {
+        if (!live) {
+          return;
+        }
+        live.handleEnvelope(envelope, direction);
+      }
+    });
+    live = new _LiveAcpConnection(options.agent, connectionId, acp, options.onObservedEnvelope, options.onPermissionRequest);
+    const initResult = await acp.initialize({
+      protocolVersion: PROTOCOL_VERSION,
+      clientInfo: {
+        name: "sandbox-agent-sdk",
+        version: "v1"
+      }
+    });
+    if (initResult.authMethods && initResult.authMethods.length > 0) {
+      await autoAuthenticate(acp, initResult.authMethods);
+    }
+    return live;
+  }
+  async close() {
+    await this.acp.disconnect();
+  }
+  hasBoundSession(localSessionId, agentSessionId) {
+    const bound = this.sessionByLocalId.get(localSessionId);
+    if (!bound) {
+      return false;
+    }
+    if (agentSessionId && bound !== agentSessionId) {
+      return false;
+    }
+    return true;
+  }
+  bindSession(localSessionId, agentSessionId) {
+    this.sessionByLocalId.set(localSessionId, agentSessionId);
+    this.localByAgentSessionId.set(agentSessionId, localSessionId);
+  }
+  queueReplay(localSessionId, replayText) {
+    if (!replayText) {
+      this.pendingReplayByLocalSessionId.delete(localSessionId);
+      return;
+    }
+    this.pendingReplayByLocalSessionId.set(localSessionId, replayText);
+  }
+  async createRemoteSession(localSessionId, sessionInit) {
+    const createStartedAt = Date.now();
+    this.pendingNewSessionLocals.push(localSessionId);
+    try {
+      const response = await this.acp.newSession(sessionInit);
+      this.bindSession(localSessionId, response.sessionId);
+      return response;
+    } catch (error) {
+      const index = this.pendingNewSessionLocals.indexOf(localSessionId);
+      if (index !== -1) {
+        this.pendingNewSessionLocals.splice(index, 1);
+      }
+      const adapterExit = this.lastAdapterExit;
+      if (adapterExit && this.lastAdapterExitAt >= createStartedAt) {
+        const suffix = adapterExit.code == null ? "" : ` (code ${adapterExit.code})`;
+        throw new Error(`Agent process exited while creating session${suffix}`);
+      }
+      throw error;
+    }
+  }
+  async sendSessionMethod(localSessionId, method, params, options) {
+    const agentSessionId = this.sessionByLocalId.get(localSessionId);
+    if (!agentSessionId) {
+      throw new Error(`session '${localSessionId}' is not bound to live ACP connection '${this.connectionId}'`);
+    }
+    const mappedParams = mapSessionParams(params, agentSessionId);
+    if (method === "session/prompt") {
+      const replayText = this.pendingReplayByLocalSessionId.get(localSessionId);
+      if (replayText) {
+        this.pendingReplayByLocalSessionId.delete(localSessionId);
+        injectReplayPrompt(mappedParams, replayText);
+      }
+      if (options.notification) {
+        await this.acp.extNotification(method, mappedParams);
+        return void 0;
+      }
+      return this.acp.prompt(mappedParams);
+    }
+    if (method === "session/cancel") {
+      await this.acp.cancel(mappedParams);
+      return void 0;
+    }
+    if (method === "session/set_mode") {
+      return this.acp.setSessionMode(mappedParams);
+    }
+    if (method === "session/set_config_option") {
+      return this.acp.setSessionConfigOption(mappedParams);
+    }
+    if (options.notification) {
+      await this.acp.extNotification(method, mappedParams);
+      return void 0;
+    }
+    return this.acp.extMethod(method, mappedParams);
+  }
+  handleEnvelope(envelope, direction) {
+    const localSessionId = this.resolveSessionId(envelope, direction);
+    this.onObservedEnvelope(this, envelope, direction, localSessionId);
+  }
+  handleAdapterNotification(method, params) {
+    if (method !== "_adapter/agent_exited") {
+      return;
+    }
+    this.lastAdapterExit = {
+      success: params.success === true,
+      code: typeof params.code === "number" ? params.code : null
+    };
+    this.lastAdapterExitAt = Date.now();
+  }
+  async handlePermissionRequest(request) {
+    const agentSessionId = request.sessionId;
+    const localSessionId = this.localByAgentSessionId.get(agentSessionId);
+    if (!localSessionId) {
+      return cancelledPermissionResponse();
+    }
+    return this.onPermissionRequest(this, localSessionId, agentSessionId, clonePermissionRequest(request));
+  }
+  resolveSessionId(envelope, direction) {
+    const id = envelopeId(envelope);
+    const method = envelopeMethod(envelope);
+    if (direction === "outbound") {
+      if (id && method === "session/new") {
+        const localSessionId = this.pendingNewSessionLocals.shift() ?? null;
+        if (localSessionId) {
+          this.pendingRequestSessionById.set(id, localSessionId);
+        }
+        return localSessionId;
+      }
+      const localFromParams = this.localFromEnvelopeParams(envelope);
+      if (id && localFromParams) {
+        this.pendingRequestSessionById.set(id, localFromParams);
+      }
+      return localFromParams;
+    }
+    if (id) {
+      const pending = this.pendingRequestSessionById.get(id) ?? null;
+      if (pending) {
+        this.pendingRequestSessionById.delete(id);
+        const sessionIdFromResult = envelopeSessionIdFromResult(envelope);
+        if (sessionIdFromResult) {
+          this.bindSession(pending, sessionIdFromResult);
+        }
+        return pending;
+      }
+    }
+    return this.localFromEnvelopeParams(envelope);
+  }
+  localFromEnvelopeParams(envelope) {
+    const agentSessionId = envelopeSessionIdFromParams(envelope);
+    if (!agentSessionId) {
+      return null;
+    }
+    return this.localByAgentSessionId.get(agentSessionId) ?? null;
+  }
+};
+var ProcessTerminalSession = class {
+  socket;
+  closed;
+  readyListeners = /* @__PURE__ */ new Set();
+  dataListeners = /* @__PURE__ */ new Set();
+  exitListeners = /* @__PURE__ */ new Set();
+  errorListeners = /* @__PURE__ */ new Set();
+  closeListeners = /* @__PURE__ */ new Set();
+  closeSignalSent = false;
+  closedResolve;
+  constructor(socket) {
+    this.socket = socket;
+    this.socket.binaryType = "arraybuffer";
+    this.closed = new Promise((resolve) => {
+      this.closedResolve = resolve;
+    });
+    this.socket.addEventListener("message", (event) => {
+      void this.handleMessage(event.data);
+    });
+    this.socket.addEventListener("error", () => {
+      this.emitError(new Error("Terminal websocket connection failed."));
+    });
+    this.socket.addEventListener("close", () => {
+      this.closedResolve();
+      for (const listener of this.closeListeners) {
+        listener();
+      }
+    });
+  }
+  onReady(listener) {
+    this.readyListeners.add(listener);
+    return () => {
+      this.readyListeners.delete(listener);
+    };
+  }
+  onData(listener) {
+    this.dataListeners.add(listener);
+    return () => {
+      this.dataListeners.delete(listener);
+    };
+  }
+  onExit(listener) {
+    this.exitListeners.add(listener);
+    return () => {
+      this.exitListeners.delete(listener);
+    };
+  }
+  onError(listener) {
+    this.errorListeners.add(listener);
+    return () => {
+      this.errorListeners.delete(listener);
+    };
+  }
+  onClose(listener) {
+    this.closeListeners.add(listener);
+    return () => {
+      this.closeListeners.delete(listener);
+    };
+  }
+  sendInput(data) {
+    const payload = encodeTerminalInput(data);
+    this.sendFrame({
+      type: "input",
+      data: payload.data,
+      encoding: payload.encoding
+    });
+  }
+  resize(payload) {
+    this.sendFrame({
+      type: "resize",
+      cols: payload.cols,
+      rows: payload.rows
+    });
+  }
+  close() {
+    if (this.socket.readyState === WS_READY_STATE_CONNECTING) {
+      this.socket.addEventListener(
+        "open",
+        () => {
+          this.close();
+        },
+        { once: true }
+      );
+      return;
+    }
+    if (this.socket.readyState === WS_READY_STATE_OPEN2) {
+      if (!this.closeSignalSent) {
+        this.closeSignalSent = true;
+        this.sendFrame({ type: "close" });
+      }
+      this.socket.close();
+      return;
+    }
+    if (this.socket.readyState !== WS_READY_STATE_CLOSED2) {
+      this.socket.close();
+    }
+  }
+  async handleMessage(data) {
+    try {
+      if (typeof data === "string") {
+        const frame = parseProcessTerminalServerFrame(data);
+        if (!frame) {
+          this.emitError(new Error("Received invalid terminal control frame."));
+          return;
+        }
+        if (frame.type === "ready") {
+          for (const listener of this.readyListeners) {
+            listener(frame);
+          }
+          return;
+        }
+        if (frame.type === "exit") {
+          for (const listener of this.exitListeners) {
+            listener(frame);
+          }
+          return;
+        }
+        this.emitError(frame);
+        return;
+      }
+      const bytes = await decodeTerminalBytes(data);
+      for (const listener of this.dataListeners) {
+        listener(bytes);
+      }
+    } catch (error) {
+      this.emitError(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+  sendFrame(frame) {
+    if (this.socket.readyState !== WS_READY_STATE_OPEN2) {
+      return;
+    }
+    this.socket.send(JSON.stringify(frame));
+  }
+  emitError(error) {
+    for (const listener of this.errorListeners) {
+      listener(error);
+    }
+  }
+};
+var WS_READY_STATE_CONNECTING = 0;
+var WS_READY_STATE_OPEN2 = 1;
+var WS_READY_STATE_CLOSED2 = 3;
+var SandboxAgent = class _SandboxAgent {
+  baseUrl;
+  token;
+  fetcher;
+  defaultHeaders;
+  healthWait;
+  healthWaitAbortController = new AbortController();
+  sandboxProvider;
+  sandboxProviderId;
+  sandboxProviderRawId;
+  persist;
+  replayMaxEvents;
+  replayMaxChars;
+  healthPromise;
+  healthError;
+  disposed = false;
+  liveConnections = /* @__PURE__ */ new Map();
+  pendingLiveConnections = /* @__PURE__ */ new Map();
+  sessionHandles = /* @__PURE__ */ new Map();
+  eventListeners = /* @__PURE__ */ new Map();
+  permissionListeners = /* @__PURE__ */ new Map();
+  pendingPermissionRequests = /* @__PURE__ */ new Map();
+  nextSessionEventIndexBySession = /* @__PURE__ */ new Map();
+  seedSessionEventIndexBySession = /* @__PURE__ */ new Map();
+  pendingObservedEnvelopePersistenceBySession = /* @__PURE__ */ new Map();
+  constructor(options) {
+    const baseUrl = options.baseUrl?.trim();
+    if (!baseUrl && !options.fetch) {
+      throw new Error("baseUrl is required unless fetch is provided.");
+    }
+    this.baseUrl = (baseUrl || DEFAULT_BASE_URL).replace(/\/$/, "");
+    this.token = options.token;
+    const resolvedFetch = options.fetch ?? globalThis.fetch?.bind(globalThis);
+    if (!resolvedFetch) {
+      throw new Error("Fetch API is not available; provide a fetch implementation.");
+    }
+    this.fetcher = resolvedFetch;
+    this.defaultHeaders = options.headers;
+    this.healthWait = normalizeHealthWaitOptions(options.skipHealthCheck, options.waitForHealth, options.signal);
+    this.persist = options.persist ?? new InMemorySessionPersistDriver();
+    this.replayMaxEvents = normalizePositiveInt(options.replayMaxEvents, DEFAULT_REPLAY_MAX_EVENTS);
+    this.replayMaxChars = normalizePositiveInt(options.replayMaxChars, DEFAULT_REPLAY_MAX_CHARS);
+    this.startHealthWait();
+  }
+  static async connect(options) {
+    return new _SandboxAgent(options);
+  }
+  static async start(options) {
+    const provider = options.sandbox;
+    if (!provider.getUrl && !provider.getFetch) {
+      throw new Error(`Sandbox provider '${provider.name}' must implement getUrl() or getFetch().`);
+    }
+    const existingSandbox = options.sandboxId ? parseSandboxProviderId(options.sandboxId) : null;
+    if (existingSandbox && existingSandbox.provider !== provider.name) {
+      throw new Error(
+        `SandboxAgent.start received sandboxId '${options.sandboxId}' for provider '${existingSandbox.provider}', but the configured provider is '${provider.name}'.`
+      );
+    }
+    const rawSandboxId = existingSandbox?.rawId ?? await provider.create();
+    const prefixedSandboxId = `${provider.name}/${rawSandboxId}`;
+    const createdSandbox = !existingSandbox;
+    if (existingSandbox) {
+      await provider.reconnect?.(rawSandboxId);
+      await provider.ensureServer?.(rawSandboxId);
+    }
+    try {
+      const fetcher = await resolveProviderFetch(provider, rawSandboxId);
+      const baseUrl = provider.getUrl ? await provider.getUrl(rawSandboxId) : void 0;
+      const providerFetch = options.fetch ?? fetcher;
+      const commonConnectOptions = {
+        headers: options.headers,
+        persist: options.persist,
+        replayMaxEvents: options.replayMaxEvents,
+        replayMaxChars: options.replayMaxChars,
+        signal: options.signal,
+        skipHealthCheck: options.skipHealthCheck,
+        token: options.token ?? await resolveProviderToken(provider, rawSandboxId)
+      };
+      const client = providerFetch ? new _SandboxAgent({
+        ...commonConnectOptions,
+        baseUrl,
+        fetch: providerFetch
+      }) : new _SandboxAgent({
+        ...commonConnectOptions,
+        baseUrl: requireSandboxBaseUrl(baseUrl, provider.name)
+      });
+      client.sandboxProvider = provider;
+      client.sandboxProviderId = prefixedSandboxId;
+      client.sandboxProviderRawId = rawSandboxId;
+      return client;
+    } catch (error) {
+      if (createdSandbox) {
+        try {
+          await provider.destroy(rawSandboxId);
+        } catch {
+        }
+      }
+      throw error;
+    }
+  }
+  get sandboxId() {
+    return this.sandboxProviderId;
+  }
+  get sandbox() {
+    return this.sandboxProvider;
+  }
+  get inspectorUrl() {
+    return `${this.baseUrl.replace(/\/+$/, "")}/ui/`;
+  }
+  async dispose() {
+    this.disposed = true;
+    this.healthWaitAbortController.abort(createAbortError("SandboxAgent was disposed."));
+    for (const [permissionId, pending2] of this.pendingPermissionRequests) {
+      this.pendingPermissionRequests.delete(permissionId);
+      pending2.resolve(cancelledPermissionResponse());
+    }
+    const connections = [...this.liveConnections.values()];
+    this.liveConnections.clear();
+    const pending = [...this.pendingLiveConnections.values()];
+    this.pendingLiveConnections.clear();
+    this.pendingObservedEnvelopePersistenceBySession.clear();
+    const pendingSettled = await Promise.allSettled(pending);
+    for (const item of pendingSettled) {
+      if (item.status === "fulfilled") {
+        connections.push(item.value);
+      }
+    }
+    await Promise.all(
+      connections.map(async (connection) => {
+        await connection.close();
+      })
+    );
+  }
+  async destroySandbox() {
+    const provider = this.sandboxProvider;
+    const rawSandboxId = this.sandboxProviderRawId;
+    try {
+      if (provider && rawSandboxId) {
+        await provider.destroy(rawSandboxId);
+      } else if (!provider || !rawSandboxId) {
+        throw new Error("SandboxAgent is not attached to a provisioned sandbox.");
+      }
+    } finally {
+      await this.dispose();
+      this.sandboxProvider = void 0;
+      this.sandboxProviderId = void 0;
+      this.sandboxProviderRawId = void 0;
+    }
+  }
+  async pauseSandbox() {
+    const provider = this.sandboxProvider;
+    const rawSandboxId = this.sandboxProviderRawId;
+    try {
+      if (provider && rawSandboxId) {
+        if (provider.pause) {
+          await provider.pause(rawSandboxId);
+        } else {
+          await provider.destroy(rawSandboxId);
+        }
+      } else if (!provider || !rawSandboxId) {
+        throw new Error("SandboxAgent is not attached to a provisioned sandbox.");
+      }
+    } finally {
+      await this.dispose();
+      this.sandboxProvider = void 0;
+      this.sandboxProviderId = void 0;
+      this.sandboxProviderRawId = void 0;
+    }
+  }
+  async killSandbox() {
+    const provider = this.sandboxProvider;
+    const rawSandboxId = this.sandboxProviderRawId;
+    try {
+      if (provider && rawSandboxId) {
+        if (provider.kill) {
+          await provider.kill(rawSandboxId);
+        } else {
+          await provider.destroy(rawSandboxId);
+        }
+      } else if (!provider || !rawSandboxId) {
+        throw new Error("SandboxAgent is not attached to a provisioned sandbox.");
+      }
+    } finally {
+      await this.dispose();
+      this.sandboxProvider = void 0;
+      this.sandboxProviderId = void 0;
+      this.sandboxProviderRawId = void 0;
+    }
+  }
+  async listSessions(request = {}) {
+    const page = await this.persist.listSessions(request);
+    return {
+      items: page.items.map((record) => this.upsertSessionHandle(record)),
+      nextCursor: page.nextCursor
+    };
+  }
+  async getSession(id) {
+    const record = await this.persist.getSession(id);
+    if (!record) {
+      return null;
+    }
+    return this.upsertSessionHandle(record);
+  }
+  async getEvents(request) {
+    return this.persist.listEvents(request);
+  }
+  async createSession(request) {
+    if (!request.agent.trim()) {
+      throw new Error("createSession requires a non-empty agent");
+    }
+    const localSessionId = request.id?.trim() || randomId();
+    const live = await this.getLiveConnection(request.agent.trim());
+    const sessionInit = normalizeSessionInit(request.sessionInit, request.cwd, this.sandboxProvider?.defaultCwd);
+    const response = await live.createRemoteSession(localSessionId, sessionInit);
+    const record = {
+      id: localSessionId,
+      agent: request.agent.trim(),
+      agentSessionId: response.sessionId,
+      lastConnectionId: live.connectionId,
+      createdAt: nowMs(),
+      sandboxId: this.sandboxProviderId,
+      sessionInit,
+      configOptions: cloneConfigOptions(response.configOptions),
+      modes: cloneModes(response.modes)
+    };
+    await this.persist.updateSession(record);
+    live.bindSession(record.id, record.agentSessionId);
+    let session = this.upsertSessionHandle(record);
+    try {
+      if (request.mode) {
+        session = (await this.setSessionMode(session.id, request.mode)).session;
+      }
+      if (request.model) {
+        session = (await this.setSessionModel(session.id, request.model)).session;
+      }
+      if (request.thoughtLevel) {
+        session = (await this.setSessionThoughtLevel(session.id, request.thoughtLevel)).session;
+      }
+    } catch (err) {
+      try {
+        await this.destroySession(session.id);
+      } catch {
+      }
+      throw err;
+    }
+    return session;
+  }
+  async resumeSession(id) {
+    const existing = await this.persist.getSession(id);
+    if (!existing) {
+      throw new Error(`session '${id}' not found`);
+    }
+    const live = await this.getLiveConnection(existing.agent);
+    if (existing.lastConnectionId === live.connectionId && live.hasBoundSession(id, existing.agentSessionId)) {
+      return this.upsertSessionHandle(existing);
+    }
+    const replaySource = await this.collectReplayEvents(existing.id, this.replayMaxEvents);
+    const replayText = buildReplayText(replaySource, this.replayMaxChars);
+    const recreated = await live.createRemoteSession(existing.id, normalizeSessionInit(existing.sessionInit, void 0, this.sandboxProvider?.defaultCwd));
+    const updated = {
+      ...existing,
+      agentSessionId: recreated.sessionId,
+      lastConnectionId: live.connectionId,
+      destroyedAt: void 0,
+      configOptions: cloneConfigOptions(recreated.configOptions),
+      modes: cloneModes(recreated.modes)
+    };
+    await this.persist.updateSession(updated);
+    live.bindSession(updated.id, updated.agentSessionId);
+    live.queueReplay(updated.id, replayText);
+    return this.upsertSessionHandle(updated);
+  }
+  async resumeOrCreateSession(request) {
+    const existing = await this.persist.getSession(request.id);
+    if (existing) {
+      let session = await this.resumeSession(existing.id);
+      if (request.mode) {
+        session = (await this.setSessionMode(session.id, request.mode)).session;
+      }
+      if (request.model) {
+        session = (await this.setSessionModel(session.id, request.model)).session;
+      }
+      if (request.thoughtLevel) {
+        session = (await this.setSessionThoughtLevel(session.id, request.thoughtLevel)).session;
+      }
+      return session;
+    }
+    return this.createSession(request);
+  }
+  async destroySession(id) {
+    this.cancelPendingPermissionsForSession(id);
+    try {
+      await this.sendSessionMethodInternal(id, SESSION_CANCEL_METHOD, {}, {}, true);
+    } catch {
+    }
+    const existing = await this.requireSessionRecord(id);
+    const updated = {
+      ...existing,
+      destroyedAt: nowMs()
+    };
+    await this.persist.updateSession(updated);
+    return this.upsertSessionHandle(updated);
+  }
+  async setSessionMode(sessionId, modeId) {
+    const mode = modeId.trim();
+    if (!mode) {
+      throw new Error("setSessionMode requires a non-empty modeId");
+    }
+    const record = await this.requireSessionRecord(sessionId);
+    const knownModeIds = extractKnownModeIds(record.modes);
+    if (knownModeIds.length > 0 && !knownModeIds.includes(mode)) {
+      throw new UnsupportedSessionValueError(sessionId, "mode", "mode", mode, knownModeIds);
+    }
+    try {
+      return await this.sendSessionMethodInternal(sessionId, "session/set_mode", { modeId: mode }, {}, false);
+    } catch (error) {
+      if (!(error instanceof AcpRpcError) || error.code !== -32601) {
+        throw error;
+      }
+      return this.setSessionCategoryValue(sessionId, "mode", mode);
+    }
+  }
+  async setSessionConfigOption(sessionId, configId, value) {
+    const resolvedConfigId = configId.trim();
+    if (!resolvedConfigId) {
+      throw new Error("setSessionConfigOption requires a non-empty configId");
+    }
+    const resolvedValue = value.trim();
+    if (!resolvedValue) {
+      throw new Error("setSessionConfigOption requires a non-empty value");
+    }
+    const options = await this.getSessionConfigOptions(sessionId);
+    const option = findConfigOptionById(options, resolvedConfigId);
+    if (!option) {
+      throw new UnsupportedSessionConfigOptionError(
+        sessionId,
+        resolvedConfigId,
+        options.map((item) => item.id)
+      );
+    }
+    const allowedValues = extractConfigValues(option);
+    if (allowedValues.length > 0 && !allowedValues.includes(resolvedValue)) {
+      throw new UnsupportedSessionValueError(sessionId, option.category ?? "uncategorized", option.id, resolvedValue, allowedValues);
+    }
+    return await this.sendSessionMethodInternal(
+      sessionId,
+      "session/set_config_option",
+      {
+        configId: resolvedConfigId,
+        value: resolvedValue
+      },
+      {},
+      false
+    );
+  }
+  async setSessionModel(sessionId, model) {
+    return this.setSessionCategoryValue(sessionId, "model", model);
+  }
+  async setSessionThoughtLevel(sessionId, thoughtLevel) {
+    return this.setSessionCategoryValue(sessionId, "thought_level", thoughtLevel);
+  }
+  async getSessionConfigOptions(sessionId) {
+    const record = await this.requireSessionRecord(sessionId);
+    const hydrated = await this.hydrateSessionConfigOptions(record.id, record);
+    return cloneConfigOptions(hydrated.configOptions) ?? [];
+  }
+  async getSessionModes(sessionId) {
+    const record = await this.requireSessionRecord(sessionId);
+    if (record.modes && record.modes.availableModes.length > 0) {
+      return cloneModes(record.modes);
+    }
+    const hydrated = await this.hydrateSessionConfigOptions(record.id, record);
+    if (hydrated.modes && hydrated.modes.availableModes.length > 0) {
+      return cloneModes(hydrated.modes);
+    }
+    const derived = deriveModesFromConfigOptions(hydrated.configOptions);
+    if (!derived) {
+      return cloneModes(hydrated.modes);
+    }
+    const updated = {
+      ...hydrated,
+      modes: derived
+    };
+    await this.persist.updateSession(updated);
+    return cloneModes(derived);
+  }
+  async setSessionCategoryValue(sessionId, category, value) {
+    const resolvedValue = value.trim();
+    if (!resolvedValue) {
+      throw new Error(`setSession${toTitleCase(category)} requires a non-empty value`);
+    }
+    const options = await this.getSessionConfigOptions(sessionId);
+    const option = findConfigOptionByCategory(options, category);
+    if (!option) {
+      const categories = uniqueCategories(options);
+      throw new UnsupportedSessionCategoryError(sessionId, category, categories);
+    }
+    const allowedValues = extractConfigValues(option);
+    if (allowedValues.length > 0 && !allowedValues.includes(resolvedValue)) {
+      throw new UnsupportedSessionValueError(sessionId, category, option.id, resolvedValue, allowedValues);
+    }
+    return this.setSessionConfigOption(sessionId, option.id, resolvedValue);
+  }
+  async hydrateSessionConfigOptions(sessionId, snapshot) {
+    if (snapshot.configOptions !== void 0) {
+      return snapshot;
+    }
+    const info = await this.getAgent(snapshot.agent, { config: true });
+    let configOptions = normalizeSessionConfigOptions(info.configOptions) ?? [];
+    const record = await this.persist.getSession(sessionId);
+    if (!record) {
+      return { ...snapshot, configOptions };
+    }
+    const currentModeId = record.modes?.currentModeId;
+    if (currentModeId) {
+      const modeOption = findConfigOptionByCategory(configOptions, "mode");
+      if (modeOption) {
+        configOptions = applyConfigOptionValue(configOptions, modeOption.id, currentModeId) ?? configOptions;
+      }
+    }
+    const updated = {
+      ...record,
+      configOptions,
+      modes: deriveModesFromConfigOptions(configOptions) ?? record.modes
+    };
+    await this.persist.updateSession(updated);
+    return updated;
+  }
+  async rawSendSessionMethod(sessionId, method, params, options = {}) {
+    return this.sendSessionMethodInternal(sessionId, method, params, options, false);
+  }
+  async sendSessionMethodInternal(sessionId, method, params, options, allowManagedCancel) {
+    if (method === SESSION_CANCEL_METHOD && !allowManagedCancel) {
+      throw new Error(MANUAL_CANCEL_ERROR);
+    }
+    const record = await this.persist.getSession(sessionId);
+    if (!record) {
+      throw new Error(`session '${sessionId}' not found`);
+    }
+    const live = await this.getLiveConnection(record.agent);
+    if (!live.hasBoundSession(record.id, record.agentSessionId)) {
+      const restored = await this.resumeSession(record.id);
+      return this.sendSessionMethodInternal(restored.id, method, params, options, allowManagedCancel);
+    }
+    const response = await live.sendSessionMethod(record.id, method, params, options);
+    await this.persistSessionStateFromMethod(record.id, method, params, response);
+    const refreshed = await this.requireSessionRecord(record.id);
+    return {
+      session: this.upsertSessionHandle(refreshed),
+      response
+    };
+  }
+  async persistSessionStateFromMethod(sessionId, method, params, response) {
+    const record = await this.persist.getSession(sessionId);
+    if (!record) {
+      return;
+    }
+    if (method === "session/set_config_option") {
+      const configId = typeof params.configId === "string" ? params.configId : null;
+      const value = typeof params.value === "string" ? params.value : null;
+      const updates = {};
+      const serverConfigOptions = extractConfigOptionsFromSetResponse(response);
+      if (serverConfigOptions) {
+        updates.configOptions = cloneConfigOptions(serverConfigOptions);
+      } else if (record.configOptions && configId && value) {
+        const updated = applyConfigOptionValue(record.configOptions, configId, value);
+        if (updated) {
+          updates.configOptions = updated;
+        }
+      }
+      if (configId && value) {
+        const source = updates.configOptions ?? record.configOptions;
+        const option = source ? findConfigOptionById(source, configId) : null;
+        if (option?.category === "mode") {
+          const nextModes = applyCurrentMode(record.modes, value);
+          if (nextModes) {
+            updates.modes = nextModes;
+          }
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        await this.persist.updateSession({ ...record, ...updates });
+      }
+      return;
+    }
+    if (method === "session/set_mode") {
+      const modeId = typeof params.modeId === "string" ? params.modeId : null;
+      if (!modeId) {
+        return;
+      }
+      const updates = {};
+      const nextModes = applyCurrentMode(record.modes, modeId);
+      if (nextModes) {
+        updates.modes = nextModes;
+      }
+      if (record.configOptions) {
+        const modeOption = findConfigOptionByCategory(record.configOptions, "mode");
+        if (modeOption) {
+          const updated = applyConfigOptionValue(record.configOptions, modeOption.id, modeId);
+          if (updated) {
+            updates.configOptions = updated;
+          }
+        }
+      }
+      if (Object.keys(updates).length > 0) {
+        await this.persist.updateSession({ ...record, ...updates });
+      }
+    }
+  }
+  onSessionEvent(sessionId, listener) {
+    const listeners = this.eventListeners.get(sessionId) ?? /* @__PURE__ */ new Set();
+    listeners.add(listener);
+    this.eventListeners.set(sessionId, listeners);
+    return () => {
+      const set = this.eventListeners.get(sessionId);
+      if (!set) {
+        return;
+      }
+      set.delete(listener);
+      if (set.size === 0) {
+        this.eventListeners.delete(sessionId);
+      }
+    };
+  }
+  onPermissionRequest(sessionId, listener) {
+    const listeners = this.permissionListeners.get(sessionId) ?? /* @__PURE__ */ new Set();
+    listeners.add(listener);
+    this.permissionListeners.set(sessionId, listeners);
+    return () => {
+      const set = this.permissionListeners.get(sessionId);
+      if (!set) {
+        return;
+      }
+      set.delete(listener);
+      if (set.size === 0) {
+        this.permissionListeners.delete(sessionId);
+      }
+    };
+  }
+  async respondPermission(permissionId, reply) {
+    const pending = this.pendingPermissionRequests.get(permissionId);
+    if (!pending) {
+      throw new Error(`permission '${permissionId}' not found`);
+    }
+    let response;
+    try {
+      response = permissionReplyToResponse(permissionId, pending.request, reply);
+    } catch (error) {
+      pending.reject(error instanceof Error ? error : new Error(String(error)));
+      this.pendingPermissionRequests.delete(permissionId);
+      throw error;
+    }
+    this.resolvePendingPermission(permissionId, response);
+  }
+  async rawRespondPermission(permissionId, response) {
+    if (!this.pendingPermissionRequests.has(permissionId)) {
+      throw new Error(`permission '${permissionId}' not found`);
+    }
+    this.resolvePendingPermission(permissionId, clonePermissionResponse(response));
+  }
+  async getHealth() {
+    return this.requestHealth();
+  }
+  async startDesktop(request = {}) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/start`, {
+      body: request
+    });
+  }
+  async stopDesktop() {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/stop`);
+  }
+  async getDesktopStatus() {
+    return this.requestJson("GET", `${API_PREFIX}/desktop/status`);
+  }
+  async getDesktopDisplayInfo() {
+    return this.requestJson("GET", `${API_PREFIX}/desktop/display/info`);
+  }
+  async takeDesktopScreenshot(query = {}) {
+    const response = await this.requestRaw("GET", `${API_PREFIX}/desktop/screenshot`, {
+      query,
+      accept: "image/*"
+    });
+    const buffer = await response.arrayBuffer();
+    return new Uint8Array(buffer);
+  }
+  async takeDesktopRegionScreenshot(query) {
+    const response = await this.requestRaw("GET", `${API_PREFIX}/desktop/screenshot/region`, {
+      query,
+      accept: "image/*"
+    });
+    const buffer = await response.arrayBuffer();
+    return new Uint8Array(buffer);
+  }
+  async getDesktopMousePosition() {
+    return this.requestJson("GET", `${API_PREFIX}/desktop/mouse/position`);
+  }
+  async moveDesktopMouse(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/mouse/move`, {
+      body: request
+    });
+  }
+  async clickDesktop(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/mouse/click`, {
+      body: request
+    });
+  }
+  async mouseDownDesktop(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/mouse/down`, {
+      body: request
+    });
+  }
+  async mouseUpDesktop(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/mouse/up`, {
+      body: request
+    });
+  }
+  async dragDesktopMouse(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/mouse/drag`, {
+      body: request
+    });
+  }
+  async scrollDesktop(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/mouse/scroll`, {
+      body: request
+    });
+  }
+  async typeDesktopText(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/keyboard/type`, {
+      body: request
+    });
+  }
+  async pressDesktopKey(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/keyboard/press`, {
+      body: request
+    });
+  }
+  async keyDownDesktop(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/keyboard/down`, {
+      body: request
+    });
+  }
+  async keyUpDesktop(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/keyboard/up`, {
+      body: request
+    });
+  }
+  async listDesktopWindows() {
+    return this.requestJson("GET", `${API_PREFIX}/desktop/windows`);
+  }
+  async getDesktopFocusedWindow() {
+    return this.requestJson("GET", `${API_PREFIX}/desktop/windows/focused`);
+  }
+  async focusDesktopWindow(windowId) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/windows/${encodeURIComponent(windowId)}/focus`);
+  }
+  async moveDesktopWindow(windowId, request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/windows/${encodeURIComponent(windowId)}/move`, {
+      body: request
+    });
+  }
+  async resizeDesktopWindow(windowId, request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/windows/${encodeURIComponent(windowId)}/resize`, {
+      body: request
+    });
+  }
+  async getDesktopClipboard(query = {}) {
+    return this.requestJson("GET", `${API_PREFIX}/desktop/clipboard`, {
+      query
+    });
+  }
+  async setDesktopClipboard(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/clipboard`, {
+      body: request
+    });
+  }
+  async launchDesktopApp(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/launch`, {
+      body: request
+    });
+  }
+  async openDesktopTarget(request) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/open`, {
+      body: request
+    });
+  }
+  async getDesktopStreamStatus() {
+    return this.requestJson("GET", `${API_PREFIX}/desktop/stream/status`);
+  }
+  async startDesktopRecording(request = {}) {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/recording/start`, {
+      body: request
+    });
+  }
+  async stopDesktopRecording() {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/recording/stop`);
+  }
+  async listDesktopRecordings() {
+    return this.requestJson("GET", `${API_PREFIX}/desktop/recordings`);
+  }
+  async getDesktopRecording(id) {
+    return this.requestJson("GET", `${API_PREFIX}/desktop/recordings/${encodeURIComponent(id)}`);
+  }
+  async downloadDesktopRecording(id) {
+    const response = await this.requestRaw("GET", `${API_PREFIX}/desktop/recordings/${encodeURIComponent(id)}/download`, {
+      accept: "video/mp4"
+    });
+    const buffer = await response.arrayBuffer();
+    return new Uint8Array(buffer);
+  }
+  async deleteDesktopRecording(id) {
+    await this.requestRaw("DELETE", `${API_PREFIX}/desktop/recordings/${encodeURIComponent(id)}`);
+  }
+  async startDesktopStream() {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/stream/start`);
+  }
+  async stopDesktopStream() {
+    return this.requestJson("POST", `${API_PREFIX}/desktop/stream/stop`);
+  }
+  async listAgents(options) {
+    return this.requestJson("GET", `${API_PREFIX}/agents`, {
+      query: toAgentQuery(options)
+    });
+  }
+  async getAgent(agent, options) {
+    try {
+      return await this.requestJson("GET", `${API_PREFIX}/agents/${encodeURIComponent(agent)}`, {
+        query: toAgentQuery(options)
+      });
+    } catch (error) {
+      if (!(error instanceof SandboxAgentError) || error.status !== 404) {
+        throw error;
+      }
+      const listed = await this.listAgents(options);
+      const match = listed.agents.find((entry) => entry.id === agent);
+      if (match) {
+        return match;
+      }
+      throw error;
+    }
+  }
+  async installAgent(agent, request = {}) {
+    return this.requestJson("POST", `${API_PREFIX}/agents/${encodeURIComponent(agent)}/install`, {
+      body: request
+    });
+  }
+  async listAcpServers() {
+    return this.requestJson("GET", `${API_PREFIX}/acp`);
+  }
+  async listFsEntries(query = {}) {
+    return this.requestJson("GET", `${FS_PATH}/entries`, {
+      query
+    });
+  }
+  async readFsFile(query) {
+    const response = await this.requestRaw("GET", `${FS_PATH}/file`, {
+      query,
+      accept: "application/octet-stream"
+    });
+    const buffer = await response.arrayBuffer();
+    return new Uint8Array(buffer);
+  }
+  async writeFsFile(query, body) {
+    const response = await this.requestRaw("PUT", `${FS_PATH}/file`, {
+      query,
+      rawBody: body,
+      contentType: "application/octet-stream",
+      accept: "application/json"
+    });
+    return await response.json();
+  }
+  async deleteFsEntry(query) {
+    return this.requestJson("DELETE", `${FS_PATH}/entry`, { query });
+  }
+  async mkdirFs(query) {
+    return this.requestJson("POST", `${FS_PATH}/mkdir`, { query });
+  }
+  async moveFs(request) {
+    return this.requestJson("POST", `${FS_PATH}/move`, { body: request });
+  }
+  async statFs(query) {
+    return this.requestJson("GET", `${FS_PATH}/stat`, { query });
+  }
+  async uploadFsBatch(body, query) {
+    const response = await this.requestRaw("POST", `${FS_PATH}/upload-batch`, {
+      query,
+      rawBody: body,
+      contentType: "application/x-tar",
+      accept: "application/json"
+    });
+    return await response.json();
+  }
+  async getMcpConfig(query) {
+    return this.requestJson("GET", `${API_PREFIX}/config/mcp`, { query });
+  }
+  async setMcpConfig(query, config) {
+    await this.requestRaw("PUT", `${API_PREFIX}/config/mcp`, { query, body: config });
+  }
+  async deleteMcpConfig(query) {
+    await this.requestRaw("DELETE", `${API_PREFIX}/config/mcp`, { query });
+  }
+  async getSkillsConfig(query) {
+    return this.requestJson("GET", `${API_PREFIX}/config/skills`, { query });
+  }
+  async setSkillsConfig(query, config) {
+    await this.requestRaw("PUT", `${API_PREFIX}/config/skills`, { query, body: config });
+  }
+  async deleteSkillsConfig(query) {
+    await this.requestRaw("DELETE", `${API_PREFIX}/config/skills`, { query });
+  }
+  async getProcessConfig() {
+    return this.requestJson("GET", `${API_PREFIX}/processes/config`);
+  }
+  async setProcessConfig(config) {
+    return this.requestJson("POST", `${API_PREFIX}/processes/config`, {
+      body: config
+    });
+  }
+  async createProcess(request) {
+    return this.requestJson("POST", `${API_PREFIX}/processes`, {
+      body: request
+    });
+  }
+  async runProcess(request) {
+    return this.requestJson("POST", `${API_PREFIX}/processes/run`, {
+      body: request
+    });
+  }
+  async listProcesses(query) {
+    return this.requestJson("GET", `${API_PREFIX}/processes`, {
+      query
+    });
+  }
+  async getProcess(id) {
+    return this.requestJson("GET", `${API_PREFIX}/processes/${encodeURIComponent(id)}`);
+  }
+  async stopProcess(id, query) {
+    return this.requestJson("POST", `${API_PREFIX}/processes/${encodeURIComponent(id)}/stop`, {
+      query
+    });
+  }
+  async killProcess(id, query) {
+    return this.requestJson("POST", `${API_PREFIX}/processes/${encodeURIComponent(id)}/kill`, {
+      query
+    });
+  }
+  async deleteProcess(id) {
+    await this.requestRaw("DELETE", `${API_PREFIX}/processes/${encodeURIComponent(id)}`);
+  }
+  async getProcessLogs(id, query = {}) {
+    return this.requestJson("GET", `${API_PREFIX}/processes/${encodeURIComponent(id)}/logs`, {
+      query
+    });
+  }
+  async followProcessLogs(id, listener, query = {}) {
+    const abortController = new AbortController();
+    const response = await this.requestRaw("GET", `${API_PREFIX}/processes/${encodeURIComponent(id)}/logs`, {
+      query: { ...query, follow: true },
+      accept: "text/event-stream",
+      signal: abortController.signal
+    });
+    if (!response.body) {
+      abortController.abort();
+      throw new Error("SSE stream is not readable in this environment.");
+    }
+    const closed = consumeProcessLogSse(response.body, listener, abortController.signal);
+    return {
+      close: () => abortController.abort(),
+      closed
+    };
+  }
+  async sendProcessInput(id, request) {
+    return this.requestJson("POST", `${API_PREFIX}/processes/${encodeURIComponent(id)}/input`, {
+      body: request
+    });
+  }
+  async resizeProcessTerminal(id, request) {
+    return this.requestJson("POST", `${API_PREFIX}/processes/${encodeURIComponent(id)}/terminal/resize`, {
+      body: request
+    });
+  }
+  buildProcessTerminalWebSocketUrl(id, options = {}) {
+    return toWebSocketUrl(
+      this.buildUrl(`${API_PREFIX}/processes/${encodeURIComponent(id)}/terminal/ws`, {
+        access_token: options.accessToken ?? this.token
+      })
+    );
+  }
+  connectProcessTerminalWebSocket(id, options = {}) {
+    const WebSocketCtor = options.WebSocket ?? globalThis.WebSocket;
+    if (!WebSocketCtor) {
+      throw new Error("WebSocket API is not available; provide a WebSocket implementation.");
+    }
+    return new WebSocketCtor(
+      this.buildProcessTerminalWebSocketUrl(id, {
+        accessToken: options.accessToken
+      }),
+      options.protocols
+    );
+  }
+  connectProcessTerminal(id, options = {}) {
+    return new ProcessTerminalSession(this.connectProcessTerminalWebSocket(id, options));
+  }
+  buildDesktopStreamWebSocketUrl(options = {}) {
+    return toWebSocketUrl(
+      this.buildUrl(`${API_PREFIX}/desktop/stream/signaling`, {
+        access_token: options.accessToken ?? this.token
+      })
+    );
+  }
+  connectDesktopStreamWebSocket(options = {}) {
+    const WebSocketCtor = options.WebSocket ?? globalThis.WebSocket;
+    if (!WebSocketCtor) {
+      throw new Error("WebSocket API is not available; provide a WebSocket implementation.");
+    }
+    return new WebSocketCtor(
+      this.buildDesktopStreamWebSocketUrl({
+        accessToken: options.accessToken
+      }),
+      options.protocols
+    );
+  }
+  connectDesktopStream(options = {}) {
+    return new DesktopStreamSession(this.connectDesktopStreamWebSocket(options));
+  }
+  async getLiveConnection(agent) {
+    await this.awaitHealthy();
+    const existing = this.liveConnections.get(agent);
+    if (existing) {
+      return existing;
+    }
+    const pending = this.pendingLiveConnections.get(agent);
+    if (pending) {
+      return pending;
+    }
+    const creating = (async () => {
+      const serverId = `sdk-${agent}-${randomId()}`;
+      const created = await LiveAcpConnection.create({
+        baseUrl: this.baseUrl,
+        token: this.token,
+        fetcher: this.fetcher,
+        headers: this.defaultHeaders,
+        agent,
+        serverId,
+        onObservedEnvelope: (connection, envelope, direction, localSessionId) => {
+          void this.enqueueObservedEnvelopePersistence(connection, envelope, direction, localSessionId).catch((error) => {
+            console.error("Failed to persist observed sandbox-agent envelope", error);
+          });
+        },
+        onPermissionRequest: async (connection, localSessionId, agentSessionId, request) => this.enqueuePermissionRequest(connection, localSessionId, agentSessionId, request)
+      });
+      const raced = this.liveConnections.get(agent);
+      if (raced) {
+        await created.close();
+        return raced;
+      }
+      this.liveConnections.set(agent, created);
+      return created;
+    })();
+    this.pendingLiveConnections.set(agent, creating);
+    try {
+      return await creating;
+    } finally {
+      if (this.pendingLiveConnections.get(agent) === creating) {
+        this.pendingLiveConnections.delete(agent);
+      }
+    }
+  }
+  async persistObservedEnvelope(connection, envelope, direction, localSessionId) {
+    if (!localSessionId) {
+      return;
+    }
+    let event = null;
+    for (let attempt = 0; attempt < MAX_EVENT_INDEX_INSERT_RETRIES; attempt += 1) {
+      event = {
+        id: randomId(),
+        eventIndex: await this.allocateSessionEventIndex(localSessionId),
+        sessionId: localSessionId,
+        createdAt: nowMs(),
+        connectionId: connection.connectionId,
+        sender: direction === "outbound" ? "client" : "agent",
+        payload: cloneEnvelope(envelope)
+      };
+      try {
+        await this.persist.insertEvent(localSessionId, event);
+        break;
+      } catch (error) {
+        if (!isSessionEventIndexConflict(error) || attempt === MAX_EVENT_INDEX_INSERT_RETRIES - 1) {
+          throw error;
+        }
+      }
+    }
+    if (!event) {
+      return;
+    }
+    await this.persistSessionStateFromEvent(localSessionId, envelope, direction);
+    const listeners = this.eventListeners.get(localSessionId);
+    if (!listeners || listeners.size === 0) {
+      return;
+    }
+    for (const listener of listeners) {
+      listener(event);
+    }
+  }
+  async enqueueObservedEnvelopePersistence(connection, envelope, direction, localSessionId) {
+    if (!localSessionId) {
+      return;
+    }
+    const previous = this.pendingObservedEnvelopePersistenceBySession.get(localSessionId) ?? Promise.resolve();
+    const current = previous.catch(() => {
+    }).then(() => this.persistObservedEnvelope(connection, envelope, direction, localSessionId));
+    this.pendingObservedEnvelopePersistenceBySession.set(localSessionId, current);
+    try {
+      await current;
+    } finally {
+      if (this.pendingObservedEnvelopePersistenceBySession.get(localSessionId) === current) {
+        this.pendingObservedEnvelopePersistenceBySession.delete(localSessionId);
+      }
+    }
+  }
+  async persistSessionStateFromEvent(sessionId, envelope, direction) {
+    if (direction !== "inbound") {
+      return;
+    }
+    if (envelopeMethod(envelope) !== "session/update") {
+      return;
+    }
+    const update = envelopeSessionUpdate(envelope);
+    if (!update || typeof update.sessionUpdate !== "string") {
+      return;
+    }
+    const record = await this.persist.getSession(sessionId);
+    if (!record) {
+      return;
+    }
+    if (update.sessionUpdate === "config_option_update") {
+      const configOptions = normalizeSessionConfigOptions(update.configOptions);
+      if (configOptions) {
+        await this.persist.updateSession({
+          ...record,
+          configOptions
+        });
+      }
+      return;
+    }
+    if (update.sessionUpdate === "current_mode_update") {
+      const modeId = typeof update.currentModeId === "string" ? update.currentModeId : null;
+      if (!modeId) {
+        return;
+      }
+      const nextModes = applyCurrentMode(record.modes, modeId);
+      if (!nextModes) {
+        return;
+      }
+      await this.persist.updateSession({
+        ...record,
+        modes: nextModes
+      });
+    }
+  }
+  async allocateSessionEventIndex(sessionId) {
+    await this.ensureSessionEventIndexSeeded(sessionId);
+    const nextIndex = this.nextSessionEventIndexBySession.get(sessionId) ?? 1;
+    this.nextSessionEventIndexBySession.set(sessionId, nextIndex + 1);
+    return nextIndex;
+  }
+  async ensureSessionEventIndexSeeded(sessionId) {
+    if (this.nextSessionEventIndexBySession.has(sessionId)) {
+      return;
+    }
+    if (!this.seedSessionEventIndexBySession.has(sessionId)) {
+      const pending2 = (async () => {
+        const maxPersistedIndex = await this.findMaxPersistedSessionEventIndex(sessionId);
+        this.nextSessionEventIndexBySession.set(sessionId, Math.max(1, maxPersistedIndex + 1));
+      })().finally(() => {
+        this.seedSessionEventIndexBySession.delete(sessionId);
+      });
+      this.seedSessionEventIndexBySession.set(sessionId, pending2);
+    }
+    const pending = this.seedSessionEventIndexBySession.get(sessionId);
+    if (pending) {
+      await pending;
+    }
+  }
+  async findMaxPersistedSessionEventIndex(sessionId) {
+    let maxIndex = 0;
+    let eventCursor;
+    while (true) {
+      const eventsPage = await this.persist.listEvents({
+        sessionId,
+        cursor: eventCursor,
+        limit: EVENT_INDEX_SCAN_EVENTS_LIMIT
+      });
+      for (const event of eventsPage.items) {
+        if (Number.isFinite(event.eventIndex) && event.eventIndex > maxIndex) {
+          maxIndex = Math.floor(event.eventIndex);
+        }
+      }
+      if (!eventsPage.nextCursor) {
+        break;
+      }
+      eventCursor = eventsPage.nextCursor;
+    }
+    return maxIndex;
+  }
+  async collectReplayEvents(sessionId, maxEvents) {
+    const all = [];
+    let cursor;
+    while (true) {
+      const page = await this.persist.listEvents({
+        sessionId,
+        cursor,
+        limit: Math.max(100, maxEvents)
+      });
+      all.push(...page.items);
+      if (!page.nextCursor) {
+        break;
+      }
+      cursor = page.nextCursor;
+    }
+    return all.slice(-maxEvents);
+  }
+  upsertSessionHandle(record) {
+    const existing = this.sessionHandles.get(record.id);
+    if (existing) {
+      existing.apply(record);
+      return existing;
+    }
+    const created = new Session(this, record);
+    this.sessionHandles.set(record.id, created);
+    return created;
+  }
+  async requireSessionRecord(id) {
+    const record = await this.persist.getSession(id);
+    if (!record) {
+      throw new Error(`session '${id}' not found`);
+    }
+    return record;
+  }
+  async enqueuePermissionRequest(_connection, localSessionId, agentSessionId, request) {
+    const listeners = this.permissionListeners.get(localSessionId);
+    if (!listeners || listeners.size === 0) {
+      return cancelledPermissionResponse();
+    }
+    const pendingId = randomId();
+    const permissionRequest = {
+      id: pendingId,
+      createdAt: nowMs(),
+      sessionId: localSessionId,
+      agentSessionId,
+      availableReplies: availablePermissionReplies(request.options),
+      options: request.options.map(clonePermissionOption),
+      toolCall: clonePermissionToolCall(request.toolCall),
+      rawRequest: clonePermissionRequest(request)
+    };
+    return await new Promise((resolve, reject) => {
+      this.pendingPermissionRequests.set(pendingId, {
+        id: pendingId,
+        sessionId: localSessionId,
+        request: clonePermissionRequest(request),
+        resolve,
+        reject
+      });
+      try {
+        for (const listener of listeners) {
+          listener(permissionRequest);
+        }
+      } catch (error) {
+        this.pendingPermissionRequests.delete(pendingId);
+        reject(error);
+      }
+    });
+  }
+  resolvePendingPermission(permissionId, response) {
+    const pending = this.pendingPermissionRequests.get(permissionId);
+    if (!pending) {
+      throw new Error(`permission '${permissionId}' not found`);
+    }
+    this.pendingPermissionRequests.delete(permissionId);
+    pending.resolve(response);
+  }
+  cancelPendingPermissionsForSession(sessionId) {
+    for (const [permissionId, pending] of this.pendingPermissionRequests) {
+      if (pending.sessionId !== sessionId) {
+        continue;
+      }
+      this.pendingPermissionRequests.delete(permissionId);
+      pending.resolve(cancelledPermissionResponse());
+    }
+  }
+  async requestJson(method, path, options = {}) {
+    const response = await this.requestRaw(method, path, {
+      query: options.query,
+      body: options.body,
+      headers: options.headers,
+      accept: options.accept ?? "application/json",
+      signal: options.signal,
+      skipReadyWait: options.skipReadyWait
+    });
+    if (response.status === 204) {
+      return void 0;
+    }
+    return await response.json();
+  }
+  async requestRaw(method, path, options = {}) {
+    if (!options.skipReadyWait) {
+      await this.awaitHealthy(options.signal);
+    }
+    const url = this.buildUrl(path, options.query);
+    const headers = this.buildHeaders(options.headers);
+    if (options.accept) {
+      headers.set("Accept", options.accept);
+    }
+    const init = {
+      method,
+      headers,
+      signal: options.signal
+    };
+    if (options.rawBody !== void 0 && options.body !== void 0) {
+      throw new Error("requestRaw received both rawBody and body");
+    }
+    if (options.rawBody !== void 0) {
+      if (options.contentType) {
+        headers.set("Content-Type", options.contentType);
+      }
+      init.body = options.rawBody;
+    } else if (options.body !== void 0) {
+      headers.set("Content-Type", "application/json");
+      init.body = JSON.stringify(options.body);
+    }
+    const response = await this.fetcher(url, init);
+    if (!response.ok) {
+      const problem = await readProblem(response);
+      throw new SandboxAgentError(response.status, problem, response);
+    }
+    return response;
+  }
+  startHealthWait() {
+    if (!this.healthWait.enabled || this.healthPromise) {
+      return;
+    }
+    this.healthPromise = this.runHealthWait().catch((error) => {
+      this.healthError = error instanceof Error ? error : new Error(String(error));
+    });
+  }
+  async awaitHealthy(signal) {
+    if (!this.healthPromise) {
+      throwIfAborted(signal);
+      return;
+    }
+    await waitForAbortable(this.healthPromise, signal);
+    throwIfAborted(signal);
+    if (this.healthError) {
+      throw this.healthError;
+    }
+  }
+  async runHealthWait() {
+    const signal = this.healthWait.enabled ? anyAbortSignal([this.healthWait.signal, this.healthWaitAbortController.signal]) : void 0;
+    const startedAt = Date.now();
+    const deadline = typeof this.healthWait.timeoutMs === "number" ? startedAt + this.healthWait.timeoutMs : void 0;
+    let delayMs = HEALTH_WAIT_MIN_DELAY_MS;
+    let nextLogAt = startedAt + HEALTH_WAIT_LOG_AFTER_MS;
+    let lastError;
+    let consecutiveFailures = 0;
+    while (!this.disposed && (deadline === void 0 || Date.now() < deadline)) {
+      throwIfAborted(signal);
+      try {
+        const health = await this.requestHealth({ signal });
+        if (health.status === "ok") {
+          return;
+        }
+        lastError = new Error(`Unexpected health response: ${JSON.stringify(health)}`);
+        consecutiveFailures++;
+      } catch (error) {
+        if (isAbortError(error)) {
+          throw error;
+        }
+        lastError = error;
+        consecutiveFailures++;
+      }
+      if (consecutiveFailures >= HEALTH_WAIT_ENSURE_SERVER_AFTER_FAILURES && this.sandboxProvider?.ensureServer && this.sandboxProviderRawId) {
+        try {
+          await this.sandboxProvider.ensureServer(this.sandboxProviderRawId);
+        } catch {
+        }
+        consecutiveFailures = 0;
+      }
+      const now = Date.now();
+      if (now >= nextLogAt) {
+        const details = formatHealthWaitError(lastError);
+        console.warn(`sandbox-agent at ${this.baseUrl} is not healthy after ${now - startedAt}ms; still waiting (${details})`);
+        nextLogAt = now + HEALTH_WAIT_LOG_EVERY_MS;
+      }
+      await sleep(delayMs, signal);
+      delayMs = Math.min(HEALTH_WAIT_MAX_DELAY_MS, delayMs * 2);
+    }
+    if (this.disposed) {
+      return;
+    }
+    throw new Error(`Timed out waiting for sandbox-agent health after ${this.healthWait.timeoutMs}ms (${formatHealthWaitError(lastError)})`);
+  }
+  buildHeaders(extra) {
+    const headers = new Headers(this.defaultHeaders ?? void 0);
+    if (this.token) {
+      headers.set("Authorization", `Bearer ${this.token}`);
+    }
+    if (extra) {
+      const merged = new Headers(extra);
+      merged.forEach((value, key) => headers.set(key, value));
+    }
+    return headers;
+  }
+  buildUrl(path, query) {
+    const url = new URL(`${this.baseUrl}${path}`);
+    if (query) {
+      Object.entries(query).forEach(([key, value]) => {
+        if (value === void 0 || value === null) {
+          return;
+        }
+        url.searchParams.set(key, String(value));
+      });
+    }
+    return url.toString();
+  }
+  async requestHealth(options = {}) {
+    return this.requestJson("GET", `${API_PREFIX}/health`, {
+      signal: options.signal,
+      skipReadyWait: true
+    });
+  }
+};
+function isSessionEventIndexConflict(error) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return /UNIQUE constraint failed: .*session_id, .*event_index/.test(error.message);
+}
+function parseProcessTerminalServerFrame(payload) {
+  try {
+    const parsed = JSON.parse(payload);
+    if (!isRecord(parsed) || typeof parsed.type !== "string") {
+      return null;
+    }
+    if (parsed.type === "ready" && typeof parsed.processId === "string") {
+      return parsed;
+    }
+    if (parsed.type === "exit" && (parsed.exitCode === void 0 || parsed.exitCode === null || typeof parsed.exitCode === "number")) {
+      return parsed;
+    }
+    if (parsed.type === "error" && typeof parsed.message === "string") {
+      return parsed;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+function encodeTerminalInput(data) {
+  if (typeof data === "string") {
+    return { data };
+  }
+  const bytes = encodeTerminalBytes(data);
+  return {
+    data: bytesToBase64(bytes),
+    encoding: "base64"
+  };
+}
+function encodeTerminalBytes(data) {
+  if (data instanceof ArrayBuffer) {
+    return new Uint8Array(data);
+  }
+  return new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice();
+}
+async function decodeTerminalBytes(data) {
+  if (data instanceof ArrayBuffer) {
+    return new Uint8Array(data);
+  }
+  if (ArrayBuffer.isView(data)) {
+    return new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice();
+  }
+  if (typeof Blob !== "undefined" && data instanceof Blob) {
+    return new Uint8Array(await data.arrayBuffer());
+  }
+  throw new Error(`Unsupported terminal frame payload: ${String(data)}`);
+}
+function bytesToBase64(bytes) {
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(bytes).toString("base64");
+  }
+  if (typeof btoa === "function") {
+    let binary = "";
+    const chunkSize = 32768;
+    for (let index = 0; index < bytes.length; index += chunkSize) {
+      binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+    }
+    return btoa(binary);
+  }
+  throw new Error("Base64 encoding is not available in this environment.");
+}
+async function autoAuthenticate(acp, methods) {
+  const envBased = methods.find((m) => m.id === "codex-api-key" || m.id === "openai-api-key" || m.id === "anthropic-api-key");
+  if (!envBased) {
+    return;
+  }
+  try {
+    await acp.authenticate({ methodId: envBased.id });
+  } catch {
+  }
+}
+function toAgentQuery(options) {
+  if (!options) {
+    return void 0;
+  }
+  return {
+    config: options.config,
+    no_cache: options.noCache
+  };
+}
+function normalizeSessionInit(value, cwdShorthand, providerDefaultCwd) {
+  if (!value) {
+    return {
+      cwd: cwdShorthand ?? providerDefaultCwd ?? defaultCwd(),
+      mcpServers: []
+    };
+  }
+  return {
+    ...value,
+    cwd: value.cwd ?? cwdShorthand ?? providerDefaultCwd ?? defaultCwd(),
+    mcpServers: value.mcpServers ?? []
+  };
+}
+function mapSessionParams(params, agentSessionId) {
+  return {
+    ...params,
+    sessionId: agentSessionId
+  };
+}
+function injectReplayPrompt(params, replayText) {
+  const prompt = Array.isArray(params.prompt) ? [...params.prompt] : [];
+  prompt.unshift({
+    type: "text",
+    text: replayText
+  });
+  params.prompt = prompt;
+}
+function buildReplayText(events, maxChars) {
+  if (events.length === 0) {
+    return null;
+  }
+  const prefix = "Previous session history is replayed below as JSON-RPC envelopes. Use it as context before responding to the latest user prompt.\n";
+  let text = prefix;
+  for (const event of events) {
+    const line = JSON.stringify({
+      createdAt: event.createdAt,
+      sender: event.sender,
+      payload: event.payload
+    });
+    if (text.length + line.length + 1 > maxChars) {
+      text += "\n[history truncated]";
+      break;
+    }
+    text += `${line}
+`;
+  }
+  return text;
+}
+function envelopeMethod(message) {
+  if (!isRecord(message) || !("method" in message) || typeof message["method"] !== "string") {
+    return null;
+  }
+  return message["method"];
+}
+function envelopeId(message) {
+  if (!isRecord(message) || !("id" in message) || message["id"] === void 0 || message["id"] === null) {
+    return null;
+  }
+  return String(message["id"]);
+}
+function envelopeSessionIdFromParams(message) {
+  if (!isRecord(message) || !("params" in message) || !isRecord(message["params"])) {
+    return null;
+  }
+  const params = message["params"];
+  if (typeof params.sessionId === "string" && params.sessionId.length > 0) {
+    return params.sessionId;
+  }
+  return null;
+}
+function envelopeSessionIdFromResult(message) {
+  if (!isRecord(message) || !("result" in message) || !isRecord(message["result"])) {
+    return null;
+  }
+  const result = message["result"];
+  if (typeof result.sessionId === "string" && result.sessionId.length > 0) {
+    return result.sessionId;
+  }
+  return null;
+}
+function cloneEnvelope(envelope) {
+  return JSON.parse(JSON.stringify(envelope));
+}
+function clonePermissionRequest(request) {
+  return JSON.parse(JSON.stringify(request));
+}
+function clonePermissionResponse(response) {
+  return JSON.parse(JSON.stringify(response));
+}
+function clonePermissionOption(option) {
+  return {
+    optionId: option.optionId,
+    name: option.name,
+    kind: option.kind
+  };
+}
+function clonePermissionToolCall(toolCall) {
+  return JSON.parse(JSON.stringify(toolCall));
+}
+function isRecord(value) {
+  return typeof value === "object" && value !== null;
+}
+function randomId() {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+function nowMs() {
+  return Date.now();
+}
+function defaultCwd() {
+  if (typeof process !== "undefined" && typeof process.cwd === "function") {
+    return process.cwd();
+  }
+  return "/";
+}
+function normalizePositiveInt(value, fallback) {
+  if (!Number.isFinite(value) || (value ?? 0) < 1) {
+    return fallback;
+  }
+  return Math.floor(value);
+}
+function normalizeHealthWaitOptions(skipHealthCheck, waitForHealth, signal) {
+  if (skipHealthCheck === true || waitForHealth === false) {
+    return { enabled: false };
+  }
+  if (waitForHealth === true || waitForHealth === void 0) {
+    return { enabled: true, signal };
+  }
+  const timeoutMs = typeof waitForHealth.timeoutMs === "number" && Number.isFinite(waitForHealth.timeoutMs) && waitForHealth.timeoutMs > 0 ? Math.floor(waitForHealth.timeoutMs) : void 0;
+  return {
+    enabled: true,
+    signal,
+    timeoutMs
+  };
+}
+function parseSandboxProviderId(sandboxId) {
+  const slashIndex = sandboxId.indexOf("/");
+  if (slashIndex < 1 || slashIndex === sandboxId.length - 1) {
+    throw new Error(`Sandbox IDs must be prefixed as "{provider}/{id}". Received '${sandboxId}'.`);
+  }
+  return {
+    provider: sandboxId.slice(0, slashIndex),
+    rawId: sandboxId.slice(slashIndex + 1)
+  };
+}
+function requireSandboxBaseUrl(baseUrl, providerName) {
+  if (!baseUrl) {
+    throw new Error(`Sandbox provider '${providerName}' did not return a base URL.`);
+  }
+  return baseUrl;
+}
+async function resolveProviderFetch(provider, rawSandboxId) {
+  if (provider.getFetch) {
+    return await provider.getFetch(rawSandboxId);
+  }
+  return void 0;
+}
+async function resolveProviderToken(provider, rawSandboxId) {
+  const maybeGetToken = provider.getToken;
+  if (typeof maybeGetToken !== "function") {
+    return void 0;
+  }
+  const token = await maybeGetToken.call(provider, rawSandboxId);
+  return typeof token === "string" && token ? token : void 0;
+}
+async function readProblem(response) {
+  try {
+    const text = await response.clone().text();
+    if (!text) {
+      return void 0;
+    }
+    return JSON.parse(text);
+  } catch {
+    return void 0;
+  }
+}
+function normalizeSessionConfigOptions(value) {
+  if (!Array.isArray(value)) {
+    return void 0;
+  }
+  const normalized = value.filter(isSessionConfigOption);
+  return cloneConfigOptions(normalized) ?? [];
+}
+function extractConfigOptionsFromSetResponse(response) {
+  if (!isRecord(response)) {
+    return void 0;
+  }
+  return normalizeSessionConfigOptions(response.configOptions);
+}
+function findConfigOptionByCategory(options, category) {
+  return options.find((option) => option.category === category);
+}
+function findConfigOptionById(options, configId) {
+  return options.find((option) => option.id === configId);
+}
+function uniqueCategories(options) {
+  return [...new Set(options.map((option) => option.category).filter((value) => !!value))].sort();
+}
+function extractConfigValues(option) {
+  if (!isRecord(option) || option.type !== "select" || !Array.isArray(option.options)) {
+    return [];
+  }
+  const values = [];
+  for (const entry of option.options) {
+    if (isRecord(entry) && typeof entry.value === "string") {
+      values.push(entry.value);
+      continue;
+    }
+    if (isRecord(entry) && Array.isArray(entry.options)) {
+      for (const nested of entry.options) {
+        if (isRecord(nested) && typeof nested.value === "string") {
+          values.push(nested.value);
+        }
+      }
+    }
+  }
+  return [...new Set(values)];
+}
+function extractKnownModeIds(modes) {
+  if (!modes || !Array.isArray(modes.availableModes)) {
+    return [];
+  }
+  return modes.availableModes.map((mode) => typeof mode.id === "string" ? mode.id : null).filter((value) => !!value);
+}
+function deriveModesFromConfigOptions(configOptions) {
+  if (!configOptions || configOptions.length === 0) {
+    return null;
+  }
+  const modeOption = findConfigOptionByCategory(configOptions, "mode");
+  if (!modeOption || modeOption.type !== "select" || !Array.isArray(modeOption.options)) {
+    return null;
+  }
+  const availableModes = modeOption.options.flatMap((entry) => flattenConfigOptions(entry)).map((entry) => ({
+    id: entry.value,
+    name: entry.name,
+    description: entry.description ?? null
+  }));
+  return {
+    currentModeId: typeof modeOption.currentValue === "string" && modeOption.currentValue.length > 0 ? modeOption.currentValue : availableModes[0]?.id ?? "",
+    availableModes
+  };
+}
+function applyCurrentMode(modes, currentModeId) {
+  if (modes && Array.isArray(modes.availableModes)) {
+    return {
+      ...modes,
+      currentModeId
+    };
+  }
+  return {
+    currentModeId,
+    availableModes: []
+  };
+}
+function applyConfigOptionValue(configOptions, configId, value) {
+  const idx = configOptions.findIndex((o) => o.id === configId);
+  if (idx === -1) {
+    return null;
+  }
+  const updated = cloneConfigOptions(configOptions) ?? [];
+  updated[idx] = { ...updated[idx], currentValue: value };
+  return updated;
+}
+function flattenConfigOptions(entry) {
+  if (!isRecord(entry)) {
+    return [];
+  }
+  if (typeof entry.value === "string" && typeof entry.name === "string") {
+    return [
+      {
+        value: entry.value,
+        name: entry.name,
+        description: typeof entry.description === "string" ? entry.description : void 0
+      }
+    ];
+  }
+  if (!Array.isArray(entry.options)) {
+    return [];
+  }
+  return entry.options.flatMap((nested) => flattenConfigOptions(nested));
+}
+function envelopeSessionUpdate(message) {
+  if (!isRecord(message) || !("params" in message) || !isRecord(message.params)) {
+    return null;
+  }
+  if (!("update" in message.params) || !isRecord(message.params.update)) {
+    return null;
+  }
+  return message.params.update;
+}
+function cloneConfigOptions(value) {
+  if (!value) {
+    return void 0;
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+function cloneModes(value) {
+  if (!value) {
+    return null;
+  }
+  return JSON.parse(JSON.stringify(value));
+}
+function availablePermissionReplies(options) {
+  const replies = /* @__PURE__ */ new Set();
+  for (const option of options) {
+    if (option.kind === "allow_once") {
+      replies.add("once");
+    } else if (option.kind === "allow_always") {
+      replies.add("always");
+    } else if (option.kind === "reject_once" || option.kind === "reject_always") {
+      replies.add("reject");
+    }
+  }
+  return [...replies];
+}
+function permissionReplyToResponse(permissionId, request, reply) {
+  const preferredKinds = reply === "once" ? ["allow_once"] : reply === "always" ? ["allow_always", "allow_once"] : ["reject_once", "reject_always"];
+  const selected = preferredKinds.map((kind) => request.options.find((option) => option.kind === kind)).find((option) => Boolean(option));
+  if (!selected) {
+    throw new UnsupportedPermissionReplyError(permissionId, reply, availablePermissionReplies(request.options));
+  }
+  return {
+    outcome: {
+      outcome: "selected",
+      optionId: selected.optionId
+    }
+  };
+}
+function cancelledPermissionResponse() {
+  return {
+    outcome: {
+      outcome: "cancelled"
+    }
+  };
+}
+function isSessionConfigOption(value) {
+  return isRecord(value) && typeof value.id === "string" && typeof value.name === "string" && typeof value.type === "string";
+}
+function toTitleCase(input) {
+  if (!input) {
+    return "";
+  }
+  return input.split(/[_\s-]+/).filter(Boolean).map((part) => part[0].toUpperCase() + part.slice(1)).join("");
+}
+function formatHealthWaitError(error) {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  if (error === void 0 || error === null) {
+    return "unknown error";
+  }
+  return String(error);
+}
+function anyAbortSignal(signals) {
+  const active = signals.filter((signal) => Boolean(signal));
+  if (active.length === 0) {
+    return void 0;
+  }
+  if (active.length === 1) {
+    return active[0];
+  }
+  const controller = new AbortController();
+  const onAbort = (event) => {
+    cleanup();
+    const signal = event.target;
+    controller.abort(signal.reason ?? createAbortError());
+  };
+  const cleanup = () => {
+    for (const signal of active) {
+      signal.removeEventListener("abort", onAbort);
+    }
+  };
+  for (const signal of active) {
+    if (signal.aborted) {
+      controller.abort(signal.reason ?? createAbortError());
+      return controller.signal;
+    }
+  }
+  for (const signal of active) {
+    signal.addEventListener("abort", onAbort, { once: true });
+  }
+  return controller.signal;
+}
+function throwIfAborted(signal) {
+  if (!signal?.aborted) {
+    return;
+  }
+  throw signal.reason instanceof Error ? signal.reason : createAbortError(signal.reason);
+}
+async function waitForAbortable(promise, signal) {
+  if (!signal) {
+    return promise;
+  }
+  throwIfAborted(signal);
+  return new Promise((resolve, reject) => {
+    const onAbort = () => {
+      cleanup();
+      reject(signal.reason instanceof Error ? signal.reason : createAbortError(signal.reason));
+    };
+    const cleanup = () => {
+      signal.removeEventListener("abort", onAbort);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => {
+        cleanup();
+        resolve(value);
+      },
+      (error) => {
+        cleanup();
+        reject(error);
+      }
+    );
+  });
+}
+async function consumeProcessLogSse(body, listener, signal) {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  try {
+    while (!signal.aborted) {
+      const { done, value } = await reader.read();
+      if (done) {
+        return;
+      }
+      buffer += decoder.decode(value, { stream: true }).replace(/\r\n/g, "\n");
+      let separatorIndex = buffer.indexOf("\n\n");
+      while (separatorIndex !== -1) {
+        const chunk = buffer.slice(0, separatorIndex);
+        buffer = buffer.slice(separatorIndex + 2);
+        const entry = parseProcessLogSseChunk(chunk);
+        if (entry) {
+          listener(entry);
+        }
+        separatorIndex = buffer.indexOf("\n\n");
+      }
+    }
+  } catch (error) {
+    if (signal.aborted || isAbortError(error)) {
+      return;
+    }
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+}
+function parseProcessLogSseChunk(chunk) {
+  if (!chunk.trim()) {
+    return null;
+  }
+  let eventName = "message";
+  const dataLines = [];
+  for (const line of chunk.split("\n")) {
+    if (!line || line.startsWith(":")) {
+      continue;
+    }
+    if (line.startsWith("event:")) {
+      eventName = line.slice(6).trim();
+      continue;
+    }
+    if (line.startsWith("data:")) {
+      dataLines.push(line.slice(5).trimStart());
+    }
+  }
+  if (eventName !== "log") {
+    return null;
+  }
+  const data = dataLines.join("\n");
+  if (!data.trim()) {
+    return null;
+  }
+  return JSON.parse(data);
+}
+function toWebSocketUrl(url) {
+  const parsed = new URL(url);
+  if (parsed.protocol === "http:") {
+    parsed.protocol = "ws:";
+  } else if (parsed.protocol === "https:") {
+    parsed.protocol = "wss:";
+  }
+  return parsed.toString();
+}
+function isAbortError(error) {
+  return error instanceof Error && error.name === "AbortError";
+}
+function createAbortError(reason) {
+  if (reason instanceof Error) {
+    return reason;
+  }
+  const message = typeof reason === "string" ? reason : "This operation was aborted.";
+  if (typeof DOMException !== "undefined") {
+    return new DOMException(message, "AbortError");
+  }
+  const error = new Error(message);
+  error.name = "AbortError";
+  return error;
+}
+function sleep(ms, signal) {
+  if (!signal) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+  throwIfAborted(signal);
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      cleanup();
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      cleanup();
+      reject(signal.reason instanceof Error ? signal.reason : createAbortError(signal.reason));
+    };
+    const cleanup = () => {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", onAbort);
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+export {
+  DesktopStreamSession,
+  InMemorySessionPersistDriver,
+  SandboxAgentError,
+  SandboxDestroyedError,
+  UnsupportedSessionCategoryError,
+  UnsupportedSessionValueError,
+  UnsupportedSessionConfigOptionError,
+  UnsupportedPermissionReplyError,
+  Session,
+  LiveAcpConnection,
+  ProcessTerminalSession,
+  SandboxAgent
+};
+//# sourceMappingURL=chunk-TVCDKGSM.js.map

@@ -1,0 +1,10 @@
+export declare const TEXT_DECODER_THRESHOLD = 256;
+export declare const TEXT_ENCODER_THRESHOLD = 256;
+export declare const INT_SAFE_MAX_BYTE_COUNT = 8;
+export declare const UINT_MAX_BYTE_COUNT = 10;
+export declare const UINT_SAFE32_MAX_BYTE_COUNT = 5;
+export declare const INVALID_UTF8_STRING = "invalid UTF-8 string";
+export declare const NON_CANONICAL_REPRESENTATION = "must be canonical";
+export declare const TOO_LARGE_BUFFER = "too large buffer";
+export declare const TOO_LARGE_NUMBER = "too large number";
+export declare const IS_LITTLE_ENDIAN_PLATFORM: boolean;

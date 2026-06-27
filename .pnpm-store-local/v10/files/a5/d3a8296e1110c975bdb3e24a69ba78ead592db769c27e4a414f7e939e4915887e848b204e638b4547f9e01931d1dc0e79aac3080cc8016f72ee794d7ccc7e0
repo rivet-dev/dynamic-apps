@@ -1,0 +1,142 @@
+"use strict";
+//! Copyright (c) 2022 Victorien Elvinger
+//! Licensed under the MIT License (https://mit-license.org/)
+export const NULL_LITERAL_VAL = { type: "null", val: null };
+export const UNDEFINED_LITERAL_VAL = { type: "undefined", val: null };
+export function literalVal(literal) {
+  switch (literal.type) {
+    case "bigint":
+      return BigInt(literal.val);
+    case "number":
+    case "string":
+      return literal.val;
+    case "false":
+      return false;
+    case "null":
+      return null;
+    case "true":
+      return true;
+    case "undefined":
+      return void 0;
+  }
+}
+export function isBaseTag(tag) {
+  return BASE_TAG_SET.has(tag);
+}
+export function isBaseType(type) {
+  return isBaseTag(type.tag);
+}
+export function isBaseOrVoidType(type) {
+  return isBaseType(type) || type.tag === "void";
+}
+export function isFixedNumericTag(tag) {
+  return FIXED_NUMERIC_TAG_SET.has(tag);
+}
+export const FIXED_NUMERIC_TAG = [
+  "f32",
+  "f64",
+  "i8",
+  "i16",
+  "i32",
+  "i64",
+  "u8",
+  "u16",
+  "u32",
+  "u64"
+];
+export const NUMERIC_TAG = [...FIXED_NUMERIC_TAG, "int", "uint"];
+export const BASE_TAG = [...NUMERIC_TAG, "bool", "str"];
+const FIXED_NUMERIC_TAG_SET = new Set(FIXED_NUMERIC_TAG);
+const BASE_TAG_SET = new Set(BASE_TAG);
+export const FIXED_NUMERIC_TYPE_TO_TYPED_ARRAY = /* @__PURE__ */ new Map([
+  ["f32", "Float32Array"],
+  ["f64", "Float64Array"],
+  ["i8", "Int8Array"],
+  ["i16", "Int16Array"],
+  ["i32", "Int32Array"],
+  ["i64", "BigInt64Array"],
+  ["u8", "Uint8Array"],
+  ["u16", "Uint16Array"],
+  ["u32", "Uint32Array"],
+  ["u64", "BigUint64Array"]
+]);
+export function maxVal(data) {
+  return data.reduce((max, v) => Math.max(max, v.val), 0);
+}
+export function symbols(schema) {
+  const result = /* @__PURE__ */ new Map();
+  for (const aliased of schema.defs) {
+    result.set(aliased.alias, aliased);
+  }
+  return result;
+}
+export function resolveAlias(type, symbols2) {
+  if (type.tag === "alias") {
+    const aliasedType = symbols2.get(type.data);
+    if (aliasedType != null) {
+      return resolveAlias(aliasedType.type, symbols2);
+    }
+  }
+  return type;
+}
+export function rootAliases(defs) {
+  const referred = new Set(defs.flatMap((x) => referredAliases(x.type)));
+  return defs.filter((x) => !referred.has(x.alias)).map((x) => x.alias);
+}
+function referredAliases(type) {
+  if (type.tag === "alias") {
+    return [type.data];
+  }
+  if (type.types != null) {
+    return type.types.flatMap((t) => referredAliases(t));
+  }
+  return [];
+}
+export function typeofValue(type) {
+  switch (type.tag) {
+    case "bool":
+      return "boolean";
+    case "str":
+      return "string";
+    case "i64":
+    case "int":
+    case "u64":
+    case "uint":
+      return type.extra?.safe ? "number" : "bigint";
+  }
+  return "number";
+}
+export function leadingDiscriminators(structs) {
+  if (structs.length > 0) {
+    const literals = /* @__PURE__ */ new Set();
+    const type0LeadingField = structs[0].data[0];
+    for (const struct of structs) {
+      const fields = struct.data;
+      if (fields.length === 0 || fields[0].name !== type0LeadingField.name || struct.types[0].tag !== "void" || struct.types[0].extra == null || literals.has(literalVal(struct.types[0].extra.literal))) {
+        return null;
+      }
+      literals.add(literalVal(struct.types[0].extra.literal));
+    }
+    return Array.from(literals.values());
+  }
+  return null;
+}
+export function haveDistinctTypeof(types) {
+  const typeofValues = types.map(
+    (t) => isBaseType(t) ? typeofValue(t) : null
+  );
+  return types.length === new Set(typeofValues).size;
+}
+export function withoutOffset(type) {
+  return JSON.parse(
+    JSON.stringify(type, (name, val) => name === "offset" ? 0 : val)
+  );
+}
+export function withoutExtra(type) {
+  return JSON.parse(
+    JSON.stringify(
+      type,
+      (name, val) => name === "comment" ? "" : name === "extra" ? null : name === "offset" ? 0 : val
+    )
+  );
+}

@@ -1,0 +1,64 @@
+"use strict";
+//! Copyright (c) 2022 Victorien Elvinger
+//! Licensed under the MIT License (https://mit-license.org/)
+import { CompilerError } from "../core/compiler-error.js";
+const WHITE_SPACE_PATTERN = /\s/;
+const PUNCTUATION_PATTERN = /[{}[\]()<>=|:,;.!?~+\\/$@#-]/;
+const ID_PATTERN = /\w+/;
+export function create(content) {
+  const result = {
+    content,
+    offset: 0,
+    comment: "",
+    token: ""
+  };
+  nextToken(result);
+  return result;
+}
+export function nextToken(lex) {
+  let { content, offset, comment, token } = lex;
+  if (token !== "") {
+    comment = "";
+  }
+  offset += token.length;
+  token = "";
+  while (offset < content.length) {
+    const c = content[offset];
+    if (c === "#") {
+      let index = content.indexOf("\n", offset + 1);
+      if (index === -1) {
+        index = content.length;
+      }
+      comment += content.slice(offset + 1, index);
+      offset = index;
+    } else if (WHITE_SPACE_PATTERN.test(c)) {
+      if (c === "\n") {
+        if (comment !== "") {
+          comment += "\n";
+          if (comment.endsWith("\n\n")) {
+            comment = "";
+          }
+        }
+      }
+      offset++;
+    } else {
+      if (PUNCTUATION_PATTERN.test(c)) {
+        token = c;
+        break;
+      }
+      const suffix = content.slice(offset);
+      const match = suffix.match(ID_PATTERN);
+      if (match == null) {
+        throw new CompilerError(
+          `character '${c}' cannot be handled. BARE only supports ASCII characters for identifiers.`,
+          offset
+        );
+      }
+      token = match[0];
+      break;
+    }
+  }
+  lex.offset = offset;
+  lex.comment = comment;
+  lex.token = token;
+}

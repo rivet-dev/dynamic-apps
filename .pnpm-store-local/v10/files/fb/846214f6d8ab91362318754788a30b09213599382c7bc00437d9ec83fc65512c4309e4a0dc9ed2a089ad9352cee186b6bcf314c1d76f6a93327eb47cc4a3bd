@@ -1,0 +1,12 @@
+export declare const ALL_CASE_RE: RegExp;
+export declare const CAMEL_CASE_RE: RegExp;
+export declare const CONSTANT_CASE_RE: RegExp;
+export declare const PASCAL_CASE_RE: RegExp;
+export declare function capitalize(s: string): string;
+export declare function softSpace(s: string): string;
+export declare function jsDoc(content: string): string;
+export declare function jsRpr(v: unknown): string;
+export declare function toCamelCase(s: string): string;
+export declare function toPascalCase(s: string): string;
+export declare function toConstantCase(s: string): string;
+export declare function dent(chunks: TemplateStringsArray, ...values: readonly unknown[]): string;

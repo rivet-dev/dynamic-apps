@@ -1,0 +1,9 @@
+import { S as SandboxProvider } from '../types-DdcvY5CI.js';
+
+interface VercelProviderOptions {
+    create?: Record<string, unknown> | (() => Record<string, unknown> | Promise<Record<string, unknown>>);
+    agentPort?: number;
+}
+declare function vercel(options?: VercelProviderOptions): SandboxProvider;
+
+export { type VercelProviderOptions, vercel };

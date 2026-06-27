@@ -1,0 +1,64 @@
+import {
+  DEFAULT_SANDBOX_AGENT_IMAGE
+} from "../chunk-7BNDCDDU.js";
+
+// src/providers/modal.ts
+import { ModalClient } from "modal";
+var DEFAULT_AGENT_PORT = 3e3;
+var DEFAULT_APP_NAME = "sandbox-agent";
+var DEFAULT_MEMORY_MIB = 2048;
+async function resolveCreateOptions(value) {
+  if (!value) return {};
+  return typeof value === "function" ? await value() : value;
+}
+function modal(options = {}) {
+  const agentPort = options.agentPort ?? DEFAULT_AGENT_PORT;
+  const client = new ModalClient();
+  return {
+    name: "modal",
+    defaultCwd: "/root",
+    async create() {
+      const createOpts = await resolveCreateOptions(options.create);
+      const appName = createOpts.appName ?? DEFAULT_APP_NAME;
+      const baseImage = options.image ?? DEFAULT_SANDBOX_AGENT_IMAGE;
+      const app = await client.apps.fromName(appName, { createIfMissing: true });
+      const image = typeof baseImage === "string" ? client.images.fromRegistry(baseImage) : baseImage;
+      const envVars = createOpts.secrets ?? {};
+      const secrets = Object.keys(envVars).length > 0 ? [await client.secrets.fromObject(envVars)] : [];
+      const sandboxCreateOpts = { ...createOpts };
+      delete sandboxCreateOpts.appName;
+      delete sandboxCreateOpts.secrets;
+      const extraPorts = createOpts.encryptedPorts ?? [];
+      delete sandboxCreateOpts.encryptedPorts;
+      const sb = await client.sandboxes.create(app, image, {
+        ...sandboxCreateOpts,
+        encryptedPorts: [agentPort, ...extraPorts],
+        secrets,
+        memoryMiB: sandboxCreateOpts.memoryMiB ?? DEFAULT_MEMORY_MIB
+      });
+      sb.exec(["sandbox-agent", "server", "--no-token", "--host", "0.0.0.0", "--port", String(agentPort)]);
+      return sb.sandboxId;
+    },
+    async destroy(sandboxId) {
+      const sb = await client.sandboxes.fromId(sandboxId);
+      await sb.terminate();
+    },
+    async getUrl(sandboxId) {
+      const sb = await client.sandboxes.fromId(sandboxId);
+      const tunnels = await sb.tunnels();
+      const tunnel = tunnels[agentPort];
+      if (!tunnel) {
+        throw new Error(`modal: no tunnel found for port ${agentPort}`);
+      }
+      return tunnel.url;
+    },
+    async ensureServer(sandboxId) {
+      const sb = await client.sandboxes.fromId(sandboxId);
+      sb.exec(["sandbox-agent", "server", "--no-token", "--host", "0.0.0.0", "--port", String(agentPort)]);
+    }
+  };
+}
+export {
+  modal
+};
+//# sourceMappingURL=modal.js.map

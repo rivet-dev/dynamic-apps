@@ -1,0 +1,745 @@
+/* ============================================================================
+   Rivet docs theme — the Rivet docs "porcelain" design (rivet.dev/docs) on
+   Starlight. Light-only. Self-hosted Manrope + JetBrains Mono. Ink text,
+   pine-green structure, orange accent, dark code blocks on a fine-grained
+   porcelain field. Shared across Rivet OSS projects via @rivet-dev/docs-theme.
+   ============================================================================ */
+
+/* --- Fonts (self-hosted variable fonts, shipped inside this package) ------ */
+@font-face {
+	font-family: "Manrope";
+	src: url("../../fonts/Manrope-Variable-latin.woff2") format("woff2");
+	font-weight: 200 800;
+	font-style: normal;
+	font-display: swap;
+}
+@font-face {
+	font-family: "JetBrains Mono";
+	src: url("../../fonts/JetBrainsMono-Variable-latin.woff2") format("woff2");
+	font-weight: 100 800;
+	font-style: normal;
+	font-display: swap;
+}
+
+/* --- Palette tokens (mirrors the Rivet Tailwind config) ------------------- */
+:root {
+	--se-paper: #efefef;
+	--se-paper-deep: #dcdcde;
+	--se-ink: #1b1916;
+	--se-ink-soft: #56524a;
+	--se-ink-faint: #8a8478;
+	--se-cream: #f4f1e7;
+	--se-pine: #2e4034;
+	--se-olive: #5c6b4f;
+	--se-accent: #cb5a33;
+	--se-hairline: rgba(27, 25, 22, 0.1);
+	--se-hairline-strong: rgba(27, 25, 22, 0.15);
+
+	--sl-font: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+	--sl-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+	/* Layout — Rivet uses a 20rem sidebar, a 52rem prose column, and a
+	   two-row header that is 8.0625rem (129px) tall. */
+	--sl-sidebar-width: 20rem;
+	--sl-content-width: 52rem;
+	--sl-nav-height: 4rem; /* single-row header (no secondary tab bar) */
+	--sl-nav-pad-x: 2rem; /* 32px header gutter, matching Rivet */
+	--sl-mobile-toc-height: 3rem;
+}
+
+/* Force the porcelain palette regardless of the stored theme. The site is
+   light-only (matching Rivet docs), so light and dark resolve identically and
+   the toggle is removed in config. */
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"] {
+	color-scheme: light;
+
+	--sl-color-white: #1b1916; /* headings / strong text */
+	--sl-color-gray-1: #1b1916;
+	--sl-color-gray-2: #2a2823;
+	--sl-color-gray-3: #56524a; /* ink-soft */
+	--sl-color-gray-4: #6f6a60;
+	--sl-color-gray-5: #8a8478; /* ink-faint */
+	--sl-color-gray-6: #dcdcde;
+	--sl-color-gray-7: #e8e8ea;
+	--sl-color-black: #efefef;
+
+	--sl-color-text: #56524a; /* body */
+	--sl-color-text-accent: #2e4034; /* links — pine */
+
+	--sl-color-accent-low: #d7ddd6;
+	--sl-color-accent: #2e4034;
+	--sl-color-accent-high: #1f2c24;
+
+	--sl-color-bg: #efefef;
+	--sl-color-bg-nav: rgba(239, 239, 239, 0.95);
+	--sl-color-bg-sidebar: transparent;
+	--sl-color-bg-inline-code: rgba(27, 25, 22, 0.06);
+	--sl-color-bg-accent: #2e4034;
+
+	--sl-color-hairline: var(--se-hairline);
+	--sl-color-hairline-light: var(--se-hairline);
+	--sl-color-hairline-shade: var(--se-hairline);
+
+	--sl-color-text-invert: #f4f1e7;
+}
+
+/* --- Page field: porcelain with a baked-in fine grain --------------------- */
+html,
+body {
+	background-color: var(--se-paper);
+}
+body {
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.045 0'/></filter><rect width='240' height='240' filter='url(%23n)'/></svg>");
+}
+
+/* Orange text selection, matching Rivet. Long-form prose gets a softer pine
+   wash so selected glyphs stay legible. */
+::selection {
+	background-color: var(--se-accent);
+	color: var(--se-cream);
+}
+.sl-markdown-content ::selection {
+	background-color: rgba(46, 64, 52, 0.16);
+	color: inherit;
+}
+
+/* ============================================================================
+   Typography / prose
+   ============================================================================ */
+.sl-markdown-content {
+	font-size: 1rem;
+	line-height: 1.75;
+}
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) {
+	display: block; /* some upstream reset leaves these inline, which drops their
+	                   line-height and vertical margins; restore block flow */
+	color: var(--se-ink);
+	font-weight: 500;
+	letter-spacing: -0.014em;
+}
+/* Rivet heading rhythm (margins around block headings). */
+.sl-markdown-content h2 {
+	margin-top: 3rem;
+	margin-bottom: 1.5rem;
+	letter-spacing: -0.025em; /* Rivet tracks h2 slightly tighter */
+}
+/* Rivet inter-paragraph rhythm is 20px (Starlight ships 16px top / 0 bottom). */
+.sl-markdown-content > p {
+	margin-top: 1.25rem;
+	margin-bottom: 1.25rem;
+}
+.sl-markdown-content h3 {
+	margin-top: 2rem;
+	margin-bottom: 0.75rem;
+}
+/* Rivet heading scale: h1 36px, h2 24px, h3 20px, all weight 500. */
+.sl-markdown-content h2 {
+	font-size: 1.5rem;
+	line-height: 2rem;
+}
+.sl-markdown-content h3 {
+	font-size: 1.25rem;
+	line-height: 2rem; /* 32px — Rivet (was 28px, ran short) */
+}
+/* Lists — match Rivet's measure (26px indent) and item rhythm (8px around
+   each <li>); Starlight ships a 40px indent with no item spacing. */
+.sl-markdown-content :is(ul, ol) {
+	padding-inline-start: 1.625rem;
+}
+.sl-markdown-content :is(ul, ol) li {
+	margin-block: 0.5rem;
+}
+/* Page <h1> rendered by PageTitle */
+.content-panel h1,
+h1#_top {
+	color: var(--se-ink);
+	font-weight: 500;
+	letter-spacing: -0.025em;
+	font-size: 2.25rem;
+	line-height: 2.5rem;
+	margin-bottom: 2rem; /* Rivet spacing below the page title */
+}
+.sl-markdown-content a {
+	color: var(--se-pine);
+	text-decoration-color: rgba(46, 64, 52, 0.35);
+	text-underline-offset: 3px;
+	font-weight: 500;
+}
+.sl-markdown-content a:hover {
+	text-decoration-color: var(--se-pine);
+}
+.sl-markdown-content strong {
+	color: var(--se-ink);
+	font-weight: 600;
+}
+/* Inline code — Rivet keeps it unboxed: ink text at the body size, no fill
+   or border (the backtick markers are suppressed too). */
+.sl-markdown-content :not(pre) > code {
+	background-color: transparent;
+	border: none;
+	color: var(--se-ink);
+	border-radius: 0;
+	font-size: 1em;
+	padding: 0;
+}
+/* Tables */
+.sl-markdown-content :is(th, td) {
+	border-color: var(--se-hairline);
+}
+.sl-markdown-content th {
+	color: var(--se-ink);
+}
+.sl-markdown-content hr {
+	border-color: var(--se-hairline);
+}
+.sl-markdown-content blockquote {
+	border-inline-start-color: var(--se-pine);
+	color: var(--se-ink-soft);
+}
+
+/* The lead paragraph (page description under the title) */
+.content-panel .sl-markdown-content > p:first-of-type {
+	color: var(--se-ink-soft);
+}
+
+/* Starlight draws a divider line between the title panel and the content panel;
+   Rivet has none — remove it. */
+.content-panel + .content-panel {
+	border-top: none;
+}
+
+/* Heading permalink (Starlight's .sl-anchor-link) — it inherits the heading
+   wrapper's large font-size, so the icon balloons (and inflates the heading
+   box). Pin it to a small, quiet hover icon like Rivet's. */
+.sl-heading-wrapper {
+	font-size: inherit;
+	position: relative;
+}
+/* Rivet's permalink is an outline icon button to the left of the heading,
+   revealed on hover, that fills ink on its own hover. */
+.sl-anchor-link {
+	position: absolute;
+	top: 0.25rem; /* Rivet top-1 */
+	inset-inline-start: -2.5rem; /* Rivet -left-10 */
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border: 1px solid var(--se-hairline-strong);
+	border-radius: 0.375rem;
+	background: rgba(255, 255, 255, 0.55);
+	color: var(--se-ink-soft);
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.15s, color 0.15s, background 0.15s, border-color 0.15s;
+}
+/* Transparent bridge from the button to the heading so moving the cursor left
+   to click it doesn't drop the hover (Rivet uses pr-10 for the same reason). */
+.sl-anchor-link::after {
+	content: "";
+	position: absolute;
+	inset-inline-start: 100%;
+	top: 0;
+	width: 2.5rem;
+	height: 100%;
+}
+.sl-heading-wrapper:hover .sl-anchor-link,
+.sl-anchor-link:focus {
+	opacity: 1;
+	pointer-events: auto;
+}
+.sl-anchor-link:hover {
+	background: var(--se-ink);
+	border-color: var(--se-ink);
+	color: var(--se-cream);
+}
+.sl-anchor-icon,
+.sl-anchor-icon svg {
+	width: 0.875rem;
+	height: 0.875rem;
+}
+
+/* ============================================================================
+   Sidebar — thin left-border rail, bold section labels, pine active state
+   ============================================================================ */
+.sidebar-pane {
+	background-color: transparent;
+	border-inline-end: 1px solid var(--se-hairline);
+}
+nav.sidebar .sidebar-content {
+	padding: 1.5rem 1.25rem 1.5rem 2rem;
+}
+/* On mobile the sidebar is an overlay drawer; the transparent desktop fill lets
+   page content show through it. Give the drawer an opaque porcelain background. */
+@media (max-width: 71.9375rem) {
+	.sidebar-pane {
+		background-color: var(--se-paper);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+	}
+}
+/* Group labels (the section headers) */
+.sidebar-content .group-label > .large {
+	color: var(--se-ink);
+	font-weight: 600;
+	font-size: 0.9375rem;
+}
+.sidebar-content summary {
+	padding-block: 0.35rem;
+	list-style: none;
+}
+/* Nested sub-groups (Comparison, Advanced, …) render like a leaf link with a
+   right-aligned chevron and are collapsible — matching Rivet. Top-level groups
+   render no caret element at all (static section labels). */
+.sidebar-content .se-subgroup > summary {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem;
+	padding: 0.4rem 0.5rem 0.4rem 0.75rem;
+	border-inline-start: 2px solid var(--se-hairline-strong);
+	border-radius: 0;
+	transition: color 0.15s, border-color 0.15s;
+}
+.sidebar-content .se-subgroup > summary:hover {
+	color: var(--se-ink);
+	border-inline-start-color: rgba(27, 25, 22, 0.3);
+}
+.sidebar-content .se-subgroup-label {
+	color: var(--se-ink-soft);
+	font-size: 0.875rem;
+	font-weight: 400;
+}
+.sidebar-content .se-subgroup > summary .caret {
+	color: var(--se-ink-faint);
+}
+/* Starlight draws a hairline rail on nested <li>s; Rivet has a single rail, so
+   strip Starlight's <ul>/<li> rails and let only the link's 2px rail show. */
+.sidebar-content ul ul {
+	border-inline-start: none;
+	padding-inline-start: 0;
+}
+.sidebar-content :is(ul, li) {
+	border-inline-start: none;
+	padding-inline-start: 0;
+	margin-inline-start: 0;
+}
+/* Links */
+/* Rivet sidebar link: 14px/20px, 8px top + 20px left padding, 2px rail. The
+   20px left padding (not 12px) puts the rail flush with the container left so it
+   aligns with the group labels. */
+.sidebar-content a {
+	border-inline-start: 2px solid var(--se-hairline-strong);
+	border-radius: 0;
+	padding: 8px 12px 8px 20px;
+	color: var(--se-ink-soft);
+	font-size: 0.875rem;
+	font-weight: 400;
+	line-height: 20px;
+	transition: color 0.15s, border-color 0.15s;
+}
+.sidebar-content .group-label {
+	margin-bottom: 0.75rem;
+}
+/* Align the top-level group label with the item rail (container left edge) —
+   drop Starlight's inline padding so labels and rails share an edge. The
+   top-level group is a static <div> (not a collapsible <details>/summary), so
+   it inherits no summary styles; restore the vertical rhythm here. */
+.sidebar-content .se-topgroup > .se-topgroup-label {
+	padding-block: 0.35rem;
+	padding-inline-start: 0;
+}
+.sidebar-content a:hover {
+	background: transparent;
+	color: var(--se-ink);
+	border-inline-start-color: rgba(27, 25, 22, 0.3);
+}
+.sidebar-content a[aria-current="page"],
+.sidebar-content a[aria-current="page"]:hover {
+	background: transparent;
+	color: var(--se-ink);
+	font-weight: 400;
+	border-inline-start-color: var(--se-pine);
+}
+
+/* ============================================================================
+   Search modal — Rivet's search overlay is dark (#0a0a0a) with cream text,
+   unlike the light docs. (Pagefind only runs in production builds.)
+   ============================================================================ */
+.dialog-frame {
+	background-color: #0a0a0a;
+	border: 1px solid rgba(244, 241, 231, 0.12);
+	color: var(--se-cream);
+	border-radius: 0.75rem;
+}
+#starlight__search {
+	--pagefind-ui-primary: var(--se-cream);
+	--pagefind-ui-text: var(--se-cream);
+	--pagefind-ui-background: #0a0a0a;
+	--pagefind-ui-border: rgba(244, 241, 231, 0.12);
+	--pagefind-ui-tag: #1a1a1a;
+}
+.dialog-frame .search-input,
+#starlight__search input {
+	background-color: #141414;
+	color: var(--se-cream);
+	border-color: rgba(244, 241, 231, 0.12);
+}
+.dialog-frame kbd {
+	background-color: #1a1a1a;
+	color: var(--se-ink-faint);
+	border-color: rgba(244, 241, 231, 0.12);
+}
+
+/* ============================================================================
+   Right-hand "On this page" table of contents
+   ============================================================================ */
+.right-sidebar {
+	border-inline-start: none;
+}
+starlight-toc nav ul {
+	border: none;
+}
+/* Verbatim Rivet TOC NavLink: flex, rounded-md, 1px transparent border,
+   px-2 py-1, text-sm, ink-soft (ink on hover/active). */
+starlight-toc a {
+	position: relative;
+	display: flex;
+	align-items: center;
+	color: var(--se-ink-soft);
+	border: 1px solid transparent;
+	border-radius: 0.375rem;
+	padding: 4px 8px;
+	font-size: 0.875rem; /* 14px */
+	font-weight: 400;
+	background-color: transparent;
+}
+starlight-toc a:hover {
+	color: var(--se-ink);
+}
+/* Active item: ink text + ink/[0.04] fill + a 1px pine line at the left
+   (Rivet's ActiveSectionMarker). */
+starlight-toc a[aria-current="true"],
+starlight-toc a[aria-current="true"]:hover {
+	color: var(--se-ink);
+	font-weight: 400;
+	background-color: rgba(27, 25, 22, 0.04);
+}
+starlight-toc a[aria-current="true"]::before {
+	content: "";
+	position: absolute;
+	inset-inline-start: 0;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 1px;
+	height: 1.5rem; /* h-6 */
+	background-color: var(--se-pine);
+}
+/* Nested TOC items indent pl-3 (12px) per level (Rivet). */
+starlight-toc :is(ul ul, .isMobile ul ul),
+starlight-toc ul ul {
+	padding-inline-start: 0.75rem;
+}
+/* Rivet's TOC has no "On this page" heading — hide it on desktop. */
+.right-sidebar h2 {
+	display: none;
+}
+mobile-starlight-toc .toggle {
+	color: var(--se-ink);
+}
+
+/* ============================================================================
+   Callouts (<Aside>) — Rivet porcelain palette: tinted fill + full hairline
+   border + colored icon, rounded 0.75rem. Mapped: note→gray, tip→pine,
+   caution→amber, danger→accent.
+   ============================================================================ */
+.starlight-aside {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: 0.75rem;
+	align-items: start;
+	border-radius: 0.75rem;
+	border: 1px solid transparent;
+	border-inline-start-width: 1px;
+	padding: 0.875rem 1.125rem;
+	margin-block: 1.5rem; /* Rivet callout vertical rhythm */
+	color: var(--se-ink-soft);
+}
+/* Rivet callouts show only the icon (no "Note"/"Tip" label) with the body
+   beside it; collapse Starlight's title row down to its icon. */
+.starlight-aside__title {
+	grid-column: 1;
+	margin: 0;
+	padding: 0;
+	font-size: 0;
+	line-height: 0;
+}
+.starlight-aside__icon {
+	width: 1.05rem;
+	height: 1.05rem;
+	font-size: 1.05rem;
+	/* Optically centre the icon on the first line of body text (line-height
+	   ~1.6) so the text doesn't read as sitting below the icon. */
+	margin-top: 0.2rem;
+}
+.starlight-aside__content {
+	line-height: 1.6;
+}
+.starlight-aside__content > :first-child {
+	margin-top: 0;
+}
+.starlight-aside__content {
+	grid-column: 2;
+	min-width: 0;
+}
+.starlight-aside__content > :first-child {
+	margin-top: 0;
+}
+.starlight-aside__content > :last-child {
+	margin-bottom: 0;
+}
+.starlight-aside a {
+	color: var(--se-pine);
+}
+.starlight-aside--note {
+	background: rgba(27, 25, 22, 0.035);
+	border-color: rgba(27, 25, 22, 0.12);
+}
+.starlight-aside--note .starlight-aside__icon {
+	color: var(--se-ink-faint);
+}
+.starlight-aside--tip {
+	background: rgba(46, 64, 52, 0.06);
+	border-color: rgba(46, 64, 52, 0.2);
+}
+.starlight-aside--tip .starlight-aside__icon {
+	color: var(--se-pine);
+}
+.starlight-aside--caution {
+	background: rgba(138, 109, 46, 0.08);
+	border-color: rgba(138, 109, 46, 0.24);
+}
+.starlight-aside--caution .starlight-aside__icon {
+	color: #8a6d2e;
+}
+.starlight-aside--danger {
+	background: rgba(203, 90, 51, 0.08);
+	border-color: rgba(203, 90, 51, 0.26);
+}
+.starlight-aside--danger .starlight-aside__icon {
+	color: var(--se-accent);
+}
+
+/* ============================================================================
+   Code blocks (Expressive Code). Frame visuals are mostly set in config; these
+   are light-shell touch-ups so the dark blocks sit cleanly on porcelain.
+   ============================================================================ */
+.expressive-code {
+	margin: 1.25rem 0;
+}
+/* Match Rivet's code frame: 12px radius, cream hairline border. */
+.expressive-code .frame {
+	border-radius: 0.75rem;
+	border: 1px solid rgba(244, 241, 231, 0.1);
+	box-shadow: none;
+}
+/* Rivet code blocks are clean dark boxes — strip Expressive Code's terminal
+   "macOS window" dots and the editor/terminal title bar entirely, and reclaim
+   the vertical space they reserve. */
+.expressive-code .frame .header {
+	display: none;
+}
+.expressive-code .frame.is-terminal::before,
+.expressive-code .frame.is-terminal::after {
+	display: none !important;
+}
+.expressive-code .frame.is-terminal pre,
+.expressive-code .frame.is-editor pre {
+	border-radius: 0.75rem;
+	padding-block: 0.9rem;
+}
+/* Match Rivet's code line-height (20px at 14px). */
+.expressive-code .ec-line {
+	line-height: 1.45;
+}
+/* Copy-to-clipboard button: Rivet uses a clean borderless icon (no fill, no
+   border) that brightens on hover. On our dark frame the icon is a muted cream
+   so it stays legible. */
+.expressive-code .copy button {
+	width: 1.75rem;
+	height: 1.75rem;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 0.375rem;
+	background: transparent;
+	border: 0;
+	--ec-frm-inlineBtnBg: transparent;
+	--ec-frm-inlineBtnBrd: transparent;
+	transition: background 0.15s;
+}
+.expressive-code .copy button div {
+	background: rgba(244, 241, 231, 0.55);
+	-webkit-mask-size: 62%;
+	mask-size: 62%;
+}
+.expressive-code .copy button:hover {
+	background: rgba(244, 241, 231, 0.1);
+}
+.expressive-code .copy button:hover div {
+	background: var(--se-cream);
+}
+.expressive-code .copy .feedback {
+	background: var(--se-ink);
+	color: var(--se-cream);
+	border-radius: 0.375rem;
+	font-family: var(--sl-font);
+	font-size: 0.75rem;
+}
+
+/* ============================================================================
+   Content tabs (code-group <Tabs>) — Rivet's in-article tab row: ink-soft
+   inactive, ink active with an ink underline (not pine, which is reserved for
+   the header section tabs).
+   ============================================================================ */
+/* Rivet's tablist is an inline row (border only as wide as the tabs), no left
+   pad; tabs are 10px/16px; active = ink text + 2px ink underline. */
+.sl-markdown-content starlight-tabs .tablist-wrapper ul,
+.sl-markdown-content [role="tablist"] {
+	width: 100%;
+	padding-inline-start: 0;
+	border-bottom: 1px solid var(--se-hairline);
+}
+/* The active tab's 2px indicator sits ON the list's 1px divider (one line, not
+   two) — Rivet's pattern. Negative margin pulls the tab border over the rule. */
+.sl-markdown-content [role="tab"] {
+	padding: 10px 16px;
+	margin-bottom: -1px;
+	color: var(--se-ink-soft);
+	border-bottom: 2px solid transparent;
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+.sl-markdown-content [role="tab"]:hover {
+	color: var(--se-ink);
+}
+.sl-markdown-content [role="tab"][aria-selected="true"] {
+	color: var(--se-ink);
+	border-bottom-color: var(--se-ink);
+	font-weight: 600; /* Rivet's active content tab is semibold */
+}
+/* Code sits right under the tabs (Rivet) — drop the panel + code-block top gap. */
+.sl-markdown-content starlight-tabs [role="tabpanel"] {
+	margin-top: 0;
+}
+.sl-markdown-content starlight-tabs .expressive-code {
+	margin-top: 0.75rem;
+	margin-bottom: 0;
+}
+
+/* ============================================================================
+   Steps — Rivet's 36px rounded-square mono number chips on a left rail
+   (Starlight ships small circular markers).
+   ============================================================================ */
+/* Starlight already traces a single vertical guideline between steps via
+   li::after — do NOT add a second border. Just enlarge the bullet to Rivet's
+   36px rounded-square mono chip and recolor the guideline. */
+.sl-steps {
+	--bullet-size: 2.25rem; /* 36px — keeps the guideline centred under the chip */
+}
+.sl-steps > li::before {
+	border-radius: 0.5rem; /* rounded-square, not a circle */
+	background: #ffffff;
+	color: var(--se-ink);
+	box-shadow: inset 0 0 0 1px var(--se-hairline-strong);
+	font-family: var(--sl-font-mono);
+	font-size: 1rem;
+	font-weight: 500;
+}
+.sl-steps > li::after {
+	background-color: var(--se-hairline);
+}
+
+/* ============================================================================
+   Cards / LinkCards on landing-style pages
+   ============================================================================ */
+/* Rivet card geometry: 1rem (rounded-2xl) radius, white/55 fill, ink/10 hairline
+   deepening to ink/25 on hover. */
+.card,
+.sl-link-card {
+	background: rgba(255, 255, 255, 0.55);
+	border: 1px solid var(--se-hairline);
+	border-radius: 1rem;
+	box-shadow: none;
+}
+.card {
+	padding: 1.25rem;
+}
+.card .title {
+	color: var(--se-ink);
+	font-weight: 500;
+	font-size: 1rem;
+}
+.card .icon {
+	color: var(--se-pine);
+}
+.card .body,
+.sl-link-card .description {
+	color: var(--se-ink-soft);
+	font-size: 0.875rem;
+	line-height: 1.6;
+}
+.sl-link-card .title {
+	color: var(--se-ink);
+	font-weight: 500;
+}
+.card:hover,
+.sl-link-card:hover {
+	border-color: rgba(27, 25, 22, 0.25);
+	background: rgba(255, 255, 255, 0.7);
+}
+
+/* ============================================================================
+   Edit-page link + last-updated footer
+   ============================================================================ */
+.sl-markdown-content + footer,
+.content-panel footer {
+	border-top: 1px solid var(--se-hairline);
+}
+a[rel~="noopener"].sl-flex,
+.meta a {
+	color: var(--se-ink);
+}
+
+/* ============================================================================
+   Prose top padding — on desktop Starlight reserves the mobile-TOC height
+   (48px) above the content even though the mobile TOC is hidden, pushing the
+   title far below the header. Reclaim it so the eyebrow/title sit just under
+   the header like Rivet.
+   ============================================================================ */
+@media (min-width: 72rem) {
+	.main-frame {
+		padding-top: var(--sl-nav-height);
+	}
+	/* Rivet: 32px from header bottom to the eyebrow. */
+	.content-panel:first-of-type {
+		padding-top: 2rem;
+	}
+}
+/* The title lives in its own content-panel; zero the inter-panel padding so the
+   only gap between the title and the body is the h1's own 32px margin-bottom
+   (Rivet), not the title panel's pb + the body panel's pt stacked on top. */
+.content-panel:first-of-type {
+	padding-bottom: 0;
+}
+.content-panel + .content-panel {
+	padding-top: 0;
+}
+
+/* Hide the auto-generated prev/next pagination (Rivet parity — not wanted). */
+.pagination-links {
+	display: none;
+}

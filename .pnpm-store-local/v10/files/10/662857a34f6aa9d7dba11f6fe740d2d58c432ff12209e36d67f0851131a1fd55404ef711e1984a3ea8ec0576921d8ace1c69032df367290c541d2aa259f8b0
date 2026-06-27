@@ -1,0 +1,209 @@
+import {
+  SandboxDestroyedError
+} from "../chunk-TVCDKGSM.js";
+import {
+  SANDBOX_AGENT_NPX_SPEC
+} from "../chunk-7BNDCDDU.js";
+
+// src/providers/sprites.ts
+import { ExecError, SpritesClient } from "@fly/sprites";
+var DEFAULT_AGENT_PORT = 8080;
+var DEFAULT_SERVICE_NAME = "sandbox-agent";
+var DEFAULT_NAME_PREFIX = "sandbox-agent";
+var DEFAULT_SERVICE_START_DURATION = "10m";
+async function resolveValue(value, fallback) {
+  if (value === void 0) {
+    return fallback;
+  }
+  if (typeof value === "function") {
+    return await value();
+  }
+  return value;
+}
+async function resolveToken(value) {
+  const token = await resolveValue(value, process.env.SPRITES_API_KEY ?? process.env.SPRITE_TOKEN ?? process.env.SPRITES_TOKEN ?? "");
+  if (!token) {
+    throw new Error("sprites provider requires a token. Set SPRITES_API_KEY (or SPRITE_TOKEN) or pass `token`.");
+  }
+  return token;
+}
+function createSpritesClient(token, options) {
+  return new SpritesClient(token, options);
+}
+function generateSpriteName(prefix) {
+  const suffix = typeof globalThis.crypto?.randomUUID === "function" ? globalThis.crypto.randomUUID().slice(0, 8) : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  return `${prefix}-${suffix}`.toLowerCase();
+}
+function isSpriteNotFoundError(error) {
+  return error instanceof Error && error.message.startsWith("Sprite not found:");
+}
+function shellQuote(value) {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+function buildServiceCommand(env, port) {
+  const exportParts = [];
+  for (const [key, value] of Object.entries(env)) {
+    if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)) {
+      throw new Error(`sprites provider received an invalid environment variable name: ${key}`);
+    }
+    exportParts.push(`export ${key}=${shellQuote(value)}`);
+  }
+  exportParts.push(`exec npx -y ${SANDBOX_AGENT_NPX_SPEC} server --no-token --host 0.0.0.0 --port ${port}`);
+  return exportParts.join("; ");
+}
+async function runSpriteCommand(sprite, file, args, env) {
+  try {
+    const result = await sprite.execFile(file, args, env ? { env } : void 0);
+    if (result.exitCode !== 0) {
+      throw new Error(`sprites command failed: ${file} ${args.join(" ")}`);
+    }
+  } catch (error) {
+    if (error instanceof ExecError) {
+      throw new Error(
+        `sprites command failed: ${file} ${args.join(" ")} (exit ${error.exitCode})
+stdout:
+${String(error.stdout)}
+stderr:
+${String(error.stderr)}`,
+        { cause: error }
+      );
+    }
+    throw error;
+  }
+}
+async function fetchService(client, spriteName, serviceName) {
+  const response = await fetch(`${client.baseURL}/v1/sprites/${encodeURIComponent(spriteName)}/services/${encodeURIComponent(serviceName)}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${client.token}`
+    }
+  });
+  if (response.status === 404) {
+    return void 0;
+  }
+  if (!response.ok) {
+    throw new Error(`sprites service lookup failed (status ${response.status}): ${await response.text()}`);
+  }
+  return await response.json();
+}
+async function upsertService(client, spriteName, serviceName, port, command) {
+  const existing = await fetchService(client, spriteName, serviceName);
+  const expectedArgs = ["-lc", command];
+  const isCurrent = existing?.cmd === "bash" && existing.http_port === port && JSON.stringify(existing.args ?? []) === JSON.stringify(expectedArgs);
+  if (isCurrent) {
+    return;
+  }
+  const response = await fetch(`${client.baseURL}/v1/sprites/${encodeURIComponent(spriteName)}/services/${encodeURIComponent(serviceName)}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${client.token}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      cmd: "bash",
+      args: expectedArgs,
+      http_port: port
+    })
+  });
+  if (!response.ok) {
+    throw new Error(`sprites service upsert failed (status ${response.status}): ${await response.text()}`);
+  }
+}
+async function startServiceIfNeeded(client, spriteName, serviceName, duration) {
+  const existing = await fetchService(client, spriteName, serviceName);
+  if (existing?.state?.status === "running" || existing?.state?.status === "starting") {
+    return;
+  }
+  const response = await fetch(
+    `${client.baseURL}/v1/sprites/${encodeURIComponent(spriteName)}/services/${encodeURIComponent(serviceName)}/start?duration=${encodeURIComponent(duration)}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${client.token}`
+      }
+    }
+  );
+  if (!response.ok) {
+    throw new Error(`sprites service start failed (status ${response.status}): ${await response.text()}`);
+  }
+  await response.text();
+}
+async function ensureService(client, spriteName, serviceName, port, duration, env) {
+  const command = buildServiceCommand(env, port);
+  await upsertService(client, spriteName, serviceName, port, command);
+  await startServiceIfNeeded(client, spriteName, serviceName, duration);
+}
+function sprites(options = {}) {
+  const agentPort = options.agentPort ?? DEFAULT_AGENT_PORT;
+  const serviceName = options.serviceName ?? DEFAULT_SERVICE_NAME;
+  const serviceStartDuration = options.serviceStartDuration ?? DEFAULT_SERVICE_START_DURATION;
+  const namePrefix = options.namePrefix ?? DEFAULT_NAME_PREFIX;
+  const installAgents = [...options.installAgents ?? []];
+  const getClient = async () => {
+    const token = await resolveToken(options.token);
+    const clientOptions = await resolveValue(options.client, {});
+    return createSpritesClient(token, clientOptions);
+  };
+  const getServerEnv = async () => {
+    return await resolveValue(options.env, {});
+  };
+  const provider = {
+    name: "sprites",
+    defaultCwd: "/home/sprite",
+    async create() {
+      const client = await getClient();
+      const createOptions = await resolveValue(options.create, {});
+      const spriteName = createOptions.name ?? generateSpriteName(namePrefix);
+      const sprite = await client.createSprite(spriteName, createOptions.config);
+      const serverEnv = await getServerEnv();
+      for (const agent of installAgents) {
+        await runSpriteCommand(sprite, "bash", ["-lc", `npx -y ${SANDBOX_AGENT_NPX_SPEC} install-agent ${agent}`], serverEnv);
+      }
+      await ensureService(client, spriteName, serviceName, agentPort, serviceStartDuration, serverEnv);
+      return sprite.name;
+    },
+    async destroy(sandboxId) {
+      const client = await getClient();
+      try {
+        await client.deleteSprite(sandboxId);
+      } catch (error) {
+        if (isSpriteNotFoundError(error) || error instanceof Error && error.message.includes("status 404")) {
+          return;
+        }
+        throw error;
+      }
+    },
+    async reconnect(sandboxId) {
+      const client = await getClient();
+      try {
+        await client.getSprite(sandboxId);
+      } catch (error) {
+        if (isSpriteNotFoundError(error)) {
+          throw new SandboxDestroyedError(sandboxId, "sprites", { cause: error });
+        }
+        throw error;
+      }
+    },
+    async getUrl(sandboxId) {
+      const client = await getClient();
+      const sprite = await client.getSprite(sandboxId);
+      const url = sprite.url;
+      if (!url) {
+        throw new Error(`sprites API did not return a URL for sprite: ${sandboxId}`);
+      }
+      return url;
+    },
+    async ensureServer(sandboxId) {
+      const client = await getClient();
+      await ensureService(client, sandboxId, serviceName, agentPort, serviceStartDuration, await getServerEnv());
+    },
+    async getToken() {
+      return await resolveToken(options.token);
+    }
+  };
+  return provider;
+}
+export {
+  sprites
+};
+//# sourceMappingURL=sprites.js.map

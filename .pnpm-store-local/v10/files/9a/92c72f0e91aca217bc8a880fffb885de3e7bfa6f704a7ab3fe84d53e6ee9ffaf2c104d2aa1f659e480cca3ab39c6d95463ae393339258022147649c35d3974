@@ -1,0 +1,13 @@
+import { S as SandboxProvider } from '../types-DdcvY5CI.js';
+
+interface DockerProviderOptions {
+    image?: string;
+    host?: string;
+    agentPort?: number;
+    env?: string[] | (() => string[] | Promise<string[]>);
+    binds?: string[] | (() => string[] | Promise<string[]>);
+    createContainerOptions?: Record<string, unknown>;
+}
+declare function docker(options?: DockerProviderOptions): SandboxProvider;
+
+export { type DockerProviderOptions, docker };

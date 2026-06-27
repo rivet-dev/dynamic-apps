@@ -1,0 +1,169 @@
+---
+/**
+ * Docs overview landing — a port of the Rivet docs landing: a centered hero
+ * followed by an icon-led card grid. The narrow exception to the "Starlight
+ * components only" rule (Starlight's LinkCard has no icon slot). Content (hero
+ * copy + cards) comes from `config.landing`; icons resolve against the shared
+ * catalog, so there is no icon-package dependency.
+ */
+import { ICONS } from "../icons.mjs";
+import config from "virtual:rivet-docs/config";
+
+const landing = config.landing;
+const items = landing?.cards ?? [];
+const icon = (key: string) => ICONS[key] ?? ICONS.book;
+
+// Optional "special element" hero — a consumer passes a product-specific
+// animated logo via the `hero` named slot (e.g. <MyLogo slot="hero" />). When
+// present it stands in for the title (the logo is the wordmark), matching the
+// Rivet docs overview. The theme stays brand-neutral; the logo lives in the
+// consumer.
+const hasHero = Astro.slots.has("hero");
+---
+
+{landing && (
+	<div class="dl">
+		<header class="dl-hero">
+			{hasHero ? (
+				<div class="dl-hero__logo"><slot name="hero" /></div>
+			) : (
+				<h1>{landing.title}</h1>
+			)}
+			{landing.subtitle && <p>{landing.subtitle}</p>}
+		</header>
+		<div class="dl-grid">
+			{
+				items.map((item) => (
+					<a class="dl-card" href={item.href}>
+						<div class="dl-card__art">
+							<div class="dl-card__bg" aria-hidden="true" />
+							<svg
+								class="dl-card__icon"
+								viewBox={`0 0 ${icon(item.icon).w} 512`}
+								fill="currentColor"
+								aria-hidden="true"
+							>
+								<path d={icon(item.icon).d} />
+							</svg>
+						</div>
+						<div class="dl-card__body">
+							<span class="dl-card__title">
+								{item.title}
+								{item.badge && <span class="dl-card__badge">{item.badge}</span>}
+							</span>
+							<p class="dl-card__desc">{item.description}</p>
+						</div>
+					</a>
+				))
+			}
+		</div>
+	</div>
+)}
+
+<style>
+	.dl {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+	}
+	.dl-hero {
+		max-width: 36rem;
+		margin: 1rem auto 3.5rem;
+		text-align: center;
+	}
+	/* Hero "special element" slot — a consumer-supplied animated logo that stands
+	   in for the title. Centered above the subtitle. */
+	.dl-hero__logo {
+		display: flex;
+		justify-content: center;
+		margin: 0 0 1.5rem;
+	}
+	.dl-hero h1 {
+		font-size: 2.25rem;
+		line-height: 2.5rem;
+		font-weight: 500;
+		letter-spacing: -0.025em;
+		color: var(--se-ink);
+		margin: 0 0 1rem;
+	}
+	.dl-hero p {
+		font-size: 1.125rem;
+		line-height: 1.7;
+		color: var(--se-ink-soft);
+		margin: 0;
+	}
+	.dl-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+		gap: 1.25rem;
+	}
+	.dl-card {
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		border-radius: 1rem;
+		border: 1px solid var(--se-hairline);
+		background: rgba(255, 255, 255, 0.55);
+		text-decoration: none;
+		transition: border-color 0.2s;
+	}
+	.dl-card:hover {
+		border-color: var(--se-hairline-strong);
+	}
+	.dl-card__art {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 9rem;
+		overflow: hidden;
+		border-bottom: 1px solid var(--se-hairline);
+	}
+	.dl-card__bg {
+		position: absolute;
+		inset: 0;
+		background-image: linear-gradient(to right, rgba(20, 22, 20, 0.05) 1px, transparent 1px),
+			linear-gradient(to bottom, rgba(20, 22, 20, 0.05) 1px, transparent 1px);
+		background-size: 24px 24px;
+		-webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 80%);
+		mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 80%);
+	}
+	.dl-card__icon {
+		position: relative;
+		width: 3rem;
+		height: 3rem;
+		color: var(--se-pine);
+		transition: transform 0.2s;
+	}
+	.dl-card:hover .dl-card__icon {
+		transform: scale(1.05);
+	}
+	.dl-card__body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		padding: 1.25rem;
+	}
+	.dl-card__title {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-weight: 500;
+		color: var(--se-ink);
+	}
+	.dl-card__badge {
+		border-radius: 9999px;
+		border: 1px solid var(--se-hairline);
+		background: rgba(27, 25, 22, 0.06);
+		padding: 0.05rem 0.5rem;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		color: var(--se-ink-soft);
+	}
+	.dl-card__desc {
+		font-size: 0.875rem;
+		line-height: 1.6;
+		color: var(--se-ink-soft);
+		margin: 0;
+	}
+</style>

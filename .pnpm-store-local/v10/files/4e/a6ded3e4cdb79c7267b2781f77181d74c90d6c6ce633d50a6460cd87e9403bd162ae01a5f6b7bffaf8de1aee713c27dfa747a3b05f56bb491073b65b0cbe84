@@ -1,0 +1,13 @@
+type SandboxAgentSpawnLogMode = "inherit" | "pipe" | "silent";
+type SandboxAgentSpawnOptions = {
+    enabled?: boolean;
+    host?: string;
+    port?: number;
+    token?: string;
+    binaryPath?: string;
+    timeoutMs?: number;
+    log?: SandboxAgentSpawnLogMode;
+    env?: Record<string, string>;
+};
+
+export type { SandboxAgentSpawnLogMode as S, SandboxAgentSpawnOptions as a };

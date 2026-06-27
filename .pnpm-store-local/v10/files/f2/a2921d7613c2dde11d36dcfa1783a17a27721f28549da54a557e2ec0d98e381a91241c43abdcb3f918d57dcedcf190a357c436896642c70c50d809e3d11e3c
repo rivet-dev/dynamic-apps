@@ -1,0 +1,16 @@
+import { Daytona } from '@daytonaio/sdk';
+import { S as SandboxProvider } from '../types-DdcvY5CI.js';
+
+type DaytonaCreateParams = NonNullable<Parameters<Daytona["create"]>[0]>;
+type DaytonaCreateOverrides = Partial<DaytonaCreateParams>;
+interface DaytonaProviderOptions {
+    create?: DaytonaCreateOverrides | (() => DaytonaCreateOverrides | Promise<DaytonaCreateOverrides>);
+    image?: DaytonaCreateParams["image"];
+    agentPort?: number;
+    cwd?: string;
+    previewTtlSeconds?: number;
+    deleteTimeoutSeconds?: number;
+}
+declare function daytona(options?: DaytonaProviderOptions): SandboxProvider;
+
+export { type DaytonaProviderOptions, daytona };

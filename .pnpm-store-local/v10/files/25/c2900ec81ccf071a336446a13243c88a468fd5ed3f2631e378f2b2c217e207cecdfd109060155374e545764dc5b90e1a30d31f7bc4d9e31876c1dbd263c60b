@@ -1,0 +1,78 @@
+{
+  "name": "@rivetkit/bare-ts",
+  "version": "0.6.2",
+  "description": "TypeScript library for BARE, a compact and simple binary-serialization format (Rivet fork with ULEB128 fix)",
+  "keywords": [
+    "bare",
+    "binary format",
+    "decoder",
+    "encoder",
+    "serialization",
+    "schema"
+  ],
+  "author": "Victorien Elvinger (victorien.elvinger.fr)",
+  "license": "MIT",
+  "homepage": "https://baremessages.org",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rivet-dev/lib.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rivet-dev/lib/issues"
+  },
+  "engines": {
+    "node": "^14.18.0 || >=16.0.0"
+  },
+  "type": "module",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "module": "./dist/index.js",
+      "module-sync": "./dist/index.js",
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "imports": {
+    "#dev": {
+      "development": "./imports/dev.development.js",
+      "node": "./imports/dev.node.js",
+      "default": "./imports/dev.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist/**/*.cjs",
+    "dist/**/*.d.cts",
+    "dist/**/*.d.ts",
+    "dist/**/*.js",
+    "imports/**/*.d.ts",
+    "imports/**/*.js"
+  ],
+  "scripts": {
+    "build": "npm run build:esm && npm run build:d.cts && npm run build:cjs",
+    "build:d.cts": "cp -f dist/index.d.ts dist/index.d.cts",
+    "build:cjs": "esbuild src/index.ts --bundle --target=es2020 --platform=node > dist/index.cjs",
+    "build:esm": "tsc --build src/",
+    "check": "tsc --build src src/tsconfig-test.json && biome ci --error-on-warnings .",
+    "clean": "rm -rf dist coverage",
+    "coverage": "c8 --reporter=lcovonly npm test",
+    "format": "biome check --linter-enabled=false --write .",
+    "lint": "biome lint --error-on-warnings .",
+    "prepublishOnly": "npm run clean && npm run build && npm test",
+    "test": "npm run test:dev && npm run test:prod",
+    "test:dev": "NODE_ENV=development node --test && npm run check",
+    "test:prod": "node --test && npm run check",
+    "version": "sh ./scripts/version.sh"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.3.4",
+    "@types/node": "20.19.21",
+    "esbuild": "0.27.0",
+    "typescript": "5.9.3"
+  }
+}

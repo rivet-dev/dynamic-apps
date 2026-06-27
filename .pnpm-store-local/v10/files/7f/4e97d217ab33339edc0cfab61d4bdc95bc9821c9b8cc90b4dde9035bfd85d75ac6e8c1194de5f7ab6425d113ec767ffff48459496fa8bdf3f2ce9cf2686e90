@@ -1,0 +1,30 @@
+type InstallCommandBlock = {
+    label: string;
+    commands: string[];
+};
+type NonExecutableBinaryMessageOptions = {
+    binPath: string;
+    trustPackages: string;
+    bunInstallBlocks: InstallCommandBlock[];
+    genericInstallCommands?: string[];
+    binaryName?: string;
+};
+type FsSubset = {
+    accessSync: (path: string, mode?: number) => void;
+    chmodSync: (path: string, mode: number) => void;
+    constants: {
+        X_OK: number;
+    };
+};
+declare function isBunRuntime(): boolean;
+/**
+ * Checks if a binary is executable and attempts to make it executable if not.
+ * Returns true if the binary is (or was made) executable, false if it couldn't
+ * be made executable due to permission errors. Throws for other errors.
+ *
+ * Requires fs to be passed in to avoid static imports that break browser builds.
+ */
+declare function assertExecutable(binPath: string, fs: FsSubset): boolean;
+declare function formatNonExecutableBinaryMessage(options: NonExecutableBinaryMessageOptions): string;
+
+export { type FsSubset, type InstallCommandBlock, type NonExecutableBinaryMessageOptions, assertExecutable, formatNonExecutableBinaryMessage, isBunRuntime };

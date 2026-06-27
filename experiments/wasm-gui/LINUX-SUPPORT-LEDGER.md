@@ -517,3 +517,13 @@ gitignored vendored sources for stray uncommitted diagnostics.
 - **XU3+ (panel/desktop/Thunar/session)**: ahead.
 
 Screenshot proof lives under `~/tmp/gui-progress/<date>/` and `~/progress/secure-exec/*/`.
+
+## Build-reliability fix (2026-06-26): workspace-isolated pnpm store
+SYMPTOM: full builds (sidecar/host/v8-runtime) intermittently failed mid-build with `ERR_MODULE_NOT_FOUND: Cannot
+find package 'esbuild'` even right after `pnpm install` -- because pnpm's store was the SHARED global
+~/.local/share/pnpm/store, and any OTHER repo/session running `pnpm store prune` dangled this workspace's symlinks.
+FIX: a workspace-local `.npmrc` (gitignored via .git/info/exclude) with `store-dir=.../secure-exec-wasmgui/
+.pnpm-store-local` + `package-import-method=copy` -> node_modules becomes a fully independent copy, immune to
+shared-store prunes. Verified: pnpm rc=0 + a clean 15/15 sab_ring in-crate build. This unblocks the T1 V8 wiring +
+the Root-2 measurement (both need the full node_modules build). Not committed (machine+workspace-specific absolute
+path); recreate with: printf 'store-dir=<ws>/.pnpm-store-local\npackage-import-method=copy\n' > .npmrc && pnpm install.
