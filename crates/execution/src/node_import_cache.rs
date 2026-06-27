@@ -9395,10 +9395,17 @@ if (wasmThreadToken != null) {
   guestSharedMemory = globalThis.__threadMem;
 } else {
   const __mlT0 = globalThis.__pathopenprof ? Date.now() : 0;
+  // L-W.2: the host passes the module's real HOST path (the runner is trusted sidecar-side machinery,
+  // reading the same file the host already read). Reading it straight into a Buffer avoids the host
+  // base64-encode, the ~31MB base64 literal baked into THIS runner's source (a per-launch V8 parse cost)
+  // + its process.env merge, AND any decode. Falls back to the legacy base64-in-env / VFS-path channel.
+  const moduleHostPath = process.env.AGENT_OS_WASM_MODULE_HOST_PATH;
   const moduleSource =
-    typeof moduleBase64 === 'string' && moduleBase64.length > 0
-      ? moduleBase64
-      : fsModule.readFileSync(resolveModulePath(modulePath));
+    typeof moduleHostPath === 'string' && moduleHostPath.length > 0
+      ? fsModule.readFileSync(moduleHostPath)
+      : (typeof moduleBase64 === 'string' && moduleBase64.length > 0
+          ? moduleBase64
+          : fsModule.readFileSync(resolveModulePath(modulePath)));
   const __mlT1 = globalThis.__pathopenprof ? Date.now() : 0;
   const moduleBytes =
     typeof moduleSource === 'string'

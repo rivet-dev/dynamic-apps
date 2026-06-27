@@ -231,6 +231,24 @@ levers as profiling surfaces new costs (recursion).
   module, as expected); render gate green (0 fc-errs, 0 traps). Next: L-W.2 removes the 31MB base64 from
   the JS *source* entirely (kills the per-launch V8 source-parse of the baked string).
 
+- **L-W.2 — Module delivered as ~31MB base64 baked into the runner SOURCE. [★★ LANDED 2026-06-28 —
+  PROVEN, the single biggest first-paint win so far: ~9.0s→~4.0s]** The host `fs::read` the module,
+  base64-encoded it (~17MB→23MB, synchronously on the sidecar select! task), serialized it into the
+  `__agentOsWasmInternalEnv` JSON literal **baked into every leader isolate's inline runner source**, which
+  V8 then parsed (~31MB string literal) and merged into `process.env` before the runner even decoded it.
+  Three stacked costs (host encode + V8 source parse + env merge) all on the cold path, on top of the
+  decode. FIX (CORE, `wasm.rs` + runner JS): hand the leader the module's real HOST path
+  (`AGENT_OS_WASM_MODULE_HOST_PATH = resolved_module.resolved_path`) and have the runner
+  `fsModule.readFileSync(hostPath)` straight into a Buffer — the runner is trusted sidecar-side machinery
+  reading the *same file the host already read*, so this crosses no trust boundary (the guest wasm never
+  sees it). No base64 anywhere; legacy base64-env / VFS-path kept as fallback. Before/after (≥3 runs B2):
+  module `[moduleload]` now `readFileSync(...) decode=0ms` (read 552ms mousepad / 110ms server); mousepad
+  module load now STARTS at **+985ms** (was +6083ms — the encode/parse/merge had been delaying the whole
+  pipeline); **first-paint ~9.0s→~4.0s** (3972/4240/3958); input→response ~260ms (within noise, warm path
+  untouched); render gate green (0 fc-errs, 0 traps, fb ok) all runs. Combined L-W (1+2): **~10.0s→~4.0s
+  first-paint, 2.5×.** Confirms the loading-dominated model. Residual module cost = the 552ms host read +
+  V8 compile (next: L-X persist the compiled module across launches).
+
 - **L-P — Worker-thread module base64 re-encode. [★ LANDED 2026-06-28]** Every `wasm.thread_spawn` ran
   `fs::read`+base64 of the tens-of-MB module into `AGENT_OS_WASM_MODULE_BASE64` (~0.8s) on the select!
   task, but workers reuse the parent's compiled module from the registry by token and never read it. FIX:

@@ -2348,19 +2348,20 @@ fn build_wasm_internal_env(
         resolved_module.specifier.clone(),
     );
     // wasi-threads workers reuse the spawning execution's already-compiled module from the process
-    // registry (by token) and never read AGENT_OS_WASM_MODULE_BASE64 (see the worker branch in the WASM
-    // runner: `module = globalThis.__threadMod`, "No module bytes are read here"). Reading + base64-
-    // encoding the (tens-of-MB) module on EVERY worker spawn was pure waste: ~0.8s/spawn of CPU run
-    // synchronously on the sidecar's single select! task (starving the event pump), plus it bloated the
-    // inline runner source the worker isolate then had to parse. Only the non-worker leader needs it.
+    // registry (by token) and never read the module bytes (see the worker branch in the WASM runner:
+    // `module = globalThis.__threadMod`, "No module bytes are read here"). Only the non-worker leader
+    // loads the module. L-W.2: hand the leader the module's real HOST path so the runner reads it
+    // straight into a Buffer (the runner is trusted sidecar-side machinery; this is the same file the
+    // host would otherwise `fs::read` here). This replaces the old base64 channel, which read +
+    // base64-encoded the tens-of-MB module on every leader launch, baked the ~31MB base64 literal into
+    // the inline runner SOURCE (a per-launch V8 parse cost) + merged it into process.env, then had the
+    // runner decode it. Reading the host path is strictly cheaper and avoids all of that.
     let is_worker_thread = request.env.contains_key(WASM_THREAD_TOKEN_ENV);
     if !is_worker_thread {
-        if let Ok(module_bytes) = fs::read(&resolved_module.resolved_path) {
-            internal_env.insert(
-                String::from("AGENT_OS_WASM_MODULE_BASE64"),
-                v8_runtime::base64_encode_pub(&module_bytes),
-            );
-        }
+        internal_env.insert(
+            String::from("AGENT_OS_WASM_MODULE_HOST_PATH"),
+            resolved_module.resolved_path.to_string_lossy().into_owned(),
+        );
     }
     internal_env.insert(
         WASM_GUEST_ARGV_ENV.to_string(),
