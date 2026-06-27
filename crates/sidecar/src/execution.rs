@@ -3079,6 +3079,7 @@ where
             )
             .map_err(kernel_error)?;
         let kernel_pid = kernel_handle.pid();
+        crate::state::wakeprof_set_name(kernel_pid, &resolved.entrypoint);
 
         let (execution, process_env) = match resolved.runtime {
             GuestRuntimeKind::JavaScript => {
@@ -20301,11 +20302,23 @@ where
             let readiness = owner_socket_readiness
                 .clone()
                 .unwrap_or_else(|| std::sync::Arc::clone(&process.socket_readiness));
+            crate::state::wakeprof_set_pid(
+                std::sync::Arc::as_ptr(&readiness) as usize,
+                process.kernel_pid,
+            );
             // Fast path: zero-wait poll, or readiness already advanced past the guest's scan — answer
             // inline without involving the pool (no lost wakeup: snapshot is taken under the same lock
             // that `notify()` advances).
             let current = readiness.snapshot();
             if wait.is_zero() || current != last_seen {
+                crate::state::wakeprof_record(
+                    std::sync::Arc::as_ptr(&readiness) as usize,
+                    if wait.is_zero() {
+                        crate::state::WAKE_IMMEDIATE
+                    } else {
+                        crate::state::WAKE_PRE_ADVANCED
+                    },
+                );
                 return Ok(json!({ "generation": current }));
             }
             // Defer the blocking wait off the main thread, if deferral is enabled for this dispatch
@@ -20330,6 +20343,10 @@ where
                         std::sync::Arc::clone(&claimed),
                         last_seen,
                     ) {
+                        crate::state::wakeprof_record(
+                            std::sync::Arc::as_ptr(&readiness) as usize,
+                            crate::state::WAKE_PRE_ADVANCED,
+                        );
                         return Ok(json!({ "generation": generation }));
                     }
                     pool.register(crate::state::PendingPollWait {
@@ -20356,7 +20373,15 @@ where
             }
             }
             // Fallback (off-thread completion unavailable or disabled): block inline as before.
-            let generation = readiness.wait_changed(last_seen, wait);
+            let (generation, changed) = readiness.wait_changed(last_seen, wait);
+            crate::state::wakeprof_record(
+                std::sync::Arc::as_ptr(&readiness) as usize,
+                if changed {
+                    crate::state::WAKE_INLINE_NOTIFY
+                } else {
+                    crate::state::WAKE_INLINE_DEADLINE
+                },
+            );
             Ok(json!({ "generation": generation }))
         }
         "net.socket_wait_connect" => {

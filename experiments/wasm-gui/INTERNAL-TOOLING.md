@@ -76,6 +76,17 @@ Status: `[x]` done, `[~]` partial, `[ ]` todo.
       kernel socket table. (`crates/execution/src/node_import_cache.rs` `netTrace`.) Caveat: it traces
       the CALLING isolate, so it surfaces the per-isolate-socket-table gap directly (a worker-thread
       isolate has an empty `hostNetSockets` → `net_send` misses with EBADF before any sidecar call).
+- [x] **P1 wake-cause profiler** (`SECURE_EXEC_WAKEPROF`) — per-process histogram of every
+      `net.poll_wait` completion by CAUSE (immediate / pre-advanced / direct-notify / pool-notify /
+      pool-DEADLINE / inline-notify/deadline), keyed by readiness ptr + guest name (pid + entrypoint).
+      A bimodal split (deadline-dominated vs notify-dominated vs immediate-spin) discriminates lost-wake
+      from latency from busy-spin. Sidecar-side, so it sees ALL guests (unlike NET_TRACE which traces
+      the calling isolate). (`crates/sidecar/src/state.rs` `wakeprof_record`.) Flag/log only — never
+      completes a wait (honors the CLAUDE.md "wakeups are event-driven, never timer-polled" constraint).
+- [~] **P2 poll fd-state in NET_TRACE** — `net_poll`'s `poll` trace line now also logs, per polled fd,
+      `:cl=`(closed) `:ch=`(readChunks len) and a `:srv`/`:pipe`/`:nosock`/`:nosid` tag, plus a `spin0`
+      line for zero-wait polls that found nothing ready. Partial coverage of the fd-table-dump below; it
+      surfaced the xfconfd undrained-kernel-pipe spin (a pipe stuck POLLIN-readable). (`node_import_cache.rs` `netTrace`.)
 - [ ] **P1 process/scheduler view** — `ActiveProcess` table: `kernel_pid`→label (`xclient0`/`server`),
       per-process **run-state** (requires runtime→kernel plumbing of isolate state — the bit that
       reveals a spin), last-pumped, blocked-on. Replaces `ps`/`top`.

@@ -11689,9 +11689,31 @@ const hostNetImport = {
             let parts = '';
             for (let i = 0; i < n; i++) {
               const b = base0 + i * 8;
-              parts += ' fd=' + v3.getInt32(b, true) + ':ev=' + v3.getUint16(b + 4, true) + ':re=' + v3.getUint16(b + 6, true);
+              const tfd = v3.getInt32(b, true);
+              const tsock = getHostNetSocket(tfd);
+              let st = '';
+              if (tsock) {
+                st = ':cl=' + (tsock.closed ? 1 : 0) + ':ch=' + (tsock.readChunks ? tsock.readChunks.length : 0) + (tsock.serverId ? ':srv' : '') + (tsock.socketId ? '' : ':nosid');
+              } else if (isKernelPipeFd(tfd)) {
+                st = ':pipe';
+              } else {
+                st = ':nosock';
+              }
+              parts += ' fd=' + tfd + ':ev=' + v3.getUint16(b + 4, true) + ':re=' + v3.getUint16(b + 6, true) + st;
             }
             netTrace('poll ready=' + ready + parts);
+          }
+          if (globalThis.__nettrace && t === 0 && ready === 0) {
+            // Busy-spin signature: a zero-wait poll that found nothing ready. Logging the fd set (and
+            // n) shows whether the guest's GLib loop is iterating with NO fds (pure timeout/idle source
+            // spin) or with fds that are simply not ready.
+            const v4 = new DataView(instanceMemory.buffer);
+            let sp = '';
+            for (let i = 0; i < n; i++) {
+              const b = base0 + i * 8;
+              sp += ' fd=' + v4.getInt32(b, true) + ':ev=' + v4.getUint16(b + 4, true) + ':re=' + v4.getUint16(b + 6, true);
+            }
+            netTrace('spin0 n=' + n + sp);
           }
           new DataView(instanceMemory.buffer).setUint32(Number(retReadyPtr) >>> 0, ready >>> 0, true);
           return 0;

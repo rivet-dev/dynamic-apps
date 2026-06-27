@@ -422,6 +422,135 @@ struct DirectPollWaiter {
     claimed: Arc<std::sync::atomic::AtomicBool>,
 }
 
+// ===================================================================================================
+// D1 wake-cause profiler (SECURE_EXEC_WAKEPROF=1). Default-OFF, zero-cost when disabled.
+//
+// Buckets every `net.poll_wait` completion by CAUSE, keyed by the per-process `SocketReadiness`
+// pointer. A bimodal split across keys (some processes deadline-dominated = lost/throttled wakes,
+// others notify-dominated = healthy) discriminates the lost-wake theories (T-A/T-B) from
+// latency/serialization (T-C/T-D/T-E/T-F). This only FLAGS/LOGS; it never completes a wait (that
+// would be the banned poll fallback — see CLAUDE.md "Wakeups are event-driven").
+// ===================================================================================================
+
+pub(crate) const WAKE_IMMEDIATE: usize = 0; // zero-wait poll (timeout==0)
+pub(crate) const WAKE_PRE_ADVANCED: usize = 1; // generation already moved past the guest's scan
+pub(crate) const WAKE_DIRECT_NOTIFY: usize = 2; // reader thread completed it inline via notify()
+pub(crate) const WAKE_POOL_NOTIFY: usize = 3; // pool worker woke on a real generation change
+pub(crate) const WAKE_POOL_DEADLINE: usize = 4; // pool worker woke on timeout (no notify arrived)
+pub(crate) const WAKE_INLINE_NOTIFY: usize = 5; // inline-fallback path woke on a generation change
+pub(crate) const WAKE_INLINE_DEADLINE: usize = 6; // inline-fallback path woke on timeout
+
+const WAKE_LABELS: [&str; 7] = [
+    "immediate",
+    "pre_adv",
+    "direct_notify",
+    "pool_notify",
+    "pool_DEADLINE",
+    "inline_notify",
+    "inline_DEADLINE",
+];
+
+pub(crate) fn wakeprof_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_WAKEPROF").map(|v| v == "1").unwrap_or(false))
+}
+
+type WakeProfRegistry = std::sync::Mutex<BTreeMap<usize, [u64; 7]>>;
+
+fn wakeprof_registry() -> &'static WakeProfRegistry {
+    static REG: std::sync::OnceLock<WakeProfRegistry> = std::sync::OnceLock::new();
+    REG.get_or_init(|| std::sync::Mutex::new(BTreeMap::new()))
+}
+
+fn wakeprof_pidmap() -> &'static std::sync::Mutex<BTreeMap<usize, u32>> {
+    static MAP: std::sync::OnceLock<std::sync::Mutex<BTreeMap<usize, u32>>> =
+        std::sync::OnceLock::new();
+    MAP.get_or_init(|| std::sync::Mutex::new(BTreeMap::new()))
+}
+
+/// Associate a readiness pointer with the owning guest's kernel pid (called from the poll_wait handler
+/// where `process` is in scope), so the dump can name each process. Guests are created in launch order,
+/// so the pids identify which guest is which (Xvfb, dbus-daemon, xfconfd, xfwm4, ...).
+pub(crate) fn wakeprof_set_pid(key: usize, pid: u32) {
+    if !wakeprof_enabled() {
+        return;
+    }
+    if let Ok(mut map) = wakeprof_pidmap().lock() {
+        map.entry(key).or_insert(pid);
+    }
+}
+
+fn wakeprof_namemap() -> &'static std::sync::Mutex<BTreeMap<u32, String>> {
+    static MAP: std::sync::OnceLock<std::sync::Mutex<BTreeMap<u32, String>>> =
+        std::sync::OnceLock::new();
+    MAP.get_or_init(|| std::sync::Mutex::new(BTreeMap::new()))
+}
+
+/// Associate a kernel pid with its guest entrypoint basename (called at spawn). Lets the dump name
+/// each guest (Xvfb.wasm, xfwm4.wasm, …) instead of relying on launch-order pid guesses.
+pub(crate) fn wakeprof_set_name(pid: u32, entrypoint: &str) {
+    if !wakeprof_enabled() {
+        return;
+    }
+    let name = entrypoint.rsplit('/').next().unwrap_or(entrypoint).to_string();
+    if let Ok(mut map) = wakeprof_namemap().lock() {
+        map.insert(pid, name);
+    }
+}
+
+/// Record one poll_wait completion. `key` = `Arc::as_ptr(&readiness) as usize` (stable per process);
+/// `cause_idx` = one of the `WAKE_*` constants. Prints a per-process histogram every 5000 wakes.
+pub(crate) fn wakeprof_record(key: usize, cause_idx: usize) {
+    if !wakeprof_enabled() {
+        return;
+    }
+    static TOTAL: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let n = TOTAL.fetch_add(1, std::sync::atomic::Ordering::Relaxed) + 1;
+    if let Ok(mut reg) = wakeprof_registry().lock() {
+        let entry = reg.entry(key).or_insert([0u64; 7]);
+        if cause_idx < 7 {
+            entry[cause_idx] = entry[cause_idx].saturating_add(1);
+        }
+        if n % 5000 == 0 {
+            wakeprof_dump(&reg);
+        }
+    }
+}
+
+fn wakeprof_dump(reg: &BTreeMap<usize, [u64; 7]>) {
+    let pids = wakeprof_pidmap().lock().map(|m| m.clone()).unwrap_or_default();
+    let names = wakeprof_namemap().lock().map(|m| m.clone()).unwrap_or_default();
+    eprintln!("[wakeprof] === per-process wake-cause histogram (guest, pid, readiness ptr) ===");
+    for (key, counts) in reg.iter() {
+        let total: u64 = counts.iter().sum();
+        if total == 0 {
+            continue;
+        }
+        let pid = pids.get(key).copied().unwrap_or(0);
+        let name = names.get(&pid).map(|s| s.as_str()).unwrap_or("?");
+        let deadline = counts[WAKE_POOL_DEADLINE] + counts[WAKE_INLINE_DEADLINE];
+        let notify =
+            counts[WAKE_DIRECT_NOTIFY] + counts[WAKE_POOL_NOTIFY] + counts[WAKE_INLINE_NOTIFY];
+        let pct_deadline = (deadline as f64) * 100.0 / (total as f64);
+        let parts: Vec<String> = counts
+            .iter()
+            .enumerate()
+            .filter(|(_, c)| **c > 0)
+            .map(|(i, c)| format!("{}={}", WAKE_LABELS[i], c))
+            .collect();
+        eprintln!(
+            "[wakeprof] {:<16} pid={} proc@{:#018x} total={} deadline%={:.1} notify={} | {}",
+            name,
+            pid,
+            key,
+            total,
+            pct_deadline,
+            notify,
+            parts.join(" ")
+        );
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct SocketReadiness {
     generation: std::sync::Mutex<u64>,
@@ -485,7 +614,9 @@ impl SocketReadiness {
                 .map(|w| (w.responder, w.call_id))
                 .collect()
         };
+        let wake_key = self as *const SocketReadiness as usize;
         for (responder, call_id) in to_complete {
+            wakeprof_record(wake_key, WAKE_DIRECT_NOTIFY);
             let _ = responder
                 .respond_success(call_id, serde_json::json!({ "generation": new_generation }));
         }
@@ -526,17 +657,24 @@ impl SocketReadiness {
     /// Block until the generation differs from `last_seen` or `timeout` elapses; return the generation
     /// observed at return. Returns immediately if it already differs (covers an event delivered between
     /// the caller's scan and this call). Spurious early returns are harmless: the caller rescans.
-    pub(crate) fn wait_changed(&self, last_seen: u64, timeout: std::time::Duration) -> u64 {
+    pub(crate) fn wait_changed(&self, last_seen: u64, timeout: std::time::Duration) -> (u64, bool) {
+        // Returns (generation_observed, changed). `changed == true` means a real notify advanced the
+        // generation (a productive wake); `changed == false` means we returned without a generation
+        // change (timeout or spurious) — a non-productive wake. The D1 wake-cause profiler maps
+        // changed → notify and !changed → deadline.
         let guard = match self.generation.lock() {
             Ok(guard) => guard,
-            Err(_) => return last_seen,
+            Err(_) => return (last_seen, false),
         };
         if *guard != last_seen {
-            return *guard;
+            return (*guard, true);
         }
         match self.signal.wait_timeout(guard, timeout) {
-            Ok((guard, _)) => *guard,
-            Err(_) => last_seen,
+            Ok((guard, _)) => {
+                let generation = *guard;
+                (generation, generation != last_seen)
+            }
+            Err(_) => (last_seen, false),
         }
     }
 }
@@ -630,7 +768,7 @@ fn poll_waiter_loop(queue: Arc<PollQueue>) {
             }
         };
         let remaining = wait.deadline.saturating_duration_since(Instant::now());
-        let generation = wait.readiness.wait_changed(wait.last_seen, remaining);
+        let (generation, changed) = wait.readiness.wait_changed(wait.last_seen, remaining);
         // Direct path: the reader thread may have already completed this wait on data. CAS-claim before
         // responding so we never double-complete; if we lost, the reader served it — skip silently.
         if let Some(claimed) = &wait.claimed {
@@ -647,6 +785,10 @@ fn poll_waiter_loop(queue: Arc<PollQueue>) {
             }
         }
         // Best-effort: a torn-down guest just no-ops inside the responder.
+        wakeprof_record(
+            std::sync::Arc::as_ptr(&wait.readiness) as usize,
+            if changed { WAKE_POOL_NOTIFY } else { WAKE_POOL_DEADLINE },
+        );
         let _ = wait
             .responder
             .respond_success(wait.call_id, serde_json::json!({ "generation": generation }));

@@ -1040,7 +1040,8 @@ fn handle_internal_wasm_sync_rpc_request(
         eprintln!("[rpc-trace-wasm-internal] -> {}", request.method);
     }
     let _prof = if rpcprof_enabled() {
-        Some(RpcProfGuard { method: request.method.clone(), start: std::time::Instant::now() })
+        let sid = execution.v8_session_handle().session_id().to_string();
+        Some(RpcProfGuard { method: format!("{sid}|{}", request.method), start: std::time::Instant::now() })
     } else {
         None
     };

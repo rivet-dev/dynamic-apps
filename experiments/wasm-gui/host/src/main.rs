@@ -984,6 +984,11 @@ async fn run_xdemo(
     // default kills it mid-session, collapsing the whole desktop. Trusted long-lived guest -> opt out.
     let mut srv_env = HashMap::new();
     srv_env.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+    for (k, v) in std::env::vars() {
+        if k.starts_with("SECURE_EXEC_") {
+            srv_env.insert(k, v);
+        }
+    }
     s.execute_env("xserver", &server_abs, &sargv, srv_env).await?;
     eprintln!("secure-exec: started X server {server_abs} {server_args:?}");
 
@@ -1001,6 +1006,11 @@ async fn run_xdemo(
         ];
         let mut denv = HashMap::new();
         denv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+        for (k, v) in std::env::vars() {
+            if k.starts_with("SECURE_EXEC_") {
+                denv.insert(k, v);
+            }
+        }
         s.execute_env("dbusd", &dbusd_abs, &dbus_argv, denv).await?;
         eprintln!("secure-exec: started dbus-daemon {dbusd_abs}");
         // Let it bind /tmp/.dbus/session before any client connects.
@@ -1018,6 +1028,11 @@ async fn run_xdemo(
                 "unix:path=/tmp/.dbus/session".to_string(),
             );
             senv.insert("HOME".to_string(), "/root".to_string());
+            for (k, v) in std::env::vars() {
+                if k.starts_with("SECURE_EXEC_") {
+                    senv.insert(k, v);
+                }
+            }
             s.execute_env(&format!("dbussvc{i}"), &svc_abs, &[], senv).await?;
             eprintln!("secure-exec: started dbus service {svc_abs}");
             // Let it register its name + go idle before the next service / the X clients.
