@@ -437,6 +437,32 @@ Guest (mousepad) does `XSync`/etc. = write request, then block for the reply. In
 
 ### Verdict log (newest first)
 
+- **2026-06-29 — L-U (lazy wasm compile) REFUTED; surgical levers EXHAUSTED → the remaining lever is
+  architectural.** The single in-window pump holder is ONE `ExecuteRequest` holding the select! task
+  ~0.88s = mousepad's wasm module compile (V8 eagerly compiles the large statically-linked GTK module at
+  launch). Tried `--wasm-lazy-compilation` (v8-runtime, A/B default-toggle): **NULL** — eager ~9.7s vs
+  lazy ~9.8s (3 runs each), because lazy just defers per-function compile to first call and GTK init
+  calls most of the module during init, so the cost is paid either way. Reverted to eager (opt-in flag
+  left for future use).
+  - **Surgical-lever scoreboard (all measured, all NULL or near-native):** poll clamp (L-Q, ~0.5s only),
+    poll-direct (L-S, null), lazy compile (L-U, null), and the X round-trip itself is **already
+    near-native** (main-thread productive round-trip ~2.6ms, 67 of them ≈ 174ms ≈ native's 110ms). **The
+    surgical lever class has flattened** — no single knob moves first-paint materially.
+  - **Why:** the 9.5s is genuinely DISTRIBUTED (death by a thousand cuts) — ~1s main-thread polls,
+    ~0.9s launch compile, ~1–2s hot fs/net sync-RPCs (path_filestat_get 1498×, net_recv 599×, each
+    ~0.5ms), worker-thread coordination, ~1.4s pump-starve. Native does the WHOLE thing in 110ms, so
+    every op is ~88× and they accumulate. There is no fat hop; the per-op overhead is the cross-isolate-
+    IPC + single-threaded-sidecar tax applied thousands of times.
+  - **The ONE remaining lever with real ROI is ARCHITECTURAL: concurrent RPC servicing.** The sidecar
+    services every guest's sync-RPC on ONE thread (`new_current_thread`), so the main↔worker handoffs +
+    mousepad↔X-server traffic + the worker's load all serialize. Broadly reducing per-op latency needs
+    the sidecar to service RPCs concurrently — either a multi-threaded runtime, or extending the existing
+    off-thread `PollWaiterPool` pattern to the hot fs/net RPC classes. **Blocker:** that requires the
+    kernel/VFS/socket-table to be safe to touch from multiple threads (currently single-thread-owned).
+    This is a major, TCB-touching restructure — the next focused effort, scoped as: (1) make the hot RPC
+    handlers' state `Sync` or move it behind a lock, (2) add an off-thread service pool for fs.stat/read,
+    (3) measure both numbers before/after. NOT a one-turn change.
+
 - **2026-06-29 — L-R drill (corrected): fixed a tooling bug, got REAL client data — the 9.5s is
   DISTRIBUTED, no single 88× hop; biggest chunk is worker-thread coordination.** Found + fixed a bug: the
   host's CLIENT launch (`run_xdemo`) forwards only an ALLOWLIST of `SECURE_EXEC_*` vars, missing

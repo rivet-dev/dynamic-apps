@@ -109,6 +109,14 @@ pub fn init_v8_platform() {
                 "--prof --no-logfile-per-isolate --logfile=/tmp/secure-exec-v8.log --prof-sampling-interval=200",
             );
         }
+        // NOTE (L-U, REFUTED 2026-06-29): `--wasm-lazy-compilation` was A/B-tested as a launch-latency
+        // fix (the eager compile of the large GTK module holds the sidecar ~0.9s at ExecuteRequest). It
+        // is NULL for first-paint (eager ~9.7s vs lazy ~9.8s): lazy just defers per-function compile to
+        // first call, and GTK init calls most of the module during init, so the cost is paid either way.
+        // Left out (eager default) — lazy can also slow steady-state. Opt-in only if a future need arises.
+        if std::env::var("SECURE_EXEC_WASM_LAZY").map(|v| v == "1").unwrap_or(false) {
+            v8::V8::set_flags_from_string("--wasm-lazy-compilation");
+        }
         v8::icu::set_common_data_74(&ICU_COMMON_DATA.0)
             .expect("failed to initialize V8 ICU common data");
         let platform = v8::new_default_platform(0, false).make_shared();
