@@ -219,6 +219,28 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★★★★★ BREAKTHROUGH (2026-06-29, subagent-assisted) — prior "unreachable/exhausted" verdict was WRONG.**
+  Two discoveries overturn it:
+  1. **input→response was MIS-MEASURED: real ir ≈ 93ms, not 234ms.** The host fb-change probe hashed only
+     every **1031st byte** (`SECURE_EXEC_FB_STRIDE`); a single glyph's damage is ~40-byte-per-row segments
+     that fall BETWEEN samples, so the probe missed the first char and timed a later/bigger change —
+     inflating ir ~2.6×. Full-byte fingerprint (now default): **ir 92/92/95 ms (≥3 runs).** So ir is ~1.8×
+     over the <50ms target, not ~4.7×.
+  2. **The 250µs `EVENT_PUMP_INTERVAL` ingest gate is a ~1.5s FIRST-PAINT lever (never explored).** Inbound
+     guest sync-RPCs are TIMER-POLLED: `stdio.rs` `select!` has no branch awaiting the request channel, so
+     every RPC waits up to one 250µs tick to be SEEN, ~4×/round-trip (located by codebase subagent at
+     `stdio.rs:42/199/269`; matches the research subagent's "~1ms/hop scheduling floor"). Sweeping it:
+     **`SECURE_EXEC_PUMP_INTERVAL_US=50` → first-paint 4.0s → 2.46s** (ir regressed 93→146ms because naively
+     over-pumping the single dispatch thread adds contention). **My earlier "~2.6s floor, unreachable"
+     analysis was measured THROUGH this 250µs gate — it is not a real floor.** This also explains why the
+     guest-side poll knobs (clamp/poll-direct/T1) read NULL on ir: they tune the GUEST poll, not the HOST
+     ingest gate.
+  **THE FIX: event-driven request ingest** (a `select!`/`tokio::Notify` branch so RPCs dispatch the instant
+  they land, no timer, no over-pump) — helps BOTH metrics with no CPU-spin downside. Plus the research
+  subagent's nxagent-style local reply termination (answer XInternAtom/GetProperty/GetGeometry in the broker
+  without waking Xvfb) and request pipelining to cut round-trip COUNT. **Targets are back in play.** Probes
+  added: `SECURE_EXEC_FB_STRIDE` (default 1=accurate), `SECURE_EXEC_PUMP_INTERVAL_US` (default 250).
+
 - **★★★★ DECISIVE: first-paint <2s is UNREACHABLE for this workload EVEN WITH the out-of-scope provisioning
   (2026-06-29).** Measured cold-init timeline (svcPerfUs consistent clock, fp=3949ms):
   | phase | window | dur |

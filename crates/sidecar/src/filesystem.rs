@@ -1061,6 +1061,16 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                 2,
                 "filesystem write position",
             )?;
+            // Frame-budget probe (SECURE_EXEC_FRAMEPROF=1, default-OFF): a large write is the Xvfb
+            // framebuffer pwrite = render-complete. Stamp the shared perf clock so the host (which stamps
+            // inject+detect on the same clock) can split input→response into render vs detect/materialize.
+            if contents.len() >= 500_000 && std::env::var("SECURE_EXEC_FRAMEPROF").is_ok() {
+                eprintln!(
+                    "[fbwrite] perf={} size={}",
+                    secure_exec_bridge::perf_now_micros(),
+                    contents.len()
+                );
+            }
             if let Some(mapped) = process.mapped_host_fd_mut(fd) {
                 return write_mapped_host_fd(mapped, fd, &contents, position);
             }

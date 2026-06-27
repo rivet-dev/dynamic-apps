@@ -1411,10 +1411,21 @@ async fn run_xdemo(
                 match std::fs::read(p) {
                     Ok(b) => {
                         let mut h = 1469598103934665603u64;
+                        // Stride is tunable: SECURE_EXEC_FB_STRIDE (default 1031). A small single-char
+                        // damage rect (~640 contiguous bytes) can be MISSED by a 1031 stride, inflating the
+                        // measured input→response to the next detectable change. Set =1 to hash every byte.
+                        // Default 1 (every byte): the old 1031 stride MISSED a single glyph's damage
+                        // (~40-byte-per-row segments fall between 1031-byte samples), timing a later
+                        // bigger change and over-reporting input→response by ~2.6× (~90ms read as ~234ms).
+                        let stride = std::env::var("SECURE_EXEC_FB_STRIDE")
+                            .ok()
+                            .and_then(|v| v.parse::<usize>().ok())
+                            .filter(|&s| s >= 1)
+                            .unwrap_or(1);
                         let mut i = 0usize;
                         while i < b.len() {
                             h = (h ^ b[i] as u64).wrapping_mul(1099511628211);
-                            i += 1031; // strided fingerprint (cheap content hash)
+                            i += stride;
                         }
                         h
                     }
@@ -1428,7 +1439,11 @@ async fn run_xdemo(
                     let _ = xi.run("focus");
                     tokio::time::sleep(std::time::Duration::from_millis(300)).await;
                     let base = fingerprint(&fbpath);
+                    let frameprof = std::env::var("SECURE_EXEC_FRAMEPROF").is_ok();
                     let t = std::time::Instant::now();
+                    if frameprof {
+                        eprintln!("[ir-mark] inject perf={}", secure_exec_bridge::perf_now_micros());
+                    }
                     if let Err(e) = xi.run("type HELLO") {
                         eprintln!("secure-exec: input-latency type failed: {e}");
                     }
@@ -1436,6 +1451,9 @@ async fn run_xdemo(
                     while t.elapsed() < std::time::Duration::from_secs(8) {
                         if fingerprint(&fbpath) != base {
                             resp = Some(t.elapsed().as_millis());
+                            if frameprof {
+                                eprintln!("[ir-mark] detect perf={}", secure_exec_bridge::perf_now_micros());
+                            }
                             break;
                         }
                         tokio::time::sleep(std::time::Duration::from_millis(2)).await;

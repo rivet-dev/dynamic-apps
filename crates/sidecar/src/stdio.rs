@@ -39,7 +39,19 @@ use tokio::time;
 // 7.5s -> ~0.65s over 1500 ops) and the sub-ms tokio timer is honored. Idle
 // pumps are cheap no-ops (try_recv + zero-timeout poll), so the higher cadence
 // costs negligible CPU when no guest is issuing RPCs.
-const EVENT_PUMP_INTERVAL: Duration = Duration::from_micros(250);
+// Tunable via SECURE_EXEC_PUMP_INTERVAL_US (diagnostic, default 250µs) to measure how much of
+// input→response is this ingest-gate latency before building the proper event-driven ingest.
+fn event_pump_interval() -> Duration {
+    static D: std::sync::OnceLock<Duration> = std::sync::OnceLock::new();
+    *D.get_or_init(|| {
+        std::env::var("SECURE_EXEC_PUMP_INTERVAL_US")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            .filter(|&us| us >= 1)
+            .map(Duration::from_micros)
+            .unwrap_or(Duration::from_micros(250))
+    })
+}
 // Fairness batch size for the event_ready drain branch: max event-poll passes per ready
 // notification before yielding back to the select! so the event_pump.tick() branch (which
 // services other guests' sync BridgeCalls) is not starved by a high-rate event producer.
@@ -131,7 +143,7 @@ async fn run_async(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Er
     let (write_error_tx, mut write_error_rx) = unbounded_channel::<String>();
     let callback_transport = Arc::new(FrameSidecarRequestTransport::new(write_tx.clone()));
     sidecar.set_sidecar_request_transport(callback_transport.clone());
-    let mut event_pump = time::interval(EVENT_PUMP_INTERVAL);
+    let mut event_pump = time::interval(event_pump_interval());
     let writer_codec = codec.clone();
     let reader_codec = codec.clone();
     let writer_error_tx = write_error_tx.clone();
