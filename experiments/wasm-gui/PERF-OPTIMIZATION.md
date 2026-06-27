@@ -246,6 +246,26 @@ HONESTLY now (single keystroke, no pacing artifact). Native ref ~6ms.
 ~100ms = box noise) — render green. Need ~2.5× down. **Dispatch levers A/C-lite are KNOWN-NULL for ir** (see
 the REFUTED block); this is now a RENDER-PATH + MEASUREMENT-PRECISION problem.
 
+**★★★ MEASUREMENT-VALIDITY BLOCKER (2026-06-30) — the ir number is confounded; resolve before optimizing ★★★**
+Drilling the ~25ms single-keystroke ir for the <10ms goal uncovered that the framebuffer-diff probe is NOT
+measuring typed-glyph latency. Evidence (host probes added: `SECURE_EXEC_FB_REGION_BYTES`,
+`SECURE_EXEC_IR_POLL_US`, `[ir-damage]` row-range logging — all default-OFF/robust):
+- Text input WORKS — typing 20 chars renders them at the top-left text area (row ~62). Verified by PNG.
+- But for ONE keystroke the FIRST detected fb change (the reported ~20ms) is at **rows 392-410, ~84 bytes** —
+  NOT the glyph (which is at row ~62). Almost certainly the **X mouse-cursor sprite redraw** on the input
+  event (incidental, unrelated to text).
+- Restricting detection to the top 200 rows (where the glyph is) reports **~140ms** — but that region is
+  confounded by the **text caret BLINK** (~530ms period, same pixel location as the glyph), so it is ALSO
+  not a clean glyph-render signal.
+- Net: every "ir" number to date (88ms HELLO, 25-33ms single-key, 20ms) is catching pointer/caret/incidental
+  repaints, NOT "typed glyph appeared". The metric cannot be trusted for sub-50ms work, let alone <10ms.
+**BLOCKER for the <10ms goal:** need a TRUSTWORTHY glyph-render-latency signal that excludes the mouse cursor
++ caret blink. Options to weigh (a DECISION): (i) use the X DAMAGE/XFIXES extension to get the actual
+text-region damage event timestamp; (ii) region+size threshold on the exact glyph cell, with caret-blink
+rejection (measure to a STABLE glyph, not the first toggle); (iii) a guest-side "render-complete" signal;
+(iv) hide the X cursor + disable caret blink in the test setup (test-harness config, not guest edit). Until
+one lands, ir is unmeasurable to the precision the goal requires — SURFACED for a decision.
+
 **★ DIAGNOSTICS-GAPS + THEORIES TABLE (live; recursive loop — update every round):**
 | # | theory / gap | status |
 |---|---|---|

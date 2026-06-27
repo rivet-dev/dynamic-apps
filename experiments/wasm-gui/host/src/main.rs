@@ -1431,8 +1431,16 @@ async fn run_xdemo(
                             .and_then(|v| v.parse::<usize>().ok())
                             .filter(|&s| s >= 1)
                             .unwrap_or(1);
+                        // Optionally hash only the first N bytes (the text area is top-left); cheaper
+                        // check for the ir<10ms detect loop. Default 0 = whole fb (robust).
+                        let region = std::env::var("SECURE_EXEC_FB_REGION_BYTES")
+                            .ok()
+                            .and_then(|v| v.parse::<usize>().ok())
+                            .filter(|&n| n > 0)
+                            .map(|n| n.min(b.len()))
+                            .unwrap_or(b.len());
                         let mut i = 0usize;
-                        while i < b.len() {
+                        while i < region {
                             h = (h ^ b[i] as u64).wrapping_mul(1099511628211);
                             i += stride;
                         }
@@ -1449,6 +1457,15 @@ async fn run_xdemo(
                     tokio::time::sleep(std::time::Duration::from_millis(300)).await;
                     let base = fingerprint(&fbpath);
                     let frameprof = std::env::var("SECURE_EXEC_FRAMEPROF").is_ok();
+                    // Damage-localization diagnostic (frameprof): keep the base bytes so that on detection
+                    // we can diff and report WHICH rows changed (24bpp → 2400 bytes/row at 800px) — to tell
+                    // whether the first detected change is the glyph (top-left text area) or something else
+                    // (status bar, cursor blink, pointer) lower in the window.
+                    let base_buf: Vec<u8> = if frameprof {
+                        std::fs::read(&fbpath).unwrap_or_default()
+                    } else {
+                        Vec::new()
+                    };
                     let t = std::time::Instant::now();
                     if frameprof {
                         let wall = std::time::SystemTime::now()
@@ -1466,23 +1483,40 @@ async fn run_xdemo(
                     if let Err(e) = xi.run(&format!("type {ir_text}")) {
                         eprintln!("secure-exec: input-latency type failed: {e}");
                     }
+                    // Detect-loop precision knobs (for the ir<10ms work): the default full-fb read+hash
+                    // (~3ms) plus a 2ms sleep gives ~5ms detect granularity, which is a big fraction of a
+                    // 10ms budget. SECURE_EXEC_IR_POLL_US tightens the poll (default 2000µs);
+                    // SECURE_EXEC_FB_REGION_BYTES (via fingerprint) hashes only the first N bytes (the
+                    // text renders top-left) so each check is cheap. Defaults keep the robust whole-fb 2ms behavior.
+                    let poll_us: u64 = std::env::var("SECURE_EXEC_IR_POLL_US")
+                        .ok().and_then(|v| v.parse().ok()).unwrap_or(2000);
                     let mut resp = None;
                     while t.elapsed() < std::time::Duration::from_secs(8) {
                         if fingerprint(&fbpath) != base {
-                            resp = Some(t.elapsed().as_millis());
+                            resp = Some(t.elapsed());
                             if frameprof {
                                 let wall = std::time::SystemTime::now()
                                     .duration_since(std::time::UNIX_EPOCH)
                                     .map(|d| d.as_micros())
                                     .unwrap_or(0);
                                 eprintln!("[ir-mark] detect perf={} wall={wall}", secure_exec_bridge::perf_now_micros());
+                                // Localize the damage: first/last differing byte vs base → row range.
+                                let cur = std::fs::read(&fbpath).unwrap_or_default();
+                                let n = base_buf.len().min(cur.len());
+                                let first = (0..n).find(|&i| base_buf[i] != cur[i]);
+                                let last = (0..n).rev().find(|&i| base_buf[i] != cur[i]);
+                                if let (Some(f), Some(l)) = (first, last) {
+                                    let bpr = 800usize * 3; // 24bpp, 800px wide
+                                    eprintln!("[ir-damage] changed bytes [{f}..{l}] rows [{}..{}] of 600 (diff_bytes~{})",
+                                        f / bpr, l / bpr, base_buf[..n].iter().zip(&cur[..n]).filter(|(a,b)| a!=b).count());
+                                }
                             }
                             break;
                         }
-                        tokio::time::sleep(std::time::Duration::from_millis(2)).await;
+                        tokio::time::sleep(std::time::Duration::from_micros(poll_us)).await;
                     }
                     match resp {
-                        Some(ms) => eprintln!("[input-response] {ms}ms"),
+                        Some(el) => eprintln!("[input-response] {}ms\n[input-response-us] {}", el.as_millis(), el.as_micros()),
                         None => eprintln!("[input-response] TIMEOUT"),
                     }
                 }
