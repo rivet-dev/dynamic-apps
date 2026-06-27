@@ -229,10 +229,15 @@ levers as profiling surfaces new costs (recursion).
   - **~0.55s module read** (`readFileSync` of the 17MB host module): the runner's `node:fs` is the
     kernel-VFS/bridge-backed fs, and `fs.readFileSync` marshals the whole file as `{__agentOsType:'bytes',
     base64}` (Rust base64-encode + 23MB JSON serialize + transport + V8 JSON.parse + `Buffer.from`). A raw
-    host `fs::read` of the same file is **6.7ms** → ~82× bridge overhead. Fix = a host→guest **bulk-SAB
-    read** (memcpy via `__secure_exec_t1_bulk`, the existing 8MB write-side SAB, read direction added),
-    chunked for >8MB; module load is single-threaded at startup (before any `thread_spawn`) so the
-    single-slot SAB is collision-free there. **[next CORE lever: L-W.3]**
+    host `fs::read` of the same file is **6.7ms** → ~82× bridge overhead. **L-W.3 (host→guest bulk-SAB read,
+    chunked) — BUILT then BACKED OUT (2026-06-29): the bulk SAB only exists when the T1 ring
+    (`SECURE_EXEC_T1_RING`, "perf lever 2") is enabled, which is OFF by default and HUNG when exercised via
+    the new read direction. So the win can't materialize in the shipping config without first enabling +
+    stabilizing the whole T1 ring transport — far out of scope and risky for a 0.55 s ONE-TIME gain.** The
+    full bulk-read plumbing (session `write_bulk_result` → `V8SessionHandle::write_t1_bulk_result` →
+    `fs.readSync` bulkOk path → runner `readHostModuleBulk`) was reverted cleanly; L-W.1/.2 untouched. If the
+    module read is ever revisited, do it on a path that does NOT depend on the opt-in T1 ring (e.g. a
+    dedicated trusted host-direct module read, or land T1-on as its own validated lever first).
   - **~2.4s mousepad GTK cold-init→paint** = guest COMPUTE, NOT bridge I/O. Proof: total sidecar RPC
     service time across the whole run is only ~177ms; guest file reads go through WASI `fd_read`→kernel
     (in-process), never the base64 sync-RPC path. The chunk is **fontconfig REBUILDING its cache every cold
