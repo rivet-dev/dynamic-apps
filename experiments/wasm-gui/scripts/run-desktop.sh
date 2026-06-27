@@ -6,38 +6,47 @@
 # forwards your real mouse + keyboard back into the guest X server over X11/XTEST. Move the mouse, click,
 # drag the window titlebars, and type after clicking a window. Press Esc or close the window to quit.
 #
+# SELF-CONTAINED: the prebuilt wasm guests + fonts + locale ship in experiments/wasm-gui/demo-assets/, so a
+# fresh checkout runs on macOS or Linux WITHOUT the wasm toolchain — you only need Rust (to build this thin
+# host) and a display. (A fresh checkout also needs `pnpm install` once so the V8 bridge assets generate;
+# see the repo CLAUDE.md.)
+#
 # Requires a machine WITH A DISPLAY:
 #   - macOS: works out of the box (native Cocoa window; no DISPLAY needed).
 #   - Linux: needs a running X11 (DISPLAY) or Wayland (WAYLAND_DISPLAY) session — your normal desktop.
 #            winit's X11 backend needs these runtime libs (present on any normal desktop; on a MINIMAL box
-#            install them): libx11, libxcb, libxkbcommon0, libxkbcommon-x11-0, libgl1.
-#            To test headless on Linux with no desktop, use the containerized harness instead:
-#              bash scripts/verify-window-headless.sh     # Docker + Xvfb, screenshots the window
-#            or wrap this directly:  xvfb-run -s "-screen 0 1280x1024x24" bash scripts/run-desktop.sh
-#
-# The wasm guests are platform-independent; only this thin host differs per-OS, and winit abstracts that.
+#            install: libx11 libxcb libxkbcommon0 libxkbcommon-x11-0 libgl1).
+#            To run headless on Linux, use the container harness: bash scripts/verify-window-headless.sh
+#            or wrap this: xvfb-run -s "-screen 0 1280x1024x24" bash scripts/run-desktop.sh
 set -uo pipefail
 cd "$(dirname "$0")/.."
 EXP="$(pwd)"
 REPO="$(cd ../.. && pwd)"
+ASSETS="$EXP/demo-assets"
 
 # Guest screen geometry. The winit window auto-sizes to match this (parsed from the -screen arg below).
 W="${SX_GUI_WIDTH:-800}"
 H="${SX_GUI_HEIGHT:-600}"
 
-FONTS="${VMFONTS:-/tmp/vmfonts}"
-LOCALE="${VMLOCALE:-/tmp/vmlocale}"
-[ -d "$FONTS" ]  || bash "$EXP/scripts/prepare-fonts.sh"  >/dev/null 2>&1 || true
-[ -d "$LOCALE" ] || bash "$EXP/scripts/prepare-locale.sh" "$LOCALE" >/dev/null 2>&1 || true
+# Prefer the committed self-contained bundle; fall back to a locally-staged tree if you built your own.
+FONTS="${VMFONTS:-$ASSETS/fonts}";  [ -d "$FONTS" ]  || FONTS=/tmp/vmfonts
+LOCALE="${VMLOCALE:-$ASSETS/locale}"; [ -d "$LOCALE" ] || LOCALE=/tmp/vmlocale
+XVFB="$ASSETS/Xvfb.wasm"; TWM="$ASSETS/twm.wasm"; XCLOCK="$ASSETS/xclock.wasm"; XWIN="$ASSETS/xwin.wasm"
+# Fall back to the top-level build outputs if the bundle is absent (in-repo dev builds).
+[ -f "$XVFB" ]   || XVFB="$EXP/Xvfb.wasm"
+[ -f "$TWM" ]    || TWM="$EXP/twm.wasm"
+[ -f "$XCLOCK" ] || XCLOCK="$EXP/xclock.wasm"
+[ -f "$XWIN" ]   || XWIN="$EXP/guest-xclient/xwin.wasm"
 
 echo "building wasm-gui-host (window feature) + sidecar..."
-( cd "$REPO" && cargo build -p wasm-gui-host --features window ) || exit 1
+( cd "$REPO" && cargo build -p wasm-gui-host --features window ) || {
+  echo "cargo build failed — a fresh checkout needs 'pnpm install' first (V8 bridge assets); see CLAUDE.md"; exit 1; }
 HOST="$REPO/target/debug/wasm-gui-host"
 SIDECAR="$REPO/target/debug/secure-exec-sidecar"
 [ -x "$SIDECAR" ] || ( cd "$REPO" && cargo build -p secure-exec-sidecar --bin secure-exec-sidecar ) || exit 1
 
-for f in "$EXP/Xvfb.wasm" "$EXP/twm.wasm" "$EXP/xclock.wasm" "$EXP/guest-xclient/xwin.wasm"; do
-  [ -f "$f" ] || { echo "MISSING $f — build the wasm artifacts first"; exit 1; }
+for f in "$XVFB" "$TWM" "$XCLOCK" "$XWIN"; do
+  [ -f "$f" ] || { echo "MISSING guest wasm: $f (expected the demo-assets bundle)"; exit 1; }
 done
 
 if [ -z "${DISPLAY:-}" ] && [ -z "${WAYLAND_DISPLAY:-}" ] && [ "$(uname)" != "Darwin" ]; then
@@ -49,9 +58,9 @@ echo "launching interactive wasm desktop (${W}x${H}) — Esc or close the window
 # Do NOT override DISPLAY here: winit needs the HOST's real display (macOS native / your Linux X or
 # Wayland). The ':0' inside the guest args below is the GUEST X server's display, which is separate.
 exec "$HOST" --desktop \
-  --server "$EXP/Xvfb.wasm" \
-  --client "$EXP/twm.wasm" \
-  --client "$EXP/xclock.wasm -analog -update 1 -geometry 150x150+600+40" \
-  --client "$EXP/guest-xclient/xwin.wasm" \
+  --server "$XVFB" \
+  --client "$TWM" \
+  --client "$XCLOCK -analog -update 1 -geometry 150x150+600+40" \
+  --client "$XWIN" \
   --fonts-dir "$FONTS" --locale-dir "$LOCALE" --sidecar "$SIDECAR" \
   -- :0 -screen 0 "${W}x${H}x24" -nolisten tcp -nolock -listen local -noreset -fbdir /data -fp /fonts

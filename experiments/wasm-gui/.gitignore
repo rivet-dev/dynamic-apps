@@ -53,3 +53,7 @@ third_party/wasm-prefix-threads/
 toolchain/wasi-compat-threads.o
 third_party/glib/build-wasm-threads/
 third_party/*/build-wasm-threads/
+
+# Self-contained interactive-demo bundle (prebuilt wasm guests + fonts/locale) so a fresh pull runs on macOS/Linux without the wasm toolchain.
+!demo-assets/
+!demo-assets/**
