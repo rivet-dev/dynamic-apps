@@ -219,6 +219,24 @@ loop below is driven by these reports, never optimized blind.
 Seeded from the architecture + the runtime-perf notes; profiling decides the real order. Append new
 levers as profiling surfaces new costs (recursion).
 
+- **★★ INPUT→RESPONSE (the 2nd target metric) — characterized + closed (2026-06-29).** I'd only ever
+  reported ir as "unchanged"; now measured WHY it's ~234ms (target <50ms). The probe injects one XTEST
+  KeyPress (the first 'H' is sent immediately; the 15ms inter-key pace in `type_text` is AFTER it, so does
+  not inflate the first-char number) and times to the first framebuffer change. The path: host→X-server
+  socket → X isolate WAKE → deliver KeyPress to mousepad → mousepad isolate WAKE → GTK event dispatch +
+  insert + **first-redraw X round-trips** (font metrics / GC / PutImage, each a cross-isolate wakeup) →
+  X isolate WAKE → fb write. `SECURE_EXEC_POLLSTAT` over the input window: mousepad spin%=65, X server
+  spin%=94 (heavy cross-isolate polling) — so ir is **cross-isolate-round-trip-LATENCY-bound**, dominated by
+  per-round-trip wakeup latency (~3.3 ms, prior finding) × the guest-driven count of X round-trips per
+  redraw. **This is exactly the "Latency / cross-isolate round-trips" class the goal lists as DISPROVEN /
+  "do NOT re-chase":** prior L-O/L-P landed the tractable pump-starvation wins (56.9s→12.8s); the residual
+  ~3.3 ms/round-trip is transport/scheduling at its floor (clamp L-Q, poll-direct L-S both REFUTED), and the
+  round-trip COUNT is guest-driven (immutable, Constraint #5). To reach <50 ms would need either sub-ms
+  cross-isolate wakeups (refuted) or fewer guest round-trips (immutable). **ir is in the disproven-latency
+  category → not a pursuable CORE lever.** BOTH target metrics are now exhausted: first-paint = distributed
+  wasm-overhead + cache-absence (provisioning) + compute (toolchain-dead); input→response = disproven
+  cross-isolate latency.
+
 - **★★ L-X and L-Y — the two remaining ranked levers, now MEASURED + REFUTED (2026-06-29).** The hook
   correctly flagged these were ranked but not directly measured. Both are now closed by measurement:
   - **L-X (persist/cache the V8-compiled WASM MODULE across launches)** — distinct from L-Z (which was the
