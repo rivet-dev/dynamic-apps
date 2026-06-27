@@ -450,7 +450,15 @@ fn assert_driver_owns_pids(
 /// busy-spinning. NOT a sleep and NOT a resource cap: it bounds how long the
 /// per-session bridge thread parks before re-checking readiness, so the guest
 /// notices new data within this bound while CPU stays idle while parked.
-const KERNEL_POLL_INLINE_BOUND_DEFAULT_US: u64 = 2000;
+// The inline non-blocking fd-poll "busy-spin guard": when an empty pipe/pty poll finds nothing ready it
+// parks up to this bound before returning, so the guest's glib loop cannot tight-spin re-issuing the
+// poll. But the guest ALSO blocks on `net.poll_wait` immediately after (event-driven, and kernel-pipe
+// writes notify THAT readiness), so this park is largely redundant — and at 2000µs it added ~2ms PER
+// render glib-iteration (the dominant per-op floor: `_kernelFdPollRaw` measured ~2.2ms rt via SYNCSPLIT),
+// inflating B2 keystroke ir by ~18ms. Swept (render-green): 2000→~61ms, 500→~54ms, 200→~45ms, 100→~44ms,
+// 0→unstable (170ms outlier — the guard IS needed a little). 200µs sits at the safe knee: a 10× cut that
+// keeps the spin guard. Override via `SECURE_EXEC_INLINE_POLL_BOUND_US`.
+const KERNEL_POLL_INLINE_BOUND_DEFAULT_US: u64 = 200;
 
 /// Resolve [`KERNEL_POLL_INLINE_BOUND`], allowing a sweep override
 /// (`SECURE_EXEC_INLINE_POLL_BOUND_US`) for tuning experiments; defaults to

@@ -2072,3 +2072,24 @@ which only ~3% is the runtime overhead incremental CORE op-levers touch. So the 
       major architectural redesign BEYOND the incremental CORE levers.
 The incremental CORE levers (inline family + fd-scoped) are exhausted. Per the goal's "no exhaustion
 escape" clause, this is surfaced as the specific blocker for a decision, not a claim of done.
+
+---
+
+## §7-LEVER-2 WIN (2026-06-30): fd-poll inline bound 2000µs → 200µs — REAL ~15ms ir win
+
+SYNCSPLIT (per-op park/unpark roundtrip, gated SECURE_EXEC_SYNCSPLIT) exposed the per-op floor:
+`_netServerAcceptRaw` rt=63µs, `_netSocketPollRaw` (drain) rt=104µs, `_netSocketPollWaitRaw` rt=3675µs
+(blocking, legit), but **`_kernelFdPollRaw` rt=2186µs** — 20× the drain, on a NON-blocking poll. Cause:
+`KernelPollHandle::poll_fds_nonblocking` (kernel.rs) parks an empty pipe/pty poll up to
+`KERNEL_POLL_INLINE_BOUND` = **2000µs** ("busy-spin guard"). But the guest blocks on `net.poll_wait`
+immediately after (event-driven; kernel-pipe writes notify THAT readiness), so the 2ms park is largely
+redundant — and it parks on PIPE readiness, missing SOCKET events, adding ~2ms PER render glib-iteration.
+
+**Sweep (render-green, ≥5 runs each):** 2000µs→61ms · 500µs→54ms · 200µs→**46ms** · 100µs→44ms · 0µs→unstable
+(170ms outlier: the guard IS needed a little). Set the DEFAULT to **200µs** (the safe knee, 10× cut, keeps
+the guard). Confirmed: no-env (new 200µs default) = 46ms median (43/35/53/46/46/46) vs explicit 2000µs =
+61ms (55/67/53/47/69/68). **ir ~61→46ms (~25%), ~17×→~13× native (native 3.5ms).** Render green.
+Change: `crates/kernel/src/kernel.rs` `KERNEL_POLL_INLINE_BOUND_DEFAULT_US` 2000→200.
+
+Lever map: the per-op floor IS reducible and on the render path (refutes "exhausted"). Next: the drain
+(_netSocketPollRaw 104µs) and the net.poll_wait delivery still have headroom; keep cutting per-op floor.
