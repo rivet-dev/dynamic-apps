@@ -263,9 +263,23 @@ peer compute, NOT condvar/thread-wake — d01/d34 are ~30-60µs immediate notifi
 `ctx.sync_call` (`host_call.rs`, blocks on `recv_response`) → event-bridge thread emits SyncRpcRequest →
 **the single stdio `select!` task** (`pump_process_events` → `service_javascript_sync_rpc`) → respond. The
 250µs pump is at the joint ir/fp optimum — DO NOT tune it; the fat d12 is task contention, not pump cadence
-(575µs > 250µs because the one task is saturated). **Implication: A/F10-INLINE is now the CONFIRMED top
-lever** — taking the hot net/poll drains off the single task onto the per-session bridge thread (which runs
-in parallel per guest) eliminates d12 for those hops; ~742µs→~100µs/hop ⇒ ir ~88ms→~15-20ms projected.
+(575µs > 250µs because the one task is saturated).
+
+**★ LEVER-A RESULT (2026-06-30, BUILT + MEASURED — the inline approach hit a structural wall):** implemented
+A/F10-INLINE (the `InlineNetDrain` trait injected into `LocalBridgeState`; non-blocking unix `net.poll`
+serviced inline on the per-session bridge thread). It WORKS — hopsplit confirms `_netSocketPollRaw` (was the
+#1 method, 8600 hops) no longer reaches the service loop, and the REMAINING methods' d12 dropped
+(`_kernelFdPollRaw` 575→**413µs**, proving load matters). Render stayed green. **BUT ir is FLAT (~91ms median,
+5 runs)** because removing net.poll only un-saturated the task partway: the **dominant ir hop is now
+`_kernelFdPollRaw` (9200 hops, d12 413µs), which is KERNEL-BOUND** — its handler
+(`service_javascript_kernel_fd_poll_sync_rpc`, execution.rs:16999) takes `&mut SidecarKernel` /
+`kernel.poll_fds()` and the bridge thread can't map fd→backing-readiness without the kernel fd table. The X
+guests poll their connection fd via `_kernelFdPollRaw` (POSIX fd API), so it is ON the critical path and
+CANNOT be inlined the way the unix-socket `net.poll` drain can. **The arithmetic still says the target is
+reachable** (inline ALL hot hops ⇒ floor d01+d23+d34 ≈ ~70µs/hop ⇒ ir ~8-15ms), but the LAST inline-able
+method is done; the remaining ones are kernel-bound. **Implication: ir<50ms now requires a major CORE
+refactor to get the kernel-bound `_kernelFdPollRaw` off the single serialized dispatch task — NOT another
+small lever.** Two candidate redesigns (a DECISION, see lever menu C / C-lite below).
 
 **REMAINING LEVER MENU — attack the per-hop FLOOR (hits all ~46 hops) over count reduction:**
 - **A [TOP — CONFIRMED by D16; the lever d12 demands] F10-INLINE:** service the non-blocking unix `net.poll`
@@ -290,8 +304,18 @@ in parallel per guest) eliminates d12 for those hops; ~742µs→~100µs/hop ⇒ 
   only `{generation}`, forcing a separate drain hop). Removes ~half the hops. Same `Arc<Mutex<Receiver>>`
   enabler as A. RISK (heed the F12 regression): the `net.poll_wait([0,0])` snapshot hop is load-bearing for
   event SEQUENCING — carried events must be exactly what the separate drain would return, in order.
-- **C multi-thread the dispatch loop:** per-session/per-VM dispatch so guests don't serialize on one
-  `&mut self`. Removes the contention entirely; large core refactor.
+- **C [the ir lever after A — DECISION NEEDED] multi-thread the dispatch loop:** per-session/per-VM dispatch
+  so guests don't serialize on the single stdio `select!` task. Removes the d12 contention for ALL methods
+  incl. the kernel-bound `_kernelFdPollRaw`. Requires `SidecarKernel` to be concurrently accessible (the
+  `&mut self` over the whole sidecar → fine-grained per-subsystem locks: fd table, process table, socket
+  table, pipes). LARGE, highest-risk core refactor (could destabilize the render path). Wins the most.
+- **C-lite [narrower variant of C] lock-free kernel-fd-readiness fast-path:** keep the single task, but give
+  the bridge thread a shared, lock-free per-process `fd → readiness` snapshot (maintained alongside the
+  kernel fd table at open/dup/close) so a NON-BLOCKING `__kernel_fd_poll` (timeout 0) — the bulk of the 9200
+  hops, mostly "nothing ready" like the 28:1 empty net.poll — is answered inline (all-zero revents) without
+  `&mut kernel`; productive/blocking polls fall through. Reuses the lever-A `InlineNetDrain` seam. MEDIUM
+  refactor (hooks kernel fd lifecycle to maintain the shadow map); narrower + lower-risk than full C, but
+  only covers the non-blocking poll case. This is the natural extension of the landed lever-A groundwork.
 - **D shared-memory inter-guest socket:** give the X client+server a shared SAB ring for their socket
   (extend the existing T1-ring substrate, `SECURE_EXEC_T1_RING`); data becomes direct memory, host only
   *wakes* the peer (~31µs). Deepest, highest ceiling, biggest change.
