@@ -285,6 +285,7 @@ impl SessionManager {
         let router = Arc::clone(&self.call_id_router);
         let shared_call_id = Arc::clone(&self.shared_call_id);
         let snap_cache = Arc::clone(&self.snapshot_cache);
+        let t1_handoff = Arc::clone(&self.t1_handoff);
         let isolate_handle = Arc::new(Mutex::new(None));
         let execution_abort = new_execution_abort();
         let isolate_handle_for_thread = Arc::clone(&isolate_handle);
@@ -314,6 +315,7 @@ impl SessionManager {
                     execution_abort_for_thread,
                     session_id_for_thread,
                     output_generation,
+                    t1_handoff,
                 );
             })
             .map_err(|e| format!("failed to spawn session thread: {}", e))?;
@@ -707,6 +709,7 @@ fn session_thread(
     #[cfg_attr(test, allow(unused_variables))] execution_abort: SharedExecutionAbort,
     #[cfg_attr(test, allow(unused_variables))] session_id: String,
     #[cfg_attr(test, allow(unused_variables))] output_generation: Option<u64>,
+    #[allow(unused_variables)] t1_handoff: T1RingHandoff,
 ) {
     // Acquire concurrency slot, but keep polling the session channel so a queued
     // session can still shut down cleanly before it ever gets a slot.
