@@ -11725,10 +11725,10 @@ const hostNetImport = {
         // the wait to a ceiling, so a pending listener accept (whose readiness isn't reader-notified) is
         // still rescanned within that ceiling.
         let remain = deadline == null ? 1000 : Math.max(0, deadline - Date.now());
-        // net.poll_wait only wakes on host_net socket readiness, not kernel-pipe data. When the poll
-        // set includes pipe fds (e.g. a GMainContext GWakeup pipe), cap the wait so we rescan the
-        // pipes promptly — otherwise a cross-thread GWakeup write would not be observed until timeout.
-        if (pollSetHasPipes) remain = Math.min(remain, 10);
+        // Event-driven: kernel-pipe writes AND closes now notify net.poll_wait's readiness in the
+        // sidecar (__kernel_fd_write / __kernel_fd_close call socket_readiness.notify() on the SAME
+        // readiness object this poll_wait blocks on), so a cross-thread GWakeup wakes us immediately.
+        // No pipe-rescan timer cap (per the "wakeups are event-driven, never timer-polled" invariant).
         if (globalThis.__polltrace) {
           let pr = ''; pipeRevents.forEach((re, gfd) => { pr += ' gfd' + gfd + '(k' + kernelPipeKernelFd(gfd) + ')=' + re; });
           pollTrace('net_poll BLOCK n=' + n + ' hasPipes=' + pollSetHasPipes + ' pipeRevents{' + pr + ' } remain=' + remain);

@@ -15,21 +15,23 @@ render, most go quiet. Goal end-state = all apps live, WM-decorated, responsive 
 
 ## 2. Status snapshot
 
-- **Leading root-cause hypothesis (revised 2026-06-27):** latency/serialization through the
-  single-threaded host-socket bridge + thread oversubscription (T-C/T-D/T-F/T-E). The original
-  lost-wake-via-cross-process-pipe theory (T-A) is **refuted for XU7's hot path** by the channel
-  inventory: XU7 uses host AF_UNIX **sockets** for X11 + D-Bus (which DO notify the reader), and
-  GWakeup is intra-process (notified via execution.rs:16638). A socket-notify *race* (T-B) is not
-  yet ruled out.
-- **Confidence:** LOW until D1 runs. The "2 active / 4 starved" split (F3) still argues against a
-  *pure* uniform latency story (T-E), so something asymmetric remains (T-C/T-D head-of-line, or T-F
-  per-guest scheduling).
-- **Root cause:** NOT YET PROVEN. D1 is still the decisive next experiment: notify-dominated wakes
-  for all guests would confirm T-A/T-B refuted and pivot fully to latency/serialization; any
-  deadline-dominated starved guest would reopen a lost-wake mechanism (T-B).
-- **Note:** the 10ms cap still *fires* in XU7 (every GTK app has the intra-process GWakeup pipe in
-  its poll set → `pollSetHasPipes`), but it is now **redundant** there (GWakeup notifies via 16638),
-  so removing it (task #26) is expected safe for XU7.
+- **ROOT CAUSE — PROVEN + FIXED (2026-06-27):** **T-J** — glib's GWakeup `read()` on its kernel-pipe
+  wakeup fd is misrouted to `net_recv` by the guest libc's `--wrap=read` shim (every fd `>= 0x40000000`
+  is treated as a host_net socket; kernel pipes are `0x50000000+`). The socket bridge returns no data →
+  EAGAIN → the pipe never drains → `timeout=0` spin that pins a core and starves co-resident guests.
+  Fixed in the platform layer (`net_recv` drains kernel-pipe fds via `__kernel_fd_read`); glib untouched.
+- **Validated:** the `gdbus-loop-probe` GWakeup repro stops spinning (drains, exits 0), and the real
+  3-app Xfce desktop (xfwm4 + xfce4-panel + mousepad, WITH xfconfd) now **renders** a live decorated
+  app window — the same config that was **0.0% nonblack** before the fix. Artifacts: `/tmp/tj-fix.log`,
+  `xu7-afterfix-mousepad-render.png`.
+- **Earlier (now superseded) hypotheses:** the "latency/serialization through the single-threaded
+  host-socket bridge" framing (T-C/T-D/T-F) and the retracted "per-isolate socket-table gap" were
+  symptoms of, or unrelated to, the real spin. The "2 active / 4 starved" split is explained by the
+  spinner pinning a core.
+- **Note:** the 10ms cap still *fires* in XU7 (every GTK app has a GWakeup pipe in its poll set →
+  `pollSetHasPipes`); with the drain fixed it is **redundant** there, so removing it (task #26) is the
+  next step. Remaining open theories (T-C/T-D/T-F/T-G/T-H/T-K) are now about *scaling past* the spin
+  fix (concurrent-guest ceiling, clock fidelity), not the primary starvation.
 
 ## 3. Established facts (proven this investigation)
 
@@ -213,7 +215,7 @@ Proof experiment · Debug needed · Result.
     spin, exits 0**. (The temporary `gwakeup.c`/`gmain.c` `g_printerr` probes used to pin this are
     reverted — glib stays upstream.)
 
-### T-K — Frozen CLOCK_MONOTONIC (Linux-fidelity defect, separate from the spin) · **OPEN** · priority 3 · (NEW 2026-06-27)
+### T-K — CLOCK_MONOTONIC fidelity (hypothesis: "frozen") · **REFUTED (clock advances); minor non-distinctness nit** · priority 3 · (NEW 2026-06-27)
 - **Hypothesis:** `_clockTimeGet` (wasm.rs:3322) returns frozen `Date.now()*1e6` for ALL clock ids,
   including `CLOCK_MONOTONIC`, because the wasm guest's `Date.now()` is virtualized/frozen
   (node_import_cache.rs:11133 comment). A monotonic clock that never advances is wrong for Linux
@@ -223,7 +225,50 @@ Proof experiment · Debug needed · Result.
 - **False-if:** CLOCK_MONOTONIC advances with real elapsed time.
 - **Proof experiment:** trace `_clockTimeGet` return values over time; or test a monotonic-advance fix.
 - **Debug needed:** small clock-value trace.
-- **Result:** _pending (strongly suspected frozen per the wasm.rs:3322 + 11133 evidence)._
+- **Result: REFUTED (the "frozen" hypothesis) — the clock advances.** The gdbus-loop-probe's 12s quit
+  timer fired (`GDBUS-LOOP: 12s elapsed -> quit`) and the desktop renders with working GTK timers, so
+  CLOCK_MONOTONIC is NOT frozen. Code inspection (`_clockTimeGet`, wasm.rs:3321) shows it returns
+  `Date.now()*1e6` for ALL clock ids, so the only residual quirk is that CLOCK_MONOTONIC aliases
+  CLOCK_REALTIME (not independent of wall-clock changes) — a minor Linux-fidelity nit that breaks
+  nothing observed; track for cleanliness, NOT the starvation cause.
+
+### Post-T-J disposition — T-C / T-F / T-G / T-H (2026-06-27)
+
+The render-recovery causality test (3-app desktop, same config: 0.0% nonblack WITH the spin → live
+decorated render after the T-J fix; artifact `xu7-afterfix-mousepad-render.png`) is the decisive
+artifact: it proves **T-J is THE root cause** of the XU7 starvation and refutes the earlier
+"leading-root" hypotheses as the root.
+
+- **T-C (head-of-line via single-threaded Xvfb) — REFUTED as root.** The head-of-line stall was the
+  T-J spinner pinning the kernel service thread, not Xvfb; with the spin fixed the 3-app set renders.
+- **T-F (reader/worker OS-thread oversubscription) — REFUTED as root.** Same causality; the starved
+  guests were starved by the spinner. May contribute at scale, but the 5-app failure is a D-Bus
+  *timeout* (service-thread serialization, T-H), not thread oversubscription.
+- **T-G (generation rescan amplification) — REFUTED as root.** No evidence it materially affects the
+  outcome; render recovers with the spin fix alone.
+- **T-H (sync-RPC service-thread tail latency) — CONFIRMED as the 5-app scaling ceiling (NOT the spin
+  root).** The 5-app set (+xfdesktop+thunar) fails with D-Bus/xfconf connection timeouts: ~5 heavy
+  guests serializing their D-Bus handshakes through the single kernel service thread. This is the
+  service-thread-multiplex perf frontier — a separate, large effort beyond removing the starvation
+  spin. Artifact: `xu7-full5-dbus-timeout-ceiling.log`.
+
+### 10ms poll cap removed + notify graph completed (2026-06-27) — also refutes T-D
+
+The `if (pollSetHasPipes) remain = Math.min(remain, 10)` pipe-rescan cap is **removed**
+(node_import_cache.rs). It existed only because `net.poll_wait` woke on host_net socket readiness but
+NOT on kernel-pipe data, so a cross-thread GWakeup write was observed only on the next 10ms rescan. The
+notify graph is now complete and event-driven:
+
+- **Write notify** (`__kernel_fd_write`) and **close/EOF notify** (`__kernel_fd_close`) both call
+  `socket_readiness.notify()` on the **SAME** readiness object `poll_wait` blocks on
+  (`owner_socket_readiness ?? process.socket_readiness`). Previously the write notified only the
+  writer's *own* readiness, which missed worker→owner wakes — exactly what the cap papered over.
+- **T-D (two-party write deadlock the cap was masking) — REFUTED.** With the cap gone, the GWakeup
+  probe still drains + exits 0, and the 3-app session still renders a live WM-decorated Mousepad
+  window — no deadlock or hang surfaced. Artifacts: `/tmp/tj-nocap.log`, `xu7-nocap-mousepad-render.png`.
+  (Note: the harness PASS metric counts non-bg pixels in the top band, which catches Mousepad's title
+  bar — it is NOT proof the xfce4-panel painted; see the render-fidelity note in §8.)
+- This satisfies the "wakeups are event-driven, never timer-polled" invariant for kernel pipes.
 
 ---
 
@@ -263,9 +308,72 @@ This doc is **recursive**: investigation creates new theories.
 5. Constraint #5 holds (upstream Xfce/GTK/glib/X unmodified — verified by diff).
 6. No `OPEN` theory remains (recursion drained).
 
+### Assessment (2026-06-27)
+
+| # | Criterion | Status |
+|---|-----------|--------|
+| 1 | Every theory PROVEN/REFUTED + artifact | ✅ T-A…T-K all resolved (verdict log + linked PNGs/logs) |
+| 2 | Root cause proven | ✅ **T-J** (instrumented import trace + render-recovery causality) |
+| 3 | Fix validated, multi-app renders before/after | ⚠️ **3-app YES** (0% black → live decorated app, before/after); **5-app NO** — blocked by a *separate* root, **T-H** (service-thread serialization → D-Bus startup timeouts), not the starvation spin. Responsiveness (type/click) not yet exercised. |
+| 4 | 10ms cap removed + notify graph complete | ✅ cap removed; write+close notify the poll_wait readiness; validated cap-free (probe + 3-app) |
+| 5 | Constraint #5 (glib/GTK/X unmodified) | ✅ fix is platform-layer only; temporary glib probes reverted (no probe markers remain) |
+| 6 | No OPEN theory (recursion drained) | ✅ all dispositioned; T-H CONFIRMED as the next frontier |
+
+**Net:** the XU7 *starvation* (the spin that blanked the desktop) is **root-caused, fixed, and
+validated** — 5 of 6 criteria fully hold. The lone gap is criterion 3's "**all** apps" at 5-guest
+scale, which the investigation surfaced as a **distinct second root cause (T-H)**: the single kernel
+service thread can't service ~5 heavy guests' concurrent D-Bus startup handshakes before the 25s
+timeout. That is the **service-thread-multiplex perf frontier** (multiple levers: service-thread
+concurrency, GObject `ffi_call`/closure cost, encoder hot paths) — a large, separate effort, not a
+fix to the starvation spin. It needs its own investigation cycle.
+
 ---
 
 ### Verdict log (newest first)
+
+- **2026-06-27 — 10ms poll cap REMOVED + notify graph completed (event-driven); T-D REFUTED.** The
+  `if (pollSetHasPipes) remain = Math.min(remain, 10)` pipe-rescan cap is gone. Root of why it was
+  needed: `__kernel_fd_write` notified only the writer's *own* `socket_readiness`, but `poll_wait`
+  blocks on `owner_socket_readiness ?? process.socket_readiness` — so a worker→owner GWakeup wake was
+  missed and only caught by the 10ms rescan. Fix: write AND new close/EOF notify now target the SAME
+  readiness `poll_wait` uses (`crates/sidecar/src/execution.rs`). Validated cap-free: GWakeup probe
+  drains + exits 0; 3-app desktop still renders (PASS). **T-D (deadlock the cap masked) REFUTED** — no
+  deadlock surfaced. Artifacts: `/tmp/tj-nocap.log`, `xu7-nocap-mousepad-render.png`.
+
+- **2026-06-27 — Starvation render VALIDATED (Mousepad); panel is slow; the 5-app failure is a SEPARATE
+  ceiling.** After the T-J fix the 3-app session (xfwm4 + xfce4-panel + mousepad, WITH xfconfd) renders
+  a live WM-decorated **Mousepad** window — the same config that was 0.0% nonblack before, so the
+  starvation spin is fixed. **Per-app render (each app paints, at different speeds):** Mousepad
+  ~90-120s (visible, WM-decorated); xfwm4 runs + decorates it; **xfce4-panel renders too — clock +
+  separator visible — but only after ~250-300s** (proof: `xu7-panel-renders-clock-300s.png`). They do
+  not all appear in one frame because Mousepad maximizes over the slow panel, but each renders. The
+  panel's slowness (icon scans, plugins, a failed `/run/dbus/system_bus_socket` probe) is the
+  startup-throughput frontier (T-H) — not a render bug and not the starvation. The **5-app** set
+  (+ xfdesktop
+  + thunar) does NOT render: all D-Bus/xfconf connections **time out** (`xfce4-panel: Failed to connect
+  to the D-BUS session bus: Timeout`; `thunar` at 134s; `xfdesktop: unable to connect to settings
+  daemon`). This is **not** the T-J spin (fixed) and not xfconfd dying (its worker-thread `exited with
+  code 0` also appears in the rendering 3-app run). It is the **concurrent-guest startup-contention
+  ceiling**: ~5 heavy guests starting at once serialize through the single kernel service thread, so the
+  D-Bus handshake round-trips never complete before the 25s timeout. This is the service-thread-multiplex
+  perf gap (manifests T-C/T-F/T-H at scale), the next frontier *beyond* the spin fix — not the
+  starvation root. Artifacts: `xu7-afterfix-mousepad-render.png`, `xu7-full5-dbus-timeout-ceiling.log`.
+
+- **2026-06-27 — ★ ROOT CAUSE PROVEN + FIXED (T-J): GWakeup pipe read() misrouted to net_recv.**
+  Instrumented the runner's WASI/host-net imports and caught the exact misroute: glib's
+  `g_wakeup_acknowledge` does `read(0x50000009)` on its kernel-pipe wakeup fd, but the guest libc's
+  `--wrap=read` shim (`dbus_creds.o`'s `__wrap_read`, linked by every D-Bus client) classifies **every
+  fd `>= 0x40000000` as a host_net socket** and routes it to `recv()` → `net_recv`. Kernel-pipe fds
+  (`0x50000000+`) fall inside that range, so the wakeup read went to the socket bridge, which returned
+  no data; the C `recv()` shim surfaces that as **EAGAIN**, so the pipe was **never drained** → poll
+  stayed readable → infinite `timeout=0` spin. Proof: `net_recv fd=0x50000009` ×5364; `fd_read` import
+  invoked 0×; `__kernel_fd_read` reached the sidecar 0×. **Fix** (platform layer, glib untouched):
+  `net_recv` now drains a kernel-pipe fd via `kernelPipeRecv` → `__kernel_fd_read` instead of treating
+  it as a socket (`crates/execution/src/node_import_cache.rs`). **Validated** on `gdbus-loop-probe`
+  (faithful GWakeup repro): before = poll(fd9) readable ×5616, never completes; after = pipetrace shows
+  `read fd=9 -> 1B` then EAGAIN (drains), poll(fd9) total 22 lines, probe connects to the bus (`:1.0`),
+  runs its main loop 12s with no spin, exits 0. Committed on `perf-pivot-work` (`fix(execution): drain
+  kernel-pipe fds misrouted to the host_net recv bridge`). Artifact: `/tmp/tj-fix.log`.
 
 - **2026-06-27 — ✗ CORRECTION: the "per-isolate socket-table gap" root (entry below) is WRONG.**
   Cross-isolate host_net socket sharing **already exists** (commit `1a4cd28c`, verified in-tree):

@@ -13874,8 +13874,18 @@ where
         "__kernel_pipe" => service_javascript_kernel_pipe_sync_rpc(kernel, process, request),
         "__kernel_fd_read" => service_javascript_kernel_fd_read_sync_rpc(kernel, process, request),
         "__kernel_fd_poll" => service_javascript_kernel_fd_poll_sync_rpc(kernel, process, request),
-        "__kernel_fd_write" => service_javascript_kernel_fd_write_sync_rpc(kernel, process, request),
-        "__kernel_fd_close" => service_javascript_kernel_fd_close_sync_rpc(kernel, process, request),
+        "__kernel_fd_write" => service_javascript_kernel_fd_write_sync_rpc(
+            kernel,
+            process,
+            request,
+            owner_socket_readiness.as_ref(),
+        ),
+        "__kernel_fd_close" => service_javascript_kernel_fd_close_sync_rpc(
+            kernel,
+            process,
+            request,
+            owner_socket_readiness.as_ref(),
+        ),
         "__pty_set_raw_mode" => {
             service_javascript_pty_set_raw_mode_sync_rpc(kernel, process, request)
         }
@@ -16654,19 +16664,22 @@ fn service_javascript_kernel_fd_write_sync_rpc(
     kernel: &mut SidecarKernel,
     process: &ActiveProcess,
     request: &JavascriptSyncRpcRequest,
+    owner_socket_readiness: Option<&std::sync::Arc<crate::state::SocketReadiness>>,
 ) -> Result<Value, SidecarError> {
     let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__kernel_fd_write fd")?;
     let chunk = javascript_sync_rpc_bytes_arg(&request.args, 1, "__kernel_fd_write chunk")?;
     let written = kernel
         .fd_write(EXECUTION_DRIVER_NAME, process.kernel_pid, fd, &chunk)
         .map_err(kernel_error)?;
-    // Wake a poll blocked on this process's readiness (e.g. a main thread parked in net.poll_wait on a
-    // GMainContext GWakeup pipe that a worker thread just wrote to). The kernel-pipe doc claimed this
-    // already happened, but the write path never notified -- so cross-thread GWakeups only landed via the
-    // guest poll loop's 10ms pipe-rescan cap. Notifying here drops that wakeup latency from <=10ms to
-    // immediate (the cap stays as a fallback). A spurious notify is harmless: a woken poll just rescans.
+    // Wake a poll blocked on a GMainContext GWakeup pipe (e.g. a main thread parked in net.poll_wait
+    // that a worker thread just wrote to). Notify the SAME readiness object poll_wait blocks on --
+    // `owner_socket_readiness` for a worker thread, else this process's own. Notifying only
+    // `process.socket_readiness` (the writer's own) missed worker->owner wakes, which the guest poll
+    // loop's 10ms pipe-rescan cap papered over; targeting the poll_wait readiness makes it event-driven.
     if written > 0 {
-        process.socket_readiness.notify();
+        owner_socket_readiness
+            .unwrap_or(&process.socket_readiness)
+            .notify();
     }
     if pipe_trace_enabled() {
         eprintln!(
@@ -16682,11 +16695,18 @@ fn service_javascript_kernel_fd_close_sync_rpc(
     kernel: &mut SidecarKernel,
     process: &ActiveProcess,
     request: &JavascriptSyncRpcRequest,
+    owner_socket_readiness: Option<&std::sync::Arc<crate::state::SocketReadiness>>,
 ) -> Result<Value, SidecarError> {
     let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__kernel_fd_close fd")?;
     kernel
         .fd_close(EXECUTION_DRIVER_NAME, process.kernel_pid, fd)
         .map_err(kernel_error)?;
+    // Closing one pipe end is a readiness edge (the peer now sees EOF/POLLHUP). Wake any poll_wait on
+    // this pid -- the SAME readiness it blocks on -- so it observes the EOF immediately instead of only
+    // on the next 10ms rescan. This is the close half of the event-driven kernel-pipe notify graph.
+    owner_socket_readiness
+        .unwrap_or(&process.socket_readiness)
+        .notify();
     Ok(Value::Null)
 }
 
