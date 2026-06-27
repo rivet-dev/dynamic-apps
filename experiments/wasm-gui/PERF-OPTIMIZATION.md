@@ -2209,3 +2209,29 @@ CONCLUSION: the tractable per-op levers are exhausted this session (fd-poll boun
 is architectural (lever D transport + same-thread/leaner-encoding dispatch) — a socket/bridge-layer redesign,
 surfaced for decision. No further per-op anomaly exists to chase; the remaining wins require dedicated
 architectural efforts, not tail-of-session edits.
+
+## §7-FLOOR (2026-06-30): the strict 3×-of-rigorous-native target COINCIDES with the compute floor
+
+The goal defines the target via its own framing: "the guest-compute floor is ~2.9× native (wasm toolchain +
+single-thread, OUT-OF-CORE to beat), so < 3× means driving runtime overhead down to NEAR that floor."
+
+Apply the rigorous native (median 4.4ms):
+- compute floor = 2.9 × 4.4ms = **12.8ms**
+- 3× target      = 3.0 × 4.4ms = **13.2ms**
+- ⇒ the entire runtime-overhead budget between the compute floor and the target is **13.2 − 12.8 = 0.4ms**.
+
+No real runtime hits its compute floor with 0.4ms of total overhead (op dispatch + scheduling + the
+cross-guest hop all cost more than that combined). So **the strict "3× of the rigorous 4.4ms native" is,
+by the goal's OWN compute-floor definition, essentially unreachable in CORE — it sits ON the toolchain
+floor the goal itself declares out of scope.**
+
+Why the goal's prose said "<30ms" and it looked reachable: it assumed native ~10ms ⇒ compute floor ~29ms,
+3× ~30ms ⇒ ~1ms overhead budget (also tight, but the larger native made 30ms look attainable, and wasm
+28.5ms MEETS that framing). The rigorous native (4.4ms, not 10ms) collapses the 3× target onto the floor.
+
+**Honest resolution:** the CORE-reachable floor is ~18-20ms (~4× native) — after the remaining op-count
+collapse removes the ~11ms of per-render runtime overhead, the ~20ms peerWait (≈half peer compute = the
+2.9× floor, half reducible) bottoms out near 2.9-4× native. Getting from ~4× to <3× requires beating the
+wasm compute floor = TOOLCHAIN work, which the goal declares OUT OF SCOPE. This is the hard floor, grounded
+in the goal's own 2.9× definition + the rigorously-measured native. Session delivered 61→28.5ms (17×→6.5×);
+the remaining path to a *strict* 3× is out-of-scope toolchain, not a CORE lever.
