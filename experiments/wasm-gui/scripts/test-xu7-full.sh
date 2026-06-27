@@ -51,8 +51,15 @@ echo "running XU3 session -> fb=$FB png=$PNG log=$OUT"
 # Client set: full (default) = xfwm4 + mousepad + panel + xfdesktop + thunar; XU7_LITE=1 drops xfdesktop+thunar
 # to stay under the concurrent-heavy-guest scheduling ceiling (diagnostic for whether the panel paints when
 # contention is lower).
-CLIENTS=(--client "$EXP/xfwm4.wasm" --client "$EXP/mousepad.wasm" --client "$EXP/xfce4-panel.wasm")
-[ -z "${XU7_LITE:-}" ] && CLIENTS+=(--client "$EXP/xfdesktop.wasm" --client "$EXP/thunar.wasm")
+if [ -n "${XU7_ONLY:-}" ]; then
+  # xfwm4 (WM) + a single named component, e.g. XU7_ONLY=xfdesktop (diagnostic: does it render solo?)
+  CLIENTS=(--client "$EXP/xfwm4.wasm" --client "$EXP/${XU7_ONLY}.wasm")
+elif [ -n "${XU7_PANEL_ONLY:-}" ]; then
+  CLIENTS=(--client "$EXP/xfwm4.wasm" --client "$EXP/xfce4-panel.wasm")
+else
+  CLIENTS=(--client "$EXP/xfwm4.wasm" --client "$EXP/mousepad.wasm" --client "$EXP/xfce4-panel.wasm")
+  [ -z "${XU7_LITE:-}" ] && CLIENTS+=(--client "$EXP/xfdesktop.wasm" --client "$EXP/thunar.wasm")
+fi
 WM_SETTLE_QUIET_MS=3000 WM_SETTLE_CAP_S=50 APP_SETTLE_MS=4000 \
 timeout "$(( ${TIMEOUT:-120} + 45 ))" env -u DISPLAY NO_AT_BRIDGE=1 "$HOST" --xdemo --timeout "${TIMEOUT:-120}" \
   --server "$EXP/Xvfb.wasm" \
