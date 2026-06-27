@@ -214,3 +214,17 @@ T1 wiring (Phase 1, no doorbell):
 Key constraint: the unsafe slice construction (from_raw_parts over the backing store) stays in v8-runtime
 (allocate_t1_ring_sab is already there); the sidecar only ever sees safe &[u8]/&mut [u8] via a v8-runtime shim that
 wraps SabRingEndpoint. This keeps the sidecar #![forbid(unsafe_code)] intact.
+
+## Handoff mechanism resolved (2026-06-27, part 2)
+- The v8-runtime->sidecar event channel is IN-PROCESS (crossbeam_channel::Sender<RuntimeEventEnvelope>,
+  runtime_protocol.rs:36) -- NOT serialized. So a Send `SharedRef<BackingStore>` CAN ride a RuntimeEvent variant
+  (no wire encoding needed).
+- BUT `enum RuntimeEvent` derives `#[derive(Debug, Clone, PartialEq)]` (runtime_protocol.rs:54). SharedRef is
+  Clone but NOT PartialEq -> a direct `T1RingReady(SharedRef, SharedRef)` variant breaks the PartialEq derive.
+- RESOLUTION for the next increment: wrap the two SharedRefs in a small newtype `RingBacking { req, resp }` that
+  impls Clone + Debug + a pointer-identity PartialEq (compare data() ptrs), so `RuntimeEvent::T1RingReady(RingBacking)`
+  compiles cleanly. The sidecar servicing loop stores it and calls v8_runtime::with_ring_backing_slices(req, resp,
+  |r,w| SabRingEndpoint::drain_all-equivalent over the safe slices).
+- v8-runtime unsafe boundary is COMPLETE + verified: allocate_t1_ring_sab (alloc+expose+handle) +
+  with_ring_backing_slices (unsafe->safe callback). Remaining: RingBacking newtype + T1RingReady variant + session
+  alloc/emit + sidecar store/service + guest runner routing.
