@@ -17,10 +17,9 @@ use crate::protocol::{
     OwnershipScope, ProcessExitedEvent, ProcessKilledResponse, ProcessOutputEvent,
     ProcessSnapshotEntry, ProcessSnapshotResponse, ProcessSnapshotStatus, ProcessStartedResponse,
     PtyResizedResponse, RequestFrame, ResizePtyRequest, ResponseFrame, ResponsePayload,
-    SidecarRequestPayload, SignalDispositionAction,
-    SignalHandlerRegistration, SignalStateResponse, SocketStateEntry, StdinClosedResponse,
-    StdinWrittenResponse, StreamChannel, VmFetchRequest, VmFetchResponse, WasmPermissionTier,
-    WriteStdinRequest, ZombieTimerCountResponse,
+    SidecarRequestPayload, SignalDispositionAction, SignalHandlerRegistration, SignalStateResponse,
+    SocketStateEntry, StdinClosedResponse, StdinWrittenResponse, StreamChannel, VmFetchRequest,
+    VmFetchResponse, WasmPermissionTier, WriteStdinRequest, ZombieTimerCountResponse,
 };
 use crate::service::{
     audit_fields, dirname, emit_security_audit_event, emit_structured_event, javascript_error,
@@ -4762,7 +4761,10 @@ where
             | PythonVfsRpcMethod::Mkdir
             | PythonVfsRpcMethod::Unlink
             | PythonVfsRpcMethod::Rmdir
-            | PythonVfsRpcMethod::Rename => {
+            | PythonVfsRpcMethod::Rename
+            | PythonVfsRpcMethod::Symlink
+            | PythonVfsRpcMethod::ReadLink
+            | PythonVfsRpcMethod::Setattr => {
                 filesystem_handle_python_vfs_rpc_request(self, vm_id, process_id, request)
             }
             PythonVfsRpcMethod::HttpRequest => {
@@ -16810,7 +16812,7 @@ fn install_kernel_stdin_pipe(kernel: &mut SidecarKernel, pid: u32) -> Result<u32
         .fd_close(EXECUTION_DRIVER_NAME, pid, read_fd)
         .map_err(kernel_error)?;
     Ok(write_fd)
-    }
+}
 
 fn requested_pty_window_size(env: &BTreeMap<String, String>) -> Option<(u16, u16)> {
     let cols = env

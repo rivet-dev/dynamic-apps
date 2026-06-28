@@ -818,6 +818,48 @@ where
                         Err(error) => Err(error),
                     }
                 }
+                // Kernel-direct (no shadow mirror): guest Python writes/creates
+                // land only in the kernel VFS, so mirroring create/modify ops into
+                // the host-side shadow would leave empty stubs that a later
+                // shadow->kernel sync resurrects over real content. (Delete/rename
+                // still mirror — to *remove* stale wire-written shadow entries.)
+                PythonVfsRpcMethod::Symlink => {
+                    let target = request.target.clone().ok_or_else(|| {
+                        SidecarError::InvalidState(format!(
+                            "python VFS fsSymlink for {} requires a target",
+                            path
+                        ))
+                    })?;
+                    vm.kernel
+                        .symlink(&target, &path)
+                        .map(|()| PythonVfsRpcResponsePayload::Empty)
+                        .map_err(kernel_error)
+                }
+                PythonVfsRpcMethod::ReadLink => vm
+                    .kernel
+                    .read_link(&path)
+                    .map(|target| PythonVfsRpcResponsePayload::SymlinkTarget { target })
+                    .map_err(kernel_error),
+                // `setattr` carries any of mode/uid+gid/atime+mtime; apply each
+                // present field to the host VFS.
+                PythonVfsRpcMethod::Setattr => {
+                    (|| -> Result<PythonVfsRpcResponsePayload, SidecarError> {
+                        if let Some(mode) = request.mode {
+                            vm.kernel.chmod(&path, mode).map_err(kernel_error)?;
+                        }
+                        if let (Some(uid), Some(gid)) = (request.uid, request.gid) {
+                            vm.kernel.chown(&path, uid, gid).map_err(kernel_error)?;
+                        }
+                        if let (Some(atime_ms), Some(mtime_ms)) =
+                            (request.atime_ms, request.mtime_ms)
+                        {
+                            vm.kernel
+                                .utimes(&path, atime_ms, mtime_ms)
+                                .map_err(kernel_error)?;
+                        }
+                        Ok(PythonVfsRpcResponsePayload::Empty)
+                    })()
+                }
                 PythonVfsRpcMethod::HttpRequest
                 | PythonVfsRpcMethod::DnsLookup
                 | PythonVfsRpcMethod::SubprocessRun => {

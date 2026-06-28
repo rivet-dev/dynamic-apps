@@ -596,6 +596,16 @@ function createPythonBridgeRpcBridge() {
     fsRenameSync(path, destination) {
       requestSync('fsRename', { path, destination });
     },
+    fsSymlinkSync(target, path) {
+      requestSync('fsSymlink', { target, path });
+    },
+    fsReadlinkSync(path) {
+      const result = requestSync('fsReadlink', { path });
+      return result.target ?? '';
+    },
+    fsSetattrSync(path, attr) {
+      requestSync('fsSetattr', { path, ...attr });
+    },
     httpRequestSync(url, method = 'GET', headersJson = '{}', bodyBase64 = null) {
       let headers;
       try {
@@ -780,6 +790,16 @@ function createPythonFdRpcBridge() {
     },
     fsRenameSync(path, destination) {
       requestSync('fsRename', { path, destination });
+    },
+    fsSymlinkSync(target, path) {
+      requestSync('fsSymlink', { target, path });
+    },
+    fsReadlinkSync(path) {
+      const result = requestSync('fsReadlink', { path });
+      return result.target ?? '';
+    },
+    fsSetattrSync(path, attr) {
+      requestSync('fsSetattr', { path, ...attr });
     },
     httpRequestSync(url, method = 'GET', headersJson = '{}', bodyBase64 = null) {
       let headers;
@@ -1465,6 +1485,7 @@ function installPythonWorkspaceFs(pyodide, bridge) {
   const memfsDirStreamOps = MEMFS.ops_table.dir.stream;
   const memfsFileNodeOps = MEMFS.ops_table.file.node;
   const memfsFileStreamOps = MEMFS.ops_table.file.stream;
+  const memfsLinkNodeOps = MEMFS.ops_table.link.node;
   const workspaceDirStreamOps = memfsDirStreamOps;
 
   function joinGuestPath(parentPath, name) {
@@ -1529,6 +1550,8 @@ function installPythonWorkspaceFs(pyodide, bridge) {
     if (FS.isDir(mode)) {
       node.node_ops = workspaceDirNodeOps;
       node.stream_ops = workspaceDirStreamOps;
+    } else if (FS.isLink(mode)) {
+      node.node_ops = workspaceLinkNodeOps;
     } else if (FS.isFile(mode)) {
       node.node_ops = workspaceFileNodeOps;
       node.stream_ops = workspaceFileStreamOps;
@@ -1630,6 +1653,46 @@ function installPythonWorkspaceFs(pyodide, bridge) {
     };
   }
 
+  function toEpochMs(value) {
+    if (value == null) return null;
+    if (typeof value === 'number') return value;
+    if (typeof value.getTime === 'function') return value.getTime();
+    return null;
+  }
+
+  // Propagate chmod/chown/utimes from an Emscripten `setattr` into the host VFS.
+  // (size/truncate is handled via the dirty-write path, not here.)
+  function propagateSetattrToHost(node, attr) {
+    if (!attr) return;
+    const payload = {};
+    if (attr.mode != null) payload.mode = attr.mode & 0o7777;
+    if (attr.uid != null) payload.uid = attr.uid;
+    if (attr.gid != null) payload.gid = attr.gid;
+    const atimeMs = toEpochMs(attr.atime ?? attr.timestamp);
+    const mtimeMs = toEpochMs(attr.mtime ?? attr.timestamp);
+    if (atimeMs != null && mtimeMs != null) {
+      payload.atimeMs = Math.trunc(atimeMs);
+      payload.mtimeMs = Math.trunc(mtimeMs);
+    }
+    if (Object.keys(payload).length === 0) return;
+    withFsErrors(() => bridge.fsSetattrSync(nodeGuestPath(node), payload));
+  }
+
+  const workspaceLinkNodeOps = {
+    // A symlink node reports itself (lstat semantics), not its target — so use
+    // the in-memory link mode rather than a host stat (which follows the link).
+    getattr(node) {
+      return makeStat(node, null);
+    },
+    setattr(node, attr) {
+      memfsLinkNodeOps.setattr(node, attr);
+      propagateSetattrToHost(node, attr);
+    },
+    readlink(node) {
+      return withFsErrors(() => bridge.fsReadlinkSync(nodeGuestPath(node)));
+    },
+  };
+
   const workspaceFileNodeOps = {
     getattr(node) {
       const stat = node.agentOSDirty
@@ -1646,6 +1709,7 @@ function installPythonWorkspaceFs(pyodide, bridge) {
         node.agentOSDirty = true;
         node.agentOSLoaded = true;
       }
+      propagateSetattrToHost(node, attr);
     },
   };
 
@@ -1690,6 +1754,7 @@ function installPythonWorkspaceFs(pyodide, bridge) {
     },
     setattr(node, attr) {
       memfsDirNodeOps.setattr(node, attr);
+      propagateSetattrToHost(node, attr);
     },
     lookup(parent, name) {
       syncDirectory(parent);
@@ -1749,8 +1814,13 @@ function installPythonWorkspaceFs(pyodide, bridge) {
       syncDirectory(node);
       return memfsDirNodeOps.readdir(node);
     },
-    symlink() {
-      throw new FS.ErrnoError(ERRNO_CODES.ENOSYS);
+    symlink(parent, newName, oldPath) {
+      const guestPath = joinGuestPath(nodeGuestPath(parent), newName);
+      withFsErrors(() => bridge.fsSymlinkSync(oldPath, guestPath));
+      const node = createWorkspaceNode(parent, newName, 0o120777, 0, guestPath);
+      node.link = oldPath;
+      node.usedBytes = oldPath.length;
+      return node;
     },
   };
 

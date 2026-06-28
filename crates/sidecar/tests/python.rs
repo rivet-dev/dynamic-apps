@@ -625,6 +625,77 @@ fn guest_exists(
     response.exists.expect("guest filesystem exists flag")
 }
 
+fn guest_readlink(
+    sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
+    request_id: RequestId,
+    connection_id: &str,
+    session_id: &str,
+    vm_id: &str,
+    path: &str,
+) -> String {
+    let response = guest_filesystem_call(
+        sidecar,
+        request_id,
+        connection_id,
+        session_id,
+        vm_id,
+        GuestFilesystemCallRequest {
+            operation: GuestFilesystemOperation::ReadLink,
+            path: path.to_owned(),
+            destination_path: None,
+            target: None,
+            content: None,
+            encoding: None,
+            recursive: false,
+            mode: None,
+            uid: None,
+            gid: None,
+            atime_ms: None,
+            mtime_ms: None,
+            len: None,
+            offset: None,
+        },
+    );
+
+    assert_eq!(response.operation, GuestFilesystemOperation::ReadLink);
+    response.target.expect("guest filesystem readlink target")
+}
+
+fn guest_stat_mode(
+    sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
+    request_id: RequestId,
+    connection_id: &str,
+    session_id: &str,
+    vm_id: &str,
+    path: &str,
+) -> u32 {
+    let response = guest_filesystem_call(
+        sidecar,
+        request_id,
+        connection_id,
+        session_id,
+        vm_id,
+        GuestFilesystemCallRequest {
+            operation: GuestFilesystemOperation::Stat,
+            path: path.to_owned(),
+            destination_path: None,
+            target: None,
+            content: None,
+            encoding: None,
+            recursive: false,
+            mode: None,
+            uid: None,
+            gid: None,
+            atime_ms: None,
+            mtime_ms: None,
+            len: None,
+            offset: None,
+        },
+    );
+
+    response.stat.expect("guest filesystem stat").mode
+}
+
 fn write_process_stdin(
     sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
     request_id: RequestId,
@@ -1335,6 +1406,111 @@ print(json.dumps(results))
     assert_eq!(
         new_body, "renamed body",
         "host VFS should see the renamed file"
+    );
+}
+
+#[test]
+fn python_runtime_supports_symlink_readlink_and_metadata() {
+    assert_node_available();
+
+    let mut sidecar = new_sidecar("python-fs-hooks");
+    let cwd = temp_dir("python-fs-hooks-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let (vm_id, _) = create_vm_wire(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+    );
+
+    bootstrap_root_filesystem(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        vec![root_dir("/workspace")],
+    );
+
+    execute_inline_python(
+        &mut sidecar,
+        5,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-python-fs-hooks",
+        r#"
+import json
+import os
+
+result = {}
+
+with open("/workspace/file.txt", "w", encoding="utf-8") as handle:
+    handle.write("data")
+
+# symlink + readlink
+os.symlink("file.txt", "/workspace/link.txt")
+result["readlink"] = os.readlink("/workspace/link.txt")
+result["islink"] = os.path.islink("/workspace/link.txt")
+
+# chmod (setattr -> host)
+os.chmod("/workspace/file.txt", 0o640)
+result["mode"] = os.stat("/workspace/file.txt").st_mode & 0o777
+
+# utimes (setattr -> host) — just exercise the hook
+os.utime("/workspace/file.txt", (1700000000, 1710000000))
+
+print(json.dumps(result))
+"#,
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-python-fs-hooks",
+    );
+
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
+
+    let parsed: Value = serde_json::from_str(stdout.trim()).expect("parse fs-hooks JSON");
+    assert_eq!(
+        parsed["readlink"], "file.txt",
+        "os.readlink should return the target"
+    );
+    assert_eq!(parsed["islink"], true, "os.path.islink should be true");
+    assert_eq!(parsed["mode"], 0o640, "os.chmod should be reflected");
+
+    // Cross-check the host kernel VFS.
+    let host_target = guest_readlink(
+        &mut sidecar,
+        6,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "/workspace/link.txt",
+    );
+    assert_eq!(
+        host_target, "file.txt",
+        "host VFS should resolve the symlink"
+    );
+    let host_mode = guest_stat_mode(
+        &mut sidecar,
+        7,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "/workspace/file.txt",
+    );
+    assert_eq!(
+        host_mode & 0o777,
+        0o640,
+        "host VFS should reflect the chmod"
     );
 }
 
