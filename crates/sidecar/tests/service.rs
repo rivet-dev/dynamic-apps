@@ -10344,24 +10344,28 @@ await new Promise(() => {});
             };
             cleanup_fake_runtime_process(process);
         }
-        fn python_vfs_rpc_paths_are_scoped_to_workspace_root() {
+        fn python_vfs_rpc_paths_resolve_textually_and_defer_to_kernel_confinement() {
+            // Root is `/`: any absolute guest path is addressable and textual
+            // `.`/`..` segments are resolved here; confinement is enforced at the
+            // kernel/mount layer (openat2 RESOLVE_BENEATH), not by a prefix check.
             assert_eq!(
                 crate::filesystem::normalize_python_vfs_rpc_path("/workspace/./note.txt")
                     .expect("normalize workspace path"),
                 String::from("/workspace/note.txt")
             );
-            assert!(
+            assert_eq!(
                 crate::filesystem::normalize_python_vfs_rpc_path("/workspace/../etc/passwd")
-                    .is_err(),
-                "workspace escape should be rejected",
+                    .expect("normalize resolves .. textually"),
+                String::from("/etc/passwd")
             );
-            assert!(
-                crate::filesystem::normalize_python_vfs_rpc_path("/etc/passwd").is_err(),
-                "non-workspace paths should be rejected",
+            assert_eq!(
+                crate::filesystem::normalize_python_vfs_rpc_path("/etc/passwd")
+                    .expect("absolute guest paths are addressable"),
+                String::from("/etc/passwd")
             );
             assert!(
                 crate::filesystem::normalize_python_vfs_rpc_path("workspace/note.txt").is_err(),
-                "relative paths should be rejected",
+                "relative paths must be rejected",
             );
         }
         fn javascript_fs_sync_rpc_resolves_proc_self_against_the_kernel_process() {
@@ -17483,7 +17487,7 @@ console.log(JSON.stringify({
             command_resolution_rejects_unknown_command();
             python_vfs_rpc_requests_proxy_into_the_vm_kernel_filesystem();
             javascript_sync_rpc_requests_proxy_into_the_vm_kernel_filesystem();
-            python_vfs_rpc_paths_are_scoped_to_workspace_root();
+            python_vfs_rpc_paths_resolve_textually_and_defer_to_kernel_confinement();
             javascript_fs_sync_rpc_resolves_proc_self_against_the_kernel_process();
             javascript_fd_and_stream_rpc_requests_proxy_into_the_vm_kernel_filesystem();
             javascript_mapped_tmp_open_wx_uses_exclusive_create_once();
