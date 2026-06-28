@@ -60,15 +60,12 @@ export function checkRegistrySoftwareSplit(options = {}) {
 	const root = resolve(options.root ?? defaultRoot);
 	const errors = [];
 
+	// package.json is the sole package manifest: the legacy
+	// secure-exec-package.json metadata file was removed in the registry split
+	// refactor, so this check reads name + dependency info from package.json only.
 	for (const packageDir of collectSoftwareDirs(root)) {
 		const dirName = packageDir.split(/[\\/]/).at(-1);
 		const manifestPath = join(packageDir, "package.json");
-		const metadataPath = join(packageDir, "secure-exec-package.json");
-		const staleMetadataPath = join(packageDir, "agentos-package.json");
-		const staleArtifactMetadataPath = join(
-			packageDir,
-			"agentos-package.meta.json",
-		);
 
 		const manifest = readJson(manifestPath);
 		const expectedName = `@agentos-software/${dirName}`;
@@ -76,27 +73,6 @@ export function checkRegistrySoftwareSplit(options = {}) {
 			errors.push(
 				`${formatPath(root, manifestPath)} must be named ${expectedName}, found ${manifest.name}`,
 			);
-		}
-
-		if (existsSync(staleMetadataPath)) {
-			errors.push(
-				`${formatPath(root, staleMetadataPath)} must be renamed to secure-exec-package.json`,
-			);
-		}
-		if (existsSync(staleArtifactMetadataPath)) {
-			errors.push(
-				`${formatPath(root, staleArtifactMetadataPath)} must be renamed to secure-exec-package.meta.json`,
-			);
-		}
-		if (!existsSync(metadataPath)) {
-			errors.push(`${formatPath(root, metadataPath)} is required`);
-		} else {
-			const metadata = readJson(metadataPath);
-			if (metadata.name !== manifest.name) {
-				errors.push(
-					`${formatPath(root, metadataPath)} name must match package.json (${manifest.name}), found ${metadata.name}`,
-				);
-			}
 		}
 
 		checkDependencies(manifest.name ?? expectedName, manifest, errors);

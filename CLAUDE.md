@@ -60,7 +60,7 @@ Every bound that protects a shared resource — memory/heap, CPU/wall-clock, fd/
 ## Build And Assets
 
 - The VM base filesystem artifact is derived from Alpine Linux, but runtime source should stay generic.
-- Rebuild the base filesystem with `pnpm --dir packages/build-tools snapshot:alpine-defaults`, then `pnpm --dir packages/build-tools build:base-filesystem`.
+- Rebuild the base filesystem (requires Docker) with `pnpm --dir packages/build-tools build:base-filesystem`. The one script snapshots Alpine, applies the secure-exec transforms, and writes the single canonical `packages/core/fixtures/base-filesystem.json`, mirroring the same bytes into the crate-vendored `crates/sidecar/assets/` and `crates/vfs/assets/` copies (those exist only as the `cargo publish` fallback; never hand-edit them).
 - The V8 bridge bundle is generated from `packages/build-tools/scripts/build-v8-bridge.mjs`; keep its generated assets aligned with bridge-contract changes.
 - `registry/native` owns the Rust-to-WASM command build; package-local `registry/software/*/wasm/` output is release material.
 

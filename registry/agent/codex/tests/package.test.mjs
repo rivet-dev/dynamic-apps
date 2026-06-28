@@ -14,6 +14,6 @@ test("codex package does not advertise an ACP adapter until the real agent is wi
 
 	assert.equal(manifest.bin, undefined);
 	assert.equal(codex.name, "codex");
-	assert.equal(typeof codex.commandDir, "string");
+	assert.equal(typeof codex.dir, "string");
 	assert.equal(codex.agent, undefined);
 });

@@ -112,6 +112,10 @@ export interface LiveProjectedModuleDescriptor {
 	entrypoint: string;
 }
 
+export interface LivePackageDescriptor {
+	dir: string;
+}
+
 export function toGeneratedSidecarPlacement(
 	placement: LiveSidecarPlacement,
 ): protocol.SidecarPlacement {
@@ -160,5 +164,13 @@ export function toGeneratedProjectedModuleDescriptor(
 	return {
 		packageName: descriptor.package_name,
 		entrypoint: descriptor.entrypoint,
+	};
+}
+
+export function toGeneratedPackageDescriptor(
+	descriptor: LivePackageDescriptor,
+): protocol.PackageDescriptor {
+	return {
+		dir: descriptor.dir,
 	};
 }

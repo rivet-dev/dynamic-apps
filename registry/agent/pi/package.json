@@ -15,8 +15,11 @@
       "default": "./dist/index.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc && node scripts/build-snapshot-bundle.mjs",
+    "build": "tsc && node scripts/build-snapshot-bundle.mjs && node ../../../packages/agentos-toolchain/dist/cli.js pack . --out dist/package --agent pi-sdk-acp --prune-native && node scripts/copy-snapshot-into-package.mjs",
     "build:snapshot": "node scripts/build-snapshot-bundle.mjs",
     "check-types": "tsc --noEmit",
     "test": "pnpm build && node --test --test-force-exit tests/*.test.mjs"
@@ -27,6 +30,7 @@
     "@mariozechner/pi-ai": "0.60.0"
   },
   "devDependencies": {
+    "@agentos-software/manifest": "workspace:*",
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
   }

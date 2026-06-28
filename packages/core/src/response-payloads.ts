@@ -86,6 +86,10 @@ export type LiveResponsePayload =
 			applied_software: number;
 	  }
 	| {
+			type: "package_linked";
+			commands: string[];
+	  }
+	| {
 			type: "host_callbacks_registered";
 			registration: string;
 			command_count: number;
@@ -248,6 +252,11 @@ export function fromGeneratedResponsePayload(
 				type: "vm_configured",
 				applied_mounts: payload.val.appliedMounts,
 				applied_software: payload.val.appliedSoftware,
+			};
+		case "PackageLinkedResponse":
+			return {
+				type: "package_linked",
+				commands: [...payload.val.commands],
 			};
 		case "HostCallbacksRegisteredResponse":
 			return {

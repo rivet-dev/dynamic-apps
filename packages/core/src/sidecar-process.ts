@@ -289,6 +289,10 @@ export interface SidecarProjectedModuleDescriptor {
 	entrypoint: string;
 }
 
+export interface SidecarPackageDescriptor {
+	dir: string;
+}
+
 export interface SidecarFilesystemResult {
 	operation: LiveFilesystemOperation;
 	status: string;
@@ -459,6 +463,8 @@ export class SidecarProcess {
 			projectedModules?: SidecarProjectedModuleDescriptor[];
 			commandPermissions?: Record<string, WasmPermissionTier>;
 			loopbackExemptPorts?: number[];
+			packages?: SidecarPackageDescriptor[];
+			packagesMountAt?: string;
 		},
 	): Promise<void> {
 		const response = await this.sendRequest({
@@ -482,6 +488,10 @@ export class SidecarProcess {
 				...(options.loopbackExemptPorts
 					? { loopback_exempt_ports: options.loopbackExemptPorts }
 					: {}),
+				packages: (options.packages ?? []).map(toWirePackageDescriptor),
+				...(options.packagesMountAt
+					? { packages_mount_at: options.packagesMountAt }
+					: {}),
 			},
 		});
 		if (response.payload.type !== "vm_configured") {
@@ -489,6 +499,37 @@ export class SidecarProcess {
 				`unexpected configure_vm response: ${response.payload.type}`,
 			);
 		}
+	}
+
+	/**
+	 * Runtime dynamic `linkSoftware`: project one package into the live
+	 * `/opt/agentos` staging dir owned by the sidecar. Returns the linked command
+	 * names. The host-dir mount reflects host writes, so the commands appear under
+	 * `/opt/agentos/bin` immediately with no reboot.
+	 */
+	async linkPackage(
+		session: AuthenticatedSession,
+		vm: CreatedVm,
+		descriptor: SidecarPackageDescriptor,
+	): Promise<string[]> {
+		const response = await this.sendRequest({
+			ownership: {
+				scope: "vm",
+				connection_id: session.connectionId,
+				session_id: session.sessionId,
+				vm_id: vm.vmId,
+			},
+			payload: {
+				type: "link_package",
+				package: toWirePackageDescriptor(descriptor),
+			},
+		});
+		if (response.payload.type !== "package_linked") {
+			throw new Error(
+				`unexpected link_package response: ${response.payload.type}`,
+			);
+		}
+		return response.payload.commands;
 	}
 
 	async registerHostCallbacks(
@@ -1612,5 +1653,13 @@ function toWireProjectedModuleDescriptor(
 	return {
 		package_name: descriptor.packageName,
 		entrypoint: descriptor.entrypoint,
+	};
+}
+
+function toWirePackageDescriptor(descriptor: SidecarPackageDescriptor): {
+	dir: string;
+} {
+	return {
+		dir: descriptor.dir,
 	};
 }

@@ -416,6 +416,8 @@ mod shadow_root {
                     projected_modules: Vec::new(),
                     command_permissions: HashMap::new(),
                     loopback_exempt_ports: Vec::new(),
+                    packages: Vec::new(),
+                    packages_mount_at: String::new(),
                 }),
             ))
             .expect("configure command mount");

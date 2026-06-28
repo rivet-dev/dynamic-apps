@@ -4,7 +4,8 @@ use secure_exec_sidecar_protocol::protocol::{
     OwnershipScope, ProcessExitedEvent, ProcessKilledResponse, ProcessOutputEvent,
     ProcessSnapshotEntry, ProcessSnapshotResponse, ProcessStartedResponse, ProtocolSchema,
     RejectedResponse, RequestFrame, RequestId, ResponseFrame, ResponsePayload,
-    RootFilesystemBootstrappedResponse, RootFilesystemEntry, RootFilesystemSnapshotResponse,
+    PackageLinkedResponse, RootFilesystemBootstrappedResponse, RootFilesystemEntry,
+    RootFilesystemSnapshotResponse,
     SessionOpenedResponse, SignalHandlerRegistration, SignalStateResponse,
     SnapshotExportedResponse, SnapshotImportedResponse, SocketStateEntry, StdinClosedResponse,
     StdinWrittenResponse, StreamChannel, StructuredEvent, VmConfiguredResponse, VmCreatedResponse,
@@ -161,6 +162,13 @@ pub fn vm_configured_response(
             applied_mounts,
             applied_software,
         }),
+    )
+}
+
+pub fn package_linked_response(request: &RequestFrame, commands: Vec<String>) -> ResponseFrame {
+    respond(
+        request,
+        ResponsePayload::PackageLinked(PackageLinkedResponse { commands }),
     )
 }
 

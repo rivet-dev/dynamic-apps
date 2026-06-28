@@ -1,6 +1,0 @@
-# Introduction
-
-'Secure Exec: a fully virtualized runtime for executing untrusted code with zero host escapes.'
-
-A lightweight library for secure Node.js execution. No containers, no VMs — just
-npm-compatible sandboxing out of the box.

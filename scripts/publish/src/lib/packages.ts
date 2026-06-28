@@ -42,9 +42,7 @@ export const SECURE_EXEC_WORKSPACE_PACKAGES = new Set([
 	"secure-exec",
 	"@secure-exec/browser",
 	"@secure-exec/core",
-	"@secure-exec/google-drive",
-	"@secure-exec/registry-types",
-	"@secure-exec/s3",
+	"@agentos-software/manifest",
 	"@secure-exec/sandbox",
 	"@secure-exec/sidecar",
 	"@secure-exec/typescript",
@@ -129,8 +127,13 @@ export function discoverPackages(
 	}> = JSON.parse(pnpmList);
 	for (const p of workspacePkgs) {
 		if (!p.name) continue;
-		// Only the curated secure-exec workspace packages are published; the
-		// @agentos-software/* software packages (registry/software/*) are not.
+		// Only the curated secure-exec workspace packages are published here. The
+		// @agentos-software/* SOFTWARE packages (registry/software/*) are NOT — they
+		// are published MANUALLY from a dev machine via `registry/Makefile` (`make
+		// publish`, under a non-`latest` dist-tag), never by CI. The only
+		// @agentos-software/* package CI publishes is the manifest (it carries no
+		// wasm payload and the runtime depends on it). See registry/Makefile's
+		// publish section for the manual-publish contract.
 		if (!SECURE_EXEC_WORKSPACE_PACKAGES.has(p.name)) continue;
 		add(p.path);
 	}
@@ -157,9 +160,7 @@ export function assertDiscoverySanity(packages: Package[]): void {
 	const required = [
 		"@secure-exec/browser",
 		"@secure-exec/core",
-		"@secure-exec/google-drive",
-		"@secure-exec/registry-types",
-		"@secure-exec/s3",
+		"@agentos-software/manifest",
 		"@secure-exec/sandbox",
 		"@secure-exec/sidecar",
 	];

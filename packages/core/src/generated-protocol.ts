@@ -1131,6 +1131,55 @@ export function writeWasmPermissionTier(bc: bare.ByteCursor, x: WasmPermissionTi
     }
 }
 
+/**
+ * agentOS package descriptor. The sidecar reads `<dir>/agentos-package.json`,
+ * projects the self-contained `dir` read-only under
+ * `<packagesMountAt>/<manifest.name>/<package.json version>`, and links its `bin/`
+ * commands onto $PATH. `dir` is a trusted host path (the client configures its own
+ * VM); the sidecar is the host-side TCB that builds the staging tree.
+ */
+export type PackageDescriptor = {
+    readonly dir: string
+}
+
+export function readPackageDescriptor(bc: bare.ByteCursor): PackageDescriptor {
+    return {
+        dir: bare.readString(bc),
+    }
+}
+
+export function writePackageDescriptor(bc: bare.ByteCursor, x: PackageDescriptor): void {
+    bare.writeString(bc, x.dir)
+}
+
+export type LinkPackageRequest = {
+    readonly package: PackageDescriptor
+}
+
+export function readLinkPackageRequest(bc: bare.ByteCursor): LinkPackageRequest {
+    return {
+        package: readPackageDescriptor(bc),
+    }
+}
+
+export function writeLinkPackageRequest(bc: bare.ByteCursor, x: LinkPackageRequest): void {
+    writePackageDescriptor(bc, x.package)
+}
+
+export type PackageLinkedResponse = {
+    readonly commands: readonly string[]
+}
+
+export function readPackageLinkedResponse(bc: bare.ByteCursor): PackageLinkedResponse {
+    return {
+        commands: read6(bc),
+    }
+}
+
+export function writePackageLinkedResponse(bc: bare.ByteCursor, x: PackageLinkedResponse): void {
+    write6(bc, x.commands)
+}
+
 function read12(bc: bare.ByteCursor): readonly MountDescriptor[] {
     const len = bare.readUintSafe(bc)
     if (len === 0) {
@@ -1222,6 +1271,25 @@ function write16(bc: bare.ByteCursor, x: ReadonlyMap<string, WasmPermissionTier>
     }
 }
 
+function read17(bc: bare.ByteCursor): readonly PackageDescriptor[] {
+    const len = bare.readUintSafe(bc)
+    if (len === 0) {
+        return []
+    }
+    const result = [readPackageDescriptor(bc)]
+    for (let i = 1; i < len; i++) {
+        result[i] = readPackageDescriptor(bc)
+    }
+    return result
+}
+
+function write17(bc: bare.ByteCursor, x: readonly PackageDescriptor[]): void {
+    bare.writeUintSafe(bc, x.length)
+    for (let i = 0; i < x.length; i++) {
+        writePackageDescriptor(bc, x[i])
+    }
+}
+
 export type ConfigureVmRequest = {
     readonly mounts: readonly MountDescriptor[]
     readonly software: readonly SoftwareDescriptor[]
@@ -1231,6 +1299,8 @@ export type ConfigureVmRequest = {
     readonly projectedModules: readonly ProjectedModuleDescriptor[]
     readonly commandPermissions: ReadonlyMap<string, WasmPermissionTier>
     readonly loopbackExemptPorts: Uint16Array
+    readonly packages: readonly PackageDescriptor[]
+    readonly packagesMountAt: string
 }
 
 export function readConfigureVmRequest(bc: bare.ByteCursor): ConfigureVmRequest {
@@ -1243,6 +1313,8 @@ export function readConfigureVmRequest(bc: bare.ByteCursor): ConfigureVmRequest 
         projectedModules: read15(bc),
         commandPermissions: read16(bc),
         loopbackExemptPorts: bare.readU16Array(bc),
+        packages: read17(bc),
+        packagesMountAt: bare.readString(bc),
     }
 }
 
@@ -1255,6 +1327,8 @@ export function writeConfigureVmRequest(bc: bare.ByteCursor, x: ConfigureVmReque
     write15(bc, x.projectedModules)
     write16(bc, x.commandPermissions)
     bare.writeU16Array(bc, x.loopbackExemptPorts)
+    write17(bc, x.packages)
+    bare.writeString(bc, x.packagesMountAt)
 }
 
 export type RegisteredHostCallbackExample = {
@@ -1274,18 +1348,18 @@ export function writeRegisteredHostCallbackExample(bc: bare.ByteCursor, x: Regis
     writeJsonUtf8(bc, x.input)
 }
 
-function read17(bc: bare.ByteCursor): u64 | null {
+function read18(bc: bare.ByteCursor): u64 | null {
     return bare.readBool(bc) ? bare.readU64(bc) : null
 }
 
-function write17(bc: bare.ByteCursor, x: u64 | null): void {
+function write18(bc: bare.ByteCursor, x: u64 | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
         bare.writeU64(bc, x)
     }
 }
 
-function read18(bc: bare.ByteCursor): readonly RegisteredHostCallbackExample[] {
+function read19(bc: bare.ByteCursor): readonly RegisteredHostCallbackExample[] {
     const len = bare.readUintSafe(bc)
     if (len === 0) {
         return []
@@ -1297,7 +1371,7 @@ function read18(bc: bare.ByteCursor): readonly RegisteredHostCallbackExample[] {
     return result
 }
 
-function write18(bc: bare.ByteCursor, x: readonly RegisteredHostCallbackExample[]): void {
+function write19(bc: bare.ByteCursor, x: readonly RegisteredHostCallbackExample[]): void {
     bare.writeUintSafe(bc, x.length)
     for (let i = 0; i < x.length; i++) {
         writeRegisteredHostCallbackExample(bc, x[i])
@@ -1315,19 +1389,19 @@ export function readRegisteredHostCallbackDefinition(bc: bare.ByteCursor): Regis
     return {
         description: bare.readString(bc),
         inputSchema: readJsonUtf8(bc),
-        timeoutMs: read17(bc),
-        examples: read18(bc),
+        timeoutMs: read18(bc),
+        examples: read19(bc),
     }
 }
 
 export function writeRegisteredHostCallbackDefinition(bc: bare.ByteCursor, x: RegisteredHostCallbackDefinition): void {
     bare.writeString(bc, x.description)
     writeJsonUtf8(bc, x.inputSchema)
-    write17(bc, x.timeoutMs)
-    write18(bc, x.examples)
+    write18(bc, x.timeoutMs)
+    write19(bc, x.examples)
 }
 
-function read19(bc: bare.ByteCursor): ReadonlyMap<string, RegisteredHostCallbackDefinition> {
+function read20(bc: bare.ByteCursor): ReadonlyMap<string, RegisteredHostCallbackDefinition> {
     const len = bare.readUintSafe(bc)
     const result = new Map<string, RegisteredHostCallbackDefinition>()
     for (let i = 0; i < len; i++) {
@@ -1342,7 +1416,7 @@ function read19(bc: bare.ByteCursor): ReadonlyMap<string, RegisteredHostCallback
     return result
 }
 
-function write19(bc: bare.ByteCursor, x: ReadonlyMap<string, RegisteredHostCallbackDefinition>): void {
+function write20(bc: bare.ByteCursor, x: ReadonlyMap<string, RegisteredHostCallbackDefinition>): void {
     bare.writeUintSafe(bc, x.size)
     for (const kv of x) {
         bare.writeString(bc, kv[0])
@@ -1364,7 +1438,7 @@ export function readRegisterHostCallbacksRequest(bc: bare.ByteCursor): RegisterH
         description: bare.readString(bc),
         commandAliases: read6(bc),
         registryCommandAliases: read6(bc),
-        callbacks: read19(bc),
+        callbacks: read20(bc),
     }
 }
 
@@ -1373,7 +1447,7 @@ export function writeRegisterHostCallbacksRequest(bc: bare.ByteCursor, x: Regist
     bare.writeString(bc, x.description)
     write6(bc, x.commandAliases)
     write6(bc, x.registryCommandAliases)
-    write19(bc, x.callbacks)
+    write20(bc, x.callbacks)
 }
 
 export type CreateLayerRequest = null
@@ -1635,10 +1709,10 @@ export function readGuestFilesystemCallRequest(bc: bare.ByteCursor): GuestFilesy
         mode: read2(bc),
         uid: read2(bc),
         gid: read2(bc),
-        atimeMs: read17(bc),
-        mtimeMs: read17(bc),
-        len: read17(bc),
-        offset: read17(bc),
+        atimeMs: read18(bc),
+        mtimeMs: read18(bc),
+        len: read18(bc),
+        offset: read18(bc),
     }
 }
 
@@ -1653,10 +1727,10 @@ export function writeGuestFilesystemCallRequest(bc: bare.ByteCursor, x: GuestFil
     write2(bc, x.mode)
     write2(bc, x.uid)
     write2(bc, x.gid)
-    write17(bc, x.atimeMs)
-    write17(bc, x.mtimeMs)
-    write17(bc, x.len)
-    write17(bc, x.offset)
+    write18(bc, x.atimeMs)
+    write18(bc, x.mtimeMs)
+    write18(bc, x.len)
+    write18(bc, x.offset)
 }
 
 export type GuestKernelCallRequest = {
@@ -1681,22 +1755,22 @@ export function writeGuestKernelCallRequest(bc: bare.ByteCursor, x: GuestKernelC
 
 export type SnapshotRootFilesystemRequest = null
 
-function read20(bc: bare.ByteCursor): GuestRuntimeKind | null {
+function read21(bc: bare.ByteCursor): GuestRuntimeKind | null {
     return bare.readBool(bc) ? readGuestRuntimeKind(bc) : null
 }
 
-function write20(bc: bare.ByteCursor, x: GuestRuntimeKind | null): void {
+function write21(bc: bare.ByteCursor, x: GuestRuntimeKind | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
         writeGuestRuntimeKind(bc, x)
     }
 }
 
-function read21(bc: bare.ByteCursor): WasmPermissionTier | null {
+function read22(bc: bare.ByteCursor): WasmPermissionTier | null {
     return bare.readBool(bc) ? readWasmPermissionTier(bc) : null
 }
 
-function write21(bc: bare.ByteCursor, x: WasmPermissionTier | null): void {
+function write22(bc: bare.ByteCursor, x: WasmPermissionTier | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
         writeWasmPermissionTier(bc, x)
@@ -1718,24 +1792,24 @@ export function readExecuteRequest(bc: bare.ByteCursor): ExecuteRequest {
     return {
         processId: bare.readString(bc),
         command: read0(bc),
-        runtime: read20(bc),
+        runtime: read21(bc),
         entrypoint: read0(bc),
         args: read6(bc),
         env: read1(bc),
         cwd: read0(bc),
-        wasmPermissionTier: read21(bc),
+        wasmPermissionTier: read22(bc),
     }
 }
 
 export function writeExecuteRequest(bc: bare.ByteCursor, x: ExecuteRequest): void {
     bare.writeString(bc, x.processId)
     write0(bc, x.command)
-    write20(bc, x.runtime)
+    write21(bc, x.runtime)
     write0(bc, x.entrypoint)
     write6(bc, x.args)
     write1(bc, x.env)
     write0(bc, x.cwd)
-    write21(bc, x.wasmPermissionTier)
+    write22(bc, x.wasmPermissionTier)
 }
 
 export type WriteStdinRequest = {
@@ -1810,11 +1884,11 @@ export type GetProcessSnapshotRequest = null
 
 export type GetResourceSnapshotRequest = null
 
-function read22(bc: bare.ByteCursor): u16 | null {
+function read23(bc: bare.ByteCursor): u16 | null {
     return bare.readBool(bc) ? bare.readU16(bc) : null
 }
 
-function write22(bc: bare.ByteCursor, x: u16 | null): void {
+function write23(bc: bare.ByteCursor, x: u16 | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
         bare.writeU16(bc, x)
@@ -1830,14 +1904,14 @@ export type FindListenerRequest = {
 export function readFindListenerRequest(bc: bare.ByteCursor): FindListenerRequest {
     return {
         host: read0(bc),
-        port: read22(bc),
+        port: read23(bc),
         path: read0(bc),
     }
 }
 
 export function writeFindListenerRequest(bc: bare.ByteCursor, x: FindListenerRequest): void {
     write0(bc, x.host)
-    write22(bc, x.port)
+    write23(bc, x.port)
     write0(bc, x.path)
 }
 
@@ -1849,13 +1923,13 @@ export type FindBoundUdpRequest = {
 export function readFindBoundUdpRequest(bc: bare.ByteCursor): FindBoundUdpRequest {
     return {
         host: read0(bc),
-        port: read22(bc),
+        port: read23(bc),
     }
 }
 
 export function writeFindBoundUdpRequest(bc: bare.ByteCursor, x: FindBoundUdpRequest): void {
     write0(bc, x.host)
-    write22(bc, x.port)
+    write23(bc, x.port)
 }
 
 export type GetSignalStateRequest = {
@@ -2051,6 +2125,7 @@ export type RequestPayload =
     | { readonly tag: "GuestKernelCallRequest"; readonly val: GuestKernelCallRequest }
     | { readonly tag: "ResizePtyRequest"; readonly val: ResizePtyRequest }
     | { readonly tag: "GetResourceSnapshotRequest"; readonly val: GetResourceSnapshotRequest }
+    | { readonly tag: "LinkPackageRequest"; readonly val: LinkPackageRequest }
 
 export function readRequestPayload(bc: bare.ByteCursor): RequestPayload {
     const offset = bc.offset
@@ -2118,6 +2193,8 @@ export function readRequestPayload(bc: bare.ByteCursor): RequestPayload {
             return { tag: "ResizePtyRequest", val: readResizePtyRequest(bc) }
         case 30:
             return { tag: "GetResourceSnapshotRequest", val: null }
+        case 31:
+            return { tag: "LinkPackageRequest", val: readLinkPackageRequest(bc) }
         default: {
             bc.offset = offset
             throw new bare.BareError(offset, "invalid tag")
@@ -2275,6 +2352,11 @@ export function writeRequestPayload(bc: bare.ByteCursor, x: RequestPayload): voi
         }
         case "GetResourceSnapshotRequest": {
             bare.writeU8(bc, 30)
+            break
+        }
+        case "LinkPackageRequest": {
+            bare.writeU8(bc, 31)
+            writeLinkPackageRequest(bc, x.val)
             break
         }
     }
@@ -2565,7 +2647,7 @@ export function writeGuestDirEntry(bc: bare.ByteCursor, x: GuestDirEntry): void 
     bare.writeBool(bc, x.isSymbolicLink)
 }
 
-function read23(bc: bare.ByteCursor): readonly GuestDirEntry[] {
+function read24(bc: bare.ByteCursor): readonly GuestDirEntry[] {
     const len = bare.readUintSafe(bc)
     if (len === 0) {
         return []
@@ -2577,40 +2659,40 @@ function read23(bc: bare.ByteCursor): readonly GuestDirEntry[] {
     return result
 }
 
-function write23(bc: bare.ByteCursor, x: readonly GuestDirEntry[]): void {
+function write24(bc: bare.ByteCursor, x: readonly GuestDirEntry[]): void {
     bare.writeUintSafe(bc, x.length)
     for (let i = 0; i < x.length; i++) {
         writeGuestDirEntry(bc, x[i])
     }
 }
 
-function read24(bc: bare.ByteCursor): readonly GuestDirEntry[] | null {
-    return bare.readBool(bc) ? read23(bc) : null
+function read25(bc: bare.ByteCursor): readonly GuestDirEntry[] | null {
+    return bare.readBool(bc) ? read24(bc) : null
 }
 
-function write24(bc: bare.ByteCursor, x: readonly GuestDirEntry[] | null): void {
+function write25(bc: bare.ByteCursor, x: readonly GuestDirEntry[] | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
-        write23(bc, x)
+        write24(bc, x)
     }
 }
 
-function read25(bc: bare.ByteCursor): GuestFilesystemStat | null {
+function read26(bc: bare.ByteCursor): GuestFilesystemStat | null {
     return bare.readBool(bc) ? readGuestFilesystemStat(bc) : null
 }
 
-function write25(bc: bare.ByteCursor, x: GuestFilesystemStat | null): void {
+function write26(bc: bare.ByteCursor, x: GuestFilesystemStat | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
         writeGuestFilesystemStat(bc, x)
     }
 }
 
-function read26(bc: bare.ByteCursor): boolean | null {
+function read27(bc: bare.ByteCursor): boolean | null {
     return bare.readBool(bc) ? bare.readBool(bc) : null
 }
 
-function write26(bc: bare.ByteCursor, x: boolean | null): void {
+function write27(bc: bare.ByteCursor, x: boolean | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
         bare.writeBool(bc, x)
@@ -2634,9 +2716,9 @@ export function readGuestFilesystemResultResponse(bc: bare.ByteCursor): GuestFil
         path: bare.readString(bc),
         content: read0(bc),
         encoding: read3(bc),
-        entries: read24(bc),
-        stat: read25(bc),
-        exists: read26(bc),
+        entries: read25(bc),
+        stat: read26(bc),
+        exists: read27(bc),
         target: read0(bc),
     }
 }
@@ -2646,9 +2728,9 @@ export function writeGuestFilesystemResultResponse(bc: bare.ByteCursor, x: Guest
     bare.writeString(bc, x.path)
     write0(bc, x.content)
     write3(bc, x.encoding)
-    write24(bc, x.entries)
-    write25(bc, x.stat)
-    write26(bc, x.exists)
+    write25(bc, x.entries)
+    write26(bc, x.stat)
+    write27(bc, x.exists)
     write0(bc, x.target)
 }
 
@@ -2802,11 +2884,11 @@ export function writeProcessSnapshotStatus(bc: bare.ByteCursor, x: ProcessSnapsh
     }
 }
 
-function read27(bc: bare.ByteCursor): i32 | null {
+function read28(bc: bare.ByteCursor): i32 | null {
     return bare.readBool(bc) ? bare.readI32(bc) : null
 }
 
-function write27(bc: bare.ByteCursor, x: i32 | null): void {
+function write28(bc: bare.ByteCursor, x: i32 | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
         bare.writeI32(bc, x)
@@ -2839,7 +2921,7 @@ export function readProcessSnapshotEntry(bc: bare.ByteCursor): ProcessSnapshotEn
         args: read6(bc),
         cwd: bare.readString(bc),
         status: readProcessSnapshotStatus(bc),
-        exitCode: read27(bc),
+        exitCode: read28(bc),
     }
 }
 
@@ -2854,10 +2936,10 @@ export function writeProcessSnapshotEntry(bc: bare.ByteCursor, x: ProcessSnapsho
     write6(bc, x.args)
     bare.writeString(bc, x.cwd)
     writeProcessSnapshotStatus(bc, x.status)
-    write27(bc, x.exitCode)
+    write28(bc, x.exitCode)
 }
 
-function read28(bc: bare.ByteCursor): readonly ProcessSnapshotEntry[] {
+function read29(bc: bare.ByteCursor): readonly ProcessSnapshotEntry[] {
     const len = bare.readUintSafe(bc)
     if (len === 0) {
         return []
@@ -2869,7 +2951,7 @@ function read28(bc: bare.ByteCursor): readonly ProcessSnapshotEntry[] {
     return result
 }
 
-function write28(bc: bare.ByteCursor, x: readonly ProcessSnapshotEntry[]): void {
+function write29(bc: bare.ByteCursor, x: readonly ProcessSnapshotEntry[]): void {
     bare.writeUintSafe(bc, x.length)
     for (let i = 0; i < x.length; i++) {
         writeProcessSnapshotEntry(bc, x[i])
@@ -2882,12 +2964,12 @@ export type ProcessSnapshotResponse = {
 
 export function readProcessSnapshotResponse(bc: bare.ByteCursor): ProcessSnapshotResponse {
     return {
-        processes: read28(bc),
+        processes: read29(bc),
     }
 }
 
 export function writeProcessSnapshotResponse(bc: bare.ByteCursor, x: ProcessSnapshotResponse): void {
-    write28(bc, x.processes)
+    write29(bc, x.processes)
 }
 
 export type QueueSnapshotEntry = {
@@ -2919,7 +3001,7 @@ export function writeQueueSnapshotEntry(bc: bare.ByteCursor, x: QueueSnapshotEnt
     bare.writeU64(bc, x.fillPercent)
 }
 
-function read29(bc: bare.ByteCursor): readonly QueueSnapshotEntry[] {
+function read30(bc: bare.ByteCursor): readonly QueueSnapshotEntry[] {
     const len = bare.readUintSafe(bc)
     if (len === 0) {
         return []
@@ -2931,7 +3013,7 @@ function read29(bc: bare.ByteCursor): readonly QueueSnapshotEntry[] {
     return result
 }
 
-function write29(bc: bare.ByteCursor, x: readonly QueueSnapshotEntry[]): void {
+function write30(bc: bare.ByteCursor, x: readonly QueueSnapshotEntry[]): void {
     bare.writeUintSafe(bc, x.length)
     for (let i = 0; i < x.length; i++) {
         writeQueueSnapshotEntry(bc, x[i])
@@ -2972,7 +3054,7 @@ export function readResourceSnapshotResponse(bc: bare.ByteCursor): ResourceSnaps
         socketConnections: bare.readU64(bc),
         socketBufferedBytes: bare.readU64(bc),
         socketDatagramQueueLen: bare.readU64(bc),
-        queueSnapshots: read29(bc),
+        queueSnapshots: read30(bc),
     }
 }
 
@@ -2991,7 +3073,7 @@ export function writeResourceSnapshotResponse(bc: bare.ByteCursor, x: ResourceSn
     bare.writeU64(bc, x.socketConnections)
     bare.writeU64(bc, x.socketBufferedBytes)
     bare.writeU64(bc, x.socketDatagramQueueLen)
-    write29(bc, x.queueSnapshots)
+    write30(bc, x.queueSnapshots)
 }
 
 export type SocketStateEntry = {
@@ -3005,7 +3087,7 @@ export function readSocketStateEntry(bc: bare.ByteCursor): SocketStateEntry {
     return {
         processId: bare.readString(bc),
         host: read0(bc),
-        port: read22(bc),
+        port: read23(bc),
         path: read0(bc),
     }
 }
@@ -3013,15 +3095,15 @@ export function readSocketStateEntry(bc: bare.ByteCursor): SocketStateEntry {
 export function writeSocketStateEntry(bc: bare.ByteCursor, x: SocketStateEntry): void {
     bare.writeString(bc, x.processId)
     write0(bc, x.host)
-    write22(bc, x.port)
+    write23(bc, x.port)
     write0(bc, x.path)
 }
 
-function read30(bc: bare.ByteCursor): SocketStateEntry | null {
+function read31(bc: bare.ByteCursor): SocketStateEntry | null {
     return bare.readBool(bc) ? readSocketStateEntry(bc) : null
 }
 
-function write30(bc: bare.ByteCursor, x: SocketStateEntry | null): void {
+function write31(bc: bare.ByteCursor, x: SocketStateEntry | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
         writeSocketStateEntry(bc, x)
@@ -3034,12 +3116,12 @@ export type ListenerSnapshotResponse = {
 
 export function readListenerSnapshotResponse(bc: bare.ByteCursor): ListenerSnapshotResponse {
     return {
-        listener: read30(bc),
+        listener: read31(bc),
     }
 }
 
 export function writeListenerSnapshotResponse(bc: bare.ByteCursor, x: ListenerSnapshotResponse): void {
-    write30(bc, x.listener)
+    write31(bc, x.listener)
 }
 
 export type BoundUdpSnapshotResponse = {
@@ -3048,12 +3130,12 @@ export type BoundUdpSnapshotResponse = {
 
 export function readBoundUdpSnapshotResponse(bc: bare.ByteCursor): BoundUdpSnapshotResponse {
     return {
-        socket: read30(bc),
+        socket: read31(bc),
     }
 }
 
 export function writeBoundUdpSnapshotResponse(bc: bare.ByteCursor, x: BoundUdpSnapshotResponse): void {
-    write30(bc, x.socket)
+    write31(bc, x.socket)
 }
 
 export enum SignalDispositionAction {
@@ -3116,7 +3198,7 @@ export function writeSignalHandlerRegistration(bc: bare.ByteCursor, x: SignalHan
     bare.writeU32(bc, x.flags)
 }
 
-function read31(bc: bare.ByteCursor): ReadonlyMap<u32, SignalHandlerRegistration> {
+function read32(bc: bare.ByteCursor): ReadonlyMap<u32, SignalHandlerRegistration> {
     const len = bare.readUintSafe(bc)
     const result = new Map<u32, SignalHandlerRegistration>()
     for (let i = 0; i < len; i++) {
@@ -3131,7 +3213,7 @@ function read31(bc: bare.ByteCursor): ReadonlyMap<u32, SignalHandlerRegistration
     return result
 }
 
-function write31(bc: bare.ByteCursor, x: ReadonlyMap<u32, SignalHandlerRegistration>): void {
+function write32(bc: bare.ByteCursor, x: ReadonlyMap<u32, SignalHandlerRegistration>): void {
     bare.writeUintSafe(bc, x.size)
     for (const kv of x) {
         bare.writeU32(bc, kv[0])
@@ -3147,13 +3229,13 @@ export type SignalStateResponse = {
 export function readSignalStateResponse(bc: bare.ByteCursor): SignalStateResponse {
     return {
         processId: bare.readString(bc),
-        handlers: read31(bc),
+        handlers: read32(bc),
     }
 }
 
 export function writeSignalStateResponse(bc: bare.ByteCursor, x: SignalStateResponse): void {
     bare.writeString(bc, x.processId)
-    write31(bc, x.handlers)
+    write32(bc, x.handlers)
 }
 
 export type ZombieTimerCountResponse = {
@@ -3309,6 +3391,7 @@ export type ResponsePayload =
     | { readonly tag: "GuestKernelResultResponse"; readonly val: GuestKernelResultResponse }
     | { readonly tag: "PtyResizedResponse"; readonly val: PtyResizedResponse }
     | { readonly tag: "ResourceSnapshotResponse"; readonly val: ResourceSnapshotResponse }
+    | { readonly tag: "PackageLinkedResponse"; readonly val: PackageLinkedResponse }
 
 export function readResponsePayload(bc: bare.ByteCursor): ResponsePayload {
     const offset = bc.offset
@@ -3380,6 +3463,8 @@ export function readResponsePayload(bc: bare.ByteCursor): ResponsePayload {
             return { tag: "PtyResizedResponse", val: readPtyResizedResponse(bc) }
         case 32:
             return { tag: "ResourceSnapshotResponse", val: readResourceSnapshotResponse(bc) }
+        case 33:
+            return { tag: "PackageLinkedResponse", val: readPackageLinkedResponse(bc) }
         default: {
             bc.offset = offset
             throw new bare.BareError(offset, "invalid tag")
@@ -3552,6 +3637,11 @@ export function writeResponsePayload(bc: bare.ByteCursor, x: ResponsePayload): v
         case "ResourceSnapshotResponse": {
             bare.writeU8(bc, 32)
             writeResourceSnapshotResponse(bc, x.val)
+            break
+        }
+        case "PackageLinkedResponse": {
+            bare.writeU8(bc, 33)
+            writePackageLinkedResponse(bc, x.val)
             break
         }
     }
@@ -3924,11 +4014,11 @@ export function writeSidecarRequestFrame(bc: bare.ByteCursor, x: SidecarRequestF
     writeSidecarRequestPayload(bc, x.payload)
 }
 
-function read32(bc: bare.ByteCursor): JsonUtf8 | null {
+function read33(bc: bare.ByteCursor): JsonUtf8 | null {
     return bare.readBool(bc) ? readJsonUtf8(bc) : null
 }
 
-function write32(bc: bare.ByteCursor, x: JsonUtf8 | null): void {
+function write33(bc: bare.ByteCursor, x: JsonUtf8 | null): void {
     bare.writeBool(bc, x != null)
     if (x != null) {
         writeJsonUtf8(bc, x)
@@ -3944,14 +4034,14 @@ export type HostCallbackResultResponse = {
 export function readHostCallbackResultResponse(bc: bare.ByteCursor): HostCallbackResultResponse {
     return {
         invocationId: bare.readString(bc),
-        result: read32(bc),
+        result: read33(bc),
         error: read0(bc),
     }
 }
 
 export function writeHostCallbackResultResponse(bc: bare.ByteCursor, x: HostCallbackResultResponse): void {
     bare.writeString(bc, x.invocationId)
-    write32(bc, x.result)
+    write33(bc, x.result)
     write0(bc, x.error)
 }
 
@@ -3964,14 +4054,14 @@ export type JsBridgeResultResponse = {
 export function readJsBridgeResultResponse(bc: bare.ByteCursor): JsBridgeResultResponse {
     return {
         callId: bare.readString(bc),
-        result: read32(bc),
+        result: read33(bc),
         error: read0(bc),
     }
 }
 
 export function writeJsBridgeResultResponse(bc: bare.ByteCursor, x: JsBridgeResultResponse): void {
     bare.writeString(bc, x.callId)
-    write32(bc, x.result)
+    write33(bc, x.result)
     write0(bc, x.error)
 }
 

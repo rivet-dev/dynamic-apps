@@ -55,7 +55,7 @@ const DEFAULT_WASM_GUEST_HOME: &str = "/root";
 const DEFAULT_WASM_GUEST_USER: &str = "root";
 const DEFAULT_WASM_GUEST_SHELL: &str = "/bin/sh";
 const DEFAULT_WASM_GUEST_PATH: &str =
-    "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
+    "/usr/local/sbin:/usr/local/bin:/opt/agentos/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 // Warmup is a best-effort compile-cache optimization; fall back to a cold start
 // instead of burning minutes on a stalled prewarm session.
 const DEFAULT_WASM_PREWARM_TIMEOUT_MS: u64 = 30_000;

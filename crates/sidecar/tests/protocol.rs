@@ -878,6 +878,8 @@ fn schema_supports_configuration_and_structured_events() {
             }],
             command_permissions: std::collections::HashMap::new(),
             loopback_exempt_ports: Vec::new(),
+            packages: Vec::new(),
+            packages_mount_at: String::new(),
         }),
     ));
 

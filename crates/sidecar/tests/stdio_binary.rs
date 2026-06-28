@@ -846,13 +846,16 @@ fn native_sidecar_binary_supports_js_bridge_host_filesystem_access() {
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ),
     );
     let configured = recv_response(&mut stdout, &codec, 4, &mut buffered_events);
     match configured.payload {
         ResponsePayload::VmConfiguredResponse(response) => {
-            assert_eq!(response.applied_mounts, 1);
+            // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
+            assert_eq!(response.applied_mounts, 2);
             assert_eq!(response.applied_software, 0);
         }
         other => panic!("unexpected configure response: {other:?}"),

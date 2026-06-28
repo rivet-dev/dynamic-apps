@@ -518,12 +518,16 @@ fn vm_layer_rpcs_and_module_access_mounts_are_scoped_per_vm() {
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("configure vm");
     match configure.response.payload {
         ResponsePayload::VmConfiguredResponse(response) => {
-            assert_eq!(response.applied_mounts, 1);
+            // 2 = the module_access node_modules mount + the always-present
+            // `/opt/agentos` package projection mount added by configure_vm.
+            assert_eq!(response.applied_mounts, 2);
         }
         other => panic!("unexpected configure response: {other:?}"),
     }

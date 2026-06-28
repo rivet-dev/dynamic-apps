@@ -8,7 +8,8 @@
 	"types": "./dist/index.d.ts",
 	"files": [
 		"dist",
-		"wasm"
+		"dist/package",
+		"bin"
 	],
 	"exports": {
 		".": {
@@ -17,11 +18,11 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc",
+		"build": "tsc && node ../../scripts/assemble-dist-package.mjs",
 		"check-types": "tsc --noEmit"
 	},
 	"devDependencies": {
-		"@secure-exec/registry-types": "workspace:*",
+		"@agentos-software/manifest": "workspace:*",
 		"@types/node": "^22.10.2",
 		"typescript": "^5.9.2"
 	}

@@ -22,7 +22,8 @@ use support::{
 
 const ARG_PREFIX: &str = "ARG=";
 const INVOCATION_BREAK: &str = "--END--";
-const DEFAULT_GUEST_PATH_ENV: &str = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
+const DEFAULT_GUEST_PATH_ENV: &str =
+    "/usr/local/sbin:/usr/local/bin:/opt/agentos/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 const DEFAULT_GUEST_HOME: &str = "/home/agentos";
 const MAX_SECURITY_HARDENING_STREAM_BYTES: usize = 1024 * 1024;
 struct EnvVarGuard {
@@ -494,6 +495,8 @@ fn execute_rejects_host_only_absolute_command_path() {
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("configure host-only command permissions");

@@ -482,6 +482,9 @@ fn to_generated_request_payload(
         RequestPayload::ResizePty(inner) => {
             generated_protocol::RequestPayload::ResizePtyRequest(inner.clone())
         }
+        RequestPayload::LinkPackage(inner) => {
+            generated_protocol::RequestPayload::LinkPackageRequest(inner.clone())
+        }
     })
 }
 
@@ -583,6 +586,9 @@ fn from_generated_request_payload(
         }
         generated_protocol::RequestPayload::ResizePtyRequest(inner) => {
             RequestPayload::ResizePty(inner)
+        }
+        generated_protocol::RequestPayload::LinkPackageRequest(inner) => {
+            RequestPayload::LinkPackage(inner)
         }
     })
 }
@@ -732,6 +738,9 @@ fn to_generated_response_payload(
         ResponsePayload::PtyResized(inner) => {
             generated_protocol::ResponsePayload::PtyResizedResponse(inner.clone())
         }
+        ResponsePayload::PackageLinked(inner) => {
+            generated_protocol::ResponsePayload::PackageLinkedResponse(inner.clone())
+        }
     })
 }
 
@@ -866,6 +875,9 @@ fn from_generated_response_payload(
         }
         generated_protocol::ResponsePayload::PtyResizedResponse(inner) => {
             ResponsePayload::PtyResized(inner)
+        }
+        generated_protocol::ResponsePayload::PackageLinkedResponse(inner) => {
+            ResponsePayload::PackageLinked(inner)
         }
     })
 }
@@ -1232,6 +1244,7 @@ pub enum RequestPayload {
     GuestKernelCall(GuestKernelCallRequest),
     ResizePty(ResizePtyRequest),
     GetResourceSnapshot(GetResourceSnapshotRequest),
+    LinkPackage(LinkPackageRequest),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1269,6 +1282,7 @@ pub enum ResponsePayload {
     GuestKernelResult(GuestKernelResultResponse),
     PtyResized(PtyResizedResponse),
     ResourceSnapshot(ResourceSnapshotResponse),
+    PackageLinked(PackageLinkedResponse),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1372,9 +1386,12 @@ pub type GuestFilesystemCallRequest = crate::wire::GuestFilesystemCallRequest;
 
 pub type GuestKernelCallRequest = crate::wire::GuestKernelCallRequest;
 pub type ResizePtyRequest = crate::wire::ResizePtyRequest;
+pub type PackageDescriptor = crate::wire::PackageDescriptor;
+pub type LinkPackageRequest = crate::wire::LinkPackageRequest;
 
 pub type GuestKernelResultResponse = crate::wire::GuestKernelResultResponse;
 pub type PtyResizedResponse = crate::wire::PtyResizedResponse;
+pub type PackageLinkedResponse = crate::wire::PackageLinkedResponse;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct SnapshotRootFilesystemRequest {}
@@ -1567,6 +1584,7 @@ impl_bare_newtype_union_enum!(
         GuestKernelCall(GuestKernelCallRequest) = 28,
         ResizePty(ResizePtyRequest) = 29,
         GetResourceSnapshot(GetResourceSnapshotRequest) = 30,
+        LinkPackage(LinkPackageRequest) = 31,
     }
 );
 
@@ -1608,6 +1626,7 @@ impl_bare_newtype_union_enum!(
         GuestKernelResult(GuestKernelResultResponse) = 30,
         PtyResized(PtyResizedResponse) = 31,
         ResourceSnapshot(ResourceSnapshotResponse) = 32,
+        PackageLinked(PackageLinkedResponse) = 33,
     }
 );
 
@@ -2187,6 +2206,7 @@ enum ExpectedResponseKind {
     ExtResult,
     GuestKernelResult,
     PtyResized,
+    PackageLinked,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -2231,6 +2251,7 @@ impl ExpectedResponseKind {
             Self::ExtResult => "ext_result",
             Self::GuestKernelResult => "guest_kernel_result",
             Self::PtyResized => "pty_resized",
+            Self::PackageLinked => "package_linked",
         }
     }
 
@@ -2287,6 +2308,7 @@ impl RequestPayload {
             | Self::GetZombieTimerCount(_)
             | Self::GuestKernelCall(_)
             | Self::ResizePty(_)
+            | Self::LinkPackage(_)
             | Self::HostFilesystemCall(_) => OwnershipRequirement::Vm,
             Self::Ext(_) => OwnershipRequirement::Any,
         }
@@ -2325,6 +2347,7 @@ impl RequestPayload {
             Self::Ext(_) => ExpectedResponseKind::ExtResult,
             Self::GuestKernelCall(_) => ExpectedResponseKind::GuestKernelResult,
             Self::ResizePty(_) => ExpectedResponseKind::PtyResized,
+            Self::LinkPackage(_) => ExpectedResponseKind::PackageLinked,
         }
     }
 }
@@ -2376,7 +2399,8 @@ impl ResponsePayload {
             | Self::FilesystemResult(_)
             | Self::PermissionDecision(_)
             | Self::GuestKernelResult(_)
-            | Self::PtyResized(_) => OwnershipRequirement::Vm,
+            | Self::PtyResized(_)
+            | Self::PackageLinked(_) => OwnershipRequirement::Vm,
             Self::ExtResult(_) => OwnershipRequirement::Any,
         }
     }
@@ -2416,6 +2440,7 @@ impl ResponsePayload {
             Self::ExtResult(_) => "ext_result",
             Self::GuestKernelResult(_) => "guest_kernel_result",
             Self::PtyResized(_) => "pty_resized",
+            Self::PackageLinked(_) => "package_linked",
         }
     }
 }

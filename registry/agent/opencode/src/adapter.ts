@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 process.env.OPENCODE_DISABLE_CONFIG_DEP_INSTALL ??= "1";
 process.env.OPENCODE_DISABLE_EMBEDDED_WEB_UI ??= "1";
 

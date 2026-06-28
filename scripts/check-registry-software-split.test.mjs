@@ -25,45 +25,22 @@ test("accepts agentos-software registry software package metadata", () => {
 		writeJson(root, "registry/software/coreutils/package.json", {
 			name: "@agentos-software/coreutils",
 			dependencies: {
-				"@secure-exec/registry-types": "workspace:*",
+				"@agentos-software/manifest": "workspace:*",
 			},
-		});
-		writeJson(root, "registry/software/coreutils/secure-exec-package.json", {
-			name: "@agentos-software/coreutils",
 		});
 
 		assert.deepEqual(checkRegistrySoftwareSplit({ root }), []);
 	});
 });
 
-test("rejects stale Agent OS package names and metadata files", () => {
+test("rejects package names that do not match the directory", () => {
 	withFixture((root) => {
 		writeJson(root, "registry/software/grep/package.json", {
-			name: "@rivet-dev/agent-os-pkg-grep",
-		});
-		writeJson(root, "registry/software/grep/agentos-package.json", {
 			name: "@rivet-dev/agent-os-pkg-grep",
 		});
 
 		assert.deepEqual(checkRegistrySoftwareSplit({ root }), [
 			"registry/software/grep/package.json must be named @agentos-software/grep, found @rivet-dev/agent-os-pkg-grep",
-			"registry/software/grep/agentos-package.json must be renamed to secure-exec-package.json",
-			"registry/software/grep/secure-exec-package.json is required",
-		]);
-	});
-});
-
-test("rejects metadata name drift", () => {
-	withFixture((root) => {
-		writeJson(root, "registry/software/sed/package.json", {
-			name: "@agentos-software/sed",
-		});
-		writeJson(root, "registry/software/sed/secure-exec-package.json", {
-			name: "@agentos-software/grep",
-		});
-
-		assert.deepEqual(checkRegistrySoftwareSplit({ root }), [
-			"registry/software/sed/secure-exec-package.json name must match package.json (@agentos-software/sed), found @agentos-software/grep",
 		]);
 	});
 });
@@ -75,9 +52,6 @@ test("rejects Agent OS dependencies inside software manifests", () => {
 			dependencies: {
 				"@rivet-dev/agent-os-core": "workspace:*",
 			},
-		});
-		writeJson(root, "registry/software/common/secure-exec-package.json", {
-			name: "@agentos-software/common",
 		});
 
 		assert.deepEqual(checkRegistrySoftwareSplit({ root }), [

@@ -1792,12 +1792,15 @@ if (mode === 'write') {
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("configure host_dir workspace mount through wire");
     match configure.response.payload {
         ResponsePayload::VmConfiguredResponse(response) => {
-            assert_eq!(response.applied_mounts, 1);
+            // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
+            assert_eq!(response.applied_mounts, 2);
         }
         other => panic!("unexpected wire configure-vm response: {other:?}"),
     }
@@ -3658,12 +3661,15 @@ process.stdout.write('status=' + result.status + ';out=' + (result.stdout || '')
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("configure host_dir workspace mount through wire");
     match configure.response.payload {
         ResponsePayload::VmConfiguredResponse(response) => {
-            assert_eq!(response.applied_mounts, 1);
+            // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
+            assert_eq!(response.applied_mounts, 2);
         }
         other => panic!("unexpected wire configure-vm response: {other:?}"),
     }

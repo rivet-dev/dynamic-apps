@@ -64,7 +64,6 @@ test("bumpPackageJsons injects secure-exec sidecar platform optional dependency"
 				"packages:",
 				"  - packages/*",
 				"  - packages/sidecar/npm/*",
-				"  - registry/file-system/*",
 				"  - registry/tool/*",
 				"",
 			].join("\n"),
@@ -72,14 +71,12 @@ test("bumpPackageJsons injects secure-exec sidecar platform optional dependency"
 		for (const [rel, name] of [
 			["packages/core", "@secure-exec/core"],
 			["packages/browser", "@secure-exec/browser"],
-			["packages/registry-types", "@secure-exec/registry-types"],
+			["packages/registry-types", "@agentos-software/manifest"],
 			["packages/sidecar", "@secure-exec/sidecar"],
 			...DEFAULT_SIDECAR_PLATFORMS.map((platform) => [
 				`packages/sidecar/npm/${platform}`,
 				`@secure-exec/sidecar-${platform}`,
 			]),
-			["registry/file-system/s3", "@secure-exec/s3"],
-			["registry/file-system/google-drive", "@secure-exec/google-drive"],
 			["registry/tool/sandbox", "@secure-exec/sandbox"],
 		]) {
 			await writeJson(repoRoot, join(rel, "package.json"), {

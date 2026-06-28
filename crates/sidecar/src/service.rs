@@ -1219,6 +1219,7 @@ where
             RequestRoute::GetZombieTimerCount(payload) => {
                 self.get_zombie_timer_count(&request, payload).await
             }
+            RequestRoute::LinkPackage(payload) => self.link_package(&request, payload).await,
             RequestRoute::UnsupportedHostCallbackDirection => {
                 Ok(unsupported_host_callback_direction_dispatch(&request))
             }

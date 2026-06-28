@@ -15,8 +15,11 @@
       "default": "./dist/index.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc && node ./scripts/build-patched-cli.mjs",
+    "build": "tsc && node ./scripts/build-patched-cli.mjs && rm -rf dist/package && node ../../../packages/agentos-toolchain/dist/cli.js pack . --out dist/package --agent claude-sdk-acp --prune-native",
     "check-types": "tsc --noEmit",
     "test": "pnpm build && node --test --test-force-exit tests/*.test.mjs"
   },
@@ -26,6 +29,7 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
+    "@agentos-software/manifest": "workspace:*",
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2"
   }

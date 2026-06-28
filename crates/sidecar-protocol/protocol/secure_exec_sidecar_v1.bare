@@ -208,6 +208,23 @@ type WasmPermissionTier enum {
   ISOLATED
 }
 
+# agentOS package descriptor. The sidecar reads `<dir>/agentos-package.json`,
+# projects the self-contained `dir` read-only under
+# `<packagesMountAt>/<manifest.name>/<package.json version>`, and links its `bin/`
+# commands onto $PATH. `dir` is a trusted host path (the client configures its own
+# VM); the sidecar is the host-side TCB that builds the staging tree.
+type PackageDescriptor struct {
+  dir: str
+}
+
+type LinkPackageRequest struct {
+  package: PackageDescriptor
+}
+
+type PackageLinkedResponse struct {
+  commands: list<str>
+}
+
 type ConfigureVmRequest struct {
   mounts: list<MountDescriptor>
   software: list<SoftwareDescriptor>
@@ -217,6 +234,8 @@ type ConfigureVmRequest struct {
   projectedModules: list<ProjectedModuleDescriptor>
   commandPermissions: map<str><WasmPermissionTier>
   loopbackExemptPorts: list<u16>
+  packages: list<PackageDescriptor>
+  packagesMountAt: str
 }
 
 type RegisteredHostCallbackExample struct {
@@ -424,7 +443,8 @@ type RequestPayload union {
   ExtEnvelope |
   GuestKernelCallRequest |
   ResizePtyRequest |
-  GetResourceSnapshotRequest
+  GetResourceSnapshotRequest |
+  LinkPackageRequest
 }
 
 type RequestFrame struct {
@@ -706,7 +726,8 @@ type ResponsePayload union {
   ExtEnvelope |
   GuestKernelResultResponse |
   PtyResizedResponse |
-  ResourceSnapshotResponse
+  ResourceSnapshotResponse |
+  PackageLinkedResponse
 }
 
 type ResponseFrame struct {

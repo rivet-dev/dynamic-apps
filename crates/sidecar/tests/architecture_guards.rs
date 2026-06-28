@@ -258,6 +258,11 @@ const FS_ALLOW: &[&str] = &[
     // sanctioned boundary as host_dir.rs/filesystem.rs, macOS-only.
     "crates/sidecar/src/macos_fs.rs",
     "crates/sidecar/src/plugins/module_access.rs",
+    // agentOS package projection: the sidecar is the host-side TCB that stages a
+    // trusted, client-configured package `dir` into the `/opt/agentos` host_dir
+    // mount (init/read manifest/link bin farm). Same sanctioned host-staging
+    // boundary as filesystem.rs/host_dir.rs; the staged tree is mounted read-only.
+    "crates/sidecar/src/package_projection.rs",
     "crates/sidecar/src/stdio.rs",
     "crates/sidecar/src/state.rs",
     "crates/sidecar/src/vm.rs",

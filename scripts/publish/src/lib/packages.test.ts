@@ -37,7 +37,6 @@ function writeSecureExecWorkspace(root: string) {
 		[
 			"packages:",
 			"  - packages/*",
-			"  - registry/file-system/*",
 			"  - registry/tool/*",
 			"",
 		].join("\n"),
@@ -50,9 +49,7 @@ function writeSecureExecWorkspace(root: string) {
 			`packages/sidecar/npm/${platform}`,
 			`@secure-exec/sidecar-${platform}`,
 		]),
-		["packages/registry-types", "@secure-exec/registry-types"],
-		["registry/file-system/s3", "@secure-exec/s3"],
-		["registry/file-system/google-drive", "@secure-exec/google-drive"],
+		["packages/registry-types", "@agentos-software/manifest"],
 		["registry/tool/sandbox", "@secure-exec/sandbox"],
 	]) {
 		writeJson(root, join(rel, "package.json"), {

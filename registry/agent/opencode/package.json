@@ -15,11 +15,15 @@
       "default": "./dist/index.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "node ./scripts/build-opencode-acp.mjs && tsc",
+    "build": "node ./scripts/build-opencode-acp.mjs && tsc && node ../../../packages/agentos-toolchain/dist/cli.js pack . --out dist/package --agent agentos-opencode-acp",
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
+    "@agentos-software/manifest": "workspace:*",
     "bun": "1.3.11",
     "@types/node": "^22.10.2",
     "typescript": "^5.7.2"

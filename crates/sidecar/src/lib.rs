@@ -15,6 +15,7 @@ pub mod limits;
 #[cfg(target_os = "macos")]
 pub(crate) mod macos_fs;
 pub(crate) mod metadata;
+pub mod package_projection;
 pub(crate) mod plugins;
 pub mod service;
 pub(crate) mod state;

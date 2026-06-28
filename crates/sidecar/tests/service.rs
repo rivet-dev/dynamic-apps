@@ -38,6 +38,9 @@ mod macos_fs;
 #[path = "../src/metadata/mod.rs"]
 mod metadata;
 #[allow(dead_code)]
+#[path = "../src/package_projection.rs"]
+mod package_projection;
+#[allow(dead_code)]
 #[path = "../src/plugins/mod.rs"]
 mod plugins;
 #[allow(dead_code, unused_imports, clippy::enum_variant_names)]
@@ -6262,6 +6265,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure mounts");
@@ -6333,6 +6338,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure readonly mount");
@@ -6406,6 +6413,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure host_dir mount");
@@ -6477,6 +6486,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure host_dir mount");
@@ -6532,6 +6543,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure module_access mount");
@@ -6755,6 +6768,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure module_access mount");
@@ -6820,6 +6835,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure js_bridge mount");
@@ -6953,6 +6970,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure js_bridge mount");
@@ -7039,6 +7058,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure js_bridge mount");
@@ -7154,6 +7175,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure js_bridge mount");
@@ -7248,6 +7271,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure sandbox_agent mount");
@@ -7351,6 +7376,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure s3 mount");
@@ -7446,6 +7473,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure object_s3 mount");
@@ -7525,6 +7554,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure chunked_local mount");
@@ -7984,6 +8015,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("dispatch configure_vm failure");
@@ -8210,6 +8243,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("dispatch fs configure vm");
@@ -8256,6 +8291,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("dispatch network configure vm");
@@ -8315,13 +8352,16 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("dispatch configure vm");
 
             match result.response.payload {
                 ResponsePayload::VmConfigured(response) => {
-                    assert_eq!(response.applied_mounts, 1);
+                    // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
+                    assert_eq!(response.applied_mounts, 2);
                 }
                 other => panic!("expected configured response, got {other:?}"),
             }
@@ -8514,13 +8554,16 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("dispatch configure vm");
 
             match result.response.payload {
                 ResponsePayload::VmConfigured(response) => {
-                    assert_eq!(response.applied_mounts, 1);
+                    // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
+                    assert_eq!(response.applied_mounts, 2);
                 }
                 other => panic!("expected configured response, got {other:?}"),
             }
@@ -8577,13 +8620,16 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure operator mount");
 
             match configure_response.response.payload {
                 ResponsePayload::VmConfigured(configured) => {
-                    assert_eq!(configured.applied_mounts, 1);
+                    // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
+                    assert_eq!(configured.applied_mounts, 2);
                 }
                 other => panic!("expected configured response, got {other:?}"),
             }
@@ -8728,6 +8774,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure host_dir mount");
@@ -8871,6 +8919,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure command mount");
@@ -8961,6 +9011,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure command mount");
@@ -9353,6 +9405,8 @@ ykAheWCsAteSEWVc0w==\n\
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: Vec::new(),
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure command-path mounts");
@@ -10390,6 +10444,8 @@ process.stdout.write(`${JSON.stringify({
                         projected_modules: Vec::new(),
                         command_permissions: std::collections::HashMap::new(),
                         loopback_exempt_ports: vec![4312],
+                        packages: Vec::new(),
+                        packages_mount_at: String::new(),
                     }),
                 ))
                 .expect("configure workspace mount");

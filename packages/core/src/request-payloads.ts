@@ -1,10 +1,12 @@
 import { toExactArrayBuffer } from "./bytes.js";
 import {
 	type LiveMountDescriptor,
+	type LivePackageDescriptor,
 	type LiveProjectedModuleDescriptor,
 	type LiveSidecarPlacement,
 	type LiveSoftwareDescriptor,
 	toGeneratedMountDescriptor,
+	toGeneratedPackageDescriptor,
 	toGeneratedProjectedModuleDescriptor,
 	toGeneratedSidecarPlacement,
 	toGeneratedSoftwareDescriptor,
@@ -78,6 +80,12 @@ export type LiveRequestPayload =
 			projected_modules: LiveProjectedModuleDescriptor[];
 			command_permissions: Record<string, LiveWasmPermissionTier>;
 			loopback_exempt_ports?: number[];
+			packages?: LivePackageDescriptor[];
+			packages_mount_at?: string;
+	  }
+	| {
+			type: "link_package";
+			package: LivePackageDescriptor;
 	  }
 	| {
 			type: "register_host_callbacks";
@@ -285,6 +293,17 @@ export function toGeneratedRequestPayload(
 					loopbackExemptPorts: new Uint16Array(
 						payload.loopback_exempt_ports ?? [],
 					),
+					packages: (payload.packages ?? []).map(
+						toGeneratedPackageDescriptor,
+					),
+					packagesMountAt: payload.packages_mount_at ?? "",
+				},
+			};
+		case "link_package":
+			return {
+				tag: "LinkPackageRequest",
+				val: {
+					package: toGeneratedPackageDescriptor(payload.package),
 				},
 			};
 		case "register_host_callbacks":

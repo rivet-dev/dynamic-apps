@@ -43,11 +43,17 @@ registry/native/c/vendor/
 registry/native/c/libs/
 registry/native/c/.cache/
 registry/native/c/sysroot/
+registry/software/*/bin/
 registry/software/*/wasm/
 registry/software/*/agent-os-package.meta.json
 registry/.last-publish-hash
 registry/software/*/.last-publish-hash
 registry/.build-markers/
+
+# Experiments C build artifacts
+experiments/wasm-gui/third_party/**/*.o
+experiments/wasm-gui/third_party/**/*.a
+experiments/wasm-gui/third_party/**/.libs/
 
 # Ralph agent artifacts
 scripts/ralph/archive/
@@ -70,6 +76,8 @@ crates/execution/.agent-os-pyodide-cache/
 crates/execution/async-out.txt
 crates/sidecar/.tmp-sidecar-tests/
 packages/browser/.cache/
+website/.astro/
+website/public/docs/
 
 # Vendored V8 bridge bundles staged at release time for crates.io publishing
 crates/execution/assets/generated/

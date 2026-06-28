@@ -22,6 +22,23 @@ META_PACKAGES := common build-essential everything
 # All publishable packages
 ALL_PACKAGES := $(CMD_PACKAGES) $(META_PACKAGES)
 
+# ---------------------------------------------------------------------------
+# Publishing — MANUAL ONLY.
+#
+# The @agentos-software/* SOFTWARE packages (registry/software/*) are published
+# ONLY from a developer machine via these `publish*` targets. They are
+# DELIBERATELY excluded from CI: the publish workflow's package discovery
+# (scripts/publish/src/lib/packages.ts → SECURE_EXEC_WORKSPACE_PACKAGES) skips
+# everything under @agentos-software/* except @agentos-software/manifest. (The
+# @agentos-software/* AGENT packages under registry/agent/* are a separate track,
+# preview-published by .github/workflows/publish.yaml under a branch dist-tag.)
+#
+# DIST_TAG controls the npm dist-tag. It defaults to `dev` so a manual publish
+# NEVER moves the `latest` pointer (consumers doing `npm i @agentos-software/<x>`
+# keep resolving the real release on `latest`). Publishing to `latest` is opt-in
+# and must be explicit: `make publish DIST_TAG=latest`.
+DIST_TAG ?= dev
+
 .PHONY: all build-wasm build-wasm-rust build-wasm-c copy-wasm generate-meta build test \
         publish publish-dry publish-force publish-clean clean rebuild
 
@@ -261,8 +278,8 @@ publish: build
 		if [ "$$HASH" = "$$LAST" ]; then \
 			echo "SKIP: @agent-os-pkgs/$$pkg (unchanged)"; \
 		else \
-			echo "PUBLISH: @agent-os-pkgs/$$pkg@$(VERSION)"; \
-			(cd software/$$pkg && pnpm publish --access public --no-git-checks); \
+			echo "PUBLISH: @agentos-software/$$pkg@$(VERSION) (dist-tag: $(DIST_TAG))"; \
+			(cd software/$$pkg && pnpm publish --access public --no-git-checks --tag $(DIST_TAG)); \
 			echo "$$HASH" > software/$$pkg/.last-publish-hash; \
 		fi; \
 	done
@@ -294,8 +311,8 @@ publish-force: build
 			echo "SKIP: @agent-os-pkgs/$$pkg (empty wasm/)"; \
 			continue; \
 		fi; \
-		echo "PUBLISH: @agent-os-pkgs/$$pkg@$(VERSION)"; \
-		(cd software/$$pkg && pnpm publish --access public --no-git-checks); \
+		echo "PUBLISH: @agentos-software/$$pkg@$(VERSION) (dist-tag: $(DIST_TAG))"; \
+		(cd software/$$pkg && pnpm publish --access public --no-git-checks --tag $(DIST_TAG)); \
 	done
 
 publish-clean:

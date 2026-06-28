@@ -332,6 +332,21 @@ importers:
         specifier: ^5.7.2
         version: 5.9.3
 
+  packages/agentos-toolchain:
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.19.15
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(jiti@1.21.7)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@22.19.15)
+
   packages/benchmarks:
     dependencies:
       secure-exec:
@@ -416,7 +431,7 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.19.15)
 
-  packages/registry-types:
+  packages/manifest:
     devDependencies:
       '@types/node':
         specifier: ^22.10.2
@@ -468,6 +483,9 @@ importers:
         specifier: ^4.1.11
         version: 4.3.6
     devDependencies:
+      '@agentos-software/manifest':
+        specifier: workspace:*
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -479,8 +497,11 @@ importers:
     dependencies:
       '@agentos-software/codex-cli':
         specifier: workspace:*
-        version: link:../../software/codex
+        version: link:../../software/codex-cli
     devDependencies:
+      '@agentos-software/manifest':
+        specifier: workspace:*
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -490,6 +511,9 @@ importers:
 
   registry/agent/opencode:
     devDependencies:
+      '@agentos-software/manifest':
+        specifier: workspace:*
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -512,6 +536,9 @@ importers:
         specifier: 0.60.0
         version: 0.60.0(@modelcontextprotocol/sdk@1.29.0(zod@4.3.6))(ws@8.21.0)(zod@4.3.6)
     devDependencies:
+      '@agentos-software/manifest':
+        specifier: workspace:*
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -528,44 +555,15 @@ importers:
         specifier: ^0.0.23
         version: 0.0.23
     devDependencies:
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.19.15
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-
-  registry/file-system/google-drive:
-    dependencies:
-      '@secure-exec/core':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/core
-    devDependencies:
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
       typescript:
         specifier: ^5.7.2
         version: 5.9.3
-      vitest:
-        specifier: ^2.1.8
-        version: 2.1.9(@types/node@22.19.15)
-
-  registry/file-system/s3:
-    dependencies:
-      '@secure-exec/core':
-        specifier: workspace:*
-        version: link:../../../packages/core
-    devDependencies:
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.19.15
-      typescript:
-        specifier: ^5.7.2
-        version: 5.9.3
-      vitest:
-        specifier: ^2.1.8
-        version: 2.1.9(@types/node@22.19.15)
 
   registry/software/build-essential:
     dependencies:
@@ -582,9 +580,9 @@ importers:
         specifier: workspace:*
         version: link:../make
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -592,11 +590,11 @@ importers:
         specifier: ^5.9.2
         version: 5.9.3
 
-  registry/software/codex:
+  registry/software/codex-cli:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -631,9 +629,9 @@ importers:
         specifier: workspace:*
         version: link:../tar
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -643,9 +641,9 @@ importers:
 
   registry/software/coreutils:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -655,9 +653,9 @@ importers:
 
   registry/software/curl:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -667,9 +665,9 @@ importers:
 
   registry/software/diffutils:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -679,9 +677,9 @@ importers:
 
   registry/software/duckdb:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -693,7 +691,7 @@ importers:
     dependencies:
       '@agentos-software/codex-cli':
         specifier: workspace:*
-        version: link:../codex
+        version: link:../codex-cli
       '@agentos-software/coreutils':
         specifier: workspace:*
         version: link:../coreutils
@@ -746,9 +744,9 @@ importers:
         specifier: workspace:*
         version: link:../zip
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -758,9 +756,9 @@ importers:
 
   registry/software/fd:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -770,9 +768,9 @@ importers:
 
   registry/software/file:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -782,9 +780,9 @@ importers:
 
   registry/software/findutils:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -794,9 +792,9 @@ importers:
 
   registry/software/gawk:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -806,9 +804,9 @@ importers:
 
   registry/software/git:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -818,9 +816,9 @@ importers:
 
   registry/software/grep:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -830,9 +828,9 @@ importers:
 
   registry/software/gzip:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -842,9 +840,9 @@ importers:
 
   registry/software/http-get:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -854,9 +852,9 @@ importers:
 
   registry/software/jq:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -866,9 +864,9 @@ importers:
 
   registry/software/make:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -878,9 +876,9 @@ importers:
 
   registry/software/ripgrep:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -890,9 +888,9 @@ importers:
 
   registry/software/sed:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -902,9 +900,9 @@ importers:
 
   registry/software/sqlite3:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -914,9 +912,9 @@ importers:
 
   registry/software/tar:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -926,9 +924,9 @@ importers:
 
   registry/software/tree:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -938,9 +936,9 @@ importers:
 
   registry/software/unzip:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -950,9 +948,9 @@ importers:
 
   registry/software/wget:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -962,9 +960,9 @@ importers:
 
   registry/software/yq:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -974,9 +972,9 @@ importers:
 
   registry/software/zip:
     devDependencies:
-      '@secure-exec/registry-types':
+      '@agentos-software/manifest':
         specifier: workspace:*
-        version: link:../../../packages/registry-types
+        version: link:../../../packages/manifest
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.15
@@ -4020,6 +4018,12 @@ packages:
     os: [darwin, linux, win32]
     hasBin: true
 
+  bundle-require@5.1.0:
+    resolution: {integrity: sha512-3WrrOuZiyaaZPWiEt4G3+IffISVC9HYlWueJEBWED4ZH4aIAC2PnkdnuRrR94M+w6yGWn4AglWtJtBI8YqvgoA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    peerDependencies:
+      esbuild: '>=0.18'
+
   bytes@3.1.2:
     resolution: {integrity: sha512-/Nf7TyzTx6S3yRJObOAV7956r8cr2+Oj8AC5dt8wSP3BQAoeX58NoHyCU8P8zGkNXStjTSi6fzO6F0pBdcYbEg==}
     engines: {node: '>= 0.8'}
@@ -4085,6 +4089,10 @@ packages:
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
+
+  chokidar@4.0.3:
+    resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
+    engines: {node: '>= 14.16.0'}
 
   chokidar@5.0.0:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
@@ -4179,6 +4187,13 @@ packages:
 
   common-ancestor-path@1.0.1:
     resolution: {integrity: sha512-L3sHRo1pXXEqX8VU28kfgUY+YGsk09hPqZiZmLacNib6XNTCM8ubYeT7ryXQw8asB1sKgcU5lkB7ONug08aB8w==}
+
+  confbox@0.1.8:
+    resolution: {integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==}
+
+  consola@3.4.2:
+    resolution: {integrity: sha512-5IKcdX0nnYavi6G7TtOhwkYzyjfJlatbjMjuLSfE2kYT5pMDOilZ4OvMhi637CcDICTmz3wARPoyhqyX1Y+XvA==}
+    engines: {node: ^14.18.0 || >=16.10.0}
 
   console-browserify@1.2.0:
     resolution: {integrity: sha512-ZMkYO/LkF17QvCPqM0gxw8yUzigAOZOSWSHg91FH6orS7vcEj5dVZTidN2fQ14yBSdg97RqhSNwLUXInd52OTA==}
@@ -4832,6 +4847,9 @@ packages:
     resolution: {integrity: sha512-78/PXT1wlLLDgTzDs7sjq9hzz0vXD+zn+7wypEe4fXQxCmdmqfGsEPQxmiCSQI3ajFV91bVSsvNtrJRiW6nGng==}
     engines: {node: '>=10'}
 
+  fix-dts-default-cjs-exports@1.0.1:
+    resolution: {integrity: sha512-pVIECanWFC61Hzl2+oOCtoJ3F17kglZC/6N94eRWycFgBH35hHx0Li604ZIzhseh97mf2p0cv7vVrOZGoqhlEg==}
+
   flattie@1.1.1:
     resolution: {integrity: sha512-9UbaD6XdAL97+k/n+N7JwX46K/M6Zc6KcFYskrYL8wbBV/Uyk0CTAMY0VT+qiK5PM7AIc9aTWYtq65U7T+aCNQ==}
     engines: {node: '>=8'}
@@ -5334,6 +5352,10 @@ packages:
       react:
         optional: true
 
+  joycon@3.1.1:
+    resolution: {integrity: sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw==}
+    engines: {node: '>=10'}
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -5399,6 +5421,10 @@ packages:
 
   linkify-it@5.0.1:
     resolution: {integrity: sha512-wVoTjP4Q6R0NW5hiZkVJaFZPWgtXfoGF+6LucL3/FtiNjmcHhYjEr5f1Kqjirc1nBW07J/ZuRFumqr2oqccEWg==}
+
+  load-tsconfig@0.2.5:
+    resolution: {integrity: sha512-IXO6OCs9yg8tMKzfPZ1YmheJbZCiEsnBdcB03l0OcfK9prKnJb96siuHCr5Fl37/yo9DnKU+TLpxzTUspw9shg==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   locate-path@6.0.0:
     resolution: {integrity: sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw==}
@@ -5741,6 +5767,9 @@ packages:
   mkdirp-classic@0.5.3:
     resolution: {integrity: sha512-gKLcREMhtuZRwRAfqP3RFW+TK4JqApVBtOIftVgjuABpAtpxhPGaDcfvbhNvD0B8iD1oUr/txX35NjcaY6Ns/A==}
 
+  mlly@1.8.2:
+    resolution: {integrity: sha512-d+ObxMQFmbt10sretNDytwt85VrbkhhUA/JBGm1MPaWJ65Cl4wOgLaB1NYvJSZ0Ef03MMEU/0xpPMXUIQ29UfA==}
+
   motion-dom@11.18.1:
     resolution: {integrity: sha512-g76KvA001z+atjfxczdRtw/RXOM3OMSdd1f4DL77qCTF/+avrRJiawSG4yDibEQ215sr9kpinSlX2pCTJ9zbhw==}
 
@@ -5987,6 +6016,9 @@ packages:
   pathe@1.1.2:
     resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
 
+  pathe@2.0.3:
+    resolution: {integrity: sha512-WUjGcAqP1gQacoQe+OBJsFA7Ld4DyXuUIjZ5cc75cLHvJ7dtNsTugphxIADwspS+AraAUePCKrSVtPLFj/F88w==}
+
   pathval@2.0.1:
     resolution: {integrity: sha512-//nshmD55c46FuFw26xV/xFAaB5HF9Xdap7HJBBnrKdAd6/GxDBaNA1870O79+9ueg61cZLSVc+OaFlfmObYVQ==}
     engines: {node: '>= 14.16'}
@@ -6036,6 +6068,9 @@ packages:
   pkg-dir@5.0.0:
     resolution: {integrity: sha512-NPE8TDbzl/3YQYY7CSS228s3g2ollTFnc+Qi3tqmqJp9Vg2ovUpixcJEo2HJScN2Ez+kEaal6y70c0ehqJBJeA==}
     engines: {node: '>=10'}
+
+  pkg-types@1.3.1:
+    resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
 
   playwright-core@1.59.1:
     resolution: {integrity: sha512-HBV/RJg81z5BiiZ9yPzIiClYV/QMsDCKUyogwH9p3MCP6IYjUFu/MActgYAvK0oWyV9NlwM3GLBjADyWgydVyg==}
@@ -6331,6 +6366,10 @@ packages:
     resolution: {integrity: sha512-hOS089on8RduqdbhvQ5Z37A0ESjsqz6qnRcffsMU3495FuTdqSm+7bhJ29JvIOsBDEEnan5DPu9t3To9VRlMzA==}
     engines: {node: '>=8.10.0'}
 
+  readdirp@4.1.2:
+    resolution: {integrity: sha512-GDhwkLfywWL2s6vEjyhri+eXmfH6j1L7JE27WhqLeYzoh/A3DBaYGEj2H/HFZCn/kMfim73FXxEJTw06WtxQwg==}
+    engines: {node: '>= 14.18.0'}
+
   readdirp@5.0.0:
     resolution: {integrity: sha512-9u/XQ1pvrQtYyMpZe7DXKv2p5CNvyVwzUB6uhLAnQwHMSgKMBR62lc7AHljaeteeHXn11XTAaLLUVZYVZyuRBQ==}
     engines: {node: '>= 20.19.0'}
@@ -6418,6 +6457,10 @@ packages:
   require-from-string@2.0.2:
     resolution: {integrity: sha512-Xf0nWe6RseziFMu+Ap9biiUbmplq6S9/p+7w7YXP/JBHhrUDDUhwa+vANyubuqfZWTveU//DYVGsDG7RKL/vEw==}
     engines: {node: '>=0.10.0'}
+
+  resolve-from@5.0.0:
+    resolution: {integrity: sha512-qYg9KP24dD5qka9J47d0aVky0N+b4fTU89LN9iDnjB5waksiC49rvMB0PrUJQGoTmH50XPiqOvAjDfaijGxYZw==}
+    engines: {node: '>=8'}
 
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
@@ -6839,6 +6882,10 @@ packages:
     resolution: {integrity: sha512-dRXchy+C0IgK8WPC6xvCHFRIWYUbqqdEIKPaKo/AcTUNzwLTK6AH7RjdLWsEZcAN/TBdtfUw3PYEgPr5VPr6ww==}
     engines: {node: '>=14.16'}
 
+  tree-kill@1.2.2:
+    resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
+    hasBin: true
+
   trim-lines@3.0.1:
     resolution: {integrity: sha512-kRj8B+YHZCc9kQYdWfJB2/oUl9rA99qbowYYBtr4ui4mZyAQ2JpvVBd/6U2YloATfqBhBTSMhTpgBHtU0Mf3Rg==}
 
@@ -6868,6 +6915,25 @@ packages:
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
+
+  tsup@8.5.1:
+    resolution: {integrity: sha512-xtgkqwdhpKWr3tKPmCkvYmS9xnQK3m3XgxZHwSUjvfTjp7YfXe5tT3GgWi0F2N+ZSMsOeWeZFh7ZZFg5iPhing==}
+    engines: {node: '>=18'}
+    hasBin: true
+    peerDependencies:
+      '@microsoft/api-extractor': ^7.36.0
+      '@swc/core': ^1
+      postcss: ^8.4.12
+      typescript: '>=4.5.0'
+    peerDependenciesMeta:
+      '@microsoft/api-extractor':
+        optional: true
+      '@swc/core':
+        optional: true
+      postcss:
+        optional: true
+      typescript:
+        optional: true
 
   tsx@4.21.0:
     resolution: {integrity: sha512-5C1sg4USs1lfG0GFb2RLXsdpXqBSEhAaA/0kPL01wxzpMqLILNxIxIOKiILz+cdg/pLnOUxFYOR5yhHU666wbw==}
@@ -10727,6 +10793,11 @@ snapshots:
       '@oven/bun-windows-x64': 1.3.11
       '@oven/bun-windows-x64-baseline': 1.3.11
 
+  bundle-require@5.1.0(esbuild@0.27.4):
+    dependencies:
+      esbuild: 0.27.4
+      load-tsconfig: 0.2.5
+
   bytes@3.1.2: {}
 
   cac@6.7.14: {}
@@ -10792,6 +10863,10 @@ snapshots:
       readdirp: 3.6.0
     optionalDependencies:
       fsevents: 2.3.3
+
+  chokidar@4.0.3:
+    dependencies:
+      readdirp: 4.1.2
 
   chokidar@5.0.0:
     dependencies:
@@ -10895,6 +10970,10 @@ snapshots:
   commander@8.3.0: {}
 
   common-ancestor-path@1.0.1: {}
+
+  confbox@0.1.8: {}
+
+  consola@3.4.2: {}
 
   console-browserify@1.2.0: {}
 
@@ -11705,6 +11784,12 @@ snapshots:
       locate-path: 6.0.0
       path-exists: 4.0.0
 
+  fix-dts-default-cjs-exports@1.0.1:
+    dependencies:
+      magic-string: 0.30.21
+      mlly: 1.8.2
+      rollup: 4.60.1
+
   flattie@1.1.1: {}
 
   follow-redirects@1.16.0: {}
@@ -12273,6 +12358,8 @@ snapshots:
       '@types/react': 19.2.17
       react: 19.2.7
 
+  joycon@3.1.1: {}
+
   js-tokens@4.0.0: {}
 
   js-yaml@4.2.0:
@@ -12329,6 +12416,8 @@ snapshots:
   linkify-it@5.0.1:
     dependencies:
       uc.micro: 2.1.0
+
+  load-tsconfig@0.2.5: {}
 
   locate-path@6.0.0:
     dependencies:
@@ -12938,6 +13027,13 @@ snapshots:
   mkdirp-classic@0.5.3:
     optional: true
 
+  mlly@1.8.2:
+    dependencies:
+      acorn: 8.17.0
+      pathe: 2.0.3
+      pkg-types: 1.3.1
+      ufo: 1.6.4
+
   motion-dom@11.18.1:
     dependencies:
       motion-utils: 11.18.1
@@ -13207,6 +13303,8 @@ snapshots:
 
   pathe@1.1.2: {}
 
+  pathe@2.0.3: {}
+
   pathval@2.0.1: {}
 
   pbkdf2@3.1.5:
@@ -13246,6 +13344,12 @@ snapshots:
   pkg-dir@5.0.0:
     dependencies:
       find-up: 5.0.0
+
+  pkg-types@1.3.1:
+    dependencies:
+      confbox: 0.1.8
+      mlly: 1.8.2
+      pathe: 2.0.3
 
   playwright-core@1.59.1: {}
 
@@ -13582,6 +13686,8 @@ snapshots:
     dependencies:
       picomatch: 2.3.2
 
+  readdirp@4.1.2: {}
+
   readdirp@5.0.0: {}
 
   recharts-scale@0.4.5:
@@ -13738,6 +13844,8 @@ snapshots:
   require-directory@2.1.1: {}
 
   require-from-string@2.0.2: {}
+
+  resolve-from@5.0.0: {}
 
   resolve-pkg-maps@1.0.0: {}
 
@@ -14301,6 +14409,8 @@ snapshots:
       '@tokenizer/token': 0.3.0
       ieee754: 1.2.1
 
+  tree-kill@1.2.2: {}
+
   trim-lines@3.0.1: {}
 
   trough@2.2.0: {}
@@ -14316,6 +14426,34 @@ snapshots:
       typescript: 5.9.3
 
   tslib@2.8.1: {}
+
+  tsup@8.5.1(jiti@1.21.7)(postcss@8.5.8)(tsx@4.21.0)(typescript@5.9.3)(yaml@2.9.0):
+    dependencies:
+      bundle-require: 5.1.0(esbuild@0.27.4)
+      cac: 6.7.14
+      chokidar: 4.0.3
+      consola: 3.4.2
+      debug: 4.4.3
+      esbuild: 0.27.4
+      fix-dts-default-cjs-exports: 1.0.1
+      joycon: 3.1.1
+      picocolors: 1.1.1
+      postcss-load-config: 6.0.1(jiti@1.21.7)(postcss@8.5.8)(tsx@4.21.0)(yaml@2.9.0)
+      resolve-from: 5.0.0
+      rollup: 4.60.1
+      source-map: 0.7.6
+      sucrase: 3.35.1
+      tinyexec: 0.3.2
+      tinyglobby: 0.2.15
+      tree-kill: 1.2.2
+    optionalDependencies:
+      postcss: 8.5.8
+      typescript: 5.9.3
+    transitivePeerDependencies:
+      - jiti
+      - supports-color
+      - tsx
+      - yaml
 
   tsx@4.21.0:
     dependencies:

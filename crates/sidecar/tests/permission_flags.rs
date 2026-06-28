@@ -218,6 +218,8 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                 projected_modules: Vec::new(),
                 command_permissions: Default::default(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("dispatch configure vm with empty fs paths");
@@ -256,6 +258,8 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                 projected_modules: Vec::new(),
                 command_permissions: Default::default(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("dispatch configure vm with empty network patterns");
@@ -294,6 +298,8 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                 projected_modules: Vec::new(),
                 command_permissions: Default::default(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("dispatch configure vm with empty network operations");

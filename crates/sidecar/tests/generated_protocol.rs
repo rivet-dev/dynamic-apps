@@ -109,6 +109,8 @@ fn live_bare_codec_matches_generated_request_bytes() {
                 live_protocol::WasmPermissionTier::ReadOnly,
             )]),
             loopback_exempt_ports: vec![3000],
+            packages: Vec::new(),
+            packages_mount_at: String::new(),
         }),
     ));
     let live_configure_payload =
@@ -269,6 +271,8 @@ fn generated_configure_frame() -> ProtocolFrame {
             }],
             command_permissions: HashMap::from([("cat".to_string(), WasmPermissionTier::ReadOnly)]),
             loopback_exempt_ports: vec![3000],
+            packages: Vec::new(),
+            packages_mount_at: String::new(),
         }),
     })
 }

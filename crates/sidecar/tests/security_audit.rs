@@ -124,6 +124,8 @@ fn filesystem_permission_denials_emit_security_audit_events() {
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("configure vm permissions");
@@ -252,6 +254,8 @@ fn mount_operations_emit_security_audit_events() {
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("mount workspace");
@@ -269,6 +273,8 @@ fn mount_operations_emit_security_audit_events() {
                 projected_modules: Vec::new(),
                 command_permissions: HashMap::new(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         ))
         .expect("unmount workspace");

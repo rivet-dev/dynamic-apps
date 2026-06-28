@@ -16,7 +16,8 @@ use support::{
     temp_dir, wire_permissions_allow_all, wire_request, wire_session,
 };
 
-const DEFAULT_GUEST_PATH_ENV: &str = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
+const DEFAULT_GUEST_PATH_ENV: &str =
+    "/usr/local/sbin:/usr/local/bin:/opt/agentos/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 const GUEST_IDENTITY_CASES: &[&str] = &["javascript", "python", "wasm_identity", "wasm_env"];
 
 fn create_vm_with_root_filesystem(
