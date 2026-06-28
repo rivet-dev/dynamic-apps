@@ -1,10 +1,12 @@
 use secure_exec_execution::{
-    CreatePythonContextRequest, PythonExecutionEngine, StartPythonExecutionRequest,
+    CreatePythonContextRequest, PythonExecutionEngine, PythonExecutionEvent,
+    StartPythonExecutionRequest,
 };
 use serde_json::Value;
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use tempfile::tempdir;
 
 const PYTHON_WARMUP_METRICS_PREFIX: &str = "__AGENTOS_PYTHON_WARMUP_METRICS__:";
@@ -27,7 +29,7 @@ fn run_python_execution(
     cwd: &Path,
     code: &str,
 ) -> (String, String, i32) {
-    let result = engine
+    let mut execution = engine
         .start_execution(StartPythonExecutionRequest {
             guest_runtime: Default::default(),
             limits: Default::default(),
@@ -41,15 +43,43 @@ fn run_python_execution(
             )]),
             cwd: cwd.to_path_buf(),
         })
-        .expect("start Python execution")
-        .wait(None)
-        .expect("wait for Python execution");
+        .expect("start Python execution");
 
-    (
-        String::from_utf8(result.stdout).expect("stdout utf8"),
-        String::from_utf8(result.stderr).expect("stderr utf8"),
-        result.exit_code,
-    )
+    // Drive the event loop directly instead of `.wait()`: the Pyodide runner
+    // now sets up a kernel-VFS-backed site-packages on boot, which emits VFS
+    // RPCs. This prewarm test has no VFS backend, so reject those RPCs and let
+    // the runner's best-effort site-packages setup degrade. Module-resolution
+    // sync RPCs are serviced host-directly.
+    let mut stdout = Vec::new();
+    let mut stderr = Vec::new();
+    loop {
+        match execution
+            .poll_event_blocking(Duration::from_secs(60))
+            .expect("poll Python event")
+        {
+            Some(PythonExecutionEvent::Stdout(chunk)) => stdout.extend(chunk),
+            Some(PythonExecutionEvent::Stderr(chunk)) => stderr.extend(chunk),
+            Some(PythonExecutionEvent::JavascriptSyncRpcRequest(request)) => {
+                let serviced = execution
+                    .try_service_standalone_module_sync_rpc(&request)
+                    .expect("service module sync RPC");
+                assert!(serviced, "unexpected JS sync RPC request: {request:?}");
+            }
+            Some(PythonExecutionEvent::VfsRpcRequest(request)) => {
+                execution
+                    .respond_vfs_rpc_error(request.id, "ENOSYS", "no VFS backend in prewarm test")
+                    .expect("respond to VFS RPC");
+            }
+            Some(PythonExecutionEvent::Exited(exit_code)) => {
+                return (
+                    String::from_utf8(stdout).expect("stdout utf8"),
+                    String::from_utf8(stderr).expect("stderr utf8"),
+                    exit_code,
+                );
+            }
+            None => panic!("timed out waiting for Python execution event"),
+        }
+    }
 }
 
 fn parse_metrics(stderr: &str, phase: &str) -> Value {
