@@ -776,6 +776,20 @@ where
                         },
                     })
                     .map_err(kernel_error),
+                // Like Stat but does NOT follow symlinks, so the runner can
+                // represent a host-preexisting symlink as a link node.
+                PythonVfsRpcMethod::Lstat => vm
+                    .kernel
+                    .lstat(&path)
+                    .map(|stat| PythonVfsRpcResponsePayload::Stat {
+                        stat: PythonVfsRpcStat {
+                            mode: stat.mode,
+                            size: stat.size,
+                            is_directory: stat.is_directory,
+                            is_symbolic_link: stat.is_symbolic_link,
+                        },
+                    })
+                    .map_err(kernel_error),
                 PythonVfsRpcMethod::ReadDir => vm
                     .kernel
                     .read_dir(&path)
@@ -817,6 +831,72 @@ where
                             .map(|()| PythonVfsRpcResponsePayload::Empty),
                         Err(error) => Err(error),
                     }
+                }
+                // Kernel-direct (no shadow mirror): guest Python writes/creates
+                // land only in the kernel VFS, so mirroring create/modify ops into
+                // the host-side shadow would leave empty stubs that a later
+                // shadow->kernel sync resurrects over real content. (Delete/rename
+                // still mirror — to *remove* stale wire-written shadow entries.)
+                PythonVfsRpcMethod::Symlink => {
+                    let target = request.target.clone().ok_or_else(|| {
+                        SidecarError::InvalidState(format!(
+                            "python VFS fsSymlink for {} requires a target",
+                            path
+                        ))
+                    })?;
+                    vm.kernel
+                        .symlink(&target, &path)
+                        .map(|()| PythonVfsRpcResponsePayload::Empty)
+                        .map_err(kernel_error)
+                }
+                PythonVfsRpcMethod::ReadLink => vm
+                    .kernel
+                    .read_link(&path)
+                    .map(|target| PythonVfsRpcResponsePayload::SymlinkTarget { target })
+                    .map_err(kernel_error),
+                // `setattr` carries any of mode/uid/gid/atime+mtime; apply each
+                // present field to the host VFS.
+                PythonVfsRpcMethod::Setattr => {
+                    (|| -> Result<PythonVfsRpcResponsePayload, SidecarError> {
+                        // Mirror metadata into the host shadow only when the entry
+                        // already exists there (a host-mounted / wire-written file),
+                        // so the next shadow->kernel reconcile keeps the guest's
+                        // change. Never *create* a shadow stub for a kernel-only
+                        // guest file (that resurrected empty content).
+                        let mirror = shadow_host_path_for_guest(&vm.cwd, &path).exists();
+                        if let Some(mode) = request.mode {
+                            vm.kernel.chmod(&path, mode).map_err(kernel_error)?;
+                            if mirror {
+                                mirror_guest_chmod_to_shadow(vm, &path, mode)?;
+                            }
+                        }
+                        // uid/gid apply independently (`os.chown(p, uid, -1)` keeps
+                        // the other side); fill the missing side from the current
+                        // owner rather than dropping the whole chown.
+                        if request.uid.is_some() || request.gid.is_some() {
+                            let current = vm.kernel.stat(&path).map_err(kernel_error)?;
+                            let uid = request.uid.unwrap_or(current.uid);
+                            let gid = request.gid.unwrap_or(current.gid);
+                            vm.kernel.chown(&path, uid, gid).map_err(kernel_error)?;
+                        }
+                        if let (Some(atime_ms), Some(mtime_ms)) =
+                            (request.atime_ms, request.mtime_ms)
+                        {
+                            vm.kernel
+                                .utimes(&path, atime_ms, mtime_ms)
+                                .map_err(kernel_error)?;
+                            if mirror {
+                                mirror_guest_utimes_to_shadow(
+                                    vm,
+                                    &path,
+                                    VirtualUtimeSpec::Set(VirtualTimeSpec::from_millis(atime_ms)),
+                                    VirtualUtimeSpec::Set(VirtualTimeSpec::from_millis(mtime_ms)),
+                                    true,
+                                )?;
+                            }
+                        }
+                        Ok(PythonVfsRpcResponsePayload::Empty)
+                    })()
                 }
                 PythonVfsRpcMethod::HttpRequest
                 | PythonVfsRpcMethod::DnsLookup

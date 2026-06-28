@@ -571,6 +571,10 @@ function createPythonBridgeRpcBridge() {
     async fsStat(path) {
       return this.fsStatSync(path);
     },
+    fsLstatSync(path) {
+      const result = requestSync('fsLstat', { path });
+      return result.stat ?? null;
+    },
     fsReaddirSync(path) {
       const result = requestSync('fsReaddir', { path });
       return result.entries ?? [];
@@ -595,6 +599,16 @@ function createPythonBridgeRpcBridge() {
     },
     fsRenameSync(path, destination) {
       requestSync('fsRename', { path, destination });
+    },
+    fsSymlinkSync(target, path) {
+      requestSync('fsSymlink', { target, path });
+    },
+    fsReadlinkSync(path) {
+      const result = requestSync('fsReadlink', { path });
+      return result.target ?? '';
+    },
+    fsSetattrSync(path, attr) {
+      requestSync('fsSetattr', { path, ...attr });
     },
     httpRequestSync(url, method = 'GET', headersJson = '{}', bodyBase64 = null) {
       let headers;
@@ -779,6 +793,10 @@ function createPythonFdRpcBridge() {
     async fsStat(path) {
       return this.fsStatSync(path);
     },
+    fsLstatSync(path) {
+      const result = requestSync('fsLstat', { path });
+      return result.stat ?? null;
+    },
     fsReaddirSync(path) {
       const result = requestSync('fsReaddir', { path });
       return result.entries ?? [];
@@ -803,6 +821,16 @@ function createPythonFdRpcBridge() {
     },
     fsRenameSync(path, destination) {
       requestSync('fsRename', { path, destination });
+    },
+    fsSymlinkSync(target, path) {
+      requestSync('fsSymlink', { target, path });
+    },
+    fsReadlinkSync(path) {
+      const result = requestSync('fsReadlink', { path });
+      return result.target ?? '';
+    },
+    fsSetattrSync(path, attr) {
+      requestSync('fsSetattr', { path, ...attr });
     },
     httpRequestSync(url, method = 'GET', headersJson = '{}', bodyBase64 = null) {
       let headers;
@@ -1122,8 +1150,26 @@ _agentos_socket.gethostbyname = _agentos_gethostbyname
 # stalls the sidecar; the loop below re-polls to emulate blocking semantics.
 import base64 as _agentos_base64
 import time as _agentos_time
+import errno as _agentos_errno
 
 _agentos_original_socket_class = _agentos_socket.socket
+
+def _agentos_socket_oserror(exc):
+    # Host errors arrive as "E<NAME>: message"; recover the errno so Python
+    # code can catch ConnectionRefusedError/TimeoutError/etc. (OSError picks the
+    # right subclass from the errno).
+    message = str(getattr(exc, "message", None) or exc)
+    head = message.split(":", 1)[0].strip()
+    code = getattr(_agentos_errno, head, 0) if head[:1] == "E" and head.isupper() else 0
+    return OSError(code or 0, message)
+
+def _agentos_socket_rpc(call):
+    try:
+        return _agentos_json.loads(call())
+    except OSError:
+        raise
+    except Exception as exc:
+        raise _agentos_socket_oserror(exc) from None
 
 class _SecureExecSocket:
     def __init__(self, family=None, type=None, proto=0, fileno=None):
@@ -1135,12 +1181,12 @@ class _SecureExecSocket:
         self._closed = False
         self._is_udp = self.type == _agentos_socket.SOCK_DGRAM
         if self._is_udp:
-            resp = _agentos_json.loads(_agentos_rpc.udpCreateSync())
+            resp = _agentos_socket_rpc(lambda: _agentos_rpc.udpCreateSync())
             self._id = int(resp["socketId"])
 
     def connect(self, address):
         host, port = address[0], address[1]
-        resp = _agentos_json.loads(_agentos_rpc.socketConnectSync(str(host), int(port)))
+        resp = _agentos_socket_rpc(lambda: _agentos_rpc.socketConnectSync(str(host), int(port)))
         self._id = int(resp["socketId"])
 
     def connect_ex(self, address):
@@ -1158,7 +1204,7 @@ class _SecureExecSocket:
     def send(self, data, flags=0):
         sid = self._ensure_id()
         b64 = _agentos_base64.b64encode(bytes(data)).decode("ascii")
-        resp = _agentos_json.loads(_agentos_rpc.socketSendSync(sid, b64))
+        resp = _agentos_socket_rpc(lambda: _agentos_rpc.socketSendSync(sid, b64))
         return int(resp.get("bytesSent", len(data)))
 
     def sendall(self, data, flags=0):
@@ -1172,8 +1218,9 @@ class _SecureExecSocket:
         deadline = None
         if self._timeout is not None and self._timeout > 0:
             deadline = _agentos_time.monotonic() + self._timeout
+        backoff = 0.0
         while True:
-            resp = _agentos_json.loads(recv_fn(int(bufsize)))
+            resp = _agentos_socket_rpc(lambda: recv_fn(int(bufsize)))
             if resp.get("closed"):
                 return b"", resp
             data = resp.get("dataBase64") or ""
@@ -1184,6 +1231,11 @@ class _SecureExecSocket:
                     raise BlockingIOError(11, "Resource temporarily unavailable")
                 if deadline is not None and _agentos_time.monotonic() >= deadline:
                     raise _agentos_socket.timeout("timed out")
+                # Guest-side capped backoff so a blocking recv on a silent socket
+                # doesn't hammer the host loop with back-to-back polls.
+                if backoff:
+                    _agentos_time.sleep(backoff)
+                backoff = min(backoff * 2 if backoff else 0.005, 0.05)
                 continue
             return b"", resp
 
@@ -1196,11 +1248,11 @@ class _SecureExecSocket:
         address = args[-1]
         host, port = address[0], address[1]
         if self._id is None:
-            resp = _agentos_json.loads(_agentos_rpc.udpCreateSync())
+            resp = _agentos_socket_rpc(lambda: _agentos_rpc.udpCreateSync())
             self._id = int(resp["socketId"])
         b64 = _agentos_base64.b64encode(bytes(data)).decode("ascii")
-        resp = _agentos_json.loads(
-            _agentos_rpc.udpSendtoSync(self._id, str(host), int(port), b64)
+        resp = _agentos_socket_rpc(
+            lambda: _agentos_rpc.udpSendtoSync(self._id, str(host), int(port), b64)
         )
         return int(resp.get("bytesSent", len(data)))
 
@@ -1641,6 +1693,7 @@ function installPythonWorkspaceFs(pyodide, bridge) {
   const memfsDirStreamOps = MEMFS.ops_table.dir.stream;
   const memfsFileNodeOps = MEMFS.ops_table.file.node;
   const memfsFileStreamOps = MEMFS.ops_table.file.stream;
+  const memfsLinkNodeOps = MEMFS.ops_table.link.node;
   const workspaceDirStreamOps = memfsDirStreamOps;
 
   function joinGuestPath(parentPath, name) {
@@ -1705,6 +1758,8 @@ function installPythonWorkspaceFs(pyodide, bridge) {
     if (FS.isDir(mode)) {
       node.node_ops = workspaceDirNodeOps;
       node.stream_ops = workspaceDirStreamOps;
+    } else if (FS.isLink(mode)) {
+      node.node_ops = workspaceLinkNodeOps;
     } else if (FS.isFile(mode)) {
       node.node_ops = workspaceFileNodeOps;
       node.stream_ops = workspaceFileStreamOps;
@@ -1732,7 +1787,8 @@ function installPythonWorkspaceFs(pyodide, bridge) {
 
     for (const name of entries) {
       const childPath = joinGuestPath(guestPath, name);
-      const stat = withFsErrors(() => bridge.fsStatSync(childPath));
+      // lstat (don't follow) so a host symlink is created as a link node.
+      const stat = withFsErrors(() => bridge.fsLstatSync(childPath));
       const existing = node.contents[name];
 
       if (existing) {
@@ -1806,6 +1862,50 @@ function installPythonWorkspaceFs(pyodide, bridge) {
     };
   }
 
+  function toEpochMs(value) {
+    if (value == null) return null;
+    if (typeof value === 'number') return value;
+    if (typeof value.getTime === 'function') return value.getTime();
+    return null;
+  }
+
+  // Propagate chmod/chown/utimes from an Emscripten `setattr` into the host VFS.
+  // (size/truncate is handled via the dirty-write path, not here.)
+  function propagateSetattrToHost(node, attr) {
+    if (!attr) return;
+    const payload = {};
+    if (attr.mode != null) payload.mode = attr.mode & 0o7777;
+    // `os.chown(p, uid, -1)` keeps a side; never forward a negative sentinel
+    // (it would saturate to 0 = root on the host).
+    if (attr.uid != null && attr.uid >= 0) payload.uid = attr.uid;
+    if (attr.gid != null && attr.gid >= 0) payload.gid = attr.gid;
+    const atimeMs = toEpochMs(attr.atime ?? attr.timestamp);
+    const mtimeMs = toEpochMs(attr.mtime ?? attr.timestamp);
+    if (atimeMs != null && mtimeMs != null) {
+      payload.atimeMs = Math.trunc(atimeMs);
+      payload.mtimeMs = Math.trunc(mtimeMs);
+    }
+    if (Object.keys(payload).length === 0) return;
+    withFsErrors(() => bridge.fsSetattrSync(nodeGuestPath(node), payload));
+  }
+
+  const workspaceLinkNodeOps = {
+    // A symlink node reports itself (lstat semantics), not its target — so use
+    // the in-memory link mode rather than a host stat (which follows the link).
+    getattr(node) {
+      return makeStat(node, null);
+    },
+    setattr(node, attr) {
+      // Host first: if the host op fails (e.g. read-only root) it throws before
+      // we mutate the in-isolate node, so the two views stay consistent.
+      propagateSetattrToHost(node, attr);
+      memfsLinkNodeOps.setattr(node, attr);
+    },
+    readlink(node) {
+      return withFsErrors(() => bridge.fsReadlinkSync(nodeGuestPath(node)));
+    },
+  };
+
   const workspaceFileNodeOps = {
     getattr(node) {
       const stat = node.agentOSDirty
@@ -1817,6 +1917,9 @@ function installPythonWorkspaceFs(pyodide, bridge) {
       return makeStat(node, stat);
     },
     setattr(node, attr) {
+      // Host first (see link setattr) so a failed host op leaves the in-isolate
+      // node untouched.
+      propagateSetattrToHost(node, attr);
       memfsFileNodeOps.setattr(node, attr);
       if (attr?.size != null) {
         node.agentOSDirty = true;
@@ -1865,6 +1968,8 @@ function installPythonWorkspaceFs(pyodide, bridge) {
       return makeStat(node, stat);
     },
     setattr(node, attr) {
+      // Host first (see link setattr).
+      propagateSetattrToHost(node, attr);
       memfsDirNodeOps.setattr(node, attr);
     },
     lookup(parent, name) {
@@ -1877,7 +1982,8 @@ function installPythonWorkspaceFs(pyodide, bridge) {
         }
 
         const guestPath = joinGuestPath(nodeGuestPath(parent), name);
-        const stat = withFsErrors(() => bridge.fsStatSync(guestPath));
+        // lstat (don't follow) so a directly-looked-up host symlink is a link node.
+        const stat = withFsErrors(() => bridge.fsLstatSync(guestPath));
         const child = createWorkspaceNode(parent, name, stat.mode, 0, guestPath);
         updateNodeFromRemoteStat(child, stat);
         return child;
@@ -1925,8 +2031,13 @@ function installPythonWorkspaceFs(pyodide, bridge) {
       syncDirectory(node);
       return memfsDirNodeOps.readdir(node);
     },
-    symlink() {
-      throw new FS.ErrnoError(ERRNO_CODES.ENOSYS);
+    symlink(parent, newName, oldPath) {
+      const guestPath = joinGuestPath(nodeGuestPath(parent), newName);
+      withFsErrors(() => bridge.fsSymlinkSync(oldPath, guestPath));
+      const node = createWorkspaceNode(parent, newName, 0o120777, 0, guestPath);
+      node.link = oldPath;
+      node.usedBytes = oldPath.length;
+      return node;
     },
   };
 

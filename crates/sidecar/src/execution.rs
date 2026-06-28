@@ -482,7 +482,8 @@ impl ActiveProcess {
                 + self.tcp_sockets.len()
                 + self.unix_listeners.len()
                 + self.unix_sockets.len()
-                + self.udp_sockets.len(),
+                + self.udp_sockets.len()
+                + self.python_sockets.len(),
             connections: self.tcp_sockets.len() + self.unix_sockets.len(),
         };
         if let Ok(http2) = self.http2.shared.lock() {
@@ -518,7 +519,8 @@ impl ActiveProcess {
                     .udp_sockets
                     .values()
                     .filter(|socket| socket.kernel_socket_id.is_none())
-                    .count(),
+                    .count()
+                + self.python_sockets.len(),
             connections: self
                 .tcp_sockets
                 .values()
@@ -4760,11 +4762,15 @@ where
             PythonVfsRpcMethod::Read
             | PythonVfsRpcMethod::Write
             | PythonVfsRpcMethod::Stat
+            | PythonVfsRpcMethod::Lstat
             | PythonVfsRpcMethod::ReadDir
             | PythonVfsRpcMethod::Mkdir
             | PythonVfsRpcMethod::Unlink
             | PythonVfsRpcMethod::Rmdir
-            | PythonVfsRpcMethod::Rename => {
+            | PythonVfsRpcMethod::Rename
+            | PythonVfsRpcMethod::Symlink
+            | PythonVfsRpcMethod::ReadLink
+            | PythonVfsRpcMethod::Setattr => {
                 filesystem_handle_python_vfs_rpc_request(self, vm_id, process_id, request)
             }
             PythonVfsRpcMethod::HttpRequest => {
@@ -5071,15 +5077,21 @@ where
             PythonVfsRpcMethod::SocketConnect => {
                 let host = python_socket_host(request)?;
                 let port = python_socket_port(request)?;
+                self.check_python_socket_limit(vm_id)?;
                 self.bridge.require_network_access(
                     vm_id,
                     NetworkOperation::Http,
                     format_tcp_resource(&host, port),
                 )?;
-                let pinned = self.python_socket_pinned_addrs(vm_id, &host)?;
+                let pinned = self.python_socket_pinned_addrs(vm_id, &host, port)?;
                 let stream = python_connect_tcp(&pinned, port)?;
                 stream
                     .set_read_timeout(Some(PYTHON_SOCKET_READ_POLL))
+                    .map_err(python_socket_io_error)?;
+                // Bound writes too: without a write timeout `write_all` on a
+                // stalled peer would block the shared event loop indefinitely.
+                stream
+                    .set_write_timeout(Some(PYTHON_SOCKET_WRITE_TIMEOUT))
                     .map_err(python_socket_io_error)?;
                 let socket_id =
                     self.store_python_socket(vm_id, process_id, PythonHostSocket::Tcp(stream))?;
@@ -5129,6 +5141,7 @@ where
                 Ok(PythonVfsRpcResponsePayload::Empty)
             }
             PythonVfsRpcMethod::UdpCreate => {
+                self.check_python_socket_limit(vm_id)?;
                 let socket = UdpSocket::bind("0.0.0.0:0").map_err(python_socket_io_error)?;
                 socket
                     .set_read_timeout(Some(PYTHON_SOCKET_READ_POLL))
@@ -5146,7 +5159,7 @@ where
                     NetworkOperation::Http,
                     format_tcp_resource(&host, port),
                 )?;
-                let pinned = self.python_socket_pinned_addrs(vm_id, &host)?;
+                let pinned = self.python_socket_pinned_addrs(vm_id, &host, port)?;
                 let target = pinned
                     .first()
                     .map(|ip| SocketAddr::new(*ip, port))
@@ -5191,22 +5204,26 @@ where
         }
     }
 
-    /// Resolve `host` to the egress-guard-approved IP set (literal IPs are
-    /// validated directly), mirroring the HTTP bridge's DNS pinning.
+    /// Resolve `host` to the egress-guard-approved IP set, then apply the same
+    /// loopback-connect gate the JS raw-TCP path uses (`filter_tcp_connect_ip_addrs`)
+    /// so a rebinding DNS server can't map an allowlisted hostname onto a
+    /// sidecar-local loopback port the VM policy didn't open.
     fn python_socket_pinned_addrs(
         &self,
         vm_id: &str,
         host: &str,
+        port: u16,
     ) -> Result<Vec<IpAddr>, SidecarError> {
         let Some(vm) = self.vms.get(vm_id) else {
             return Err(SidecarError::InvalidState(String::from(
                 "python socket op for unknown vm",
             )));
         };
+        let context = build_javascript_socket_path_context(vm)?;
         if let Ok(literal_ip) = host.parse::<IpAddr>() {
-            filter_dns_safe_ip_addrs(vec![literal_ip], host)
+            filter_tcp_connect_ip_addrs(vec![literal_ip], host, port, &context)
         } else {
-            filter_dns_safe_ip_addrs(
+            filter_tcp_connect_ip_addrs(
                 resolve_dns_ip_addrs(
                     &self.bridge,
                     &vm.kernel,
@@ -5216,8 +5233,22 @@ where
                     DnsLookupPolicy::SkipPermissions,
                 )?,
                 host,
+                port,
+                &context,
             )
         }
+    }
+
+    /// Enforce the VM's `max_sockets` resource limit before opening another
+    /// host socket for the guest (the registry is otherwise unbounded — a
+    /// hostile guest could exhaust the sidecar's fds/memory).
+    fn check_python_socket_limit(&self, vm_id: &str) -> Result<(), SidecarError> {
+        let Some(vm) = self.vms.get(vm_id) else {
+            return Ok(());
+        };
+        let limit = vm.kernel.resource_limits().max_sockets;
+        let current = vm_network_resource_counts(vm).sockets;
+        check_network_resource_limit(limit, current, 1, "socket")
     }
 
     fn store_python_socket(
@@ -12250,8 +12281,11 @@ pub(crate) fn format_tcp_resource(host: &str, port: u16) -> String {
 /// Host-socket read timeout for one `recv`/`recvfrom` RPC. Kept short so the
 /// synchronous RPC returns promptly (data, or a `timed_out` flag the Python
 /// shim re-polls on) and never stalls the shared sidecar event loop.
-const PYTHON_SOCKET_READ_POLL: Duration = Duration::from_millis(100);
+// Short so a recv/recvfrom RPC holds the shared event loop only briefly; the
+// guest shim adds a capped backoff between polls to bound the poll rate.
+const PYTHON_SOCKET_READ_POLL: Duration = Duration::from_millis(25);
 const PYTHON_SOCKET_CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
+const PYTHON_SOCKET_WRITE_TIMEOUT: Duration = Duration::from_secs(30);
 const PYTHON_SOCKET_DEFAULT_RECV: usize = 65536;
 const PYTHON_SOCKET_MAX_RECV: usize = 4 * 1024 * 1024;
 

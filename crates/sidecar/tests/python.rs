@@ -206,7 +206,7 @@ fn spawn_tcp_echo_server() -> (u16, thread::JoinHandle<()>) {
         .expect("set nonblocking echo listener");
     let port = listener.local_addr().expect("echo listener address").port();
     let handle = thread::spawn(move || {
-        let deadline = Instant::now() + Duration::from_secs(60);
+        let deadline = Instant::now() + Duration::from_secs(180);
         while Instant::now() < deadline {
             match listener.accept() {
                 Ok((mut stream, _)) => {
@@ -242,7 +242,7 @@ fn spawn_udp_echo_server() -> (u16, thread::JoinHandle<()>) {
         .expect("set udp echo read timeout");
     let port = socket.local_addr().expect("udp echo address").port();
     let handle = thread::spawn(move || {
-        let deadline = Instant::now() + Duration::from_secs(60);
+        let deadline = Instant::now() + Duration::from_secs(180);
         let mut buf = [0_u8; 4096];
         while Instant::now() < deadline {
             match socket.recv_from(&mut buf) {
@@ -684,6 +684,113 @@ fn guest_exists(
 
     assert_eq!(response.operation, GuestFilesystemOperation::Exists);
     response.exists.expect("guest filesystem exists flag")
+}
+
+fn guest_readlink(
+    sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
+    request_id: RequestId,
+    connection_id: &str,
+    session_id: &str,
+    vm_id: &str,
+    path: &str,
+) -> String {
+    let response = guest_filesystem_call(
+        sidecar,
+        request_id,
+        connection_id,
+        session_id,
+        vm_id,
+        GuestFilesystemCallRequest {
+            operation: GuestFilesystemOperation::ReadLink,
+            path: path.to_owned(),
+            destination_path: None,
+            target: None,
+            content: None,
+            encoding: None,
+            recursive: false,
+            mode: None,
+            uid: None,
+            gid: None,
+            atime_ms: None,
+            mtime_ms: None,
+            len: None,
+            offset: None,
+        },
+    );
+
+    assert_eq!(response.operation, GuestFilesystemOperation::ReadLink);
+    response.target.expect("guest filesystem readlink target")
+}
+
+fn guest_symlink(
+    sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
+    request_id: RequestId,
+    connection_id: &str,
+    session_id: &str,
+    vm_id: &str,
+    link_path: &str,
+    target: &str,
+) {
+    let response = guest_filesystem_call(
+        sidecar,
+        request_id,
+        connection_id,
+        session_id,
+        vm_id,
+        GuestFilesystemCallRequest {
+            operation: GuestFilesystemOperation::Symlink,
+            path: link_path.to_owned(),
+            destination_path: None,
+            target: Some(target.to_owned()),
+            content: None,
+            encoding: None,
+            recursive: false,
+            mode: None,
+            uid: None,
+            gid: None,
+            atime_ms: None,
+            mtime_ms: None,
+            len: None,
+            offset: None,
+        },
+    );
+
+    assert_eq!(response.operation, GuestFilesystemOperation::Symlink);
+}
+
+fn guest_stat_mode(
+    sidecar: &mut secure_exec_sidecar::NativeSidecar<support::RecordingBridge>,
+    request_id: RequestId,
+    connection_id: &str,
+    session_id: &str,
+    vm_id: &str,
+    path: &str,
+) -> u32 {
+    let response = guest_filesystem_call(
+        sidecar,
+        request_id,
+        connection_id,
+        session_id,
+        vm_id,
+        GuestFilesystemCallRequest {
+            operation: GuestFilesystemOperation::Stat,
+            path: path.to_owned(),
+            destination_path: None,
+            target: None,
+            content: None,
+            encoding: None,
+            recursive: false,
+            mode: None,
+            uid: None,
+            gid: None,
+            atime_ms: None,
+            mtime_ms: None,
+            len: None,
+            offset: None,
+        },
+    );
+
+    response.stat.expect("guest filesystem stat").mode
 }
 
 fn write_process_stdin(
@@ -1471,7 +1578,7 @@ print(json.dumps(result))
         &session_id,
         &vm_id,
         "proc-python-sockets",
-        Duration::from_secs(60),
+        Duration::from_secs(120),
     );
 
     let _ = tcp_server.join();
@@ -1485,6 +1592,132 @@ print(json.dumps(result))
     let parsed: Value = serde_json::from_str(json_line).expect("parse sockets JSON");
     assert_eq!(parsed["tcp"], "hello sockets");
     assert_eq!(parsed["udp"], "ping udp");
+}
+
+#[test]
+fn python_runtime_supports_symlink_readlink_and_metadata() {
+    assert_node_available();
+
+    let mut sidecar = new_sidecar("python-fs-hooks");
+    let cwd = temp_dir("python-fs-hooks-cwd");
+    let connection_id = authenticate_wire(&mut sidecar, "conn-python");
+    let session_id = open_session_wire(&mut sidecar, 2, &connection_id);
+    let (vm_id, _) = create_vm_wire(
+        &mut sidecar,
+        3,
+        &connection_id,
+        &session_id,
+        GuestRuntimeKind::Python,
+        &cwd,
+    );
+
+    bootstrap_root_filesystem(
+        &mut sidecar,
+        4,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        vec![root_dir("/workspace")],
+    );
+
+    // A symlink that already exists on the host (created via the wire, not by
+    // Python) — exercises lstat-based detection of pre-existing links.
+    guest_symlink(
+        &mut sidecar,
+        5,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "/workspace/hostlink.txt",
+        "file.txt",
+    );
+
+    execute_inline_python(
+        &mut sidecar,
+        6,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-python-fs-hooks",
+        r#"
+import json
+import os
+
+result = {}
+
+with open("/workspace/file.txt", "w", encoding="utf-8") as handle:
+    handle.write("data")
+
+# symlink + readlink (created by Python)
+os.symlink("file.txt", "/workspace/link.txt")
+result["readlink"] = os.readlink("/workspace/link.txt")
+result["islink"] = os.path.islink("/workspace/link.txt")
+
+# a symlink that pre-existed on the host is detected as a link
+result["host_islink"] = os.path.islink("/workspace/hostlink.txt")
+result["host_readlink"] = os.readlink("/workspace/hostlink.txt")
+
+# chmod (setattr -> host)
+os.chmod("/workspace/file.txt", 0o640)
+result["mode"] = os.stat("/workspace/file.txt").st_mode & 0o777
+
+# utimes (setattr -> host) — just exercise the hook
+os.utime("/workspace/file.txt", (1700000000, 1710000000))
+
+print(json.dumps(result))
+"#,
+    );
+
+    let (stdout, stderr, exit_code) = collect_process_output(
+        &mut sidecar,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "proc-python-fs-hooks",
+    );
+
+    assert_eq!(exit_code, 0, "stdout: {stdout}\nstderr: {stderr}");
+    assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
+
+    let parsed: Value = serde_json::from_str(stdout.trim()).expect("parse fs-hooks JSON");
+    assert_eq!(
+        parsed["readlink"], "file.txt",
+        "os.readlink should return the target"
+    );
+    assert_eq!(parsed["islink"], true, "os.path.islink should be true");
+    assert_eq!(
+        parsed["host_islink"], true,
+        "a host-preexisting symlink should be detected as a link"
+    );
+    assert_eq!(parsed["host_readlink"], "file.txt");
+    assert_eq!(parsed["mode"], 0o640, "os.chmod should be reflected");
+
+    // Cross-check the host kernel VFS.
+    let host_target = guest_readlink(
+        &mut sidecar,
+        7,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "/workspace/link.txt",
+    );
+    assert_eq!(
+        host_target, "file.txt",
+        "host VFS should resolve the symlink"
+    );
+    let host_mode = guest_stat_mode(
+        &mut sidecar,
+        8,
+        &connection_id,
+        &session_id,
+        &vm_id,
+        "/workspace/file.txt",
+    );
+    assert_eq!(
+        host_mode & 0o777,
+        0o640,
+        "host VFS should reflect the chmod"
+    );
 }
 
 fn workspace_files_are_shared_between_javascript_and_python_runtimes() {

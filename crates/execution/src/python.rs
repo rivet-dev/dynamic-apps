@@ -48,11 +48,15 @@ pub enum PythonVfsRpcMethod {
     Read,
     Write,
     Stat,
+    Lstat,
     ReadDir,
     Mkdir,
     Unlink,
     Rmdir,
     Rename,
+    Symlink,
+    ReadLink,
+    Setattr,
     HttpRequest,
     DnsLookup,
     SubprocessRun,
@@ -71,11 +75,15 @@ impl PythonVfsRpcMethod {
             "fsRead" => Some(Self::Read),
             "fsWrite" => Some(Self::Write),
             "fsStat" => Some(Self::Stat),
+            "fsLstat" => Some(Self::Lstat),
             "fsReaddir" => Some(Self::ReadDir),
             "fsMkdir" => Some(Self::Mkdir),
             "fsUnlink" => Some(Self::Unlink),
             "fsRmdir" => Some(Self::Rmdir),
             "fsRename" => Some(Self::Rename),
+            "fsSymlink" => Some(Self::Symlink),
+            "fsReadlink" => Some(Self::ReadLink),
+            "fsSetattr" => Some(Self::Setattr),
             "httpRequest" => Some(Self::HttpRequest),
             "dnsLookup" => Some(Self::DnsLookup),
             "subprocessRun" => Some(Self::SubprocessRun),
@@ -98,6 +106,14 @@ pub struct PythonVfsRpcRequest {
     pub path: String,
     /// Second path for `Rename` (the destination); `None` for other methods.
     pub destination: Option<String>,
+    /// Symlink target (the path the link points at), for `Symlink`.
+    pub target: Option<String>,
+    /// `Setattr` metadata fields (each applied only when present).
+    pub mode: Option<u32>,
+    pub uid: Option<u32>,
+    pub gid: Option<u32>,
+    pub atime_ms: Option<u64>,
+    pub mtime_ms: Option<u64>,
     pub content_base64: Option<String>,
     pub recursive: bool,
     pub url: Option<String>,
@@ -171,6 +187,9 @@ pub enum PythonVfsRpcResponsePayload {
         port: u16,
         timed_out: bool,
     },
+    SymlinkTarget {
+        target: String,
+    },
 }
 
 #[derive(Debug, Deserialize)]
@@ -181,6 +200,19 @@ struct PythonVfsBridgeRequestWire {
     path: String,
     #[serde(default)]
     destination: Option<String>,
+    #[serde(default)]
+    target: Option<String>,
+    // JS numbers cross the bridge as f64; accept that and narrow below.
+    #[serde(default)]
+    mode: Option<f64>,
+    #[serde(default)]
+    uid: Option<f64>,
+    #[serde(default)]
+    gid: Option<f64>,
+    #[serde(default, rename = "atimeMs")]
+    atime_ms: Option<f64>,
+    #[serde(default, rename = "mtimeMs")]
+    mtime_ms: Option<f64>,
     #[serde(default)]
     content_base64: Option<String>,
     #[serde(default)]
@@ -541,6 +573,9 @@ impl PythonExecution {
                 "host": host,
                 "port": port,
                 "timedOut": timed_out,
+            }),
+            PythonVfsRpcResponsePayload::SymlinkTarget { target } => json!({
+                "target": target,
             }),
         };
 
@@ -1252,6 +1287,12 @@ fn parse_python_bridge_sync_rpc_request(
         method,
         path: wire.path,
         destination: wire.destination,
+        target: wire.target,
+        mode: wire.mode.map(|value| value as u32),
+        uid: wire.uid.map(|value| value as u32),
+        gid: wire.gid.map(|value| value as u32),
+        atime_ms: wire.atime_ms.map(|value| value as u64),
+        mtime_ms: wire.mtime_ms.map(|value| value as u64),
         content_base64: wire.content_base64,
         recursive: wire.recursive,
         url: wire.url,
