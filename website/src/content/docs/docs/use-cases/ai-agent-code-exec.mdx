@@ -3,9 +3,9 @@ title: AI Agent Code Exec
 description: Give AI agents a secure code-execution tool that runs untrusted code in a sandbox and returns structured results.
 ---
 
-import { LinkCard } from '@astrojs/starlight/components';
-
-<LinkCard title="Example on GitHub" href="https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-ai-agent-code-exec" description="Full working example that runs untrusted code and captures its result." />
+<Card title="Example on GitHub" href="https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-ai-agent-code-exec">
+  Full working example that runs untrusted code and captures its result.
+</Card>
 
 Give your agent a code-execution tool that runs untrusted, model-generated code in a fully virtualized VM. The agent writes code, it runs inside the kernel isolation boundary with no access to the host, and you get back its stdout and a structured return value.
 
@@ -15,46 +15,7 @@ Give your agent a code-execution tool that runs untrusted, model-generated code 
 
 The guest code runs as a standard ES module (top-level `await` and `import` work), but it can only see the virtual filesystem and kernel-mediated syscalls, and it cannot reach the host machine.
 
-```ts AI Agent Code Exec
-import { NodeRuntime } from "secure-exec";
-
-// Imagine this string came from an AI agent. We never trust it: it runs fully
-// sandboxed inside the secure-exec VM, with no access to the host machine.
-const untrustedCode = `
-const fib = [0, 1];
-while (fib.length < 20) {
-  fib.push(fib[fib.length - 1] + fib[fib.length - 2]);
-}
-console.log("computed", fib.length, "fibonacci numbers");
-// Hand a JSON-serializable value back to the host.
-globalThis.__return({ fibonacci: fib, sum: fib.reduce((a, b) => a + b, 0) });
-`;
-
-const rt = await NodeRuntime.create();
-try {
-  // rt.run() executes the guest code and decodes whatever it passes to
-  // globalThis.__return(), while still capturing stdout/stderr/exitCode.
-  const result = await rt.run<{ fibonacci: number[]; sum: number }>(
-    untrustedCode,
-    { timeout: 5000 },
-  );
-
-  console.log("exitCode:", result.exitCode);
-  console.log("stdout:", result.stdout.trim());
-  console.log("returned value:", JSON.stringify(result.value));
-
-  // The sandbox presents normal Node semantics, but the code cannot touch the
-  // host: it only ever sees the virtual filesystem and kernel-mediated syscalls.
-  const escapeAttempt = await rt.exec(
-    `import os from "node:os";\nconsole.log("guest hostname:", os.hostname());`,
-    { timeout: 5000 },
-  );
-  console.log("\nescape attempt exitCode:", escapeAttempt.exitCode);
-  console.log("escape attempt stdout:", escapeAttempt.stdout.trim());
-} finally {
-  await rt.dispose();
-}
-```
+<CodeSnippet file="examples/docs/uc-ai-agent-code-exec/src/index.mts" />
 
 *[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-ai-agent-code-exec)*
 
@@ -87,6 +48,8 @@ const rt = await NodeRuntime.create({
 });
 ```
 
-<LinkCard title="Permissions" href="/docs/features/permissions" description="The full policy model: scopes, rule sets, and how partial policies merge over the secure default." />
+<Card title="Permissions" href="/docs/features/permissions">
+  The full policy model: scopes, rule sets, and how partial policies merge over the secure default.
+</Card>
 
 You can also constrain the run with `env` and `cwd` on `NodeRuntime.create()`, and `env`, `cwd`, `stdin`, and `timeout` on each `run()` / `exec()` call.

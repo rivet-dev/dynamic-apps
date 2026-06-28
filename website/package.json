@@ -10,13 +10,13 @@
     "build": "pnpm run docs:gen:ts && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "docs:gen:ts": "typedoc"
+    "docs:gen:ts": "typedoc",
+    "docs:index": "node --input-type=module -e \"import('@rivet-dev/docs-theme/scripts/index-docs').then(m => m.indexDocs())\""
   },
   "dependencies": {
-    "@rivet-dev/docs-theme": "github:rivet-dev/docs-theme#v0.1.0",
+    "@rivet-dev/docs-theme": "file:vendor/theme",
     "@astrojs/react": "^4.2.0",
     "@astrojs/sitemap": "^3.2.0",
-    "@astrojs/starlight": "^0.36.0",
     "@astrojs/tailwind": "^6.0.0",
     "astro": "^5.18.2",
     "framer-motion": "^12.0.0",
@@ -24,7 +24,9 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "sharp": "^0.33.5",
-    "tailwindcss": "^3.4.0"
+    "tailwindcss": "^3.4.0",
+    "@rivet-gg/components": "file:vendor/theme/vendor/components",
+    "@rivet-gg/icons": "file:vendor/theme/vendor/icons"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

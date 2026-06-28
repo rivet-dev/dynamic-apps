@@ -1,0 +1,27 @@
+# TypeScript SDK
+
+Install the Secure Exec TypeScript SDK and find its generated API reference.
+
+The `secure-exec` package is the TypeScript SDK. It exports `NodeRuntime`, the batteries-included entry point for booting a virtualized VM and running guest JavaScript, plus the types describing its options and results.
+
+## Install
+
+```bash
+npm install secure-exec
+```
+
+```ts
+import { NodeRuntime } from "secure-exec";
+
+const rt = await NodeRuntime.create();
+try {
+  const { stdout } = await rt.exec("console.log('hi', 1 + 1)");
+  console.log(stdout);
+} finally {
+  await rt.dispose();
+}
+```
+
+## API reference
+
+The full type-level reference is generated from the source with TypeDoc and is the source of truth for every export, method, and option.

@@ -3,9 +3,9 @@ title: Dev Servers
 description: Run user-provided server-style code (HTTP servers, request handlers) inside a secure isolate.
 ---
 
-import { LinkCard } from '@astrojs/starlight/components';
-
-<LinkCard title="Example on GitHub" href="https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-dev-servers" description="Full working example that boots a long-running HTTP server inside a sandboxed isolate and drives host requests into it." />
+<Card title="Example on GitHub" href="https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-dev-servers">
+  Full working example that boots a long-running HTTP server inside a sandboxed isolate and drives host requests into it.
+</Card>
 
 Let users run their own server-style code inside a sandboxed isolate. A guest program can boot a real `node:http` server, bind a loopback port owned by the kernel, and serve requests, all without touching the host machine.
 

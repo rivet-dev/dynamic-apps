@@ -2,7 +2,6 @@
 title: Filesystem
 description: A short overview of the Secure Exec filesystem, with a link to the canonical agentOS filesystem docs.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
 
 Each VM presents a normal POSIX filesystem to guest code, backed by a virtual filesystem inside the kernel. At a glance:
 
@@ -16,8 +15,6 @@ Each VM presents a normal POSIX filesystem to guest code, backed by a virtual fi
 
 The canonical filesystem API, including seeding files, host-boundary file exchange, and the full mount and backend configuration, is owned by agentOS.
 
-<LinkCard
-  title="agentOS: Filesystem"
-  href="https://agentos-sdk.dev/docs/filesystem"
-  description="The complete filesystem API plus mount and backend configuration details."
-/>
+<Card title="agentOS: Filesystem" href="https://agentos-sdk.dev/docs/filesystem">
+  The complete filesystem API plus mount and backend configuration details.
+</Card>

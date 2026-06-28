@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 import { NodeRuntime } from "secure-exec";
 
+// docs:start loading-modules
 // Boot a fully virtualized VM. Module resolution runs entirely inside the
 // kernel - `import` and `require` resolve against the guest's virtual
 // filesystem, never the host's.
@@ -38,9 +39,11 @@ try {
 } finally {
   await rt.dispose();
 }
+// docs:end loading-modules
 
 // --- Loading real npm packages from the host ------------------------------
 
+// docs:start npm-packages
 // Point `nodeModules` at a host `node_modules` directory and the whole tree is
 // projected into the VM in one call. Any package inside resolves the way Node
 // would over a real filesystem, symlinks and all. Here we mount this repo's
@@ -83,3 +86,4 @@ try {
 } finally {
   await mounted.dispose();
 }
+// docs:end npm-packages

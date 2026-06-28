@@ -2,7 +2,6 @@
 title: Permissions
 description: A short overview of Secure Exec permissions, with a link to the canonical agentOS permissions docs.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
 
 Secure Exec checks a per-domain permission policy against every guest syscall, so denied operations are rejected before any host resource is touched. At a glance:
 
@@ -16,8 +15,6 @@ Secure Exec checks a per-domain permission policy against every guest syscall, s
 
 The complete permission scopes, modes, and rule configuration are owned by agentOS.
 
-<LinkCard
-  title="agentOS: Permissions"
-  href="https://agentos-sdk.dev/docs/permissions"
-  description="The complete permission scopes, modes, and rule configuration."
-/>
+<Card title="agentOS: Permissions" href="https://agentos-sdk.dev/docs/permissions">
+  The complete permission scopes, modes, and rule configuration.
+</Card>

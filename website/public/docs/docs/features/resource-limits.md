@@ -1,0 +1,255 @@
+# Resource Limits
+
+Secure Exec resource limits, defaults, backpressure constants, and warning names.
+
+Secure Exec bounds each VM with per-VM resource caps so untrusted guest code can never exhaust the host. At a glance:
+
+- **Per-VM caps**: Each VM gets its own ceilings on concurrent processes, open file descriptors, sockets, total filesystem bytes, and WASM stack depth.
+- **Kernel-enforced**: The kernel mediates and accounts for every allocation. There is no path for the guest to reach host resources around these limits.
+- **Guest-local failure**: A guest that exceeds a cap fails inside its own VM with a normal POSIX errno, exactly as it would on real Linux.
+- **Host is unaffected**: Hitting a limit terminates or fails the guest operation only; the sidecar and host process stay intact and the VM keeps running.
+- **Operator-raisable**: The caller configures the limits per VM and can raise or lower them to fit the workload.
+- **Observable**: Queue, resource, memory, and CPU limits emit `limit_warning` structured events and `WARN` logs as they approach or hit a cap.
+
+## Operator constants
+
+These constants are the default caps behind the `limits.*` VM config fields.
+
+| Config field | Constant | Default |
+| --- | --- | --- |
+| `limits.resources.cpuCount` | `DEFAULT_VIRTUAL_CPU_COUNT` | `1` |
+| `limits.resources.maxProcesses` | `DEFAULT_MAX_PROCESSES` | `256` |
+| `limits.resources.maxOpenFds` | `DEFAULT_MAX_OPEN_FDS` | `256` |
+| `limits.resources.maxPipes` | `DEFAULT_MAX_PIPES` | `128` |
+| `limits.resources.maxPtys` | `DEFAULT_MAX_PTYS` | `128` |
+| `limits.resources.maxSockets` | `DEFAULT_MAX_SOCKETS` | `256` |
+| `limits.resources.maxConnections` | `DEFAULT_MAX_CONNECTIONS` | `256` |
+| `limits.resources.maxSocketBufferedBytes` | `DEFAULT_MAX_SOCKET_BUFFERED_BYTES` | `4 MiB` |
+| `limits.resources.maxSocketDatagramQueueLen` | `DEFAULT_MAX_SOCKET_DATAGRAM_QUEUE_LEN` | `1024` |
+| `limits.resources.maxFilesystemBytes` | `DEFAULT_MAX_FILESYSTEM_BYTES` | `64 MiB` |
+| `limits.resources.maxInodeCount` | `DEFAULT_MAX_INODE_COUNT` | `16384` |
+| `limits.resources.maxBlockingReadMs` | `DEFAULT_BLOCKING_READ_TIMEOUT_MS` | `5000 ms` |
+| `limits.resources.maxPreadBytes` | `DEFAULT_MAX_PREAD_BYTES` | `64 MiB` |
+| `limits.resources.maxFdWriteBytes` | `DEFAULT_MAX_FD_WRITE_BYTES` | `64 MiB` |
+| `limits.resources.maxProcessArgvBytes` | `DEFAULT_MAX_PROCESS_ARGV_BYTES` | `1 MiB` |
+| `limits.resources.maxProcessEnvBytes` | `DEFAULT_MAX_PROCESS_ENV_BYTES` | `1 MiB` |
+| `limits.resources.maxReaddirEntries` | `DEFAULT_MAX_READDIR_ENTRIES` | `4096` |
+| `limits.resources.maxWasmMemoryBytes` | `DEFAULT_MAX_WASM_MEMORY_BYTES` | `128 MiB` |
+| `limits.resources.maxWasmFuel` | none | unset, runtime default applies |
+| `limits.resources.maxWasmStackBytes` | none | unset, engine default applies |
+| `limits.http.maxFetchResponseBytes` | `DEFAULT_MAX_FETCH_RESPONSE_BYTES` | `1 MiB` |
+| `limits.tools.defaultToolTimeoutMs` | `DEFAULT_TOOL_TIMEOUT_MS` | `30000 ms` |
+| `limits.tools.maxToolTimeoutMs` | `MAX_TOOL_TIMEOUT_MS` | `300000 ms` |
+| `limits.tools.maxRegisteredToolkits` | `MAX_REGISTERED_TOOLKITS` | `64` |
+| `limits.tools.maxRegisteredToolsPerVm` | `MAX_REGISTERED_TOOLS_PER_VM` | `256` |
+| `limits.tools.maxToolsPerToolkit` | `MAX_TOOLS_PER_TOOLKIT` | `64` |
+| `limits.tools.maxToolSchemaBytes` | `MAX_TOOL_SCHEMA_BYTES` | `16 KiB` |
+| `limits.tools.maxToolExamplesPerTool` | `MAX_TOOL_EXAMPLES_PER_TOOL` | `16` |
+| `limits.tools.maxToolExampleInputBytes` | `MAX_TOOL_EXAMPLE_INPUT_BYTES` | `4 KiB` |
+| `limits.plugins.maxPersistedManifestBytes` | `MAX_PERSISTED_MANIFEST_BYTES` | `64 MiB` |
+| `limits.plugins.maxPersistedManifestFileBytes` | `MAX_PERSISTED_MANIFEST_FILE_BYTES` | `1 GiB` |
+| `limits.acp.maxReadLineBytes` | `DEFAULT_ACP_MAX_READ_LINE_BYTES` | `16 MiB` |
+| `limits.acp.stdoutBufferByteLimit` | `DEFAULT_ACP_STDOUT_BUFFER_BYTE_LIMIT` | `1 MiB` |
+| `limits.jsRuntime.v8HeapLimitMb` | `DEFAULT_V8_HEAP_LIMIT_MB` | `128 MiB` |
+| `limits.jsRuntime.capturedOutputLimitBytes` | `DEFAULT_JS_CAPTURED_OUTPUT_LIMIT_BYTES` | `16 MiB` |
+| `limits.jsRuntime.stdinBufferLimitBytes` | `DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES` | `16 MiB` |
+| `limits.jsRuntime.eventPayloadLimitBytes` | `DEFAULT_JS_EVENT_PAYLOAD_LIMIT_BYTES` | `1 MiB` |
+| `limits.jsRuntime.v8IpcMaxFrameBytes` | `DEFAULT_V8_IPC_MAX_FRAME_BYTES` | `64 MiB` |
+| `limits.jsRuntime.syncRpcWaitTimeoutMs` | none | unset, engine default applies |
+| `limits.python.outputBufferMaxBytes` | `DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES` | `1 MiB` |
+| `limits.python.executionTimeoutMs` | `DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS` | `300000 ms` |
+| `limits.python.maxOldSpaceMb` | `DEFAULT_PYTHON_MAX_OLD_SPACE_MB` | `0`, Pyodide engine default |
+| `limits.python.vfsRpcTimeoutMs` | `DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS` | `30000 ms` |
+| `limits.wasm.maxModuleFileBytes` | `DEFAULT_WASM_MAX_MODULE_FILE_BYTES` | `256 MiB` |
+| `limits.wasm.capturedOutputLimitBytes` | `DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES` | `16 MiB` |
+| `limits.wasm.syncReadLimitBytes` | `DEFAULT_WASM_SYNC_READ_LIMIT_BYTES` | `16 MiB` |
+
+## Backpressure constants
+
+These internal queue caps are not per-VM config fields. They are tracked so slow consumers produce `limit_warning` events instead of silent stalls.
+
+| Warning name | Constant | Default |
+| --- | --- | --- |
+| `javascript_event_channel` | `JAVASCRIPT_EVENT_CHANNEL_CAPACITY` | `512 frames` |
+| `v8_session_frames` | `V8_SESSION_FRAME_CHANNEL_CAPACITY` | `1024 frames` |
+| `sidecar_stdin_frames` | `MAX_STDIN_FRAME_QUEUE` | `128 frames` |
+| `sidecar_stdout_frames` | `MAX_STDOUT_FRAME_QUEUE` | `4096 frames` |
+| `completed_sidecar_responses` | `MAX_COMPLETED_SIDECAR_RESPONSES` | `10000 responses` |
+
+## Audited constants
+
+The limits audit classifies every limit-shaped constant as `policy`, `policy-deferred`, or `invariant`. Keep this table in sync with `crates/sidecar/tests/fixtures/limits-inventory.json`.
+
+| Constant | Class | Source |
+| --- | --- | --- |
+| `MAX_SYMLINK_DEPTH` | `invariant` | `crates/execution/assets/v8-bridge.source.js` |
+| `MAX_BENCHMARK_ITERATIONS` | `invariant` | `crates/execution/src/benchmark.rs` |
+| `MAX_BENCHMARK_WARMUP_ITERATIONS` | `invariant` | `crates/execution/src/benchmark.rs` |
+| `JAVASCRIPT_CAPTURED_OUTPUT_LIMIT_BYTES` | `policy` | `crates/execution/src/javascript.rs` |
+| `JAVASCRIPT_EVENT_CHANNEL_CAPACITY` | `invariant` | `crates/execution/src/javascript.rs` |
+| `JAVASCRIPT_EVENT_PAYLOAD_LIMIT_BYTES` | `policy` | `crates/execution/src/javascript.rs` |
+| `KERNEL_STDIN_BUFFER_LIMIT_BYTES` | `policy` | `crates/execution/src/javascript.rs` |
+| `NODE_SYNC_RPC_RESPONSE_QUEUE_CAPACITY` | `invariant` | `crates/execution/src/javascript.rs` |
+| `DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT` | `invariant` | `crates/execution/src/node_import_cache.rs` |
+| `DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS` | `policy` | `crates/execution/src/python.rs` |
+| `DEFAULT_PYTHON_MAX_OLD_SPACE_MB` | `policy` | `crates/execution/src/python.rs` |
+| `DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES` | `policy` | `crates/execution/src/python.rs` |
+| `DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS` | `policy` | `crates/execution/src/python.rs` |
+| `V8_SESSION_FRAME_CHANNEL_CAPACITY` | `invariant` | `crates/execution/src/v8_host.rs` |
+| `MAX_FRAME_SIZE` | `policy` | `crates/execution/src/v8_ipc.rs` |
+| `DEFAULT_WASM_EXECUTION_TIMEOUT_MS` | `policy-deferred` | `crates/execution/src/wasm.rs` |
+| `DEFAULT_WASM_PREWARM_TIMEOUT_MS` | `invariant` | `crates/execution/src/wasm.rs` |
+| `MAX_SYNC_WASM_PREWARM_MODULE_BYTES` | `invariant` | `crates/execution/src/wasm.rs` |
+| `MAX_WASM_IMPORT_SECTION_ENTRIES` | `invariant` | `crates/execution/src/wasm.rs` |
+| `MAX_WASM_MEMORY_SECTION_ENTRIES` | `invariant` | `crates/execution/src/wasm.rs` |
+| `MAX_WASM_MODULE_FILE_BYTES` | `policy` | `crates/execution/src/wasm.rs` |
+| `MAX_WASM_VARUINT_BYTES` | `invariant` | `crates/execution/src/wasm.rs` |
+| `WASM_CAPTURED_OUTPUT_LIMIT_BYTES` | `policy` | `crates/execution/src/wasm.rs` |
+| `WASM_SYNC_READ_LIMIT_BYTES` | `policy` | `crates/execution/src/wasm.rs` |
+| `DEFAULT_STREAM_DEVICE_READ_BYTES` | `invariant` | `crates/kernel/src/device_layer.rs` |
+| `MAX_FDS_PER_PROCESS` | `invariant` | `crates/kernel/src/fd_table.rs` |
+| `SHEBANG_LINE_MAX_BYTES` | `invariant` | `crates/kernel/src/kernel.rs` |
+| `MAX_SNAPSHOT_DEPTH` | `invariant` | `crates/vfs/src/posix/overlay_fs.rs` |
+| `MAX_PIPE_BUFFER_BYTES` | `invariant` | `crates/kernel/src/pipe_manager.rs` |
+| `MAX_ALLOCATED_PID` | `invariant` | `crates/kernel/src/process_table.rs` |
+| `MAX_SIGNAL` | `invariant` | `crates/kernel/src/process_table.rs` |
+| `MAX_CANON` | `invariant` | `crates/kernel/src/pty.rs` |
+| `MAX_PTY_BUFFER_BYTES` | `invariant` | `crates/kernel/src/pty.rs` |
+| `DEFAULT_BLOCKING_READ_TIMEOUT_MS` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_CONNECTIONS` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_FD_WRITE_BYTES` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_FILESYSTEM_BYTES` | `policy` | `crates/vfs/src/posix/usage.rs` |
+| `DEFAULT_MAX_INODE_COUNT` | `policy` | `crates/vfs/src/posix/usage.rs` |
+| `DEFAULT_MAX_OPEN_FDS` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_PIPES` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_PREAD_BYTES` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_PROCESS_ARGV_BYTES` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_PROCESS_ENV_BYTES` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_PROCESSES` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_PTYS` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_READDIR_ENTRIES` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_WASM_MEMORY_BYTES` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_SOCKET_BUFFERED_BYTES` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_SOCKET_DATAGRAM_QUEUE_LEN` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `DEFAULT_MAX_SOCKETS` | `policy` | `crates/kernel/src/resource_accounting.rs` |
+| `MAX_PATH_LENGTH` | `invariant` | `crates/vfs/src/posix/vfs.rs` |
+| `MAX_SYMLINK_DEPTH` | `invariant` | `crates/vfs/src/posix/vfs.rs` |
+| `MAX_PATH` | `invariant` | `crates/vfs/src/engine/types.rs` |
+| `MAX_SYMLINK_DEPTH` | `invariant` | `crates/vfs/src/engine/types.rs` |
+| `DEFAULT_METADATA_CACHE_ENTRIES` | `invariant` | `crates/sidecar/src/plugins/chunked_local.rs` |
+| `DEFAULT_METADATA_CACHE_ENTRIES` | `invariant` | `crates/sidecar/src/plugins/chunked_s3.rs` |
+| `CONTROL_FRAME_QUEUE_CAPACITY` | `invariant` | `crates/secure-exec-client/src/transport.rs` |
+| `EVENT_CHANNEL_CAPACITY` | `invariant` | `crates/secure-exec-client/src/transport.rs` |
+| `PENDING_REQUEST_LIMIT` | `invariant` | `crates/secure-exec-client/src/transport.rs` |
+| `REQUEST_FRAME_QUEUE_CAPACITY` | `invariant` | `crates/secure-exec-client/src/transport.rs` |
+| `DEFAULT_KERNEL_STDIN_READ_MAX_BYTES` | `invariant` | `crates/sidecar/src/execution.rs` |
+| `DEFAULT_KERNEL_STDIN_READ_TIMEOUT_MS` | `invariant` | `crates/sidecar/src/execution.rs` |
+| `EXITED_PROCESS_SNAPSHOT_RETENTION` | `invariant` | `crates/sidecar/src/execution.rs` |
+| `JAVASCRIPT_NET_POLL_MAX_WAIT` | `invariant` | `crates/sidecar/src/execution.rs` |
+| `MAX_JAVASCRIPT_COMMAND_REDIRECT_DEPTH` | `invariant` | `crates/sidecar/src/execution.rs` |
+| `MAX_PER_PROCESS_STATE_HANDLES` | `policy-deferred` | `crates/sidecar/src/execution.rs` |
+| `SQLITE_JS_SAFE_INTEGER_MAX` | `invariant` | `crates/sidecar/src/execution.rs` |
+| `VM_FETCH_BUFFER_LIMIT_BYTES` | `policy` | `crates/sidecar/src/execution.rs` |
+| `DEFAULT_ACP_MAX_READ_LINE_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_ACP_STDOUT_BUFFER_BYTE_LIMIT` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_JS_CAPTURED_OUTPUT_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_JS_EVENT_PAYLOAD_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_MAX_FETCH_RESPONSE_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_PYTHON_MAX_OLD_SPACE_MB` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_TOOL_TIMEOUT_MS` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_V8_IPC_MAX_FRAME_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_V8_HEAP_LIMIT_MB` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_WASM_MAX_MODULE_FILE_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_WASM_SYNC_READ_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_PERSISTED_MANIFEST_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_PERSISTED_MANIFEST_FILE_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_REGISTERED_TOOLKITS` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_REGISTERED_TOOLS_PER_VM` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_TOOL_EXAMPLE_INPUT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_TOOL_EXAMPLES_PER_TOOL` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_TOOL_SCHEMA_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_TOOL_TIMEOUT_MS` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_TOOLS_PER_TOOLKIT` | `policy` | `crates/sidecar/src/limits.rs` |
+| `MAX_PERSISTED_MANIFEST_BYTES` | `policy` | `crates/sidecar/src/plugins/google_drive.rs` |
+| `MAX_PERSISTED_MANIFEST_FILE_BYTES` | `policy` | `crates/sidecar/src/plugins/google_drive.rs` |
+| `MAX_HOST_DIR_READ_BYTES` | `policy` | `crates/sidecar/src/plugins/host_dir.rs` |
+| `DEFAULT_MAX_FULL_READ_BYTES` | `policy-deferred` | `crates/sidecar/src/plugins/sandbox_agent.rs` |
+| `DEFAULT_PROCESS_TIMEOUT_MS` | `policy-deferred` | `crates/sidecar/src/plugins/sandbox_agent.rs` |
+| `DEFAULT_TIMEOUT_MS` | `policy-deferred` | `crates/sidecar/src/plugins/sandbox_agent.rs` |
+| `DEFAULT_COMPLETED_RESPONSE_CAP` | `invariant` | `crates/sidecar/src/protocol.rs` |
+| `DEFAULT_MAX_FRAME_BYTES` | `policy` | `crates/sidecar/src/protocol.rs` |
+| `DEFAULT_MAX_FRAME_BYTES` | `invariant` | `crates/sidecar/src/wire.rs` |
+| `MAX_COMPLETED_SIDECAR_RESPONSES` | `invariant` | `crates/sidecar/src/service.rs` |
+| `MAX_OUTBOUND_SIDECAR_REQUESTS` | `invariant` | `crates/sidecar/src/service.rs` |
+| `MAX_PENDING_SIDECAR_RESPONSES` | `invariant` | `crates/sidecar/src/service.rs` |
+| `MAX_PROCESS_EVENT_QUEUE` | `invariant` | `crates/sidecar/src/service.rs` |
+| `HOST_REALPATH_MAX_SYMLINK_DEPTH` | `invariant` | `crates/sidecar/src/state.rs` |
+| `VM_LISTEN_PORT_MAX_METADATA_KEY` | `invariant` | `crates/sidecar/src/state.rs` |
+| `MAX_EVENT_READY_QUEUE` | `invariant` | `crates/sidecar/src/stdio.rs` |
+| `MAX_STDIN_FRAME_QUEUE` | `invariant` | `crates/sidecar/src/stdio.rs` |
+| `MAX_STDOUT_FRAME_QUEUE` | `invariant` | `crates/sidecar/src/stdio.rs` |
+| `DEFAULT_TOOL_TIMEOUT_MS` | `policy` | `crates/sidecar/src/tools.rs` |
+| `MAX_REGISTERED_TOOLKITS` | `policy` | `crates/sidecar/src/tools.rs` |
+| `MAX_REGISTERED_TOOLS_PER_VM` | `policy` | `crates/sidecar/src/tools.rs` |
+| `MAX_TOOL_DESCRIPTION_LENGTH` | `policy-deferred` | `crates/sidecar/src/tools.rs` |
+| `MAX_TOOL_EXAMPLE_INPUT_BYTES` | `policy` | `crates/sidecar/src/tools.rs` |
+| `MAX_TOOL_EXAMPLES_PER_TOOL` | `policy` | `crates/sidecar/src/tools.rs` |
+| `MAX_TOOL_NAME_LENGTH` | `policy-deferred` | `crates/sidecar/src/tools.rs` |
+| `MAX_TOOL_SCHEMA_BYTES` | `policy` | `crates/sidecar/src/tools.rs` |
+| `MAX_TOOL_SCHEMA_DEPTH` | `invariant` | `crates/sidecar/src/tools.rs` |
+| `MAX_TOOL_TIMEOUT_MS` | `policy` | `crates/sidecar/src/tools.rs` |
+| `MAX_TOOLKIT_NAME_LENGTH` | `policy-deferred` | `crates/sidecar/src/tools.rs` |
+| `MAX_TOOLS_PER_TOOLKIT` | `policy` | `crates/sidecar/src/tools.rs` |
+| `MAX_VM_LAYERS` | `policy-deferred` | `crates/sidecar/src/vm.rs` |
+| `MAX_CBOR_BRIDGE_CONTAINER_ITEMS` | `invariant` | `crates/v8-runtime/src/bridge.rs` |
+| `MAX_CBOR_BRIDGE_DEPTH` | `invariant` | `crates/v8-runtime/src/bridge.rs` |
+| `MAX_PENDING_PROMISES` | `invariant` | `crates/v8-runtime/src/bridge.rs` |
+| `MAX_VM_CONTEXTS` | `invariant` | `crates/v8-runtime/src/bridge.rs` |
+| `SESSION_OUTPUT_CHANNEL_CAPACITY` | `invariant` | `crates/v8-runtime/src/embedded_runtime.rs` |
+| `MAX_CJS_NAMED_EXPORTS` | `invariant` | `crates/v8-runtime/src/execution.rs` |
+| `MAX_CJS_RUNTIME_EXPORT_NAME_LEN` | `invariant` | `crates/v8-runtime/src/execution.rs` |
+| `MAX_MODULE_BATCH_RESOLVE_RESPONSE_BYTES` | `invariant` | `crates/v8-runtime/src/execution.rs` |
+| `MAX_MODULE_PREFETCH_BATCH_SIZE` | `invariant` | `crates/v8-runtime/src/execution.rs` |
+| `MAX_MODULE_PREFETCH_GRAPH_MODULES` | `invariant` | `crates/v8-runtime/src/execution.rs` |
+| `MAX_MODULE_RESOLVE_CACHE_ENTRIES` | `invariant` | `crates/v8-runtime/src/execution.rs` |
+| `MAX_MODULE_RESOLVE_MODULES` | `invariant` | `crates/v8-runtime/src/execution.rs` |
+| `MAX_FRAME_SIZE` | `policy` | `crates/v8-runtime/src/ipc_binary.rs` |
+| `MAX_UNHANDLED_PROMISE_REJECTIONS` | `invariant` | `crates/v8-runtime/src/isolate.rs` |
+| `NEAR_HEAP_LIMIT_HEADROOM_BYTES` | `invariant` | `crates/v8-runtime/src/isolate.rs` |
+| `MAX_DEFERRED_SESSION_COMMANDS` | `invariant` | `crates/v8-runtime/src/session.rs` |
+| `MAX_DEFERRED_SYNC_MESSAGES` | `invariant` | `crates/v8-runtime/src/session.rs` |
+| `SESSION_COMMAND_CHANNEL_CAPACITY` | `invariant` | `crates/v8-runtime/src/session.rs` |
+| `MAX_SNAPSHOT_BLOB_BYTES` | `invariant` | `crates/v8-runtime/src/snapshot.rs` |
+| `MAX_V8_BRIDGE_CODE_BYTES` | `invariant` | `crates/v8-runtime/src/snapshot.rs` |
+| `TRAILING_OUTPUT_DRAIN_MAX_MS` | `invariant` | `packages/core/src/kernel-proxy.ts` |
+| `DEFAULT_SIDECAR_EVENT_BUFFER_CAPACITY` | `policy-deferred` | `packages/core/src/native-client.ts` |
+| `DEFAULT_SIDECAR_FRAME_TIMEOUT_MS` | `policy-deferred` | `packages/core/src/native-client.ts` |
+| `MAX_SYMLINK_DEPTH` | `invariant` | `packages/core/src/test-runtime.ts` |
+
+## Warning names
+
+The limit registry emits stable names in `limit_warning.detail.limit`.
+`limits.resources.maxWasmStackBytes` is audited as a configured constant above, but it does not emit `limit_warning` until runtime stack enforcement has a reliable exhaustion edge.
+
+When a warning fires depends on whether the limit has a continuously-sampled usage:
+
+- **Queue**, **Resource**, and **CPU** limits emit an **edge-triggered ~80% approach warning** (re-armed once usage drains back below ~50%), so the operator gets a heads-up *before* the cap is reached. The CPU budgets (`v8_cpu_time_ms`, `v8_wall_clock_ms`, `wasm_fuel_ms`) are sampled by the execution watchdogs; the queue/resource gauges are sampled as items flow through them.
+- **Memory** limits (`v8_heap_bytes`, `wasm_memory_bytes`) emit at the **terminal edge** — V8's near-heap-limit callback fires as the isolate is about to exceed its heap cap, and WASM memory is checked at module-instantiation time. There is no separate 80% heap sample because a V8 isolate cannot be safely read from the watchdog thread.
+
+CPU budgets therefore emit both the ~80% approach warning *and* a terminal exhaustion warning when the watchdog finally terminates execution.
+
+| Category | Warning names |
+| --- | --- |
+| Queue | `javascript_event_channel`, `v8_session_frames`, `sidecar_stdin_frames`, `sidecar_stdout_frames`, `completed_sidecar_responses`, `pending_process_events`, `pending_sidecar_responses`, `outbound_sidecar_requests` |
+| Resource | `vm_processes`, `vm_open_fds`, `vm_pipes`, `vm_ptys`, `vm_sockets`, `vm_connections`, `vm_socket_buffered_bytes`, `vm_socket_datagram_queue_len`, `vm_filesystem_bytes`, `vm_inodes` |
+| Memory | `v8_heap_bytes`, `wasm_memory_bytes` |
+| CPU | `v8_cpu_time_ms`, `v8_wall_clock_ms`, `wasm_fuel_ms` |
+
+## Related agentOS docs
+
+agentOS layers its own session and adapter limits on top of Secure Exec.

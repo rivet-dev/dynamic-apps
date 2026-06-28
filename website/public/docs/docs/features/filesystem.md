@@ -1,0 +1,15 @@
+# Filesystem
+
+A short overview of the Secure Exec filesystem, with a link to the canonical agentOS filesystem docs.
+
+Each VM presents a normal POSIX filesystem to guest code, backed by a virtual filesystem inside the kernel. At a glance:
+
+- **Per-VM virtual filesystem**: Every VM gets its own isolated virtual filesystem. One VM cannot see or reach another VM's files.
+- **Never touches the host disk**: Guest filesystem calls are served entirely inside the kernel and never read or write the real host disk.
+- **Normal POSIX and Node APIs**: The standard `node:fs` and `node:fs/promises` APIs work as usual against the virtual filesystem, so ordinary programs run unchanged.
+- **Mountable backends**: You can project host-backed sources into the guest filesystem, Docker-style, including host directories and S3. Mounts are confined to their root, and the guest sees only the mounted subtree.
+- **`nodeModules` is a mount**: `NodeRuntime.create({ nodeModules })` is a convenience for a read-only host-directory mount. It projects a host `node_modules` tree at guest `/tmp/node_modules` using the same mount machinery as `mounts`, placed on the package-resolution path. See [Module loading](/docs/features/module-loading).
+
+## Full reference
+
+The canonical filesystem API, including seeding files, host-boundary file exchange, and the full mount and backend configuration, is owned by agentOS.

@@ -2,7 +2,6 @@
 title: Resident Runner
 description: Reuse a live guest process for low-latency repeated execution.
 ---
-import { Aside, LinkCard } from '@astrojs/starlight/components';
 
 Each `exec()` / `run()` call starts a fresh guest process, which is the right
 default for isolation between runs. When you run many small snippets against the
@@ -10,11 +9,11 @@ same runtime (an evaluation loop, a REPL, a test harness), that per-run process
 startup dominates. A resident runner keeps one guest process alive and evaluates
 each snippet in it, so repeated calls are fast.
 
-<Aside type="note">
+<Note>
 A resident runner trades per-run process isolation for speed: snippets share the
 same process, so in-memory state can carry between calls. Use it for trusted,
 repeated evaluation. For isolation between runs, use `exec()` / `run()`.
-</Aside>
+</Note>
 
 ## Creating and using a runner
 
@@ -48,4 +47,6 @@ runner when the same runtime runs many small snippets and the snippets are
 trusted to share a process. See the measured difference in
 [Benchmarks](/docs/benchmarks).
 
-<LinkCard title="TypeScript SDK reference" href="/docs/sdks/typescript" description="createResidentRunner() and the NodeRuntimeResidentRunner handle." />
+<Card title="TypeScript SDK reference" href="/docs/sdks/typescript">
+createResidentRunner() and the NodeRuntimeResidentRunner handle.
+</Card>

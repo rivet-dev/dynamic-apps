@@ -2,7 +2,6 @@
 title: Secure Exec vs QuickJS
 description: How Secure Exec and QuickJS differ in isolation model, performance, language coverage, and system surface.
 ---
-import { Aside, LinkCard } from '@astrojs/starlight/components';
 
 Secure Exec and QuickJS both run guest JavaScript, but they sit at different layers. QuickJS is a small, embeddable JavaScript engine: you link it into a host process and call its C API. Secure Exec is a full virtualized runtime built on V8, with a kernel, virtual filesystem, and capability policy around the engine. This page focuses on the security and performance characteristics of the core runtime layer.
 
@@ -26,11 +25,9 @@ This is the most important difference.
 
 The practical consequence: with QuickJS you own the entire sandbox, including the boundary, the permission checks, and the host-bindings audit surface. With Secure Exec the boundary, the kernel, and the policy enforcement are provided and run out-of-process.
 
-<LinkCard
-	title="Process Isolation"
-	description="How runtimes and runs are isolated, and how to choose granularity."
-	href="/docs/architecture"
-/>
+<Card title="Process Isolation" href="/docs/architecture">
+	How runtimes and runs are isolated, and how to choose granularity.
+</Card>
 
 ## Performance
 
@@ -41,7 +38,7 @@ The engines optimize for different things.
 
 For Secure Exec, cold start is dominated by bringing up the guest runtime rather than provisioning infrastructure, and reusing a live guest process drives warm execution into the low-millisecond range.
 
-<Aside type="note">Treat these as the shape of the difference (JIT throughput vs interpreter footprint), not fixed numbers. See [Benchmarks](/docs/benchmarks) for measured cold-start, warm, and reuse numbers and the methodology behind them.</Aside>
+<Note>Treat these as the shape of the difference (JIT throughput vs interpreter footprint), not fixed numbers. See [Benchmarks](/docs/benchmarks) for measured cold-start, warm, and reuse numbers and the methodology behind them.</Note>
 
 ## Language and ecosystem coverage
 
@@ -53,11 +50,9 @@ For Secure Exec, cold start is dominated by bringing up the guest runtime rather
 - **Secure Exec** presents a virtualized POSIX environment to guest code: a per-runtime virtual filesystem, a kernel-managed process table (with `node:child_process`), a socket table for networking, pipes, and PTYs. Guest `fetch()`, `node:http`, and raw sockets all flow through the kernel and the permission policy.
 - **QuickJS** has none of this built in. The bare engine exposes only ECMAScript globals; there is no filesystem, no process model, no networking, and no shell unless your host code adds C bindings for them. Every capability the guest needs is host surface you write and must secure.
 
-<LinkCard
-	title="Child Processes"
-	description="Spawn kernel-managed processes from guest code, or drive a long-running guest program from the host."
-	href="/docs/features/child-processes"
-/>
+<Card title="Child Processes" href="/docs/features/child-processes">
+	Spawn kernel-managed processes from guest code, or drive a long-running guest program from the host.
+</Card>
 
 ## When to choose which
 
@@ -65,8 +60,6 @@ Choose **QuickJS** when you need the smallest possible embeddable engine, you ar
 
 Choose **Secure Exec** when you need full ECMAScript and npm compatibility, JIT throughput, and a ready-made isolation boundary with a kernel-backed filesystem, process model, networking, and a deny-by-default capability policy you control.
 
-<LinkCard
-	title="Process Isolation"
-	description="The isolation model in depth, plus how to pick isolation granularity."
-	href="/docs/architecture"
-/>
+<Card title="Process Isolation" href="/docs/architecture">
+	The isolation model in depth, plus how to pick isolation granularity.
+</Card>

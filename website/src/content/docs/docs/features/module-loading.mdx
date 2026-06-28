@@ -2,7 +2,6 @@
 title: "NPM & Module Loading"
 description: How sandboxed code resolves and loads modules.
 ---
-import { Aside } from '@astrojs/starlight/components';
 
 Guest `import` and `require` resolve against the VM's virtual filesystem, never the host module loader. Resolution runs entirely inside the kernel. By default the guest sees an empty `node_modules`; project host packages into the VM with `nodeModules` (or `mounts`) to run real npm packages (including the TypeScript compiler) in-sandbox.
 
@@ -12,42 +11,7 @@ Guest `import` and `require` resolve against the VM's virtual filesystem, never 
 - Build a CommonJS `require` with `createRequire(import.meta.url)`.
 - Both paths resolve through the kernel's module loader.
 
-```ts
-import { NodeRuntime } from "secure-exec";
-
-const rt = await NodeRuntime.create();
-
-try {
-  const { stdout, stderr, exitCode } = await rt.exec(`
-    // ESM import of a Node builtin.
-    import { basename, join } from "node:path";
-
-    // CommonJS require, created from the current module URL.
-    import { createRequire } from "node:module";
-    const require = createRequire(import.meta.url);
-    const os = require("node:os");
-
-    const resolved = {
-      basename: basename("/workspace/data/report.txt"),
-      joined: join("/workspace", "data", "report.txt"),
-      platform: os.platform(),
-    };
-
-    console.log("resolved node:path via import ->", resolved.joined);
-    console.log("resolved node:os via require ->", resolved.platform);
-    console.log(JSON.stringify(resolved));
-  `);
-
-  console.log("exitCode:", exitCode);
-  if (stderr.trim()) console.log("guest stderr:\n" + stderr.trim());
-  console.log("guest stdout:");
-  console.log(stdout.trim());
-} finally {
-  await rt.dispose();
-}
-```
-
-*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/feat-module-loading)*
+<CodeSnippet file="examples/docs/feat-module-loading/src/index.mts" region="loading-modules" />
 
 ```
 exitCode: 0
@@ -57,7 +21,7 @@ resolved node:os via require -> linux
 {"basename":"report.txt","joined":"/workspace/data/report.txt","platform":"linux"}
 ```
 
-<Aside type="note">Resolution runs inside the kernel against the guest's virtual filesystem. The guest only sees what is present there; mounting host `node_modules` (below) makes those packages part of that filesystem so they resolve like any other guest module.</Aside>
+<Note>Resolution runs inside the kernel against the guest's virtual filesystem. The guest only sees what is present there; mounting host `node_modules` (below) makes those packages part of that filesystem so they resolve like any other guest module.</Note>
 
 ## Loading real npm packages
 
@@ -71,49 +35,7 @@ Either way the host filesystem is never exposed; the guest sees only the project
 
 The example below points `nodeModules` at the host directory that holds `is-number`, then imports it from inside the VM. The guest resolves it the way Node would over a real filesystem, including through `createRequire`.
 
-```ts
-import { fileURLToPath } from "node:url";
-import { NodeRuntime } from "secure-exec";
-
-const hostNodeModules = fileURLToPath(
-  new URL("../../../../node_modules", import.meta.url),
-);
-
-const mounted = await NodeRuntime.create({
-  nodeModules: hostNodeModules,
-});
-
-try {
-  const { stdout, stderr, exitCode } = await mounted.exec(`
-    // ESM import of the real, host-mounted npm package.
-    import isNumber from "is-number";
-
-    // The same package also resolves through a CommonJS require.
-    import { createRequire } from "node:module";
-    const require = createRequire(import.meta.url);
-    const isNumberCjs = require("is-number");
-
-    const result = {
-      "isNumber(42)": isNumber(42),
-      'isNumber("3.14")': isNumber("3.14"),
-      'isNumber("nope")': isNumber("nope"),
-      sameModule: isNumber === isNumberCjs,
-    };
-
-    console.log("loaded real npm package is-number");
-    console.log(JSON.stringify(result));
-  `);
-
-  console.log("exitCode:", exitCode);
-  if (stderr.trim()) console.log("guest stderr:\n" + stderr.trim());
-  console.log("guest stdout:");
-  console.log(stdout.trim());
-} finally {
-  await mounted.dispose();
-}
-```
-
-*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/feat-module-loading)*
+<CodeSnippet file="examples/docs/feat-module-loading/src/index.mts" region="npm-packages" />
 
 ```
 exitCode: 0
@@ -132,7 +54,7 @@ When a guest filesystem contains `node_modules`, the resolver matches naive Node
 
 No package-manager-specific heuristics: pnpm/yarn layouts resolve because the VFS exposes their symlinks, not because the resolver special-cases them.
 
-<Aside type="caution">A `nodeModules` (or `mounts`) host mount confines reads to the mounted directory: symlinks are followed only while they stay **inside** the mount root. A single-project `npm`/`pnpm` install resolves fine because its symlinks (including the `.pnpm` store) live inside `node_modules`. A workspace/monorepo install is different: pnpm/yarn and `file:` deps symlink packages to the workspace root or an external store, **outside** the leaf `node_modules`. Those targets are not followed, and the guest import fails with `Cannot resolve module '<pkg>': not found`. Fix it by pointing the mount at a directory that contains every symlink target (for example the workspace root, mounted at the guest path the program resolves from) instead of the leaf `node_modules`.</Aside>
+<Warning>A `nodeModules` (or `mounts`) host mount confines reads to the mounted directory: symlinks are followed only while they stay **inside** the mount root. A single-project `npm`/`pnpm` install resolves fine because its symlinks (including the `.pnpm` store) live inside `node_modules`. A workspace/monorepo install is different: pnpm/yarn and `file:` deps symlink packages to the workspace root or an external store, **outside** the leaf `node_modules`. Those targets are not followed, and the guest import fails with `Cannot resolve module '<pkg>': not found`. Fix it by pointing the mount at a directory that contains every symlink target (for example the workspace root, mounted at the guest path the program resolves from) instead of the leaf `node_modules`.</Warning>
 
 ## Seeding files directly
 

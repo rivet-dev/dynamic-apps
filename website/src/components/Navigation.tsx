@@ -73,14 +73,14 @@ export function Navigation() {
               </div>
 
               <div className="hidden md:flex items-center ml-2">
-                <NavItem href="/docs">Docs</NavItem>
+                <NavItem href="/docs">Documentation</NavItem>
                 <NavItem href="https://github.com/rivet-dev/secure-exec/releases">Changelog</NavItem>
               </div>
             </div>
 
             {!showLogo && (
               <div className="hidden md:flex items-center mr-auto">
-                <NavItem href="/docs">Docs</NavItem>
+                <NavItem href="/docs">Documentation</NavItem>
                 <NavItem href="https://github.com/rivet-dev/secure-exec/releases">Changelog</NavItem>
               </div>
             )}
@@ -116,7 +116,7 @@ export function Navigation() {
               className="block py-2.5 px-3 text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors font-medium"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Docs
+              Documentation
             </a>
             <a
               href="https://github.com/rivet-dev/secure-exec/releases"

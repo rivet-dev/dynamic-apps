@@ -1,0 +1,120 @@
+{
+  "pages": {
+    "/docs/docs/architecture": {
+      "title": "Architecture",
+      "description": "A short overview of the Secure Exec architecture, with a link to the canonical agentOS architecture docs."
+    },
+    "/docs/docs/benchmarks": {
+      "title": "Benchmarks",
+      "description": "Cold start, warm execution, and reuse fast-path measurements for the Secure Exec SDK."
+    },
+    "/docs/docs/crash-course": {
+      "title": "Crash Course",
+      "description": "A fast tour of Secure Exec: install, run code, capture output, and the core SDK concepts."
+    },
+    "/docs/docs": {
+      "title": "Introduction",
+      "description": "'Secure Exec: a fully virtualized runtime for executing untrusted code with zero host escapes.'"
+    },
+    "/docs/docs/nodejs-compatibility": {
+      "title": "Node.js Compatibility",
+      "description": "Which node builtins guest code can import in Secure Exec, and how each one is backed."
+    },
+    "/docs/docs/quickstart": {
+      "title": "Quickstart",
+      "description": "Get Secure Exec running in a few minutes."
+    },
+    "/docs/docs/security-model": {
+      "title": "Security Model",
+      "description": "A short overview of Secure Exec isolation and trust, with a link to the canonical agentOS security model."
+    },
+    "/docs/docs/comparison/cloudflare-workers": {
+      "title": "Secure Exec vs Cloudflare Workers",
+      "description": "How Secure Exec and Cloudflare Workers differ in isolation model, permissions, networking, and Node.js compatibility."
+    },
+    "/docs/docs/comparison/isolated-vm": {
+      "title": "Secure Exec vs isolated-vm",
+      "description": "How Secure Exec and isolated-vm differ in isolation surface, security confinement, performance, and developer experience."
+    },
+    "/docs/docs/comparison/quickjs": {
+      "title": "Secure Exec vs QuickJS",
+      "description": "How Secure Exec and QuickJS differ in isolation model, performance, language coverage, and system surface."
+    },
+    "/docs/docs/comparison/sandbox": {
+      "title": "Secure Exec vs Container Sandbox",
+      "description": "When to use a container sandbox versus Secure Exec for running untrusted code."
+    },
+    "/docs/docs/features/bindings": {
+      "title": "Bindings",
+      "description": "Give sandboxed guest code a narrow, curated set of host-backed capabilities."
+    },
+    "/docs/docs/features/child-processes": {
+      "title": "Child Processes",
+      "description": "Spawn child processes from sandboxed code."
+    },
+    "/docs/docs/features/executing-code": {
+      "title": "Executing Code",
+      "description": "Run guest JavaScript with exec() and run(), and return values from the sandbox."
+    },
+    "/docs/docs/features/filesystem": {
+      "title": "Filesystem",
+      "description": "A short overview of the Secure Exec filesystem, with a link to the canonical agentOS filesystem docs."
+    },
+    "/docs/docs/features/module-loading": {
+      "title": "NPM & Module Loading",
+      "description": "How sandboxed code resolves and loads modules."
+    },
+    "/docs/docs/features/networking": {
+      "title": "Networking",
+      "description": "A short overview of Secure Exec networking, with a link to the canonical agentOS networking docs."
+    },
+    "/docs/docs/features/output-capture": {
+      "title": "Output Capture",
+      "description": "Capture console output from sandboxed code."
+    },
+    "/docs/docs/features/permissions": {
+      "title": "Permissions",
+      "description": "A short overview of Secure Exec permissions, with a link to the canonical agentOS permissions docs."
+    },
+    "/docs/docs/features/resident-runner": {
+      "title": "Resident Runner",
+      "description": "Reuse a live guest process for low-latency repeated execution."
+    },
+    "/docs/docs/features/resource-limits": {
+      "title": "Resource Limits",
+      "description": "Secure Exec resource limits, defaults, backpressure constants, and warning names."
+    },
+    "/docs/docs/features/runtime-platform": {
+      "title": "Runtime & Platform",
+      "description": "Customize the host environment guest code sees (the full Node.js surface today), plus the platform ladder (node, browser, neutral, bare) the kernel models."
+    },
+    "/docs/docs/features/typescript": {
+      "title": "TypeScript",
+      "description": "Compiling and type-checking TypeScript inside the sandbox."
+    },
+    "/docs/docs/sdks/rust": {
+      "title": "Rust SDK",
+      "description": "Install the Secure Exec Rust client and find its generated docs.rs reference."
+    },
+    "/docs/docs/sdks/typescript": {
+      "title": "TypeScript SDK",
+      "description": "Install the Secure Exec TypeScript SDK and find its generated API reference."
+    },
+    "/docs/docs/use-cases/ai-agent-code-exec": {
+      "title": "AI Agent Code Exec",
+      "description": "Give AI agents a secure code-execution tool that runs untrusted code in a sandbox and returns structured results."
+    },
+    "/docs/docs/use-cases/code-mode": {
+      "title": "Code Mode (MCP)",
+      "description": "Give AI agents a single code-execution tool instead of individual MCP tools. The LLM writes code that chains binding calls, executed safely in Secure Exec."
+    },
+    "/docs/docs/use-cases/dev-servers": {
+      "title": "Dev Servers",
+      "description": "Run user-provided server-style code (HTTP servers, request handlers) inside a secure isolate."
+    },
+    "/docs/docs/use-cases/plugin-systems": {
+      "title": "Plugin Systems",
+      "description": "Run user-authored plugins in isolation with explicit permissions."
+    }
+  }
+}

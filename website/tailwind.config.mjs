@@ -1,6 +1,15 @@
+import docsThemePreset from "@rivet-dev/docs-theme/tailwind-preset";
+
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+  // The docs-theme preset brings rivet's components base (semantic tokens like
+  // `foreground`/`card`/`muted`) that the theme's CSS @applies.
+  presets: [docsThemePreset],
+  content: [
+    "./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}",
+    "./node_modules/@rivet-dev/docs-theme/src/**/*.{astro,ts,tsx,jsx,js,mdx,md}",
+    "./node_modules/@rivet-gg/components/src/**/*.{ts,tsx}",
+  ],
   theme: {
     extend: {
       colors: {
@@ -20,7 +29,8 @@ export default {
       fontFamily: {
         sans: ["IBM Plex Sans", "Segoe UI", "system-ui", "sans-serif"],
         heading: ["IBM Plex Sans", "Segoe UI", "system-ui", "sans-serif"],
-        mono: ["IBM Plex Mono", "SFMono-Regular", "monospace"],
+        // Match rivet + the theme's code blocks: JetBrains Mono for all mono text.
+        mono: ['"JetBrains Mono"', "SFMono-Regular", "monospace"],
       },
       animation: {
         "fade-in-up": "fade-in-up 0.8s ease-out forwards",

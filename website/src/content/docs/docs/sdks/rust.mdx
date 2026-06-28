@@ -2,7 +2,6 @@
 title: Rust SDK
 description: Install the Secure Exec Rust client and find its generated docs.rs reference.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
 
 The `secure-exec-client` crate is the Rust SDK. It speaks the same sidecar wire protocol as the TypeScript client, so every capability reachable from `secure-exec` is also reachable from Rust through `SidecarProcess`.
 
@@ -23,8 +22,6 @@ secure-exec-client = "*"
 
 The full reference is generated with rustdoc and published to docs.rs. Use it as the source of truth for signatures and types.
 
-<LinkCard
-  title="secure-exec-client on docs.rs"
-  description="Generated rustdoc for the Rust client crate."
-  href="https://docs.rs/secure-exec-client"
-/>
+<Card title="secure-exec-client on docs.rs" href="https://docs.rs/secure-exec-client">
+  Generated rustdoc for the Rust client crate.
+</Card>

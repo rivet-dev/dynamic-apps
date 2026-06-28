@@ -2,7 +2,6 @@
 title: Secure Exec vs Cloudflare Workers
 description: How Secure Exec and Cloudflare Workers differ in isolation model, permissions, networking, and Node.js compatibility.
 ---
-import { Aside, LinkCard } from '@astrojs/starlight/components';
 
 Secure Exec and Cloudflare Workers both run untrusted JavaScript inside V8, but they solve different problems. Workers is a managed, multi-tenant edge platform: you deploy code and Cloudflare runs it for you across its network. Secure Exec is a library you embed in your own application to run guest code locally inside a fully virtualized VM that you control. This page focuses on how the two differ in isolation, permissions, networking, and Node.js surface.
 
@@ -28,11 +27,9 @@ Secure Exec isolates code statically, one boundary per runtime. Every `NodeRunti
 
 Within a single runtime, every `exec()` or `run()` call runs in a fresh guest process, so in-memory state from one run does not leak into the next.
 
-<LinkCard
-	title="Process Isolation"
-	description="How runtimes and runs are isolated, and how to choose granularity."
-	href="/docs/architecture"
-/>
+<Card title="Process Isolation" href="/docs/architecture">
+	How runtimes and runs are isolated, and how to choose granularity.
+</Card>
 
 The practical consequence: with Workers you trust Cloudflare's platform to keep tenants apart. With Secure Exec you get a hard, statically-defined boundary per runtime that you place yourself, which is well suited to running one tenant or one task per runtime and disposing it when finished.
 
@@ -54,7 +51,7 @@ const networked = await NodeRuntime.create({
 });
 ```
 
-<Aside type="note">The permission policy is merged over a secure default, so a partial policy like `{ network: "allow" }` works. See [Permissions](/docs/features/permissions) for rule-set syntax to gate individual scopes.</Aside>
+<Note>The permission policy is merged over a secure default, so a partial policy like `{ network: "allow" }` works. See [Permissions](/docs/features/permissions) for rule-set syntax to gate individual scopes.</Note>
 
 ## Networking
 
@@ -93,11 +90,9 @@ Secure Exec presents a virtualized POSIX environment. Guest code can use `node:c
 
 Cloudflare Workers has no subprocess model. There is no `child_process`, no process table, and no shell.
 
-<LinkCard
-	title="Child Processes"
-	description="Spawn kernel-managed processes from guest code, or drive a long-running guest program from the host."
-	href="/docs/features/child-processes"
-/>
+<Card title="Child Processes" href="/docs/features/child-processes">
+	Spawn kernel-managed processes from guest code, or drive a long-running guest program from the host.
+</Card>
 
 ## Node.js compatibility
 
@@ -106,7 +101,7 @@ Both runtimes aim to present Node.js semantics on top of V8, and both implement 
 - **Secure Exec** is backed by a real virtualized kernel, so capabilities that need an OS, a full filesystem, real child processes, sockets that listen, and a process table, are first-class. Pure-JS builtins are provided through `node-stdlib-browser`, and kernel-backed modules (such as `fs`, `net`, `child_process`, `dns`, `http`, `os`) are wired through the bridge to the kernel.
 - **Cloudflare Workers** provides Node.js compatibility through the `nodejs_compat` flag on top of `workerd`. Its filesystem is a limited in-memory surface, there is no subprocess support, and listening servers are replaced by the request/response handler model. In exchange it ships a comprehensive native `node:crypto` and Web Crypto surface and platform-native logging.
 
-<Aside type="note">Module support evolves on both sides. Treat the points above as the shape of the difference (kernel-backed POSIX vs managed edge isolate), not a frozen feature matrix. Verify a specific module against the current behavior of whichever runtime you target.</Aside>
+<Note>Module support evolves on both sides. Treat the points above as the shape of the difference (kernel-backed POSIX vs managed edge isolate), not a frozen feature matrix. Verify a specific module against the current behavior of whichever runtime you target.</Note>
 
 ## When to choose which
 
@@ -114,8 +109,6 @@ Choose **Cloudflare Workers** when you want a managed, globally distributed plat
 
 Choose **Secure Exec** when you need to run untrusted or AI-generated code inside your own application with a hard, self-placed isolation boundary, a real virtualized filesystem and process model, and a capability policy you control. One runtime per tenant or per task gives you a clean blast radius you can dispose on demand.
 
-<LinkCard
-	title="Process Isolation"
-	description="The isolation model in depth, plus how to pick isolation granularity."
-	href="/docs/architecture"
-/>
+<Card title="Process Isolation" href="/docs/architecture">
+	The isolation model in depth, plus how to pick isolation granularity.
+</Card>

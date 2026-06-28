@@ -3,15 +3,15 @@ title: "Code Mode (MCP)"
 description: "Give AI agents a single code-execution tool instead of individual MCP tools. The LLM writes code that chains binding calls, executed safely in Secure Exec."
 ---
 
-import { Aside, LinkCard } from '@astrojs/starlight/components';
-
-<LinkCard title="Example on GitHub" href="https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-code-mode" description="Full working example: the LLM chains real host binding calls in one sandboxed run and returns a structured result." />
+<Card title="Example on GitHub" href="https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-code-mode">
+  Full working example: the LLM chains real host binding calls in one sandboxed run and returns a structured result.
+</Card>
 
 Instead of calling MCP tools one at a time, Code Mode lets the LLM write JavaScript that orchestrates everything in one go, run safely in a V8 sandbox by Secure Exec.
 
-<Aside type="tip">
+<Tip>
   [MCP Toolkit](https://mcp-toolkit.nuxt.dev/advanced/code-mode) provides a premade Code Mode library powered by Secure Exec: `experimental_codeMode: true`. We recommend trying it first. The rest of this page covers how to implement Code Mode yourself.
-</Aside>
+</Tip>
 
 ## Why Code Mode
 
@@ -33,106 +33,19 @@ Host bindings are the heart of Code Mode. The handlers run on the host, never in
 
 Each binding has a `description`, a JSON Schema `inputSchema`, and a `handler`. The handler receives the parsed input and returns a JSON-serializable result.
 
-```ts
-import { NodeRuntime } from "secure-exec";
-
-function readStringField(input: unknown, field: string): string {
-  if (!input || typeof input !== "object" || Array.isArray(input)) {
-    throw new TypeError("binding input must be an object");
-  }
-
-  const value = (input as Record<string, unknown>)[field];
-  if (typeof value !== "string") {
-    throw new TypeError(`${field} must be a string`);
-  }
-  return value;
-}
-
-// Register the host bindings. These handlers run on the HOST, not in the sandbox.
-// In a real app each handler would hit a database, an API, or a service; here we
-// keep them small and deterministic so the example is easy to follow.
-const rt = await NodeRuntime.create({
-  bindings: {
-    "get-weather": {
-      description: "Look up the current temperature for a city",
-      inputSchema: {
-        type: "object",
-        properties: { city: { type: "string" } },
-        required: ["city"],
-      },
-      handler: (input) => {
-        const city = readStringField(input, "city");
-        const table: Record<string, { temp_f: number }> = {
-          "San Francisco": { temp_f: 61 },
-          Tokyo: { temp_f: 75 },
-        };
-        return table[city] ?? { temp_f: null };
-      },
-    },
-    calculate: {
-      description: "Evaluate a simple arithmetic expression",
-      inputSchema: {
-        type: "object",
-        properties: { expression: { type: "string" } },
-        required: ["expression"],
-      },
-      handler: (input) => {
-        const expression = readStringField(input, "expression");
-        return { result: Number(eval(expression)) };
-      },
-    },
-  },
-});
-```
+<CodeSnippet file="examples/docs/uc-code-mode/src/index.mts" region="bindings" />
 
 ## The agent's generated code
 
 The agent then generates code like this (call it `llmGeneratedCode`). The guest calls each binding with the `callBinding(name, input)` global, which resolves with the host handler's return value. It chains three binding calls with real control flow (`Promise.all`, arithmetic, branching) in one execution, then returns a single structured result:
 
-```ts
-// Imagine this string was written by the LLM. It chains three host binding calls
-// with real control flow (Promise.all, arithmetic, branching) in one execution,
-// then hands a single structured result back to the host. callBinding resolves
-// with the host handler's return value.
-const llmGeneratedCode = `
-const [sf, tokyo] = await Promise.all([
-  callBinding("get-weather", { city: "San Francisco" }),
-  callBinding("get-weather", { city: "Tokyo" }),
-]);
-
-const diffF = Math.abs(sf.temp_f - tokyo.temp_f);
-const diffC = await callBinding("calculate", { expression: \`\${diffF} * 5 / 9\` });
-
-console.log("chained 3 binding calls in one sandbox execution");
-
-globalThis.__return({
-  san_francisco: sf,
-  tokyo: tokyo,
-  difference: { fahrenheit: diffF, celsius: diffC.result },
-  warmer: sf.temp_f > tokyo.temp_f ? "San Francisco" : "Tokyo",
-});
-`;
-```
+<CodeSnippet file="examples/docs/uc-code-mode/src/index.mts" region="generated-code" />
 
 ## Run it and read the result
 
 Run the LLM's code in one sandboxed pass and read back the structured result:
 
-```ts
-try {
-  // rt.run() executes the guest code and decodes whatever it passes to
-  // globalThis.__return(), while still capturing stdout/stderr/exitCode.
-  const result = await rt.run(llmGeneratedCode, { timeout: 5000 });
-
-  console.log("exitCode:", result.exitCode);
-  console.log("stdout:", result.stdout.trim());
-  console.log("structured result:", JSON.stringify(result.value, null, 2));
-} finally {
-  await rt.dispose();
-}
-```
-
-*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-code-mode)*
+<CodeSnippet file="examples/docs/uc-code-mode/src/index.mts" region="run" />
 
 Three tool calls, one sandbox execution, zero extra LLM round-trips. Running it prints:
 

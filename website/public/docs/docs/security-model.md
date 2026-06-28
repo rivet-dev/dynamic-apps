@@ -1,0 +1,14 @@
+# Security Model
+
+A short overview of Secure Exec isolation and trust, with a link to the canonical agentOS security model.
+
+Secure Exec runs guest code inside a fully virtualized VM so untrusted code stays contained. At a glance:
+
+- **V8 isolate boundary**: Guest JavaScript runs in a V8 isolate inside the kernel. It never spawns a real host process, touches the real host filesystem, or opens a real host socket.
+- **Sidecar enforces**: A trusted sidecar owns the kernel, VFS, socket table, and permission policy. Every guest syscall is mediated and checked there, not on the host.
+- **Executor is untrusted**: The code you submit for execution is treated as actively hostile. How it reached the executor never makes it trusted.
+- **Secure defaults**: The network is deny-by-default; filesystem, child processes, process info, and env are enabled so normal programs run. Resource and timing limits bound runaway or hostile code.
+
+## Full reference
+
+The canonical threat model, trust boundaries, and detailed enforcement guarantees are owned by agentOS.

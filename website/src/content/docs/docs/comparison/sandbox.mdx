@@ -2,7 +2,6 @@
 title: Secure Exec vs Container Sandbox
 description: When to use a container sandbox versus Secure Exec for running untrusted code.
 ---
-import { Aside } from '@astrojs/starlight/components';
 
 Secure Exec and container sandboxes both run untrusted code in isolation, but they sit at different points on the weight-versus-flexibility curve. Picking the right one depends on what you need to run.
 
@@ -58,11 +57,11 @@ These capabilities are the reason to reach for Secure Exec over a container when
 - You need a **persistent, long-lived** environment such as a multi-hour dev session.
 - The workload genuinely needs a real kernel and a real disk.
 
-<Aside type="note">
+<Note>
 **Need a full sandboxed operating system?**
 
 If your workload needs complete sandbox environments (for example, running coding agents like Claude Code, Codex, or Amp), the [Sandbox Agent SDK](https://sandboxagent.dev/) provides a unified interface for driving agents inside sandboxes.
-</Aside>
+</Note>
 
 ## A minimal example
 

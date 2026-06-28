@@ -2,11 +2,10 @@
 title: Benchmarks
 description: Cold start, warm execution, and reuse fast-path measurements for the Secure Exec SDK.
 ---
-import { Aside } from '@astrojs/starlight/components';
 
 These numbers measure the public `secure-exec` SDK paths that consumers actually use. The cold start matrix (`packages/benchmarks/coldstart.bench.ts`) times the full journey from booting a runtime to running guest code, and compares three ways of provisioning a runtime against how much you can reuse.
 
-<Aside type="note">Numbers below are a full run from June 19, 2026 on the hardware listed under [Methodology](#methodology). They are indicative at this sample count (5 iterations + 1 warmup), not statistically tight. Reproduce them with the commands in [Running the benchmarks](#running-the-benchmarks).</Aside>
+<Note>Numbers below are a full run from June 19, 2026 on the hardware listed under [Methodology](#methodology). They are indicative at this sample count (5 iterations + 1 warmup), not statistically tight. Reproduce them with the commands in [Running the benchmarks](#running-the-benchmarks).</Note>
 
 ## Scenarios
 

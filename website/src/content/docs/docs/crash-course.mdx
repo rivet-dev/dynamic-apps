@@ -3,8 +3,6 @@ title: Crash Course
 description: "A fast tour of Secure Exec: install, run code, capture output, and the core SDK concepts."
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components';
-
 This is a fast, guided walk through the essentials: install the SDK, boot a
 runtime, run guest code, and capture its output. By the end you will understand
 the core loop and know where to go for more.
@@ -17,26 +15,39 @@ For exact signatures and option shapes, see the
 ## Install
 
 <Tabs>
-  <TabItem label="npm">
-  ```bash
-  npm install secure-exec
-  ```
-  </TabItem>
-  <TabItem label="bun">
-  ```bash
-  bun add secure-exec
-  ```
-  </TabItem>
-  <TabItem label="pnpm">
-  ```bash
-  pnpm add secure-exec
-  ```
-  </TabItem>
-  <TabItem label="yarn">
-  ```bash
-  yarn add secure-exec
-  ```
-  </TabItem>
+
+<Tab title="npm">
+
+```bash
+npm install secure-exec
+```
+
+</Tab>
+
+<Tab title="bun">
+
+```bash
+bun add secure-exec
+```
+
+</Tab>
+
+<Tab title="pnpm">
+
+```bash
+pnpm add secure-exec
+```
+
+</Tab>
+
+<Tab title="yarn">
+
+```bash
+yarn add secure-exec
+```
+
+</Tab>
+
 </Tabs>
 
 ## Your first run

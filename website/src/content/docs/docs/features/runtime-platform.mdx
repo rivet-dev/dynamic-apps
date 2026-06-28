@@ -2,7 +2,6 @@
 title: Runtime & Platform
 description: Customize the host environment guest code sees (the full Node.js surface today), plus the platform ladder (node, browser, neutral, bare) the kernel models.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
 
 `NodeRuntime.create()` shapes the host environment guest code sees before it
 boots, and the kernel models that environment as a ladder of platforms (`node`,
@@ -14,42 +13,7 @@ This page covers the customization surface: seeding and selecting the host
 environment, then the `moduleResolution` and `allowedBuiltins` knobs the wire
 config exposes. Start by probing the default `node` surface:
 
-```ts
-import { NodeRuntime } from "secure-exec";
-
-const rt = await NodeRuntime.create();
-
-try {
-	const probe = await rt.run<{
-		platform: string;
-		hasProcess: boolean;
-		hasBuffer: boolean;
-		nodeVersion: string;
-		sha256: string;
-		joinedPath: string;
-	}>(`
-		const { createHash } = await import("node:crypto");
-		const { join } = await import("node:path");
-
-		const sha256 = createHash("sha256").update("secure-exec").digest("hex");
-
-		globalThis.__return({
-			platform: typeof process !== "undefined" ? process.platform : "(no process)",
-			hasProcess: typeof process !== "undefined",
-			hasBuffer: typeof Buffer !== "undefined",
-			nodeVersion: typeof process !== "undefined" ? process.versions.node : "(none)",
-			sha256,
-			joinedPath: join("/home/agentos", "report.txt"),
-		});
-	`);
-
-	console.log(probe.value);
-} finally {
-	await rt.dispose();
-}
-```
-
-*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/feat-runtime-platform)*
+<CodeSnippet file="examples/docs/feat-runtime-platform/src/index.mts" />
 
 Output, the guest host environment as seen from inside the isolate:
 
@@ -64,13 +28,14 @@ Output, the guest host environment as seen from inside the isolate:
 }
 ```
 
-:::note[Guest `run()` and `exec()` code both run as ES modules]
-Both `rt.run()` and `rt.exec()` write your code into an `.mjs` module, so
-top-level `import` and top-level `await` work in either. `run()` injects a
-`globalThis.__return(value)` helper you call to hand a JSON-serializable value
-back to the host (delivered as `result.value`); the example uses dynamic
-`await import("node:…")` purely to keep the snippet a single expression body.
-:::
+<Note>
+**Guest `run()` and `exec()` code both run as ES modules.** Both `rt.run()` and
+`rt.exec()` write your code into an `.mjs` module, so top-level `import` and
+top-level `await` work in either. `run()` injects a `globalThis.__return(value)`
+helper you call to hand a JSON-serializable value back to the host (delivered as
+`result.value`); the example uses dynamic `await import("node:…")` purely to keep
+the snippet a single expression body.
+</Note>
 
 ## Host environment (the `node` surface)
 
@@ -148,11 +113,9 @@ For the full set of run methods (`exec`/`run`/`spawn`/`fetch`/`waitForListener`)
 and their per-run options (`env`, `cwd`, `stdin`, `timeout`, `signal`,
 `onStdout`/`onStderr`), see the TypeScript SDK reference:
 
-<LinkCard
-	title="NodeRuntime run methods and options"
-	description="Full signatures for exec/run/spawn/fetch/waitForListener and the shared per-run options."
-	href="/docs/sdks/typescript"
-/>
+<Card title="NodeRuntime run methods and options" href="/docs/sdks/typescript">
+Full signatures for exec/run/spawn/fetch/waitForListener and the shared per-run options.
+</Card>
 
 ## The platform ladder
 
@@ -179,16 +142,16 @@ in Secure Exec** (see the note below).
 `WebAssembly` stays available on **every tier**, including `bare`. Compilation
 happens inside the isolate and is not a host escape.
 
-:::caution[Platform selection is not configurable in Secure Exec yet]
-The kernel's wire protocol carries a `jsRuntime` config with `platform`,
-`moduleResolution`, and `allowedBuiltins` fields. The tiers are
-real in the kernel, but `NodeRuntime.create()` does **not** plumb those fields
-through: it always boots the VM on the `node` platform with full Node module
-resolution. There is no `NodeRuntime.create()` option to select
-`browser`/`neutral`/`bare`, change module resolution, or restrict the builtin
-allow-list today. The sections below document the intended model for those fields,
-not a `create()` option you can pass.
-:::
+<Warning>
+**Platform selection is not configurable in Secure Exec yet.** The kernel's wire
+protocol carries a `jsRuntime` config with `platform`, `moduleResolution`, and
+`allowedBuiltins` fields. The tiers are real in the kernel, but
+`NodeRuntime.create()` does **not** plumb those fields through: it always boots
+the VM on the `node` platform with full Node module resolution. There is no
+`NodeRuntime.create()` option to select `browser`/`neutral`/`bare`, change module
+resolution, or restrict the builtin allow-list today. The sections below document
+the intended model for those fields, not a `create()` option you can pass.
+</Warning>
 
 ## `moduleResolution`: how imports resolve
 
@@ -246,8 +209,6 @@ subpaths), while `import("node:child_process")` is rejected. Omitting
 platforms deny all `node:*` builtins regardless, and unknown builtin names are
 rejected.
 
-<LinkCard
-	title="CreateVmConfig.jsRuntime full shape"
-	description="The complete jsRuntime config (platform, moduleResolution, allowedBuiltins) and the rest of CreateVmConfig."
-	href="/docs/sdks/typescript"
-/>
+<Card title="CreateVmConfig.jsRuntime full shape" href="/docs/sdks/typescript">
+The complete jsRuntime config (platform, moduleResolution, allowedBuiltins) and the rest of CreateVmConfig.
+</Card>

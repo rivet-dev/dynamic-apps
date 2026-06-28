@@ -2,7 +2,6 @@
 title: Security Model
 description: A short overview of Secure Exec isolation and trust, with a link to the canonical agentOS security model.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
 
 Secure Exec runs guest code inside a fully virtualized VM so untrusted code stays contained. At a glance:
 
@@ -15,8 +14,6 @@ Secure Exec runs guest code inside a fully virtualized VM so untrusted code stay
 
 The canonical threat model, trust boundaries, and detailed enforcement guarantees are owned by agentOS.
 
-<LinkCard
-  title="agentOS: Security Model"
-  href="https://agentos-sdk.dev/docs/security-model"
-  description="The complete trust model, threat model, and enforcement details."
-/>
+<Card title="agentOS: Security Model" href="https://agentos-sdk.dev/docs/security-model">
+  The complete trust model, threat model, and enforcement details.
+</Card>

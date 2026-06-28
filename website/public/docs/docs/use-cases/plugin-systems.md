@@ -1,0 +1,63 @@
+# Plugin Systems
+
+Run user-authored plugins in isolation with explicit permissions.
+
+Let users upload scripts or extensions without risking your host. The host controls what plugin code runs, what capabilities are available, and what structured data comes back.
+
+## Run a plugin in isolation
+
+The host owns the plugin source and the input. Run the plugin with `run()` inside a sandboxed VM and get a structured value back: the guest calls `globalThis.__return(value)` with any JSON-serializable value, and that value is decoded on the host as `result.value`.
+
+The plugin below gets filesystem access but no network access. The guest proves it cannot reach the network, then transforms the host-supplied input.
+
+The plugin executes inside the kernel isolation boundary with only the capabilities you granted (network access is denied here), and the host gets back structured data via `__return()` rather than direct access to plugin internals.
+
+You can combine this with [TypeScript](/docs/features/typescript) to type-check uploaded plugin code before enabling it.
+
+## Let plugins call curated host tools
+
+Denying a capability outright is one option, but most plugin systems need the opposite: the plugin must reach a few host capabilities, just not the raw underlying access. The canonical pattern is host tools. You register a narrow set of named tools whose handlers run on the host, and the untrusted plugin invokes them by name. The plugin never gets the database connection, the secret, or the network socket behind the tool; it only gets the curated surface you chose to expose.
+
+Register host tools with the `tools` option on `create()` (or add them to a live runtime with `rt.registerTools()`). Each tool becomes a named command inside the VM, and the plugin invokes it with the `callHostTool(name, input)` global, which resolves with the host handler's return value.
+
+```ts Host Tools
+import { NodeRuntime } from "secure-exec";
+
+// Register curated host tools. Their handlers run on the host, so the plugin
+// reaches these capabilities only through the tool surface you expose - never
+// the underlying database, secrets, or network behind them.
+const runtime = await NodeRuntime.create({
+  tools: {
+    lookupUser: {
+      description: "Look up a user by id",
+      inputSchema: {
+        type: "object",
+        properties: { id: { type: "string" } },
+        required: ["id"],
+      },
+      // Runs on the host. In a real system this would hit your database.
+      handler: ({ id }: { id: string }) => ({
+        id,
+        name: id === "u_1" ? "Ada Lovelace" : "Unknown",
+      }),
+    },
+  },
+});
+
+try {
+  // The untrusted plugin reaches the host capability only through callHostTool,
+  // which resolves with the handler's return value.
+  const { value } = await runtime.run<{ id: string; name: string }>(`
+    const user = await callHostTool("lookupUser", { id: "u_1" });
+    __return(user);
+  `);
+
+  console.log("looked-up user:", value?.name);
+} finally {
+  await runtime.dispose();
+}
+```
+
+This is safe because the plugin reaches host capability only through the curated tool surface, never the underlying access behind it. The `tool` permission scope gates invocation: when you pass `tools` and set no `tool` policy, the scope is granted so the registered tools are invocable, but you can supply your own `permissions.tool` policy to gate individual tools.
+
+See [Bindings](/docs/features/bindings) for the full guide, including input schemas, command aliases, and worked examples.

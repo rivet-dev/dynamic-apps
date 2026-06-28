@@ -2,7 +2,6 @@
 title: Resource Limits
 description: Secure Exec resource limits, defaults, backpressure constants, and warning names.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
 
 Secure Exec bounds each VM with per-VM resource caps so untrusted guest code can never exhaust the host. At a glance:
 
@@ -256,8 +255,8 @@ CPU budgets therefore emit both the ~80% approach warning *and* a terminal exhau
 
 agentOS layers its own session and adapter limits on top of Secure Exec.
 
-<LinkCard
-  title="agentOS: Resource Limits"
-  href="https://agentos-sdk.dev/docs/resource-limits"
-  description="The complete set of per-VM resource limits, defaults, and configuration options."
-/>
+<CardGroup>
+  <Card title="agentOS: Resource Limits" href="https://agentos-sdk.dev/docs/resource-limits">
+    The complete set of per-VM resource limits, defaults, and configuration options.
+  </Card>
+</CardGroup>

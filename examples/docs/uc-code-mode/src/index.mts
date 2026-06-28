@@ -1,3 +1,4 @@
+// docs:start bindings
 import { NodeRuntime } from "secure-exec";
 
 function readStringField(input: unknown, field: string): string {
@@ -58,7 +59,9 @@ const rt = await NodeRuntime.create({
     },
   },
 });
+// docs:end bindings
 
+// docs:start generated-code
 // Imagine this string was written by the LLM. It chains three host binding calls
 // with real control flow (Promise.all, arithmetic, branching) in one execution,
 // then hands a single structured result back to the host. callBinding resolves
@@ -81,7 +84,9 @@ globalThis.__return({
   warmer: sf.temp_f > tokyo.temp_f ? "San Francisco" : "Tokyo",
 });
 `;
+// docs:end generated-code
 
+// docs:start run
 interface CodeModeResult {
   san_francisco: { temp_f: number };
   tokyo: { temp_f: number };
@@ -102,3 +107,4 @@ try {
 } finally {
   await rt.dispose();
 }
+// docs:end run

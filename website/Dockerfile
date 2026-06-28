@@ -6,24 +6,34 @@
 # (@rivet-dev/docs-theme) is fetched from GitHub during install.
 FROM node:22-alpine AS build
 WORKDIR /app
-# git is required for pnpm to resolve the github: docs-theme dependency.
 RUN apk add --no-cache git && npm install -g pnpm@9
 
-# Install deps first (cache layer) — from the website package, not the monorepo root.
-COPY website/package.json ./
-RUN pnpm install
+# Clone + build the shared docs theme at a pinned sha + generate the vendored
+# @rivet-gg/icons dist. The icons generate needs a FontAwesome Pro token (set it
+# as a Railway build variable; passed via --build-arg locally). It is only used
+# in this discarded build stage — the final caddy image never contains it.
+ARG DOCS_THEME_SHA=450c498555135098c6a927adfdf13458be9be22a
+ARG FONTAWESOME_PACKAGE_TOKEN
+RUN export FONTAWESOME_PACKAGE_TOKEN="$FONTAWESOME_PACKAGE_TOKEN" \
+ && git clone https://github.com/rivet-dev/docs-theme.git /theme \
+ && git -C /theme checkout "$DOCS_THEME_SHA" \
+ && pnpm -C /theme install \
+ && pnpm -C /theme/packages/theme/vendor/icons run gen:manifest \
+ && pnpm -C /theme/packages/theme/vendor/icons run gen:vendor \
+ && pnpm -C /theme/packages/theme build
 
-# Copy the site source.
+# Copy the site source + the SDK source the typedoc step reads from ../packages
+# + the examples the <CodeSnippet> embeds read from /examples.
 COPY website/ ./
-
-# The docs:gen:ts (typedoc) step in the build reads the SDK source from
-# ../packages, which lives outside website/. Bring just that package's source
-# into the image at the path typedoc.json points at (../packages/core), plus the
-# root tsconfig that package's tsconfig extends.
 COPY packages/core /packages/core
 COPY tsconfig.base.json /tsconfig.base.json
+COPY examples /examples
 
-RUN pnpm build
+# Point the theme deps at the clone (committed deps are local for dev) and drop
+# any injected meta, then install + build.
+RUN node -e "const fs=require('fs'),p=require('./package.json'),d=p.dependencies;d['@rivet-dev/docs-theme']='file:/theme/packages/theme';d['@rivet-gg/components']='file:/theme/packages/theme/vendor/components';d['@rivet-gg/icons']='file:/theme/packages/theme/vendor/icons';delete p.dependenciesMeta;fs.writeFileSync('./package.json',JSON.stringify(p,null,2))" \
+ && pnpm install \
+ && pnpm build
 
 # Serve the static output. This is a static multi-page site (Astro/Starlight
 # emits <path>/index.html), NOT an SPA — so resolve each page's index.html and

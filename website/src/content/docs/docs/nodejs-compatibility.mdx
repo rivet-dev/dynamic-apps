@@ -2,7 +2,6 @@
 title: Node.js Compatibility
 description: Which node builtins guest code can import in Secure Exec, and how each one is backed.
 ---
-import { Aside } from '@astrojs/starlight/components';
 
 Guest code in Secure Exec runs as Node.js. It never touches the host runtime: every guest `import`/`require` of a `node:` builtin resolves to a kernel-backed bridge or an in-isolate polyfill, never the real host module. This page describes which builtins are available and how each one is implemented.
 
@@ -18,7 +17,7 @@ There are three ways a builtin is provided to guest code:
 
 The canonical inventory lives in `crates/execution/assets/polyfill-registry.json`.
 
-<Aside type="note">A guest never falls through to a real host builtin. Anything not bridged or polyfilled is denied, so there is no path where guest code reaches the host runtime.</Aside>
+<Note>A guest never falls through to a real host builtin. Anything not bridged or polyfilled is denied, so there is no path where guest code reaches the host runtime.</Note>
 
 ## Bridge-backed builtins
 
@@ -86,7 +85,7 @@ WebAssembly is enabled inside the isolate (`WebAssembly.Module`, `WebAssembly.In
 
 The builtin surface can be narrowed through the [platform / `allowedBuiltins` config](/docs/features/runtime-platform); anything excluded becomes a denied builtin (`ERR_ACCESS_DENIED`).
 
-<Aside type="caution">This config (`CreateVmConfig.jsRuntime`) rides the wire `CreateVmConfig` and is not currently exposed through `NodeRuntime.create()`. See [Runtime Platform](/docs/features/runtime-platform) for the platform ladder and [TypeScript SDK](/docs/sdks/typescript) for the config shape.</Aside>
+<Warning>This config (`CreateVmConfig.jsRuntime`) rides the wire `CreateVmConfig` and is not currently exposed through `NodeRuntime.create()`. See [Runtime Platform](/docs/features/runtime-platform) for the platform ladder and [TypeScript SDK](/docs/sdks/typescript) for the config shape.</Warning>
 
 ## Logging behavior
 

@@ -2,7 +2,6 @@
 title: Secure Exec vs isolated-vm
 description: How Secure Exec and isolated-vm differ in isolation surface, security confinement, performance, and developer experience.
 ---
-import { Aside, LinkCard } from '@astrojs/starlight/components';
 
 Both Secure Exec and isolated-vm run untrusted JavaScript inside V8 isolates, but they operate at different layers. isolated-vm is a low-level npm library that exposes a bare V8 isolate with manual value marshaling and no system surface. Secure Exec wraps V8 isolates in a full virtualized kernel: a POSIX-like VFS, process table, socket table, permission policy, and resource limits. This page focuses on the security and performance characteristics of that core runtime layer.
 
@@ -36,7 +35,7 @@ A bare V8 isolate confines memory and CPU, but it confines nothing else, because
 - **What Secure Exec confines**: in addition to memory and time, it enforces a deny-by-default capability policy over filesystem, network, child-process, process, and env scopes. A denied operation fails with `EACCES`.
 - **Egress control**: guest `fetch()`, `node:http`, and raw sockets flow through the kernel socket table, so outbound traffic can be allowed, denied, or rule-matched. With isolated-vm there is no networking until you build it, and once built it is not policed.
 
-<Aside type="note">With isolated-vm, a mistake in your marshaling layer (handing the guest a live host `Reference`, or an injected function that does unchecked I/O) is a sandbox escape. Secure Exec moves that boundary into a kernel so the surface the guest sees is virtualized rather than hand-wired per project.</Aside>
+<Note>With isolated-vm, a mistake in your marshaling layer (handing the guest a live host `Reference`, or an injected function that does unchecked I/O) is a sandbox escape. Secure Exec moves that boundary into a kernel so the surface the guest sees is virtualized rather than hand-wired per project.</Note>
 
 ```ts
 import { NodeRuntime } from "secure-exec";
@@ -50,11 +49,9 @@ const networked = await NodeRuntime.create({
 });
 ```
 
-<LinkCard
-	title="Permissions"
-	description="The deny-by-default capability policy and per-scope rule sets."
-	href="/docs/features/permissions"
-/>
+<Card title="Permissions" href="/docs/features/permissions">
+	The deny-by-default capability policy and per-scope rule sets.
+</Card>
 
 ## Performance
 
@@ -94,8 +91,6 @@ try {
 | **isolated-vm** | You want a minimal V8 isolate primitive and intend to design and own the entire sandbox surface, capability injection, and enforcement yourself. |
 | **Secure Exec** | You want to run untrusted or AI-generated code with a virtualized filesystem, process model, and networking, plus a deny-by-default permission policy and resource limits, without hand-building the sandbox. |
 
-<LinkCard
-	title="Process Isolation"
-	description="The isolation model in depth, plus how to pick isolation granularity."
-	href="/docs/architecture"
-/>
+<Card title="Process Isolation" href="/docs/architecture">
+	The isolation model in depth, plus how to pick isolation granularity.
+</Card>

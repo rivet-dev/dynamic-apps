@@ -2,7 +2,6 @@
 title: Executing Code
 description: Run guest JavaScript with exec() and run(), and return values from the sandbox.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
 
 `exec()` and `run()` are the two ways to run guest code to completion. The code
 runs inside the VM as a standard ES module, so top-level `import` and top-level
@@ -64,8 +63,20 @@ result shapes, see the [TypeScript SDK reference](/docs/sdks/typescript).
 
 ## Related
 
-<LinkCard title="Output Capture" href="/docs/features/output-capture" description="The result shape and streaming stdout/stderr as it is produced." />
-<LinkCard title="Resident Runner" href="/docs/features/resident-runner" description="Reuse a live guest process for low-latency repeated execution." />
-<LinkCard title="Child Processes" href="/docs/features/child-processes" description="spawn() long-running guests and the guest child_process surface." />
-<LinkCard title="Resource Limits" href="/docs/features/resource-limits" description="Bound a run with timeout, AbortSignal, and the VM's limits." />
-<LinkCard title="Bindings" href="/docs/features/bindings" description="Register host-side tools the guest invokes by name." />
+<CardGroup>
+  <Card title="Output Capture" href="/docs/features/output-capture">
+    The result shape and streaming stdout/stderr as it is produced.
+  </Card>
+  <Card title="Resident Runner" href="/docs/features/resident-runner">
+    Reuse a live guest process for low-latency repeated execution.
+  </Card>
+  <Card title="Child Processes" href="/docs/features/child-processes">
+    spawn() long-running guests and the guest child_process surface.
+  </Card>
+  <Card title="Resource Limits" href="/docs/features/resource-limits">
+    Bound a run with timeout, AbortSignal, and the VM's limits.
+  </Card>
+  <Card title="Bindings" href="/docs/features/bindings">
+    Register host-side tools the guest invokes by name.
+  </Card>
+</CardGroup>

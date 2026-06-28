@@ -3,33 +3,27 @@ title: Quickstart
 description: Get Secure Exec running in a few minutes.
 ---
 
-import { Tabs, TabItem, Steps, CardGrid, LinkCard } from '@astrojs/starlight/components';
-
 <Steps>
+
 1. **Install**
 
-   <Tabs>
-     <TabItem label="npm">
-     ```bash
-     npm install secure-exec
-     ```
-     </TabItem>
-     <TabItem label="bun">
-     ```bash
-     bun add secure-exec
-     ```
-     </TabItem>
-     <TabItem label="pnpm">
-     ```bash
-     pnpm add secure-exec
-     ```
-     </TabItem>
-     <TabItem label="yarn">
-     ```bash
-     yarn add secure-exec
-     ```
-     </TabItem>
-   </Tabs>
+   <CodeGroup>
+   ```bash title="npm"
+   npm install secure-exec
+   ```
+
+   ```bash title="bun"
+   bun add secure-exec
+   ```
+
+   ```bash title="pnpm"
+   pnpm add secure-exec
+   ```
+
+   ```bash title="yarn"
+   yarn add secure-exec
+   ```
+   </CodeGroup>
 
 2. **Create a runtime**
 
@@ -45,55 +39,29 @@ import { Tabs, TabItem, Steps, CardGrid, LinkCard } from '@astrojs/starlight/com
 
    Use `run()` when you want a JSON value back; the guest calls `globalThis.__return(value)` to set it. Use `exec()` when you care about side effects and want to capture `stdout`/`stderr`/`exitCode`. Guest code runs as an ES module, so `import` and top-level `await` both work.
 
-   <Tabs>
-     <TabItem label="Return a value">
-     ```ts
-     import { NodeRuntime } from "secure-exec";
+   <CodeGroup>
+   <CodeSnippet file="examples/docs/quickstart/src/index.mts" title="Return a value" />
 
-     // Boot a fully virtualized runtime. Guest code runs inside the kernel
-     // isolation boundary - no host escapes.
-     const runtime = await NodeRuntime.create();
+   ```ts title="Capture output"
+   import { NodeRuntime } from "secure-exec";
 
-     try {
-       // run() executes guest JavaScript as an ES module and returns the value the
-       // guest passes to globalThis.__return(). stdout/stderr are captured too.
-       const result = await runtime.run<{ message: string; sum: number }>(`
-         console.log("hello from secure-exec");
-         __return({ message: "hello from secure-exec", sum: 1 + 2 });
-       `);
+   const runtime = await NodeRuntime.create();
 
-       console.log("stdout:", JSON.stringify(result.stdout.trim()));
-       console.log("value:", result.value);
-       console.log("exitCode:", result.exitCode);
-     } finally {
-       // Tear down the VM and release the sidecar.
-       await runtime.dispose();
-     }
-     ```
-     </TabItem>
+   try {
+     // exec() runs guest code for its side effects and captures the streams.
+     const result = await runtime.exec(`
+       console.log("hello from secure-exec");
+       console.error("this goes to stderr");
+     `);
 
-     <TabItem label="Capture output">
-     ```ts
-     import { NodeRuntime } from "secure-exec";
-
-     const runtime = await NodeRuntime.create();
-
-     try {
-       // exec() runs guest code for its side effects and captures the streams.
-       const result = await runtime.exec(`
-         console.log("hello from secure-exec");
-         console.error("this goes to stderr");
-       `);
-
-       console.log("stdout:", JSON.stringify(result.stdout.trim()));
-       console.log("stderr:", JSON.stringify(result.stderr.trim()));
-       console.log("exitCode:", result.exitCode);
-     } finally {
-       await runtime.dispose();
-     }
-     ```
-     </TabItem>
-   </Tabs>
+     console.log("stdout:", JSON.stringify(result.stdout.trim()));
+     console.log("stderr:", JSON.stringify(result.stderr.trim()));
+     console.log("exitCode:", result.exitCode);
+   } finally {
+     await runtime.dispose();
+   }
+   ```
+   </CodeGroup>
 
    *[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/quickstart)*
 
@@ -108,11 +76,16 @@ import { Tabs, TabItem, Steps, CardGrid, LinkCard } from '@astrojs/starlight/com
    ```
 
    See [Permissions](/docs/features/permissions) for the full scope list and merge semantics.
+
 </Steps>
 
 ## Next steps
 
-<CardGrid>
-  <LinkCard title="Crash Course" href="/docs/crash-course" description="A fast tour of the essential SDK API and core concepts." />
-  <LinkCard title="Permissions" href="/docs/features/permissions" description="Control filesystem, network, and process access." />
-</CardGrid>
+<CardGroup>
+  <Card title="Crash Course" href="/docs/crash-course">
+    A fast tour of the essential SDK API and core concepts.
+  </Card>
+  <Card title="Permissions" href="/docs/features/permissions">
+    Control filesystem, network, and process access.
+  </Card>
+</CardGroup>

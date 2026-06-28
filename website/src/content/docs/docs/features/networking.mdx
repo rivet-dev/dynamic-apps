@@ -2,7 +2,6 @@
 title: Networking
 description: A short overview of Secure Exec networking, with a link to the canonical agentOS networking docs.
 ---
-import { LinkCard } from '@astrojs/starlight/components';
 
 Secure Exec virtualizes all VM networking so guest code never touches the real host network. At a glance:
 
@@ -15,8 +14,6 @@ Secure Exec virtualizes all VM networking so guest code never touches the real h
 
 The canonical networking API, permission rules, and egress details are owned by agentOS.
 
-<LinkCard
-  title="agentOS: Networking"
-  href="https://agentos-sdk.dev/docs/networking"
-  description="The complete networking API, permission rules, and egress configuration."
-/>
+<Card title="agentOS: Networking" href="https://agentos-sdk.dev/docs/networking">
+  The complete networking API, permission rules, and egress configuration.
+</Card>

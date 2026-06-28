@@ -1,0 +1,67 @@
+# NPM & Module Loading
+
+How sandboxed code resolves and loads modules.
+
+Guest `import` and `require` resolve against the VM's virtual filesystem, never the host module loader. Resolution runs entirely inside the kernel. By default the guest sees an empty `node_modules`; project host packages into the VM with `nodeModules` (or `mounts`) to run real npm packages (including the TypeScript compiler) in-sandbox.
+
+## Loading Modules
+
+- Guest source runs as a standard ES module: `import`, `import.meta.url`, and top-level `await` all work.
+- Build a CommonJS `require` with `createRequire(import.meta.url)`.
+- Both paths resolve through the kernel's module loader.
+
+```
+exitCode: 0
+guest stdout:
+resolved node:path via import -> /workspace/data/report.txt
+resolved node:os via require -> linux
+{"basename":"report.txt","joined":"/workspace/data/report.txt","platform":"linux"}
+```
+
+<Note>Resolution runs inside the kernel against the guest's virtual filesystem. The guest only sees what is present there; mounting host `node_modules` (below) makes those packages part of that filesystem so they resolve like any other guest module.</Note>
+
+## Loading real npm packages
+
+Put package bytes on the guest filesystem, then let the in-kernel resolver walk them. Three ways to project them:
+
+- `create({ nodeModules })`: a convenience for a read-only host-directory mount that projects a whole host `node_modules` tree in one call. It uses the same mount machinery as `mounts`, defaulting to guest `/tmp/node_modules`, which is where the resolution walk begins for a program run by `exec()` / `run()` (each program is written under `/tmp`). Pass the object form (`{ hostPath, guestPath }`) to mount it elsewhere.
+- `create({ mounts })`: project one host directory at a time onto a guest path, Docker-style. Use a `mounts` entry per package when you want fine-grained control instead of the whole tree.
+- `create({ files })` or `rt.writeFile`: write bytes directly into the VM when you want to seed files instead of projecting a host tree.
+
+Either way the host filesystem is never exposed; the guest sees only the projected subtree or the bytes you write. For the full mount shapes see [the TypeScript SDK reference](/docs/sdks/typescript).
+
+The example below points `nodeModules` at the host directory that holds `is-number`, then imports it from inside the VM. The guest resolves it the way Node would over a real filesystem, including through `createRequire`.
+
+```
+exitCode: 0
+guest stdout:
+loaded real npm package is-number
+{"isNumber(42)":true,"isNumber(\"3.14\")":true,"isNumber(\"nope\")":false,"sameModule":true}
+```
+
+## node_modules resolution
+
+When a guest filesystem contains `node_modules`, the resolver matches naive Node.js resolution over it, Docker-style:
+
+- ancestor `node_modules` walk from the importing module up to the root,
+- `package.json` `exports`/`imports` and conditions,
+- `realpath`/symlink following.
+
+No package-manager-specific heuristics: pnpm/yarn layouts resolve because the VFS exposes their symlinks, not because the resolver special-cases them.
+
+<Warning>A `nodeModules` (or `mounts`) host mount confines reads to the mounted directory: symlinks are followed only while they stay **inside** the mount root. A single-project `npm`/`pnpm` install resolves fine because its symlinks (including the `.pnpm` store) live inside `node_modules`. A workspace/monorepo install is different: pnpm/yarn and `file:` deps symlink packages to the workspace root or an external store, **outside** the leaf `node_modules`. Those targets are not followed, and the guest import fails with `Cannot resolve module '<pkg>': not found`. Fix it by pointing the mount at a directory that contains every symlink target (for example the workspace root, mounted at the guest path the program resolves from) instead of the leaf `node_modules`.</Warning>
+
+## Seeding files directly
+
+When you don't have a host directory to mount, write bytes into the VM:
+
+```ts
+// At boot.
+const rt = await NodeRuntime.create({
+  files: { "/tmp/node_modules/greet/index.js": "module.exports = () => 'hi';" },
+});
+
+// Or after boot.
+await rt.writeFile("/tmp/node_modules/greet/package.json", '{"main":"index.js"}');
+const bytes = await rt.readFile("/tmp/node_modules/greet/index.js");
+```

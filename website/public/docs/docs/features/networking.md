@@ -1,0 +1,14 @@
+# Networking
+
+A short overview of Secure Exec networking, with a link to the canonical agentOS networking docs.
+
+Secure Exec virtualizes all VM networking so guest code never touches the real host network. At a glance:
+
+- **One kernel socket table**: Guest `fetch()`, `node:http`, and raw sockets all flow through the kernel socket table, never the real host network.
+- **Loopback-only by default**: A guest can bind and reach loopback services inside its own VM, but the socket table stays hermetic and cannot reach a real host loopback service.
+- **Allowlist-gated egress**: Outbound networking is denied by default and opted into via the `network` permission, either allowing everything or scoping to specific patterns.
+- **Proxied host-to-guest**: Host loopback ports are not visible to the guest unless explicitly exposed through `loopbackExemptPorts`.
+
+## Full reference
+
+The canonical networking API, permission rules, and egress details are owned by agentOS.

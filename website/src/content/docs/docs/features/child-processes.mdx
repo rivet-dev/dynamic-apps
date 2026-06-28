@@ -2,7 +2,6 @@
 title: Child Processes
 description: Spawn child processes from sandboxed code.
 ---
-import { Aside, LinkCard } from '@astrojs/starlight/components';
 
 Two ways to run processes in Secure Exec:
 
@@ -13,38 +12,7 @@ Two ways to run processes in Secure Exec:
 
 Guest code uses the standard `node:child_process` module to spawn commands available in the VM (`sh`, `node`, and the mounted coreutils):
 
-```ts
-import { NodeRuntime } from "secure-exec";
-
-const rt = await NodeRuntime.create();
-
-try {
-  const { stdout, stderr, exitCode } = await rt.exec(`
-    import { execFileSync } from "node:child_process";
-
-    // Spawn a shell command and capture its stdout.
-    const shellOut = execFileSync("sh", ["-c", "echo hello from a child process"], {
-      encoding: "utf8",
-    });
-    console.log("sh output:", shellOut.trim());
-
-    // Spawn node as a child process and read its version.
-    const nodeVersion = execFileSync("node", ["--version"], {
-      encoding: "utf8",
-    });
-    console.log("child node version:", nodeVersion.trim());
-  `);
-
-  console.log("exitCode:", exitCode);
-  if (stderr.trim()) console.log("guest stderr:", stderr.trim());
-  console.log("guest stdout:");
-  console.log(stdout.trim());
-} finally {
-  await rt.dispose();
-}
-```
-
-*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/feat-child-processes)*
+<CodeSnippet file="examples/docs/feat-child-processes/src/index.mts" />
 
 Output:
 
@@ -65,7 +33,7 @@ const rt = await NodeRuntime.create({
 });
 ```
 
-<Aside type="note">Child processes always run inside the kernel. Guest code cannot reach a real host process or host binary; `node:child_process` only sees the commands the VM mounts.</Aside>
+<Note>Child processes always run inside the kernel. Guest code cannot reach a real host process or host binary; `node:child_process` only sees the commands the VM mounts.</Note>
 
 ### Where the commands come from
 

@@ -1,0 +1,175 @@
+# Bindings
+
+Give sandboxed guest code a narrow, curated set of host-backed capabilities.
+
+Bindings are host-side functions the guest invokes by name:
+
+- **Where the handler runs**: on the **host**, never inside the guest sandbox.
+- **Return value**: round-trips back to the guest as JSON.
+- **Why use them**: hand untrusted guest code a narrow, curated capability surface (the kind an AI agent calls as tools) without granting it the underlying access.
+
+## Registering tools at boot
+
+Pass `tools` to `NodeRuntime.create()`. Each key becomes a named command the guest can run.
+
+```ts
+import { NodeRuntime } from "secure-exec";
+
+const rt = await NodeRuntime.create({
+  tools: {
+    "get-weather": {
+      description: "Look up the current temperature for a city",
+      inputSchema: {
+        type: "object",
+        properties: { city: { type: "string" } },
+        required: ["city"],
+      },
+      // Runs on the HOST. The return value is delivered back to the guest.
+      handler: ({ city }: { city: string }) => {
+        const table: Record<string, { temp_f: number }> = {
+          "San Francisco": { temp_f: 61 },
+          Tokyo: { temp_f: 75 },
+        };
+        return table[city] ?? { temp_f: null };
+      },
+    },
+  },
+});
+```
+
+*[See Full Example](https://github.com/rivet-dev/secure-exec/tree/main/examples/docs/uc-code-mode)*
+
+## Registering tools on a live runtime
+
+You can also add tools after the VM is running with `rt.registerTools({...})`. This is the same capability as the `tools` create option, exposed for a running runtime.
+
+```ts
+await rt.registerTools({
+  reverse: {
+    description: "Reverse a string",
+    inputSchema: {
+      type: "object",
+      properties: { text: { type: "string" } },
+      required: ["text"],
+    },
+    handler: ({ text }: { text: string }) => ({ result: [...text].reverse().join("") }),
+  },
+});
+```
+
+When you register tools on a live runtime, make sure the `tool` permission scope is granted (see below) so the tools are invocable.
+
+## The tool definition
+
+A `HostToolDefinition` has these fields:
+
+- **`description`** (required): human-readable summary of what the tool does.
+- **`inputSchema`** (required): JSON Schema describing the input.
+- **`handler(input)`** (required): the function that runs on the host, returning a JSON-serializable value.
+- **`timeoutMs`** (optional): abort the host handler after this many milliseconds.
+- **`examples`** (optional): worked examples (each `{ description, input }`) shown alongside the tool.
+- **`commandAliases`** (optional): extra command names the guest may use, beyond the registered key.
+
+```ts
+const rt = await NodeRuntime.create({
+  tools: {
+    lookupWeather: {
+      description: "Look up the current weather for a city",
+      inputSchema: {
+        type: "object",
+        properties: { city: { type: "string" } },
+        required: ["city"],
+      },
+      timeoutMs: 5000,
+      examples: [{ description: "Weather in Tokyo", input: { city: "Tokyo" } }],
+      commandAliases: ["weather"],
+      handler: async ({ city }: { city: string }) => {
+        // Real host access lives here, behind the tool boundary. The guest
+        // never gets the network credential, only the curated result.
+        const res = await fetch(`https://example.com/weather?city=${city}`);
+        return await res.json();
+      },
+    },
+  },
+});
+```
+
+The full type shape is in the [TypeScript SDK reference](/docs/sdks/typescript).
+
+## Invoking a tool from the guest
+
+Guest code calls a tool with the `callHostTool(name, input)` global. It returns a promise that resolves with the host handler's JSON result:
+
+```ts
+await rt.exec(`
+  const { temp_f } = await callHostTool("get-weather", { city: "Tokyo" });
+  console.log(temp_f); // 75
+`);
+```
+
+`callHostTool` is available in every guest program run through `exec`, `run`, and `spawn`. A `commandAlias` (for example `weather` above) works in place of the registered key.
+
+Under the hood, a registered tool is exposed two ways:
+
+- **As a `PATH` command**: resolved as `/usr/bin/<name>` inside the VM, so the same invocation can be driven directly through `node:child_process` if you prefer.
+- **Via `callHostTool`**: a thin wrapper over exactly that command path, so both share the same permission and validation behavior.
+
+```ts
+await rt.exec(`
+  import { execFileSync } from "node:child_process";
+
+  const input = { city: "Tokyo" };
+  // argv[0] is the command name, then --json and the JSON-encoded input.
+  const out = execFileSync("get-weather", ["get-weather", "--json", JSON.stringify(input)]);
+  // The raw command writes a { ok, result } envelope; the handler's return
+  // value is under "result". callHostTool unwraps this for you.
+  const { ok, result } = JSON.parse(out.toString());
+  console.log(result.temp_f); // 75
+`);
+```
+
+## The `tool` permission scope
+
+Tool invocation is gated by the `tool` permission scope.
+
+- When you pass `tools` to `create()` and set **no** `tool` policy, the `tool` scope is auto-granted so your tools are invocable out of the box.
+- Otherwise grant it explicitly so tools can run:
+
+```ts
+const rt = await NodeRuntime.create({
+  tools: { /* ... */ },
+  permissions: { tool: "allow" },
+});
+```
+
+Use a rule set instead of `"allow"` for per-tool gating, allowing some tool names while denying others. See [Permissions](/docs/features/permissions) for rule-set semantics.
+
+## Wiring a tool into an LLM agent
+
+Bindings pair naturally with an LLM agent: expose a sandbox capability to the model as a tool and let the model drive it through its own tool-calling loop.
+
+The example below uses the Vercel AI SDK to give the model a `runJs` tool whose `execute` runs guest code inside the runtime. The model-generated code is untrusted input, but it executes only inside the VM under the secure-default policy (network denied here), so the model can experiment freely without reaching the host.
+
+```ts
+import { NodeRuntime } from "secure-exec";
+import { generateText, tool } from "ai";
+import { openai } from "@ai-sdk/openai";
+import { z } from "zod";
+
+const rt = await NodeRuntime.create({ permissions: { network: "deny" } });
+
+await generateText({
+  model: openai("gpt-4o"),
+  prompt: "Compute the 10th Fibonacci number by writing JavaScript.",
+  tools: {
+    runJs: tool({
+      description: "Run JavaScript inside the sandbox and capture its output.",
+      inputSchema: z.object({ code: z.string() }),
+      execute: async ({ code }) => {
+        const result = await rt.exec(code);
+        return { stdout: result.stdout, stderr: result.stderr };
+      },
+    }),
+  },
+});
+```

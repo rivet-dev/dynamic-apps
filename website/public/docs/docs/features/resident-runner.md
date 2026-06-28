@@ -1,0 +1,45 @@
+# Resident Runner
+
+Reuse a live guest process for low-latency repeated execution.
+
+Each `exec()` / `run()` call starts a fresh guest process, which is the right
+default for isolation between runs. When you run many small snippets against the
+same runtime (an evaluation loop, a REPL, a test harness), that per-run process
+startup dominates. A resident runner keeps one guest process alive and evaluates
+each snippet in it, so repeated calls are fast.
+
+A resident runner trades per-run process isolation for speed: snippets share the
+same process, so in-memory state can carry between calls. Use it for trusted,
+repeated evaluation. For isolation between runs, use `exec()` / `run()`.
+
+## Creating and using a runner
+
+`createResidentRunner()` returns a handle with `exec()` and `dispose()`. Dispose
+it when you are done so the live process is torn down.
+
+```ts
+import { NodeRuntime } from "secure-exec";
+
+const rt = await NodeRuntime.create();
+const runner = await rt.createResidentRunner();
+try {
+  const a = await runner.exec("console.log(1 + 1)");
+  const b = await runner.exec("console.log(2 + 2)");
+  console.log(a.stdout.trim(), b.stdout.trim()); // "2" "4"
+} finally {
+  await runner.dispose();
+  await rt.dispose();
+}
+```
+
+Each `runner.exec(code, options?)` resolves with the same
+`{ stdout, stderr, exitCode }` shape as `rt.exec()`. Pass `options.timeout` to
+bound a single evaluation.
+
+## When to use it
+
+A warm resident evaluation runs in roughly a millisecond, versus the hundreds of
+milliseconds a cold run pays to stand up a guest process. Reach for a resident
+runner when the same runtime runs many small snippets and the snippets are
+trusted to share a process. See the measured difference in
+[Benchmarks](/docs/benchmarks).
