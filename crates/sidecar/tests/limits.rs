@@ -7,7 +7,9 @@ use secure_exec_vm_config::{
 };
 use serde_json::json;
 
-const SIDECAR_FRAME_CAP: usize = 1024 * 1024;
+// Must match the production sidecar wire frame cap (wire::DEFAULT_MAX_FRAME_BYTES),
+// which is what vm_limits_from_config is called with at runtime (lib.rs/state.rs).
+const SIDECAR_FRAME_CAP: usize = 16 * 1024 * 1024;
 
 #[test]
 fn defaults_match_struct_default() {
