@@ -56,6 +56,13 @@ pub enum PythonVfsRpcMethod {
     HttpRequest,
     DnsLookup,
     SubprocessRun,
+    SocketConnect,
+    SocketSend,
+    SocketRecv,
+    SocketClose,
+    UdpCreate,
+    UdpSendto,
+    UdpRecvfrom,
 }
 
 impl PythonVfsRpcMethod {
@@ -72,6 +79,13 @@ impl PythonVfsRpcMethod {
             "httpRequest" => Some(Self::HttpRequest),
             "dnsLookup" => Some(Self::DnsLookup),
             "subprocessRun" => Some(Self::SubprocessRun),
+            "socketConnect" => Some(Self::SocketConnect),
+            "socketSend" => Some(Self::SocketSend),
+            "socketRecv" => Some(Self::SocketRecv),
+            "socketClose" => Some(Self::SocketClose),
+            "udpCreate" => Some(Self::UdpCreate),
+            "udpSendto" => Some(Self::UdpSendto),
+            "udpRecvfrom" => Some(Self::UdpRecvfrom),
             _ => None,
         }
     }
@@ -92,6 +106,10 @@ pub struct PythonVfsRpcRequest {
     pub body_base64: Option<String>,
     pub hostname: Option<String>,
     pub family: Option<u8>,
+    /// Port for socket connect/sendto.
+    pub port: Option<u16>,
+    /// Socket handle for send/recv/close/sendto/recvfrom.
+    pub socket_id: Option<u64>,
     pub command: Option<String>,
     pub args: Vec<String>,
     pub cwd: Option<String>,
@@ -136,6 +154,23 @@ pub enum PythonVfsRpcResponsePayload {
         stderr: String,
         max_buffer_exceeded: bool,
     },
+    SocketCreated {
+        socket_id: u64,
+    },
+    SocketSent {
+        bytes_sent: usize,
+    },
+    SocketReceived {
+        data_base64: String,
+        closed: bool,
+        timed_out: bool,
+    },
+    UdpReceived {
+        data_base64: String,
+        host: String,
+        port: u16,
+        timed_out: bool,
+    },
 }
 
 #[derive(Debug, Deserialize)]
@@ -162,6 +197,10 @@ struct PythonVfsBridgeRequestWire {
     hostname: Option<String>,
     #[serde(default)]
     family: Option<u8>,
+    #[serde(default)]
+    port: Option<u16>,
+    #[serde(default, rename = "socketId")]
+    socket_id: Option<u64>,
     #[serde(default)]
     command: Option<String>,
     #[serde(default)]
@@ -476,6 +515,32 @@ impl PythonExecution {
                 "stdout": stdout,
                 "stderr": stderr,
                 "maxBufferExceeded": max_buffer_exceeded,
+            }),
+            PythonVfsRpcResponsePayload::SocketCreated { socket_id } => json!({
+                "socketId": socket_id,
+            }),
+            PythonVfsRpcResponsePayload::SocketSent { bytes_sent } => json!({
+                "bytesSent": bytes_sent,
+            }),
+            PythonVfsRpcResponsePayload::SocketReceived {
+                data_base64,
+                closed,
+                timed_out,
+            } => json!({
+                "dataBase64": data_base64,
+                "closed": closed,
+                "timedOut": timed_out,
+            }),
+            PythonVfsRpcResponsePayload::UdpReceived {
+                data_base64,
+                host,
+                port,
+                timed_out,
+            } => json!({
+                "dataBase64": data_base64,
+                "host": host,
+                "port": port,
+                "timedOut": timed_out,
             }),
         };
 
@@ -1195,6 +1260,8 @@ fn parse_python_bridge_sync_rpc_request(
         body_base64: wire.body_base64,
         hostname: wire.hostname,
         family: wire.family,
+        port: wire.port,
+        socket_id: wire.socket_id,
         command: wire.command,
         args: wire.args,
         cwd: wire.cwd,

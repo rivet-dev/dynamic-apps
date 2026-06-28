@@ -820,11 +820,16 @@ where
                 }
                 PythonVfsRpcMethod::HttpRequest
                 | PythonVfsRpcMethod::DnsLookup
-                | PythonVfsRpcMethod::SubprocessRun => {
-                    Err(SidecarError::InvalidState(String::from(
-                        "python non-filesystem RPC reached filesystem dispatcher unexpectedly",
-                    )))
-                }
+                | PythonVfsRpcMethod::SubprocessRun
+                | PythonVfsRpcMethod::SocketConnect
+                | PythonVfsRpcMethod::SocketSend
+                | PythonVfsRpcMethod::SocketRecv
+                | PythonVfsRpcMethod::SocketClose
+                | PythonVfsRpcMethod::UdpCreate
+                | PythonVfsRpcMethod::UdpSendto
+                | PythonVfsRpcMethod::UdpRecvfrom => Err(SidecarError::InvalidState(String::from(
+                    "python non-filesystem RPC reached filesystem dispatcher unexpectedly",
+                ))),
             }
         }
         Err(error) => Err(error),

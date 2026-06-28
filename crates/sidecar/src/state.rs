@@ -474,6 +474,11 @@ pub(crate) struct ActiveProcess {
     pub(crate) next_unix_socket_id: usize,
     pub(crate) udp_sockets: BTreeMap<String, ActiveUdpSocket>,
     pub(crate) next_udp_socket_id: usize,
+    /// Synchronous host sockets opened by the guest Python `socket` bridge,
+    /// keyed by the handle returned to the runner. Distinct from the JS
+    /// runtime's event-driven `tcp_sockets`/`udp_sockets` above.
+    pub(crate) python_sockets: BTreeMap<u64, PythonHostSocket>,
+    pub(crate) next_python_socket_id: u64,
     pub(crate) cipher_sessions: BTreeMap<u64, ActiveCipherSession>,
     pub(crate) next_cipher_session_id: u64,
     pub(crate) diffie_hellman_sessions: BTreeMap<u64, ActiveDiffieHellmanSession>,
@@ -951,6 +956,15 @@ pub(crate) enum JavascriptUdpSocketEvent {
         code: Option<String>,
         message: String,
     },
+}
+
+/// A blocking host socket backing one guest Python socket. Reads use a short
+/// timeout (set on the socket) so a `recv`/`recvfrom` RPC never stalls the
+/// shared sidecar event loop; the Python shim re-polls to emulate blocking.
+#[derive(Debug)]
+pub(crate) enum PythonHostSocket {
+    Tcp(TcpStream),
+    Udp(UdpSocket),
 }
 
 #[derive(Debug)]
