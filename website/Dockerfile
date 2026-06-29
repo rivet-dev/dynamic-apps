@@ -14,8 +14,9 @@ RUN apk add --no-cache git && npm install -g pnpm@9
 # in this discarded build stage — the final caddy image never contains it.
 ARG DOCS_THEME_SHA=450c498555135098c6a927adfdf13458be9be22a
 ARG FONTAWESOME_PACKAGE_TOKEN
-RUN export FONTAWESOME_PACKAGE_TOKEN="$FONTAWESOME_PACKAGE_TOKEN" \
- && git clone https://github.com/rivet-dev/docs-theme.git /theme \
+# The ARG is already in this RUN's environment, so the icons generate reads
+# FONTAWESOME_PACKAGE_TOKEN directly — we don't echo it into the build log.
+RUN git clone https://github.com/rivet-dev/docs-theme.git /theme \
  && git -C /theme checkout "$DOCS_THEME_SHA" \
  && pnpm -C /theme install \
  && pnpm -C /theme/packages/theme/vendor/icons run gen:manifest \
