@@ -46,17 +46,19 @@ Node.js agent and tool packages that are projected into the VM via the ModuleAcc
 
 | Package | apt Equivalent | Description | Source | Combined Size | Gzipped |
 |---------|---------------|-------------|--------|---------------|---------|
-| `@agentos-software/codex` | codex | OpenAI Codex integration (codex, codex-exec) | rust | 274 KiB | 118 KiB |
+| `@agentos-software/codex-cli` | codex | OpenAI Codex command package (codex, codex-exec) | rust | 274 KiB | 118 KiB |
 | `@agentos-software/coreutils` | coreutils | GNU coreutils: sh, cat, ls, cp, sort, and 80+ commands | rust | 51.4 MiB | 23.5 MiB |
 | `@agentos-software/curl` | curl | curl-compatible HTTP client | rust | - | - |
 | `@agentos-software/diffutils` | diffutils | GNU diffutils (diff) | rust | 120 KiB | 54.0 KiB |
+| `@agentos-software/duckdb` | duckdb | DuckDB command-line interface | c | - | - |
 | `@agentos-software/fd` | fd-find | fd fast file finder | rust | 901 KiB | 328 KiB |
 | `@agentos-software/file` | file | file type detection | rust | 117 KiB | 49.9 KiB |
 | `@agentos-software/findutils` | findutils | GNU findutils (find, xargs) | rust | 950 KiB | 348 KiB |
 | `@agentos-software/gawk` | gawk | GNU awk text processing | rust | 1.11 MiB | 432 KiB |
-| `@agentos-software/git` | git | git version control (planned) *(planned)* | rust | - | - |
+| `@agentos-software/git` | git | git version control | rust | - | - |
 | `@agentos-software/grep` | grep | GNU grep pattern matching (grep, egrep, fgrep) | rust | 2.59 MiB | 956 KiB |
 | `@agentos-software/gzip` | gzip | GNU gzip compression (gzip, gunzip, zcat) | rust | 391 KiB | 194 KiB |
+| `@agentos-software/http-get` | http-get | Minimal HTTP GET fetch helper | c | - | - |
 | `@agentos-software/jq` | jq | jq JSON processor | rust | 699 KiB | 298 KiB |
 | `@agentos-software/make` | make | GNU make build tool (planned) *(planned)* | rust | - | - |
 | `@agentos-software/ripgrep` | ripgrep | ripgrep fast recursive search | rust | 912 KiB | 330 KiB |
@@ -75,6 +77,7 @@ Node.js agent and tool packages that are projected into the VM via the ModuleAcc
 |---------|-------------|----------|
 | `@agentos-software/build-essential` | Build-essential WASM command set (standard + make + git + curl) | standard, make, git, curl |
 | `@agentos-software/common` | Common WASM command set (coreutils + sed + grep + gawk + findutils + diffutils + tar + gzip) | coreutils, sed, grep, gawk, findutils, diffutils, tar, gzip |
+| `@agentos-software/everything` | All available WASM command packages in a single bundle | coreutils, sed, grep, gawk, findutils, diffutils, tar, gzip, curl, zip, unzip, jq, ripgrep, fd, tree, file, yq, codex |
 <!-- END PACKAGE TABLE -->
 
 ## Building
