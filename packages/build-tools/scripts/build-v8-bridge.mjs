@@ -276,13 +276,33 @@ async function validateBridgeContractGlobals(sourceText) {
 
 async function rewriteUndiciRuntimeFeaturesBundle(bundlePath, { required } = { required: false }) {
 	const bundleText = await readFile(bundlePath, "utf8");
+	const replacement = (moduleVar, commonJsHelperVar, cjsModuleVar) =>
+		`${moduleVar}=${commonJsHelperVar}((_,${cjsModuleVar})=>{"use strict";var e=new Set(["crypto","sqlite","markAsUncloneable","zstd"]),t=new Map([["crypto",!0],["sqlite",!1],["markAsUncloneable",!1],["zstd",!1]]),r={clear(){t.clear()},has(n){if(!e.has(n))throw new TypeError(\`unknown feature: \${n}\`);return t.get(n)??!1},set(n,i){if(!e.has(n))throw new TypeError(\`unknown feature: \${n}\`);t.set(n,!!i)}};${cjsModuleVar}.exports.runtimeFeatures=r;${cjsModuleVar}.exports.default=r})`;
 	const runtimeFeaturesModulePattern =
 		/var ([A-Za-z_$][\w$]*)=([A-Za-z_$][\w$]*)\(\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)=>\{"use strict";[\s\S]*?\4\.exports\.runtimeFeatures=([A-Za-z_$][\w$]*);\4\.exports\.default=\5\}\);/;
-	const patched = bundleText.replace(
+	let patched = bundleText.replace(
 		runtimeFeaturesModulePattern,
 		(_match, moduleVar, commonJsHelperVar, _exportsArgVar, cjsModuleVar) =>
-			`var ${moduleVar}=${commonJsHelperVar}((_,${cjsModuleVar})=>{"use strict";var e=new Set(["crypto","sqlite","markAsUncloneable","zstd"]),t=new Map([["crypto",!0],["sqlite",!1],["markAsUncloneable",!1],["zstd",!1]]),r={clear(){t.clear()},has(n){if(!e.has(n))throw new TypeError(\`unknown feature: \${n}\`);return t.get(n)??!1},set(n,i){if(!e.has(n))throw new TypeError(\`unknown feature: \${n}\`);t.set(n,!!i)}};${cjsModuleVar}.exports.runtimeFeatures=r;${cjsModuleVar}.exports.default=r});`,
+			`var ${replacement(moduleVar, commonJsHelperVar, cjsModuleVar)};`,
 	);
+	if (patched === bundleText) {
+		const runtimeFeaturesObjectModulePattern =
+			/var ([A-Za-z_$][\w$]*)=([A-Za-z_$][\w$]*)\(\{"[^"]*runtime-features\.js"\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{"use strict";[\s\S]*?\4\.exports\.runtimeFeatures=([A-Za-z_$][\w$]*),\4\.exports\.default=\5\}\}\);/;
+		patched = bundleText.replace(
+			runtimeFeaturesObjectModulePattern,
+			(_match, moduleVar, commonJsHelperVar, _exportsArgVar, cjsModuleVar) =>
+				`var ${replacement(moduleVar, commonJsHelperVar, cjsModuleVar)};`,
+		);
+	}
+	if (patched === bundleText) {
+		const runtimeFeaturesObjectAssignmentPattern =
+			/([A-Za-z_$][\w$]*)=([A-Za-z_$][\w$]*)\(\{"[^"]*runtime-features\.js"\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{"use strict";[\s\S]*?\4\.exports\.runtimeFeatures=([A-Za-z_$][\w$]*),\4\.exports\.default=\5\}\}\)(?=,|;)/;
+		patched = bundleText.replace(
+			runtimeFeaturesObjectAssignmentPattern,
+			(_match, moduleVar, commonJsHelperVar, _exportsArgVar, cjsModuleVar) =>
+				replacement(moduleVar, commonJsHelperVar, cjsModuleVar),
+		);
+	}
 	if (patched === bundleText) {
 		if (required) {
 			throw new Error(`Failed to rewrite undici runtime-features in ${bundlePath}`);

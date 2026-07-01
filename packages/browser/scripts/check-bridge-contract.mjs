@@ -118,6 +118,9 @@ const browserFacadeContractGlobals = new Set([
 // Contracted native bridge names that are not browser-installed yet. Keeping
 // this list explicit makes browser contract coverage drift fail closed.
 const browserUnsupportedContractGlobals = new Set([
+	"_benchNoop",
+	"_benchNetTcpMetricsResetRaw",
+	"_benchNetTcpMetricsSnapshotRaw",
 	"_dynamicImport",
 	"_kernelIsattyRaw",
 	"_kernelTtySizeRaw",

@@ -10,6 +10,7 @@
 	],
 	"scripts": {
 		"build:base-filesystem": "node ./scripts/build-base-filesystem.mjs",
+		"build:bridge-source": "node ./scripts/build-bridge-source.mjs",
 		"build:browser-buffer-polyfill": "node ./scripts/build-browser-buffer-polyfill.mjs",
 		"build:browser-path-polyfill": "node ./scripts/build-browser-path-polyfill.mjs",
 		"build:browser-util-polyfill": "node ./scripts/build-browser-util-polyfill.mjs",
@@ -17,7 +18,7 @@
 		"build:v8-bridge": "node ./scripts/build-v8-bridge.mjs",
 		"snapshot:alpine-defaults": "node ./scripts/snapshot-alpine-defaults.mjs",
 		"check:generated": "node ../../scripts/check-generated-artifacts.mjs",
-		"check-types": "node --check ./scripts/build-base-filesystem.mjs && node --check ./scripts/build-browser-buffer-polyfill.mjs && node --check ./scripts/build-browser-path-polyfill.mjs && node --check ./scripts/build-browser-util-polyfill.mjs && node --check ./scripts/build-v8-bridge.mjs && node --check ./scripts/compile-sidecar-protocol.mjs && node --check ./scripts/snapshot-alpine-defaults.mjs",
+		"check-types": "node --check ./scripts/build-base-filesystem.mjs && node --check ./scripts/build-bridge-source.mjs && node --check ./scripts/build-browser-buffer-polyfill.mjs && node --check ./scripts/build-browser-path-polyfill.mjs && node --check ./scripts/build-browser-util-polyfill.mjs && node --check ./scripts/build-v8-bridge.mjs && node --check ./scripts/compile-sidecar-protocol.mjs && node --check ./scripts/snapshot-alpine-defaults.mjs",
 		"build": "pnpm run check-types",
 		"test": "pnpm run check-types"
 	},

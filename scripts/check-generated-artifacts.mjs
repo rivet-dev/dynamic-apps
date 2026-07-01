@@ -16,6 +16,7 @@ const checkedPaths = [
 	"crates/bridge/bridge-contract.json",
 	"crates/execution/assets/polyfill-registry.json",
 	"crates/execution/assets/wasi-preview1-imports.json",
+	"crates/execution/assets/v8-bridge.source.js",
 	"crates/execution/assets/v8-bridge.js",
 	"crates/execution/assets/v8-bridge-zlib.js",
 	"crates/v8-runtime/assets/generated/v8-bridge.js",
@@ -24,7 +25,14 @@ const checkedPaths = [
 
 assertNoLegacyVmConfigBindings();
 assertNoLegacyBuildSupportShims();
-const beforeDiff = capture("git", ["diff", "--binary", "--", ...checkedPaths]);
+const beforeDiff = capture("jj", [
+	"diff",
+	"--git",
+	"--color=never",
+	"--",
+	...checkedPaths,
+]);
+run("node", ["packages/build-tools/scripts/build-bridge-source.mjs"]);
 run("pnpm", ["--dir", "packages/build-tools", "build:protocol"]);
 run("node", ["packages/build-tools/scripts/build-browser-util-polyfill.mjs"]);
 run("node", ["packages/build-tools/scripts/build-browser-buffer-polyfill.mjs"]);
@@ -43,10 +51,16 @@ run("pnpm", ["--dir", "packages/browser", "check:signals"]);
 run("pnpm", ["--dir", "packages/browser", "check:wasi-surface"]);
 run("cargo", ["test", "-p", "secure-exec-bridge", "bridge_contract", "--quiet"]);
 run("cargo", ["test", "-p", "secure-exec-vm-config", "--quiet"]);
-const afterDiff = capture("git", ["diff", "--binary", "--", ...checkedPaths]);
+const afterDiff = capture("jj", [
+	"diff",
+	"--git",
+	"--color=never",
+	"--",
+	...checkedPaths,
+]);
 
 if (afterDiff !== beforeDiff) {
-	const changed = capture("git", ["diff", "--name-only", "--", ...checkedPaths])
+	const changed = capture("jj", ["diff", "--name-only", "--", ...checkedPaths])
 		.split("\n")
 		.map((line) => line.trim())
 		.filter(Boolean);
@@ -54,6 +68,7 @@ if (afterDiff !== beforeDiff) {
 		[
 			"Generated artifact drift detected.",
 			"Run the generators and commit the resulting changes:",
+			"  node packages/build-tools/scripts/build-bridge-source.mjs",
 			"  pnpm --dir packages/build-tools build:protocol",
 			"  node packages/build-tools/scripts/build-browser-util-polyfill.mjs",
 			"  node packages/build-tools/scripts/build-v8-bridge.mjs",
@@ -67,7 +82,7 @@ if (afterDiff !== beforeDiff) {
 			"",
 		].join("\n"),
 	);
-	run("git", ["diff", "--stat", "--", ...checkedPaths], { allowFailure: true });
+	run("jj", ["diff", "--stat", "--", ...checkedPaths], { allowFailure: true });
 	process.exit(1);
 }
 

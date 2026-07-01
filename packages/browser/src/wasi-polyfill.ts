@@ -179,6 +179,10 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
   const __agentOSKernelStdioSyncRpcEnabled = () =>
     process?.env?.AGENTOS_WASI_STDIO_SYNC_RPC === "1";
   const __agentOSWasiDebugEnabled = () => process?.env?.AGENTOS_WASM_WASI_DEBUG === "1";
+  const __agentOSWasiSyscallCountersEnabled = () =>
+    process?.env?.AGENTOS_WASI_SYSCALL_COUNTERS === "1";
+  const __agentOSWasiNow = () =>
+    typeof performance?.now === "function" ? performance.now() : Date.now();
   const __agentOSWasiDebug = (message) => {
     if (!__agentOSWasiDebugEnabled() || typeof process?.stderr?.write !== "function") {
       return;
@@ -208,6 +212,7 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
         [1, { kind: "stdout", fdFlags: 0 }],
         [2, { kind: "stderr", fdFlags: 0 }],
       ]);
+      this.syscallCountersEnabled = __agentOSWasiSyscallCountersEnabled();
       for (const [guestPath, spec] of Object.entries(this.preopens)) {
         const normalized = this._normalizePreopenSpec(spec);
         if (!normalized) {
@@ -259,6 +264,70 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
         random_get: (...args) => this._randomGet(...args),
         sched_yield: (...args) => this._schedYield(...args),
       };
+      this._installSyscallCounterWrappers();
+    }
+
+    _recordWasiSyscallMetric(name, startedAt, details = {}) {
+      if (!this.syscallCountersEnabled || typeof process?.stderr?.write !== "function") {
+        return;
+      }
+      try {
+        const elapsedMs = __agentOSWasiNow() - startedAt;
+        process.stderr.write(
+          \`__AGENTOS_WASI_SYSCALL_METRICS__:\${JSON.stringify({
+            name,
+            elapsedMs,
+            ...details,
+          })}\\n\`,
+        );
+      } catch {
+        // Ignore metrics failures.
+      }
+    }
+
+    _installSyscallCounterWrappers() {
+      if (!this.syscallCountersEnabled) {
+        return;
+      }
+      for (const name of [
+        "path_open",
+        "path_filestat_get",
+        "fd_filestat_get",
+        "fd_write",
+      ]) {
+        const original = this.wasiImport[name];
+        if (typeof original !== "function") {
+          continue;
+        }
+        this.wasiImport[name] = (...args) => {
+          const startedAt = __agentOSWasiNow();
+          const result = original(...args);
+          const details = {
+            result,
+            fd: Number(args[0]) >>> 0,
+            iovsLen: name === "fd_write" ? Number(args[2]) >>> 0 : undefined,
+          };
+          if (name === "path_filestat_get") {
+            try {
+              const target = this._readString(args[2], args[3]);
+              details.pathLen = target.length;
+              details.pathKind = target.startsWith("/")
+                ? "absolute"
+                : target.includes("/")
+                  ? "relative-nested"
+                  : "relative-child";
+              details.pathSample =
+                target.length > 120 ? \`\${target.slice(0, 120)}...\` : target;
+            } catch {
+              // Leave path-shape fields absent if the guest pointer is invalid.
+            }
+          }
+          this._recordWasiSyscallMetric(name, startedAt, {
+            ...details,
+          });
+          return result;
+        };
+      }
     }
 
     start(instance) {
@@ -987,6 +1056,22 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
         );
     }
 
+    _rootRelativeTargetIsWithinAbsoluteArg(target) {
+      const rootGuestPath = __agentOSPath().posix.resolve("/", target);
+      return this.args
+        .slice(1)
+        .some((arg) => {
+          if (typeof arg !== "string" || !arg.startsWith("/")) {
+            return false;
+          }
+          const normalizedArg = __agentOSPath().posix.normalize(arg);
+          return (
+            rootGuestPath === normalizedArg ||
+            rootGuestPath.startsWith(\`\${normalizedArg}/\`)
+          );
+        });
+    }
+
     _resolveRootRelativePath(target, preferCreateParent = false) {
       const rootGuestPath = __agentOSPath().posix.resolve("/", target);
       const rootMapping = this._resolveHostMappingForGuestPath(rootGuestPath);
@@ -1064,6 +1149,44 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
         return resolved.guestPath;
       }
       return resolved?.hostPath ?? null;
+    }
+
+    _resolveDescriptorDirectStatPath(fd, target) {
+      if (
+        typeof target !== "string" ||
+        target.length === 0 ||
+        target === "." ||
+        target === ".." ||
+        target.startsWith("/")
+      ) {
+        return null;
+      }
+      const entry = this._descriptorEntry(fd);
+      if (
+        !entry ||
+        (entry.kind !== "directory" && entry.kind !== "preopen") ||
+        typeof entry.hostPath !== "string" ||
+        entry.hostPath.length === 0
+      ) {
+        return null;
+      }
+      const baseGuestPath = this._descriptorGuestPath(entry);
+      if (typeof baseGuestPath !== "string") {
+        return null;
+      }
+      if (entry.kind === "preopen" && baseGuestPath === "/") {
+        if (!this._rootRelativeTargetIsWithinAbsoluteArg(target)) {
+          return null;
+        }
+      } else if (target.includes("/")) {
+        return null;
+      }
+      return {
+        error: __agentOSWasiErrnoSuccess,
+        guestPath: __agentOSPath().posix.resolve(baseGuestPath, target),
+        hostPath: __agentOSPath().join(entry.hostPath, target),
+        readOnly: entry.readOnly === true,
+      };
     }
 
     _writeFilestat(statPtr, stats, fallbackType) {
@@ -1752,6 +1875,9 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
     }
 
     _fdReaddir(fd, bufPtr, bufLen, cookie, bufUsedPtr) {
+      const startedAt = __agentOSWasiNow();
+      const requestedCookie = Number(cookie) >>> 0;
+      const requestedBufLen = Number(bufLen) >>> 0;
       try {
         const entry = this._descriptorEntry(fd);
         const fsPath = this._descriptorDirectoryFsPath(entry);
@@ -1762,19 +1888,53 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
         ) {
           return __agentOSWasiErrnoBadf;
         }
-        const dirents = __agentOSFs()
-          .readdirSync(fsPath, { withFileTypes: true })
-          .sort((left, right) => left.name.localeCompare(right.name));
+        let dirents =
+          requestedCookie > 0 && Array.isArray(entry.readdirCache)
+            ? entry.readdirCache
+            : null;
+        if (!dirents) {
+          dirents = __agentOSFs()
+            .readdirSync(fsPath, { withFileTypes: true })
+            .sort((left, right) => left.name.localeCompare(right.name));
+          entry.readdirCache = dirents;
+        }
         const view = this._memoryView();
         const memory = this._memoryBytes();
         let offset = Number(bufPtr) >>> 0;
-        const limit = offset + (Number(bufLen) >>> 0);
+        const limit = offset + requestedBufLen;
         let used = 0;
-        for (let index = Number(cookie) >>> 0; index < dirents.length; index += 1) {
+        let recordsReturned = 0;
+        let stoppedRecordTooLarge = false;
+        for (let index = requestedCookie; index < dirents.length; index += 1) {
           const dirent = dirents[index];
           const nameBytes = Buffer.from(dirent.name, "utf8");
           const recordLen = 24 + nameBytes.length;
           if (offset + recordLen > limit) {
+            const remaining = Math.max(0, limit - offset);
+            if (remaining > 0) {
+              const record = Buffer.alloc(recordLen);
+              const recordView = new DataView(
+                record.buffer,
+                record.byteOffset,
+                record.byteLength,
+              );
+              recordView.setBigUint64(0, BigInt(index + 1), true);
+              recordView.setBigUint64(8, BigInt(index + 1), true);
+              recordView.setUint32(16, nameBytes.length, true);
+              recordView.setUint8(
+                20,
+                dirent.isDirectory()
+                  ? __agentOSWasiFiletypeDirectory
+                  : dirent.isSymbolicLink()
+                    ? __agentOSWasiFiletypeSymbolicLink
+                    : __agentOSWasiFiletypeRegularFile,
+              );
+              record.set(nameBytes, 24);
+              memory.set(record.subarray(0, remaining), offset);
+              offset += remaining;
+              used += remaining;
+            }
+            stoppedRecordTooLarge = true;
             break;
           }
           view.setBigUint64(offset, BigInt(index + 1), true);
@@ -1791,9 +1951,27 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
           memory.set(nameBytes, offset + 24);
           offset += recordLen;
           used += recordLen;
+          recordsReturned += 1;
         }
-        return this._writeUint32(bufUsedPtr, used);
+        const result = this._writeUint32(bufUsedPtr, used);
+        this._recordWasiSyscallMetric("fd_readdir", startedAt, {
+          result,
+          fd: Number(fd) >>> 0,
+          cookie: requestedCookie,
+          bufLen: requestedBufLen,
+          used,
+          recordsReturned,
+          totalDirentsRead: dirents.length,
+          stoppedRecordTooLarge,
+        });
+        return result;
       } catch (error) {
+        this._recordWasiSyscallMetric("fd_readdir", startedAt, {
+          result: "error",
+          fd: Number(fd) >>> 0,
+          cookie: requestedCookie,
+          bufLen: requestedBufLen,
+        });
         return this._mapFsError(error);
       }
     }
@@ -1997,7 +2175,10 @@ if (typeof globalThis !== "undefined" && typeof globalThis.__agentOSWasiModule =
 
     _pathFilestatGet(fd, flags, pathPtr, pathLen, statPtr) {
       try {
-        const resolved = this._resolveDescriptorPath(fd, pathPtr, pathLen);
+        const target = this._readString(pathPtr, pathLen);
+        const resolved =
+          this._resolveDescriptorDirectStatPath(fd, target) ??
+          this._resolveDescriptorPath(fd, pathPtr, pathLen);
         if (resolved.error !== __agentOSWasiErrnoSuccess) {
           return resolved.error;
         }
