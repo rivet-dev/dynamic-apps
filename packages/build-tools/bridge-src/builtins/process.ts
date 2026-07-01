@@ -16,6 +16,7 @@ import { SandboxCrypto, SandboxCryptoKey, SandboxDOMException, SandboxSubtleCryp
 import { installSafeIntlFormatters } from "./misc-stubs.js";
 import { _stdin, _stdinListeners, _stdinOnceListeners, resetLiveStdinState, setStdinDataValue, setStdinEnded, setStdinFlowMode, setStdinPosition, stdinDispatch, syncLiveStdinHandle } from "./stdin.js";
 import { _nextTickQueue, _queueMicrotask, clearImmediate, clearInterval, clearTimeout2, runWithAsyncLocalStorageSnapshot, scheduleNextTickFlush, setImmediate, setInterval, setTimeout2, snapshotAsyncLocalStorageStores, wrapAsyncLocalStorageCallback } from "./timers.js";
+import { _resolveRuntimeTtyConfig } from "./tty-config.js";
 
 function readProcessConfig() {
   return {
@@ -308,7 +309,7 @@ function dispatchCustomEmitterListeners(thisArg, listeners, args) {
 }
 
 function _getStdinIsTTY() {
-  return typeof __runtimeTtyConfig !== "undefined" && __runtimeTtyConfig.stdinIsTTY || false;
+  return _resolveRuntimeTtyConfig().stdinIsTTY;
 }
 
 exposeCustomGlobal("_stdinDispatch", stdinDispatch);

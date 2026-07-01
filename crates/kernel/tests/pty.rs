@@ -28,6 +28,7 @@ fn raw_mode_delivers_bytes_and_applies_icrnl_translation() {
                 canonical: Some(false),
                 echo: Some(false),
                 isig: Some(false),
+                ..Default::default()
             },
         )
         .expect("set raw mode");
@@ -54,6 +55,7 @@ fn raw_mode_pending_short_read_buffers_remaining_bytes() {
                 canonical: Some(false),
                 echo: Some(false),
                 isig: Some(false),
+                ..Default::default()
             },
         )
         .expect("set raw mode");
@@ -94,6 +96,7 @@ fn split_delivery_with_second_queued_reader_leaves_no_stale_waiters() {
                 canonical: Some(false),
                 echo: Some(false),
                 isig: Some(false),
+                ..Default::default()
             },
         )
         .expect("set raw mode");
@@ -166,6 +169,7 @@ fn split_output_delivery_with_second_queued_reader_leaves_no_stale_waiters() {
                 canonical: Some(false),
                 echo: Some(false),
                 isig: Some(false),
+                ..Default::default()
             },
         )
         .expect("set raw mode");
@@ -388,6 +392,7 @@ fn oversized_raw_write_fails_atomically() {
                 canonical: Some(false),
                 echo: Some(false),
                 isig: Some(false),
+                ..Default::default()
             },
         )
         .expect("set raw mode");
@@ -512,6 +517,7 @@ fn set_discipline_only_updates_requested_fields() {
                 canonical: Some(false),
                 echo: Some(false),
                 isig: Some(false),
+                ..Default::default()
             },
         )
         .expect("set initial raw mode");

@@ -118,7 +118,7 @@ use secure_exec_kernel::network_policy::{
 use secure_exec_kernel::permissions::NetworkOperation;
 use secure_exec_kernel::poll::{PollEvents, PollFd, PollTargetEntry, POLLERR, POLLHUP, POLLIN};
 use secure_exec_kernel::process_table::{ProcessStatus, WaitPidFlags, SIGKILL, SIGTERM};
-use secure_exec_kernel::pty::LineDisciplineConfig;
+use secure_exec_kernel::pty::{LineDisciplineConfig, MAX_PTY_BUFFER_BYTES};
 use secure_exec_kernel::resource_accounting::ResourceLimits;
 use secure_exec_kernel::root_fs::RootFilesystemMode;
 use secure_exec_kernel::socket_table::{
@@ -458,6 +458,7 @@ impl ActiveProcess {
             kernel_pid,
             kernel_handle,
             kernel_stdin_writer_fd: None,
+            tty_master_fd: None,
             runtime,
             detached: false,
             execution,
@@ -550,6 +551,11 @@ impl ActiveProcess {
 
     pub(crate) fn with_kernel_stdin_writer_fd(mut self, fd: u32) -> Self {
         self.kernel_stdin_writer_fd = Some(fd);
+        self
+    }
+
+    pub(crate) fn with_tty_master_fd(mut self, fd: Option<u32>) -> Self {
+        self.tty_master_fd = fd;
         self
     }
 
@@ -3433,6 +3439,14 @@ where
                 String::from("SECURE_EXEC_KEEP_STDIN_OPEN"),
                 String::from("1"),
             );
+            // A TTY guest-node process reads stdin through the kernel PTY: host
+            // input is written to the PTY master (write_kernel_process_stdin),
+            // line discipline runs (echo / VERASE / ICRNL / VEOF), and the
+            // sidecar drains the cooked bytes from the slave and forwards them
+            // to the isolate's stream-stdin dispatch
+            // (forward_tty_slave_input_to_javascript). The in-isolate
+            // `_kernelStdinRead` bridge stays local; no RPC forwarding is
+            // needed because the isolate never reads kernel fd 0 itself.
         } else if resolved.runtime == GuestRuntimeKind::WebAssembly {
             env.insert(String::from(WASM_STDIO_SYNC_RPC_ENV), String::from("1"));
         }
@@ -3648,6 +3662,7 @@ where
             payload.process_id.clone(),
             ActiveProcess::new(kernel_pid, kernel_handle, resolved.runtime, execution)
                 .with_kernel_stdin_writer_fd(kernel_stdin_writer_fd)
+                .with_tty_master_fd(tty_master_fd)
                 .with_guest_cwd(resolved.guest_cwd.clone())
                 .with_env(process_env)
                 .with_host_cwd(resolved.host_cwd.clone()),
@@ -3742,7 +3757,16 @@ where
                     payload.process_id
                 ))
             })?;
-        process.execution.write_stdin(&payload.chunk)?;
+        // For a TTY JavaScript process, host stdin must go ONLY to the kernel PTY
+        // master (so line discipline + echo apply); feeding the in-process local
+        // stdin bridge as well would double-deliver the input. Non-TTY JS (piped
+        // stdin) still uses the local bridge; wasm/python always take the
+        // streaming/no-op `write_stdin` path plus the kernel master write below.
+        let tty_js =
+            process.runtime == GuestRuntimeKind::JavaScript && process.tty_master_fd.is_some();
+        if !tty_js {
+            process.execution.write_stdin(&payload.chunk)?;
+        }
         write_kernel_process_stdin(&mut vm.kernel, process, &payload.chunk)?;
 
         Ok(DispatchResult {
@@ -15081,14 +15105,25 @@ where
         "_loadPolyfill" | "__load_polyfill" => {
             service_javascript_internal_bridge_sync_rpc(process, request)
         }
-        "__kernel_stdin_read" => match &process.execution {
-            ActiveExecution::Javascript(execution) => execution
-                .read_kernel_stdin_sync_rpc(request)
-                .map_err(|error| SidecarError::Execution(error.to_string())),
-            ActiveExecution::Python(_) | ActiveExecution::Wasm(_) | ActiveExecution::Tool(_) => {
+        "__kernel_stdin_read" => {
+            // A TTY (PTY-backed) JavaScript process must read its stdin from the
+            // kernel PTY slave (fd 0) so cooked-mode line discipline (echo,
+            // VERASE/VKILL/VWERASE, ICRNL, VEOF) applies exactly as it does for
+            // wasm/python. Non-TTY JS keeps using the in-process local stdin
+            // bridge (piped stdin fed via process.execution.write_stdin).
+            let js_local_bridge = matches!(process.execution, ActiveExecution::Javascript(_))
+                && process.tty_master_fd.is_none();
+            if js_local_bridge {
+                match &process.execution {
+                    ActiveExecution::Javascript(execution) => execution
+                        .read_kernel_stdin_sync_rpc(request)
+                        .map_err(|error| SidecarError::Execution(error.to_string())),
+                    _ => unreachable!("js_local_bridge implies a JavaScript execution"),
+                }
+            } else {
                 service_javascript_kernel_stdin_sync_rpc(kernel, process, request)
             }
-        },
+        }
         "__kernel_stdio_write" => {
             service_javascript_kernel_stdio_write_sync_rpc(kernel, process, request)
         }
@@ -16560,9 +16595,7 @@ fn service_javascript_crypto_subtle_aes_crypt_sync_rpc(
         Some(&Value::Object(options)),
     )?;
     let mut output = javascript_crypto_cipher_update(&mut session, &data)?;
-    let outcome = session
-        .finalize()
-        .map_err(javascript_crypto_cipher_error)?;
+    let outcome = session.finalize().map_err(javascript_crypto_cipher_error)?;
     output.extend(outcome.data);
     if !decrypt {
         if let Some(auth_tag) = outcome.auth_tag {
@@ -16617,9 +16650,7 @@ fn service_javascript_crypto_cipheriv_inner(
         options.as_ref(),
     )?;
     let payload = javascript_crypto_cipher_update(&mut session, &data)?;
-    let outcome = session
-        .finalize()
-        .map_err(javascript_crypto_cipher_error)?;
+    let outcome = session.finalize().map_err(javascript_crypto_cipher_error)?;
     if decrypt {
         let mut output = payload;
         output.extend(outcome.data);
@@ -17509,7 +17540,10 @@ fn javascript_crypto_decode_cipher_option_b64(
     options: Option<&Value>,
     field: &str,
 ) -> Result<Option<Vec<u8>>, SidecarError> {
-    let Some(encoded) = options.and_then(|value| value.get(field)).and_then(Value::as_str) else {
+    let Some(encoded) = options
+        .and_then(|value| value.get(field))
+        .and_then(Value::as_str)
+    else {
         return Ok(None);
     };
     base64::engine::general_purpose::STANDARD
@@ -17636,10 +17670,16 @@ fn service_javascript_pty_set_raw_mode_sync_rpc(
             EXECUTION_DRIVER_NAME,
             process.kernel_pid,
             0,
+            // Match cfmakeraw: raw mode also disables output post-processing
+            // (OPOST/ONLCR) so a full-screen app (vim) that drives its own
+            // cursor/CRLF is not mangled by the line discipline; cooked mode
+            // re-enables it so the line shell gets LF->CRLF.
             LineDisciplineConfig {
                 canonical: Some(!enabled),
                 echo: Some(!enabled),
                 isig: Some(!enabled),
+                opost: Some(!enabled),
+                onlcr: Some(!enabled),
             },
         )
         .map_err(kernel_error)?;
@@ -17702,6 +17742,49 @@ fn service_javascript_kernel_tty_size_sync_rpc(
 // `event_frame_for_execution_event`): suppress this child `Stdout` event when
 // the same bytes already reach the host through a PTY master owned by an
 // ancestor. Deliberately NOT fabricating that guard now, per instructions.
+/// A TTY in raw mode (no echo, no canonical) — like cfmakeraw. Full-screen apps
+/// (vim) run raw and drive their own cursor/CRLF, so their output must be passed
+/// through untouched, NOT round-tripped through the slave->process_output->master
+/// path (which buffers/reorders escape sequences and corrupts the screen).
+fn tty_is_raw_mode(kernel: &SidecarKernel, process: &ActiveProcess) -> bool {
+    let Some(master_fd) = process.tty_master_fd else {
+        return false;
+    };
+    match kernel.tcgetattr(EXECUTION_DRIVER_NAME, process.kernel_pid, master_fd) {
+        Ok(termios) => !termios.echo && !termios.icanon,
+        Err(_) => false,
+    }
+}
+
+/// Non-blocking drain of the PTY master output buffer for a TTY process.
+///
+/// For a TTY (PTY-backed) process the master output buffer is the single
+/// ordered output stream: it carries cooked-mode echo plus ONLCR-processed
+/// guest output, already merged FIFO. A zero-timeout master read returns the
+/// whole current buffer (so echo and guest output stay grouped) or EAGAIN when
+/// empty, which is mapped to `Ok(None)`. Returns `Ok(None)` for non-TTY
+/// processes (no master fd).
+pub(crate) fn drain_tty_master_output(
+    kernel: &mut SidecarKernel,
+    process: &mut ActiveProcess,
+) -> Result<Option<Vec<u8>>, SidecarError> {
+    let Some(master_fd) = process.tty_master_fd else {
+        return Ok(None);
+    };
+    match kernel.fd_read_with_timeout_result(
+        EXECUTION_DRIVER_NAME,
+        process.kernel_pid,
+        master_fd,
+        MAX_PTY_BUFFER_BYTES,
+        Some(Duration::ZERO),
+    ) {
+        Ok(Some(bytes)) if !bytes.is_empty() => Ok(Some(bytes)),
+        Ok(_) => Ok(None),
+        Err(error) if error.code() == "EAGAIN" => Ok(None),
+        Err(error) => Err(kernel_error(error)),
+    }
+}
+
 fn service_javascript_kernel_stdio_write_sync_rpc(
     kernel: &mut SidecarKernel,
     process: &mut ActiveProcess,
@@ -17709,19 +17792,47 @@ fn service_javascript_kernel_stdio_write_sync_rpc(
 ) -> Result<Value, SidecarError> {
     let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__kernel_stdio_write fd")?;
     let chunk = javascript_sync_rpc_bytes_arg(&request.args, 1, "__kernel_stdio_write chunk")?;
+    if fd != 1 && fd != 2 {
+        return Err(SidecarError::InvalidState(format!(
+            "__kernel_stdio_write only supports fd 1/2, got {fd}"
+        )));
+    }
 
-    let written = match fd {
-        1 => kernel
-            .write_process_stdout(EXECUTION_DRIVER_NAME, process.kernel_pid, &chunk)
-            .map_err(kernel_error)?,
-        2 => kernel
-            .write_process_stderr(EXECUTION_DRIVER_NAME, process.kernel_pid, &chunk)
-            .map_err(kernel_error)?,
-        other => {
-            return Err(SidecarError::InvalidState(format!(
-                "__kernel_stdio_write only supports fd 1/2, got {other}"
-            )));
+    // COOKED TTY (line shell): route the write through the PTY slave so it flows
+    // through process_output (ONLCR) into the master output buffer interleaved
+    // with cooked-mode echo, then surface that single ordered master stream so
+    // ONLCR + echo reach the host. stderr shares the master, merging onto Stdout.
+    let raw_mode = tty_is_raw_mode(kernel, process);
+    if process.tty_master_fd.is_some() && !raw_mode {
+        let written = if fd == 1 {
+            kernel
+                .write_process_stdout(EXECUTION_DRIVER_NAME, process.kernel_pid, &chunk)
+                .map_err(kernel_error)?
+        } else {
+            kernel
+                .write_process_stderr(EXECUTION_DRIVER_NAME, process.kernel_pid, &chunk)
+                .map_err(kernel_error)?
+        };
+        if let Some(master_bytes) = drain_tty_master_output(kernel, process)? {
+            process.queue_pending_execution_event(ActiveExecutionEvent::Stdout(master_bytes))?;
         }
+        return Ok(json!(written));
+    }
+
+    // RAW TTY (full-screen app) or non-TTY: emit the guest's bytes unmodified.
+    // For a raw TTY we must NOT write through the slave (that would fill the
+    // never-drained master and corrupt rendering); for non-TTY we write to the
+    // underlying fd so pipes/files actually receive it.
+    let written = if process.tty_master_fd.is_some() {
+        chunk.len()
+    } else if fd == 1 {
+        kernel
+            .write_process_stdout(EXECUTION_DRIVER_NAME, process.kernel_pid, &chunk)
+            .map_err(kernel_error)?
+    } else {
+        kernel
+            .write_process_stderr(EXECUTION_DRIVER_NAME, process.kernel_pid, &chunk)
+            .map_err(kernel_error)?
     };
 
     let event = if fd == 1 {
@@ -17827,7 +17938,11 @@ pub(crate) fn write_kernel_process_stdin(
     process: &mut ActiveProcess,
     chunk: &[u8],
 ) -> Result<(), SidecarError> {
-    if process.runtime == GuestRuntimeKind::JavaScript {
+    // Non-TTY JavaScript uses the in-process local stdin bridge, not a kernel
+    // fd; a TTY JavaScript process (tty_master_fd set) DOES route through the
+    // kernel PTY master, exactly like wasm/python, so line discipline + echo
+    // apply.
+    if process.runtime == GuestRuntimeKind::JavaScript && process.tty_master_fd.is_none() {
         return Ok(());
     }
     let Some(writer_fd) = process.kernel_stdin_writer_fd else {
@@ -17835,8 +17950,55 @@ pub(crate) fn write_kernel_process_stdin(
     };
     kernel
         .fd_write(EXECUTION_DRIVER_NAME, process.kernel_pid, writer_fd, chunk)
-        .map(|_| ())
-        .map_err(kernel_error)
+        .map_err(kernel_error)?;
+    // For a TTY process the master write above drives line-discipline echo into
+    // the master output buffer. Drain it now and surface it as the single
+    // ordered Stdout stream so typed-character echo reaches the host even while
+    // the guest is blocked in read() and not producing output of its own.
+    if let Some(echo) = drain_tty_master_output(kernel, process)? {
+        process.queue_pending_execution_event(ActiveExecutionEvent::Stdout(echo))?;
+    }
+    forward_tty_slave_input_to_javascript(kernel, process)?;
+    Ok(())
+}
+
+/// For a TTY JavaScript guest, cooked input becomes readable on the PTY slave
+/// only after line discipline runs (on newline/VEOF in canonical mode; every
+/// byte in raw mode). The V8 isolate has no kernel-fd read loop of its own —
+/// its stdin is the stream-stdin dispatch fed by `execution.write_stdin` — so
+/// right after each master write, drain whatever the discipline released on
+/// the slave (fd 0) and forward it to the isolate. A `None` read is the
+/// discipline's VEOF: propagate it as end-of-stdin so `process.stdin` emits
+/// `end`. Wasm/python guests read the slave themselves and are skipped.
+fn forward_tty_slave_input_to_javascript(
+    kernel: &mut SidecarKernel,
+    process: &mut ActiveProcess,
+) -> Result<(), SidecarError> {
+    if process.tty_master_fd.is_none()
+        || !matches!(process.execution, ActiveExecution::Javascript(_))
+    {
+        return Ok(());
+    }
+    loop {
+        match kernel.fd_read_with_timeout_result(
+            EXECUTION_DRIVER_NAME,
+            process.kernel_pid,
+            0,
+            MAX_PTY_BUFFER_BYTES,
+            Some(Duration::ZERO),
+        ) {
+            Ok(Some(bytes)) if !bytes.is_empty() => {
+                process.execution.write_stdin(&bytes)?;
+            }
+            Ok(Some(_)) => return Ok(()),
+            Ok(None) => {
+                process.execution.close_stdin()?;
+                return Ok(());
+            }
+            Err(error) if error.code() == "EAGAIN" => return Ok(()),
+            Err(error) => return Err(kernel_error(error)),
+        }
+    }
 }
 
 pub(crate) fn close_kernel_process_stdin(

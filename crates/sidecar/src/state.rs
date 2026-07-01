@@ -431,6 +431,11 @@ pub(crate) struct ActiveProcess {
     pub(crate) kernel_pid: u32,
     pub(crate) kernel_handle: KernelProcessHandle,
     pub(crate) kernel_stdin_writer_fd: Option<u32>,
+    /// For a TTY (PTY-backed) process, the master-end fd whose output buffer
+    /// carries cooked-mode echo plus ONLCR-processed guest output. When set,
+    /// this master output is the single ordered output stream surfaced to the
+    /// host (instead of the raw guest stdout/stderr execution events).
+    pub(crate) tty_master_fd: Option<u32>,
     pub(crate) runtime: GuestRuntimeKind,
     pub(crate) detached: bool,
     pub(crate) execution: ActiveExecution,

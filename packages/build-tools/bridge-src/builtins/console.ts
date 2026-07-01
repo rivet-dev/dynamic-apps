@@ -1,13 +1,14 @@
 import { once } from "./events.js";
 import { import_buffer2 } from "./buffer-runtime.js";
 import { _queueMicrotask } from "./timers.js";
+import { _resolveRuntimeTtyConfig } from "./tty-config.js";
 
 function _getStdoutIsTTY() {
-  return typeof __runtimeTtyConfig !== "undefined" && __runtimeTtyConfig.stdoutIsTTY || false;
+  return _resolveRuntimeTtyConfig().stdoutIsTTY;
 }
 
 function _getStderrIsTTY() {
-  return typeof __runtimeTtyConfig !== "undefined" && __runtimeTtyConfig.stderrIsTTY || false;
+  return _resolveRuntimeTtyConfig().stderrIsTTY;
 }
 
 function getWriteCallback(encodingOrCallback, callback) {
@@ -113,10 +114,10 @@ function createStdioWriteStream(options) {
       return options.isTTY();
     },
     get columns() {
-      return typeof __runtimeTtyConfig !== "undefined" && __runtimeTtyConfig.cols || 80;
+      return _resolveRuntimeTtyConfig().cols;
     },
     get rows() {
-      return typeof __runtimeTtyConfig !== "undefined" && __runtimeTtyConfig.rows || 24;
+      return _resolveRuntimeTtyConfig().rows;
     }
   };
   return stream;

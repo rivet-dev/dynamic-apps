@@ -41,6 +41,7 @@ fn minimal_vm_lifecycle_transitions_between_ready_busy_and_terminated() {
                 canonical: Some(false),
                 echo: Some(false),
                 isig: Some(false),
+                ..Default::default()
             },
         )
         .expect("set raw mode");

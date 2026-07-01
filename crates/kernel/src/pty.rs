@@ -67,6 +67,8 @@ pub struct LineDisciplineConfig {
     pub canonical: Option<bool>,
     pub echo: Option<bool>,
     pub isig: Option<bool>,
+    pub opost: Option<bool>,
+    pub onlcr: Option<bool>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -761,6 +763,12 @@ impl PtyManager {
         if let Some(isig) = config.isig {
             pty.termios.isig = isig;
         }
+        if let Some(opost) = config.opost {
+            pty.termios.opost = opost;
+        }
+        if let Some(onlcr) = config.onlcr {
+            pty.termios.onlcr = onlcr;
+        }
         Ok(())
     }
 
@@ -956,9 +964,14 @@ fn process_input(
                     pty.line_buffer.clear();
                 }
                 let has_foreground_process_group = pty.foreground_pgid > 0;
-                if pty.termios.echo {
+                // Only echo the signal-generating control char (e.g. "^C") as a
+                // line-editor fallback when there is NO foreground process group
+                // to receive the signal. With a foreground process group the
+                // signal is delivered to it and the char is not echoed, matching
+                // the integration suite's VINTR/VSUSP/VQUIT expectations.
+                if pty.termios.echo && !has_foreground_process_group {
                     deliver_output(pty, waiters, &echo_control_byte(byte), true)?;
-                    if !has_foreground_process_group && pty.termios.icanon {
+                    if pty.termios.icanon {
                         deliver_output(pty, waiters, b"\r\n", true)?;
                     }
                 }

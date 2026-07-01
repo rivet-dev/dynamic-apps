@@ -21,6 +21,7 @@ const WASI_ERRNO_AGAIN = 6;
 const WASI_ERRNO_BADF = 8;
 const WASI_ERRNO_CHILD = 10;
 const WASI_ERRNO_INVAL = 28;
+const WASI_ERRNO_NOENT = 44;
 const WASI_ERRNO_PIPE = 64;
 const WASI_ERRNO_ROFS = 69;
 const WASI_ERRNO_SPIPE = 70;
@@ -28,6 +29,7 @@ const WASI_ERRNO_SRCH = 71;
 const WASI_ERRNO_FAULT = 21;
 const WASI_RIGHT_FD_WRITE = 64n;
 const WASI_FILETYPE_UNKNOWN = 0;
+const WASI_FILETYPE_CHARACTER_DEVICE = 2;
 const WASI_FILETYPE_REGULAR_FILE = 4;
 const WASI_OFLAGS_CREAT = 1;
 const WASI_OFLAGS_DIRECTORY = 2;
@@ -646,6 +648,26 @@ function decodeBase64ToUint8Array(value) {
   return Buffer.from(value, 'base64');
 }
 
+// Memoized kernel-PTY probe for the guest's stdio fds. Rust's
+// `stdin().is_terminal()` (and wasi-libc `isatty`) ask `fd_fdstat_get` for a
+// CHARACTER_DEVICE filetype; the runner-process fds are pipes, so a delegated
+// answer hides the kernel PTY and interactive guests (e.g. brush's prompt)
+// believe stdin is not a terminal. Ask the sidecar's kernel instead.
+const stdioTtyCache = new Map();
+function stdioFdIsKernelTty(fd) {
+  const descriptor = Number(fd) >>> 0;
+  if (descriptor > 2) return false;
+  if (stdioTtyCache.has(descriptor)) return stdioTtyCache.get(descriptor);
+  let isTty = false;
+  try {
+    isTty = callSyncRpc('__kernel_isatty', [descriptor]) === true;
+  } catch {
+    isTty = false;
+  }
+  stdioTtyCache.set(descriptor, isTty);
+  return isTty;
+}
+
 function readKernelStdinChunk(maxBytes) {
   const requestedLength = Math.max(1, Number(maxBytes) >>> 0);
   while (true) {
@@ -849,6 +871,86 @@ function resolvedGuestPathIsReadOnly(fd, pathPtr, pathLen) {
   } catch {
     return false;
   }
+}
+
+// Guest path recorded for a managed (path_open passthrough) fd, if known.
+function guestPathForManagedFd(fd) {
+  const handle = lookupFdHandle(fd);
+  if (handle?.kind === 'passthrough' && typeof handle.guestPath === 'string') {
+    return handle.guestPath;
+  }
+  return null;
+}
+
+// WASI fstflags bits for *_filestat_set_times.
+const WASI_FSTFLAGS_ATIM = 1;
+const WASI_FSTFLAGS_ATIM_NOW = 2;
+const WASI_FSTFLAGS_MTIM = 4;
+const WASI_FSTFLAGS_MTIM_NOW = 8;
+const WASI_LOOKUPFLAGS_SYMLINK_FOLLOW = 1;
+
+// Resolve the (atime, mtime) seconds to apply for a *_filestat_set_times call:
+// explicit nanosecond args, "now", or preserve-current (the OMIT case; node's
+// utimes has no omit, so re-apply the current value from stat).
+function resolveSetTimes(currentStat, atimNs, mtimNs, fstFlags) {
+  const flags = Number(fstFlags) >>> 0;
+  const nowSec = Date.now() / 1000;
+  let atime = currentStat.atimeMs / 1000;
+  let mtime = currentStat.mtimeMs / 1000;
+  if (flags & WASI_FSTFLAGS_ATIM_NOW) {
+    atime = nowSec;
+  } else if (flags & WASI_FSTFLAGS_ATIM) {
+    atime = Number(BigInt(atimNs)) / 1e9;
+  }
+  if (flags & WASI_FSTFLAGS_MTIM_NOW) {
+    mtime = nowSec;
+  } else if (flags & WASI_FSTFLAGS_MTIM) {
+    mtime = Number(BigInt(mtimNs)) / 1e9;
+  }
+  return { atime, mtime };
+}
+
+// The embedded WASI shim omits the *_filestat_set_times ops entirely, which
+// makes instantiation of any module importing them fail with a LinkError
+// (vim uses path_filestat_set_times to restore file timestamps). Implement
+// them against the bridge fs (the kernel VFS) when the base has no delegate.
+if (typeof wasiImport.path_filestat_set_times !== 'function') {
+  wasiImport.path_filestat_set_times = (fd, flags, pathPtr, pathLen, atimNs, mtimNs, fstFlags) => {
+    try {
+      const guestPath = resolvePathOpenGuestPath(fd, pathPtr, pathLen);
+      if (typeof guestPath !== 'string') {
+        return WASI_ERRNO_BADF;
+      }
+      const follow = (Number(flags) >>> 0) & WASI_LOOKUPFLAGS_SYMLINK_FOLLOW;
+      const stat = follow ? fsModule.statSync(guestPath) : fsModule.lstatSync(guestPath);
+      const { atime, mtime } = resolveSetTimes(stat, atimNs, mtimNs, fstFlags);
+      if (follow || typeof fsModule.lutimesSync !== 'function') {
+        fsModule.utimesSync(guestPath, atime, mtime);
+      } else {
+        fsModule.lutimesSync(guestPath, atime, mtime);
+      }
+      return WASI_ERRNO_SUCCESS;
+    } catch (error) {
+      return error?.code === 'ENOENT' ? WASI_ERRNO_NOENT : WASI_ERRNO_INVAL;
+    }
+  };
+}
+
+if (typeof wasiImport.fd_filestat_set_times !== 'function') {
+  wasiImport.fd_filestat_set_times = (fd, atimNs, mtimNs, fstFlags) => {
+    try {
+      const guestPath = guestPathForManagedFd(fd);
+      if (typeof guestPath !== 'string') {
+        return WASI_ERRNO_BADF;
+      }
+      const stat = fsModule.statSync(guestPath);
+      const { atime, mtime } = resolveSetTimes(stat, atimNs, mtimNs, fstFlags);
+      fsModule.utimesSync(guestPath, atime, mtime);
+      return WASI_ERRNO_SUCCESS;
+    } catch (error) {
+      return error?.code === 'ENOENT' ? WASI_ERRNO_NOENT : WASI_ERRNO_INVAL;
+    }
+  };
 }
 
 function precreatePathOpenTarget(fd, pathPtr, pathLen, oflags) {
@@ -3788,7 +3890,7 @@ const hostUserImport = {
   },
   isatty(fd, retBoolPtr) {
     const descriptor = Number(fd) >>> 0;
-    const isTerminal = descriptor <= 2 ? 0 : 0;
+    const isTerminal = descriptor <= 2 && stdioFdIsKernelTty(descriptor) ? 1 : 0;
     return writeGuestUint32(retBoolPtr, isTerminal);
   },
   getpwuid(uid, bufPtr, bufLen, retLenPtr) {
@@ -4482,6 +4584,27 @@ wasiImport.fd_tell = (fd, offsetPtr) => {
 
 wasiImport.fd_fdstat_get = (fd, statPtr) => {
   const handle = lookupFdHandle(fd);
+  // Kernel-PTY stdio must report CHARACTER_DEVICE so guest is_terminal()/
+  // isatty() see the TTY (the runner-process fds behind the delegate are
+  // pipes). Resolve dup'd passthrough handles to their target fd first.
+  {
+    const stdioFd =
+      handle?.kind === 'passthrough' ? Number(handle.targetFd) >>> 0 : Number(fd) >>> 0;
+    if ((handle == null || handle.kind === 'passthrough') && stdioFd <= 2 &&
+        stdioFdIsKernelTty(stdioFd)) {
+      return writeGuestFdstat(
+        statPtr,
+        WASI_FILETYPE_CHARACTER_DEVICE,
+        0,
+        WASI_RIGHT_FD_READ |
+          WASI_RIGHT_FD_WRITE |
+          WASI_RIGHT_FD_FDSTAT_SET_FLAGS |
+          WASI_RIGHT_FD_FILESTAT_GET |
+          WASI_RIGHT_POLL_FD_READWRITE,
+        0n,
+      );
+    }
+  }
   if (handle?.kind === 'pipe-read') {
     return writeGuestFdstat(
       statPtr,
@@ -5027,12 +5150,18 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
 // (-1 as i32) means block until input. Backed by the same __kernel_stdin_read RPC
 // the wasi fd_read path uses, so it works identically under native and browser.
 const hostTtyImport = {
+  // Short-poll slices (like readKernelStdinChunk), never one long blocking
+  // read: a long `__kernel_stdin_read` occupies the sidecar service loop, so
+  // the very host->guest stdin write the caller is waiting for (e.g. the CPR
+  // reply to crossterm's cursor-position query) queues behind it and cannot
+  // land until the read times out — a self-deadlock.
   read(ptr, len, timeoutMs) {
     const cap = Number(len) >>> 0;
     if (cap === 0) return 0;
     const blocking = (timeoutMs >>> 0) === 0xffffffff;
+    const deadline = blocking ? Infinity : Date.now() + (Number(timeoutMs) >>> 0);
     while (true) {
-      const response = callSyncRpc('__kernel_stdin_read', [cap, blocking ? 1000 : Number(timeoutMs) >>> 0]);
+      const response = callSyncRpc('__kernel_stdin_read', [cap, 10]);
       if (response && typeof response.dataBase64 === 'string') {
         const bytes = Buffer.from(response.dataBase64, 'base64');
         const n = Math.min(bytes.length, cap);
@@ -5042,8 +5171,8 @@ const hostTtyImport = {
         }
       }
       if (response && response.done === true) return 0;
-      if (!blocking) return 0;
-      Atomics.wait(syntheticWaitArray, 0, 0, 10);
+      if (Date.now() >= deadline) return 0;
+      Atomics.wait(syntheticWaitArray, 0, 0, 5);
     }
   },
   // `host_tty.isatty(fd)` -> 1 if the guest fd is a kernel PTY, else 0.

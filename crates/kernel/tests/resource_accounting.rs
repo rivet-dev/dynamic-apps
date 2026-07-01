@@ -49,6 +49,7 @@ fn resource_snapshot_counts_processes_fds_pipes_and_ptys() {
                 canonical: Some(false),
                 echo: Some(false),
                 isig: Some(false),
+                ..Default::default()
             },
         )
         .expect("set raw pty");
@@ -1176,6 +1177,7 @@ fn blocking_pipe_and_pty_reads_time_out_instead_of_hanging_forever() {
                 canonical: Some(false),
                 echo: Some(false),
                 isig: Some(false),
+                ..Default::default()
             },
         )
         .expect("set raw pty");
