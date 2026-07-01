@@ -5046,9 +5046,26 @@ const hostTtyImport = {
       Atomics.wait(syntheticWaitArray, 0, 0, 10);
     }
   },
-  // Toggle terminal raw mode on the guest's PTY. crossterm calls this instead of
-  // tcsetattr; route it to the kernel so reedline gets raw \r keystrokes and submits.
-  set_raw_mode(_enabled) {
+  // `host_tty.isatty(fd)` -> 1 if the guest fd is a kernel PTY, else 0.
+  isatty(fd) {
+    return callSyncRpc('__kernel_isatty', [fd >>> 0]) === true ? 1 : 0;
+  },
+  // `host_tty.get_size(fd, colsPtr, rowsPtr)` -> writes the PTY window size as two
+  // little-endian u16s and returns 0; non-zero (ENOTTY) if fd is not a PTY.
+  get_size(fd, colsPtr, rowsPtr) {
+    const size = callSyncRpc('__kernel_tty_size', [fd >>> 0]);
+    if (!size || typeof size.cols !== 'number' || typeof size.rows !== 'number') {
+      return 25; // ENOTTY
+    }
+    const view = new DataView(instanceMemory.buffer);
+    view.setUint16(colsPtr >>> 0, size.cols & 0xffff, true);
+    view.setUint16(rowsPtr >>> 0, size.rows & 0xffff, true);
+    return 0;
+  },
+  // Toggle terminal raw mode on the guest's PTY. crossterm/pty_probe/vim call this
+  // instead of tcsetattr; route it to the kernel so the guest gets raw keystrokes.
+  set_raw_mode(enabled) {
+    callSyncRpc('__pty_set_raw_mode', [(enabled >>> 0) !== 0]);
     return 0;
   },
 };
