@@ -421,6 +421,21 @@ where
         )
         .and_then(|()| {
             vm.command_guest_paths = discover_command_guest_paths(&mut vm.kernel);
+            // The `{ packageDir }` projection lands each package's `bin/<cmd>` at
+            // `/opt/agentos/bin/<cmd>` (on `$PATH`) but does NOT populate
+            // `/__secure_exec/commands`, so `discover_command_guest_paths` alone misses
+            // projected commands and every projected wasm/js command resolves to
+            // ENOEXEC (absolute path) / ENOENT (bare name). Register each projected
+            // command by name -> its `/opt/agentos/bin/<cmd>` entrypoint so both the
+            // kernel command table (via `execution_commands` below) and the sidecar
+            // entrypoint resolver (`resolve_guest_command_entrypoint`) can find it.
+            for descriptor in &package_descriptors {
+                for command in crate::package_projection::derive_commands(&descriptor.dir)? {
+                    let entrypoint =
+                        format!("{}/{command}", crate::package_projection::OPT_AGENTOS_BIN);
+                    vm.command_guest_paths.entry(command).or_insert(entrypoint);
+                }
+            }
             refresh_guest_command_path_env(&mut vm.guest_env, &vm.command_guest_paths);
             let mut execution_commands =
                 vec![String::from(JAVASCRIPT_COMMAND), String::from(WASM_COMMAND)];
