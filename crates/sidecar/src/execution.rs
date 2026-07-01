@@ -17621,6 +17621,35 @@ fn service_javascript_kernel_tty_size_sync_rpc(
     }))
 }
 
+// TODO(double-print): The recovered pre-convergence work (94e935d0) added a
+// guard here because in THAT model the sidecar owned a per-process
+// `tty_master_fd`, drained the PTY master into `Stdout`/`ProcessOutput` events,
+// and therefore had to suppress a TTY child's own `process_output` event to
+// avoid surfacing the same bytes twice (once via the child's Stdout event, once
+// via the drained master).
+//
+// The current "real terminal client" model on main is different and does NOT
+// exhibit that bug as far as I can determine:
+//   * `tty_master_fd` here is only a LOCAL used to derive
+//     `kernel_stdin_writer_fd`; there is no `ActiveProcess::tty_master_fd`
+//     field and no `drain_tty_master_output` — the sidecar never surfaces the
+//     PTY master as host `ProcessOutput` at all. The in-guest terminal client
+//     reads the master itself.
+//   * A wasm/python CHILD of a cooked-TTY JS shell is spawned WITHOUT the
+//     parent's PTY slave dup2'd onto its fds (the child spawn path does no
+//     `open_pty`/slave dup2), so the child's stdout does not flow through the
+//     parent's master. It is surfaced exactly once, via the `Stdout` event
+//     queued below.
+// So there is no second surfacing path to suppress, and porting 94e935d0's
+// master-drain guard would guard against a drain that no longer exists.
+//
+// UNRESOLVED: I could not exercise the live JS-shell-spawns-wasm-child scenario
+// end-to-end to positively confirm the host sees exactly one copy; the analysis
+// above is from the code paths only. If a real double-print is later observed
+// for a TTY child, the fix belongs here (or at the `ProcessOutput` emission in
+// `event_frame_for_execution_event`): suppress this child `Stdout` event when
+// the same bytes already reach the host through a PTY master owned by an
+// ancestor. Deliberately NOT fabricating that guard now, per instructions.
 fn service_javascript_kernel_stdio_write_sync_rpc(
     kernel: &mut SidecarKernel,
     process: &mut ActiveProcess,

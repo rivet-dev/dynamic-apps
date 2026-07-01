@@ -98,6 +98,8 @@ pub struct TermiosControlChars {
     pub vsusp: u8,
     pub veof: u8,
     pub verase: u8,
+    pub vkill: u8,
+    pub vwerase: u8,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -107,6 +109,8 @@ pub struct PartialTermiosControlChars {
     pub vsusp: Option<u8>,
     pub veof: Option<u8>,
     pub verase: Option<u8>,
+    pub vkill: Option<u8>,
+    pub vwerase: Option<u8>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -139,6 +143,8 @@ impl Default for Termios {
                 vsusp: 0x1a,
                 veof: 0x04,
                 verase: 0x7f,
+                vkill: 0x15,
+                vwerase: 0x17,
             },
         }
     }
@@ -186,6 +192,12 @@ impl TermiosControlChars {
         }
         if let Some(verase) = update.verase {
             self.verase = verase;
+        }
+        if let Some(vkill) = update.vkill {
+            self.vkill = vkill;
+        }
+        if let Some(vwerase) = update.vwerase {
+            self.vwerase = vwerase;
         }
     }
 }
@@ -972,11 +984,48 @@ fn process_input(
             }
 
             if byte == pty.termios.cc.verase || byte == 0x08 {
-                if !pty.line_buffer.is_empty() {
+                if let Some(&erased) = pty.line_buffer.last() {
                     if pty.termios.echo {
-                        deliver_output(pty, waiters, &[0x08, 0x20, 0x08], true)?;
+                        deliver_output(pty, waiters, &erase_sequence(erased), true)?;
                     }
                     pty.line_buffer.pop();
+                }
+                continue;
+            }
+
+            if byte == pty.termios.cc.vkill {
+                if !pty.line_buffer.is_empty() {
+                    if pty.termios.echo {
+                        let erase: Vec<u8> = pty
+                            .line_buffer
+                            .iter()
+                            .flat_map(|b| erase_sequence(*b))
+                            .collect();
+                        deliver_output(pty, waiters, &erase, true)?;
+                    }
+                    pty.line_buffer.clear();
+                }
+                continue;
+            }
+
+            if byte == pty.termios.cc.vwerase {
+                let mut erased: Vec<u8> = Vec::new();
+                while matches!(pty.line_buffer.last(), Some(b' ') | Some(b'\t')) {
+                    if let Some(b) = pty.line_buffer.pop() {
+                        erased.push(b);
+                    }
+                }
+                while let Some(&b) = pty.line_buffer.last() {
+                    if b == b' ' || b == b'\t' {
+                        break;
+                    }
+                    pty.line_buffer.pop();
+                    erased.push(b);
+                }
+                if pty.termios.echo && !erased.is_empty() {
+                    let sequence: Vec<u8> =
+                        erased.iter().flat_map(|b| erase_sequence(*b)).collect();
+                    deliver_output(pty, waiters, &sequence, true)?;
                 }
                 continue;
             }
@@ -996,7 +1045,9 @@ fn process_input(
                 continue;
             }
             if pty.termios.echo {
-                deliver_output(pty, waiters, &[byte], true)?;
+                // ECHOCTL: echo control chars in caret form (e.g. 0x01 -> "^A")
+                // so they are visible; printable bytes echo verbatim.
+                deliver_output(pty, waiters, &echo_control_byte(byte), true)?;
             }
             pty.line_buffer.push(byte);
         } else {
@@ -1130,6 +1181,16 @@ fn echo_control_byte(byte: u8) -> Vec<u8> {
     } else {
         vec![byte]
     }
+}
+
+/// Backspace-erase sequence for a single buffered input byte, accounting for how
+/// wide it was echoed: a control char echoed in caret form (`^X`, ECHOCTL)
+/// occupies two columns and needs two `BS SP BS` triples, while a printable byte
+/// occupies one. Used by VERASE / VKILL / VWERASE erase echo so the erased echo
+/// width matches the displayed width.
+fn erase_sequence(byte: u8) -> Vec<u8> {
+    let columns = echo_control_byte(byte).len();
+    (0..columns).flat_map(|_| [0x08, 0x20, 0x08]).collect()
 }
 
 fn buffer_size(buffer: &VecDeque<Vec<u8>>) -> usize {

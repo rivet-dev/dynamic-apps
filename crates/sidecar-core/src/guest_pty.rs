@@ -190,6 +190,8 @@ where
             "vsusp": termios.cc.vsusp,
             "veof": termios.cc.veof,
             "verase": termios.cc.verase,
+            "vkill": termios.cc.vkill,
+            "vwerase": termios.cc.vwerase,
         },
     }))
 }
@@ -221,6 +223,8 @@ fn parse_partial_termios(request: &Value) -> PartialTermios {
         vsusp: optional_u8(cc, "vsusp"),
         veof: optional_u8(cc, "veof"),
         verase: optional_u8(cc, "verase"),
+        vkill: optional_u8(cc, "vkill"),
+        vwerase: optional_u8(cc, "vwerase"),
     });
     PartialTermios {
         icrnl: optional_bool(request, "icrnl"),

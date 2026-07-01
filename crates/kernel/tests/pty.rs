@@ -561,3 +561,186 @@ fn set_termios_only_updates_requested_fields() {
     assert_eq!(termios.cc.verase, 0x08);
     assert_eq!(termios.cc.vintr, 0x03);
 }
+
+#[test]
+fn canonical_mode_kill_erases_the_whole_line() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    // Type "abc", then VKILL (Ctrl-U, 0x15) to wipe the line, then "xy\n".
+    manager
+        .write(pty.master.description.id(), b"abc\x15xy\n")
+        .expect("write canonical input with kill");
+
+    let line = manager
+        .read(pty.slave.description.id(), 64)
+        .expect("read canonical line")
+        .expect("line should be available");
+    assert_eq!(String::from_utf8(line).expect("valid utf8"), "xy\n");
+
+    let echo = manager
+        .read(pty.master.description.id(), 64)
+        .expect("read echo")
+        .expect("echo should be available");
+    // "abc" echoed, then three BS-SP-BS to erase them, then "xy", then CRLF.
+    assert_eq!(
+        String::from_utf8(echo).expect("valid utf8"),
+        "abc\x08 \x08\x08 \x08\x08 \x08xy\r\n"
+    );
+}
+
+#[test]
+fn canonical_mode_kill_on_empty_line_is_noop() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    manager
+        .write(pty.master.description.id(), b"\x15hi\n")
+        .expect("write kill on empty line");
+
+    let line = manager
+        .read(pty.slave.description.id(), 64)
+        .expect("read canonical line")
+        .expect("line should be available");
+    assert_eq!(String::from_utf8(line).expect("valid utf8"), "hi\n");
+
+    let echo = manager
+        .read(pty.master.description.id(), 64)
+        .expect("read echo")
+        .expect("echo should be available");
+    // No erase output for the empty-line kill; just the "hi" echo + CRLF.
+    assert_eq!(String::from_utf8(echo).expect("valid utf8"), "hi\r\n");
+}
+
+#[test]
+fn canonical_mode_werase_erases_preceding_word_and_trailing_space() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    // "foo bar " then VWERASE (Ctrl-W, 0x17) erases the trailing space and
+    // "bar", leaving "foo ", then "baz\n".
+    manager
+        .write(pty.master.description.id(), b"foo bar \x17baz\n")
+        .expect("write canonical input with werase");
+
+    let line = manager
+        .read(pty.slave.description.id(), 64)
+        .expect("read canonical line")
+        .expect("line should be available");
+    assert_eq!(String::from_utf8(line).expect("valid utf8"), "foo baz\n");
+
+    let echo = manager
+        .read(pty.master.description.id(), 64)
+        .expect("read echo")
+        .expect("echo should be available");
+    // "foo bar " echoed (8 chars), then 4 BS-SP-BS erases (space + "bar"),
+    // then "baz", then CRLF.
+    let mut expected = String::from("foo bar ");
+    expected.push_str(&"\x08 \x08".repeat(4));
+    expected.push_str("baz\r\n");
+    assert_eq!(String::from_utf8(echo).expect("valid utf8"), expected);
+}
+
+#[test]
+fn canonical_mode_werase_on_leading_whitespace_only_erases_it() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    // Only whitespace before VWERASE: erase all of it, nothing else.
+    manager
+        .write(pty.master.description.id(), b"   \x17done\n")
+        .expect("write whitespace then werase");
+
+    let line = manager
+        .read(pty.slave.description.id(), 64)
+        .expect("read canonical line")
+        .expect("line should be available");
+    assert_eq!(String::from_utf8(line).expect("valid utf8"), "done\n");
+}
+
+#[test]
+fn canonical_mode_echoctl_echoes_control_char_in_caret_form() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    // A control char that is neither a signal, VEOF, VERASE, VKILL, VWERASE,
+    // nor newline (0x01 = Ctrl-A) is buffered and echoed as caret form "^A".
+    manager
+        .write(pty.master.description.id(), b"a\x01b\n")
+        .expect("write control char in canonical mode");
+
+    let line = manager
+        .read(pty.slave.description.id(), 64)
+        .expect("read canonical line")
+        .expect("line should be available");
+    // The raw control byte is delivered to the slave verbatim.
+    assert_eq!(line, b"a\x01b\n");
+
+    let echo = manager
+        .read(pty.master.description.id(), 64)
+        .expect("read echo")
+        .expect("echo should be available");
+    assert_eq!(String::from_utf8(echo).expect("valid utf8"), "a^Ab\r\n");
+}
+
+#[test]
+fn canonical_mode_erase_after_echoctl_removes_both_caret_columns() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    // Type Ctrl-A (echoed "^A", two columns), then VERASE (0x7f): the erase
+    // must remove both caret columns, then "z\n".
+    manager
+        .write(pty.master.description.id(), b"\x01\x7fz\n")
+        .expect("write control char then erase");
+
+    let line = manager
+        .read(pty.slave.description.id(), 64)
+        .expect("read canonical line")
+        .expect("line should be available");
+    assert_eq!(line, b"z\n");
+
+    let echo = manager
+        .read(pty.master.description.id(), 64)
+        .expect("read echo")
+        .expect("echo should be available");
+    // "^A" echoed, then two BS-SP-BS to erase both columns, then "z", then CRLF.
+    let mut expected = String::from("^A");
+    expected.push_str(&"\x08 \x08".repeat(2));
+    expected.push_str("z\r\n");
+    assert_eq!(String::from_utf8(echo).expect("valid utf8"), expected);
+}
+
+#[test]
+fn set_termios_updates_kill_and_werase_control_chars() {
+    let manager = PtyManager::new();
+    let pty = manager.create_pty();
+
+    let termios = manager
+        .get_termios(pty.master.description.id())
+        .expect("read default termios");
+    assert_eq!(termios.cc.vkill, 0x15);
+    assert_eq!(termios.cc.vwerase, 0x17);
+
+    manager
+        .set_termios(
+            pty.master.description.id(),
+            PartialTermios {
+                cc: Some(PartialTermiosControlChars {
+                    vkill: Some(0x18),
+                    vwerase: Some(0x1a),
+                    ..PartialTermiosControlChars::default()
+                }),
+                ..PartialTermios::default()
+            },
+        )
+        .expect("merge termios update");
+
+    let termios = manager
+        .get_termios(pty.master.description.id())
+        .expect("read merged termios");
+    assert_eq!(termios.cc.vkill, 0x18);
+    assert_eq!(termios.cc.vwerase, 0x1a);
+    // Unspecified control chars keep their defaults.
+    assert_eq!(termios.cc.verase, 0x7f);
+}
