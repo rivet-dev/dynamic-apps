@@ -200,15 +200,10 @@ fn scan_workspace() -> Vec<ScannedConst> {
         scan_dir(&root, &core_src, "ts", true, &mut found);
     }
 
-    // crates/execution/assets/v8-bridge.source.js
-    let bridge = root.join("crates/execution/assets/v8-bridge.source.js");
-    if bridge.is_file() {
-        scan_file(
-            &bridge,
-            "crates/execution/assets/v8-bridge.source.js",
-            true,
-            &mut found,
-        );
+    // packages/build-tools/bridge-src/**/*.ts
+    let bridge_src = root.join("packages/build-tools/bridge-src");
+    if bridge_src.is_dir() {
+        scan_dir(&root, &bridge_src, "ts", true, &mut found);
     }
 
     found.sort();

@@ -28,13 +28,9 @@ function parseArgs(argv) {
 }
 
 const options = parseArgs(process.argv.slice(2));
-const bridgeSource = path.join(
-	workspaceRoot,
-	"crates",
-	"execution",
-	"assets",
-	"v8-bridge.source.js",
-);
+const bridgeEntry = path.join(packageRoot, "bridge-src", "index.ts");
+const bridgeAssetsDir = path.join(workspaceRoot, "crates", "execution", "assets");
+const bridgeSeamSourcefile = path.join(bridgeAssetsDir, "v8-bridge.generated-seam.js");
 const bridgeContract = path.join(
 	workspaceRoot,
 	"crates",
@@ -140,7 +136,7 @@ const mainBundleAlias = {
 await mkdir(path.dirname(bridgeOutput), { recursive: true });
 await mkdir(path.dirname(zlibBridgeOutput), { recursive: true });
 
-let bridgeSourceText = await readFile(bridgeSource, "utf8");
+let bridgeSourceText = await generateBridgeSeamText();
 await validateBridgeContractGlobals(bridgeSourceText);
 bridgeSourceText = bridgeSourceText.replace(/\n\s*rationale:\s*"[^"]*",?/g, "");
 bridgeSourceText = bridgeSourceText
@@ -148,6 +144,50 @@ bridgeSourceText = bridgeSourceText
 	.replace(/classification:\s*"mutable-runtime-state"/g, 'c:"m"')
 	.replace(/entry\.classification === "hardened"/g, 'entry.c==="h"')
 	.replace(/entry\.classification === "mutable-runtime-state"/g, 'entry.c==="m"');
+
+async function generateBridgeSeamText() {
+	const result = await build({
+		entryPoints: [bridgeEntry],
+		outfile: bridgeSeamSourcefile,
+		bundle: true,
+		minify: false,
+		format: "esm",
+		platform: "neutral",
+		target: "es2020",
+		// Keep native class fields (do not lower to __publicField helpers) so the
+		// seam preserves readable `static builtinModules = [...]` etc. that the
+		// downstream text-consumers grep for.
+		supported: {
+			"class-field": true,
+			"class-static-field": true,
+		},
+		loader: { ".ts": "ts" },
+		write: false,
+		treeShaking: false,
+		// Externalize everything that is not a local bridge-src relative module.
+		packages: "external",
+		plugins: [
+			{
+				name: "secure-exec-bridge-source-externals",
+				setup(pluginBuild) {
+					// node: builtins stay as import specifiers.
+					pluginBuild.onResolve({ filter: /^node:/ }, () => ({
+						external: true,
+					}));
+					// ./undici-shims/* helpers are resolved by the downstream build
+					// relative to the bridge assets directory.
+					pluginBuild.onResolve({ filter: /^\.\/undici-shims\// }, () => ({
+						external: true,
+					}));
+				},
+			},
+		],
+	});
+	if (result.errors.length > 0) {
+		throw new Error(`Failed to build readable V8 bridge seam: ${result.errors[0].text}`);
+	}
+	return result.outputFiles[0].text;
+}
 
 async function validateBridgeContractGlobals(sourceText) {
 	const contract = JSON.parse(await readFile(bridgeContract, "utf8"));
@@ -220,7 +260,7 @@ async function validateBridgeContractGlobals(sourceText) {
 	);
 	if (!inventoryMatch) {
 		throw new Error(
-			"Failed to find NODE_CUSTOM_GLOBAL_INVENTORY in v8-bridge.source.js",
+			"Failed to find NODE_CUSTOM_GLOBAL_INVENTORY in generated V8 bridge seam",
 		);
 	}
 
@@ -574,7 +614,7 @@ async function buildWebStreamsPrelude() {
 				"  globalThis.performance.markResourceTiming = () => {};",
 				"}",
 			].join("\n"),
-			resolveDir: path.dirname(bridgeSource),
+			resolveDir: bridgeAssetsDir,
 			sourcefile: "v8-bridge-web-streams.entry.js",
 			loader: "js",
 		},
@@ -646,8 +686,8 @@ function createUndiciBuildPlugins() {
 const result = await build({
 	stdin: {
 		contents: bridgeSourceText,
-		resolveDir: path.dirname(bridgeSource),
-		sourcefile: bridgeSource,
+		resolveDir: bridgeAssetsDir,
+		sourcefile: bridgeSeamSourcefile,
 		loader: "js",
 	},
 	bundle: true,
@@ -694,7 +734,7 @@ const zlibResult = await build({
 			"globalThis.__secureExecBuiltinUtilModule = utilModule;",
 			"globalThis.__secureExecBuiltinZlibModule = zlibModule;",
 		].join("\n"),
-		resolveDir: path.dirname(bridgeSource),
+		resolveDir: bridgeAssetsDir,
 		sourcefile: "v8-bridge-zlib.entry.js",
 		loader: "js",
 	},

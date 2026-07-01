@@ -3,7 +3,7 @@
 // just a hardcoded few. The structured error `code` (from the kernel or the
 // fd-table) is the source of truth; this maps it to the number.
 //
-// Mirrors the POSIX_ERRNO table in crates/execution/assets/v8-bridge.source.js
+// Mirrors the POSIX_ERRNO table in packages/build-tools/bridge-src/prelude.ts
 // (the V8 bridge bundle is a separate generated JS asset that cannot import this
 // TS module). Keep the two in sync.
 const POSIX_ERRNO: Record<string, number> = {

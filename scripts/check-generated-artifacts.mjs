@@ -16,7 +16,6 @@ const checkedPaths = [
 	"crates/bridge/bridge-contract.json",
 	"crates/execution/assets/polyfill-registry.json",
 	"crates/execution/assets/wasi-preview1-imports.json",
-	"crates/execution/assets/v8-bridge.source.js",
 	"crates/execution/assets/v8-bridge.js",
 	"crates/execution/assets/v8-bridge-zlib.js",
 	"crates/v8-runtime/assets/generated/v8-bridge.js",
@@ -32,7 +31,6 @@ const beforeDiff = capture("jj", [
 	"--",
 	...checkedPaths,
 ]);
-run("node", ["packages/build-tools/scripts/build-bridge-source.mjs"]);
 run("pnpm", ["--dir", "packages/build-tools", "build:protocol"]);
 run("node", ["packages/build-tools/scripts/build-browser-util-polyfill.mjs"]);
 run("node", ["packages/build-tools/scripts/build-browser-buffer-polyfill.mjs"]);
@@ -68,7 +66,6 @@ if (afterDiff !== beforeDiff) {
 		[
 			"Generated artifact drift detected.",
 			"Run the generators and commit the resulting changes:",
-			"  node packages/build-tools/scripts/build-bridge-source.mjs",
 			"  pnpm --dir packages/build-tools build:protocol",
 			"  node packages/build-tools/scripts/build-browser-util-polyfill.mjs",
 			"  node packages/build-tools/scripts/build-v8-bridge.mjs",

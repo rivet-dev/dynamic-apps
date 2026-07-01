@@ -1,7 +1,7 @@
 [
 	{
 		"name": "MAX_SYMLINK_DEPTH",
-		"path": "crates/execution/assets/v8-bridge.source.js",
+		"path": "packages/build-tools/bridge-src/builtins/fs.ts",
 		"class": "invariant",
 		"rationale": "Linux ELOOP mirror of the kernel invariant."
 	},
@@ -32,7 +32,7 @@
 	},
 	{
 		"name": "NET_BRIDGE_MAX_RAW_WRITE_BYTES",
-		"path": "crates/execution/assets/v8-bridge.source.js",
+		"path": "packages/build-tools/bridge-src/builtins/network.ts",
 		"class": "invariant",
 		"rationale": "Internal socket bridge flush granularity that preserves backpressure under the wired socket buffered-byte limit; not an operator policy cap."
 	},
@@ -455,7 +455,7 @@
 	},
 	{
 		"name": "VM_FETCH_BUFFER_LIMIT_BYTES",
-		"path": "crates/sidecar/src/execution.rs",
+		"path": "crates/sidecar-core/src/vm_fetch.rs",
 		"class": "policy",
 		"rationale": "vm.fetch() HTTP response body cap; must stay <= negotiated frame budget.",
 		"wired": "VmLimits.http.max_fetch_response_bytes"
@@ -550,13 +550,6 @@
 		"class": "policy",
 		"rationale": "V8 IPC codec frame cap.",
 		"wired": "VmLimits.js_runtime.v8_ipc_max_frame_bytes"
-	},
-	{
-		"name": "DEFAULT_V8_HEAP_LIMIT_MB",
-		"path": "crates/sidecar/src/limits.rs",
-		"class": "policy",
-		"rationale": "Default JS heap envelope; guests stay bounded unless trusted VM config raises or clears the cap.",
-		"wired": "VmLimits.js_runtime.v8_heap_limit_mb"
 	},
 	{
 		"name": "DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES",
@@ -756,87 +749,87 @@
 	},
 	{
 		"name": "DEFAULT_TOOL_TIMEOUT_MS",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy",
 		"rationale": "Tool invocation timeout policy.",
 		"wired": "VmLimits.tools.default_tool_timeout_ms"
 	},
 	{
 		"name": "MAX_REGISTERED_TOOLKITS",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy",
 		"rationale": "Tool registration capacity policy.",
 		"wired": "VmLimits.tools.max_registered_toolkits"
 	},
 	{
 		"name": "MAX_REGISTERED_TOOLS_PER_VM",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy",
 		"rationale": "Tool registration capacity policy.",
 		"wired": "VmLimits.tools.max_registered_tools_per_vm"
 	},
 	{
 		"name": "MAX_TOOL_DESCRIPTION_LENGTH",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy-deferred",
 		"rationale": "Cross-boundary contract with packages/core/src/bindings.ts; both sides must change together."
 	},
 	{
 		"name": "MAX_TOOL_EXAMPLE_INPUT_BYTES",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy",
 		"rationale": "Example input size policy.",
 		"wired": "VmLimits.tools.max_tool_example_input_bytes"
 	},
 	{
 		"name": "MAX_TOOL_EXAMPLES_PER_TOOL",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy",
 		"rationale": "Example count policy.",
 		"wired": "VmLimits.tools.max_tool_examples_per_tool"
 	},
 	{
 		"name": "MAX_TOOL_NAME_LENGTH",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy-deferred",
 		"rationale": "Cross-boundary contract with packages/core/src/bindings.ts; both sides must change together."
 	},
 	{
 		"name": "MAX_TOOL_SCHEMA_BYTES",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy",
 		"rationale": "Schema payload size policy.",
 		"wired": "VmLimits.tools.max_tool_schema_bytes"
 	},
 	{
 		"name": "MAX_TOOL_SCHEMA_DEPTH",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "invariant",
 		"rationale": "JSON recursion guard for schema validation; parser-safety."
 	},
 	{
 		"name": "MAX_TOOL_TIMEOUT_MS",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy",
 		"rationale": "Tool invocation timeout policy.",
 		"wired": "VmLimits.tools.max_tool_timeout_ms"
 	},
 	{
 		"name": "MAX_TOOLKIT_NAME_LENGTH",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy-deferred",
 		"rationale": "Cross-boundary contract with packages/core/src/bindings.ts; both sides must change together."
 	},
 	{
 		"name": "MAX_TOOLS_PER_TOOLKIT",
-		"path": "crates/sidecar/src/tools.rs",
+		"path": "crates/sidecar-core/src/tools.rs",
 		"class": "policy",
 		"rationale": "Tool registration capacity policy.",
 		"wired": "VmLimits.tools.max_tools_per_toolkit"
 	},
 	{
 		"name": "MAX_VM_LAYERS",
-		"path": "crates/sidecar/src/vm.rs",
+		"path": "crates/sidecar-core/src/layers.rs",
 		"class": "policy-deferred",
 		"rationale": "Layer count cap is operator-meaningful but coupled to layer RPC validation tests; wire later."
 	},
@@ -997,5 +990,41 @@
 		"path": "packages/core/src/test-runtime.ts",
 		"class": "invariant",
 		"rationale": "Linux ELOOP mirror of the kernel invariant."
+	},
+	{
+		"name": "BROWSER_MAX_FRAME_BYTES",
+		"path": "crates/sidecar-browser/src/wire_dispatch.rs",
+		"class": "policy-deferred",
+		"rationale": "Browser transport frame cap; fixed host transport limit until browser config exposes it."
+	},
+	{
+		"name": "DEFAULT_READ_MAX_BYTES",
+		"path": "crates/sidecar-core/src/guest_net.rs",
+		"class": "policy-deferred",
+		"rationale": "Fallback guest network read cap when the request omits max bytes; wire to request/config if tuning is needed."
+	},
+	{
+		"name": "MAX_POLL_WAIT_MS",
+		"path": "crates/sidecar-core/src/guest_net.rs",
+		"class": "invariant",
+		"rationale": "Guest network poll wait clamp; internal scheduling guard."
+	},
+	{
+		"name": "DEFAULT_READ_MAX_BYTES",
+		"path": "crates/sidecar-core/src/guest_pty.rs",
+		"class": "policy-deferred",
+		"rationale": "Fallback guest PTY read cap when the request omits max bytes; wire to request/config if tuning is needed."
+	},
+	{
+		"name": "MAX_PTY_READ_WAIT_MS",
+		"path": "crates/sidecar-core/src/guest_pty.rs",
+		"class": "invariant",
+		"rationale": "Guest PTY read wait clamp; internal scheduling guard."
+	},
+	{
+		"name": "DEFAULT_SIDECAR_EVENT_BUFFER_CAPACITY",
+		"path": "packages/core/src/sidecar-process.ts",
+		"class": "policy-deferred",
+		"rationale": "Client-side event buffer default for spawned sidecar processes; callers can override sidecar process options."
 	}
 ]

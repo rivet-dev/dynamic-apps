@@ -8,12 +8,13 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = path.resolve(scriptDir, "..");
 const workspaceRoot = path.resolve(packageRoot, "..", "..");
 
-const bridgeSourcePath = path.join(
+const processBuiltinSourcePath = path.join(
 	workspaceRoot,
-	"crates",
-	"execution",
-	"assets",
-	"v8-bridge.source.js",
+	"packages",
+	"build-tools",
+	"bridge-src",
+	"builtins",
+	"process.ts",
 );
 const outputPath = path.join(
 	workspaceRoot,
@@ -24,9 +25,9 @@ const outputPath = path.join(
 	"util-polyfill.ts",
 );
 
-const bridgeSource = await readFile(bridgeSourcePath, "utf8");
+const processBuiltinSource = await readFile(processBuiltinSourcePath, "utf8");
 const formatWithOptionsHelper = extractFunction(
-	bridgeSource,
+	processBuiltinSource,
 	"installBuiltinUtilFormatWithOptions",
 );
 
@@ -82,7 +83,7 @@ await writeFile(
 function extractFunction(source, name) {
 	const start = source.indexOf(`function ${name}(`);
 	if (start < 0) {
-		throw new Error(`Failed to find ${name} in v8-bridge source`);
+		throw new Error(`Failed to find ${name} in bridge-src/builtins/process.ts`);
 	}
 	const openBrace = source.indexOf("{", start);
 	if (openBrace < 0) {

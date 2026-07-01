@@ -1,6 +1,5 @@
 // Entry module for the V8 bridge. The section bodies live in real ES modules
-// under bridge-src/ and are bundled back into the readable seam by
-// scripts/build-bridge-source.mjs.
+// under bridge-src/ and are bundled directly by scripts/build-v8-bridge.mjs.
 
 
 import "./polyfills.js";

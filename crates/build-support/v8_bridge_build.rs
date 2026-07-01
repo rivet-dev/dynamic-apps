@@ -235,7 +235,6 @@ fn require_pnpm(repo_root: &Path, debug: bool) {
 fn emit_rerun_inputs(repo_root: &Path, script_path: &Path, package_root: &Path) {
     let inputs = [
         repo_root.join("crates/build-support/v8_bridge_build.rs"),
-        repo_root.join("crates/execution/assets/v8-bridge.source.js"),
         script_path.to_path_buf(),
         package_root.join("package.json"),
         repo_root.join("pnpm-lock.yaml"),
@@ -244,6 +243,15 @@ fn emit_rerun_inputs(repo_root: &Path, script_path: &Path, package_root: &Path) 
     for input in inputs {
         println!("cargo:rerun-if-changed={}", input.display());
     }
+
+    let bridge_src_dir = repo_root.join("packages/build-tools/bridge-src");
+    emit_rerun_dir(&bridge_src_dir).unwrap_or_else(|error| {
+        panic!(
+            "failed to enumerate V8 bridge source inputs under {}: {}",
+            bridge_src_dir.display(),
+            error
+        )
+    });
 
     let shim_dir = repo_root.join("crates/execution/assets/undici-shims");
     emit_rerun_dir(&shim_dir).unwrap_or_else(|error| {
