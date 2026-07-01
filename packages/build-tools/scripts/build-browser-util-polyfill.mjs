@@ -8,13 +8,13 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = path.resolve(scriptDir, "..");
 const workspaceRoot = path.resolve(packageRoot, "..", "..");
 
-const processBuiltinSourcePath = path.join(
+const consoleBuiltinSourcePath = path.join(
 	workspaceRoot,
 	"packages",
 	"build-tools",
 	"bridge-src",
 	"builtins",
-	"process.ts",
+	"console.ts",
 );
 const outputPath = path.join(
 	workspaceRoot,
@@ -25,9 +25,9 @@ const outputPath = path.join(
 	"util-polyfill.ts",
 );
 
-const processBuiltinSource = await readFile(processBuiltinSourcePath, "utf8");
+const consoleBuiltinSource = await readFile(consoleBuiltinSourcePath, "utf8");
 const formatWithOptionsHelper = extractFunction(
-	processBuiltinSource,
+	consoleBuiltinSource,
 	"installBuiltinUtilFormatWithOptions",
 );
 
@@ -83,7 +83,7 @@ await writeFile(
 function extractFunction(source, name) {
 	const start = source.indexOf(`function ${name}(`);
 	if (start < 0) {
-		throw new Error(`Failed to find ${name} in bridge-src/builtins/process.ts`);
+		throw new Error(`Failed to find ${name} in bridge-src/builtins/console.ts`);
 	}
 	const openBrace = source.indexOf("{", start);
 	if (openBrace < 0) {

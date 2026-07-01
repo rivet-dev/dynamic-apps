@@ -850,6 +850,8 @@ fn browser_wire_dispatcher_configures_vm_permissions() {
                 projected_modules: Vec::new(),
                 command_permissions: Default::default(),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         },
     );
@@ -1209,6 +1211,8 @@ fn browser_wire_dispatcher_configures_wasm_command_permissions() {
                     WasmPermissionTier::ReadOnly,
                 )]),
                 loopback_exempt_ports: Vec::new(),
+                packages: Vec::new(),
+                packages_mount_at: String::new(),
             }),
         },
     );

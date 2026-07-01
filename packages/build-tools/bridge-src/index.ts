@@ -2,7 +2,7 @@
 // under bridge-src/ and are bundled directly by scripts/build-v8-bridge.mjs.
 
 
-import "./polyfills.js";
+import "./polyfills/index.js";
 import "./global-exposure.js";
 import "./transport.js";
 import "./builtins/active-handles.js";
@@ -21,12 +21,14 @@ import { fs_default } from "./builtins/fs.js";
 import { Module, SourceMap, createRequire, module_default } from "./builtins/module-loader.js";
 import { network_exports } from "./builtins/network.js";
 import { os_default } from "./builtins/os.js";
-import { Buffer3, ProcessExitError, clearImmediate, clearInterval, clearTimeout2, cryptoPolyfill, process_default, setImmediate, setInterval, setTimeout2, setupGlobals } from "./builtins/process.js";
+import { Buffer3 } from "./builtins/buffer-runtime.js";
+import { cryptoPolyfill } from "./builtins/crypto.js";
+import { ProcessExitError, process_default, setupGlobals } from "./builtins/process.js";
+import { clearImmediate, clearInterval, clearTimeout2, setImmediate, setInterval, setTimeout2 } from "./builtins/timers.js";
 import { URL2, URLSearchParams } from "./builtins/whatwg-url.js";
-import { CustomEvent, Event, EventTarget, TextDecoder, TextEncoder2 } from "./polyfills.js";
+import { CustomEvent, Event, EventTarget, TextDecoder, TextEncoder2 } from "./polyfills/index.js";
 import { __export } from "./vendor/esbuild-runtime.js";
 
-// .agent/recovery/secure-exec/nodejs/src/bridge/index.ts
 var index_exports = {};
 __export(index_exports, {
   Buffer: () => Buffer3,
@@ -63,7 +65,6 @@ __export(index_exports, {
 });
 
 
-// .agent/recovery/secure-exec/nodejs/src/bridge/index.ts
 var index_default = fs_default;
 setupGlobals();
 /*! Bundled license information:

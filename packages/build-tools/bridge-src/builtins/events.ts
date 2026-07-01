@@ -1,8 +1,7 @@
 import { process2, routeAsyncCallbackError } from "./process.js";
 import { exposeCustomGlobal } from "../global-exposure.js";
-import { Event } from "../polyfills.js";
+import { Event } from "../polyfills/index.js";
 
-// .agent/recovery/secure-exec/nodejs/src/bridge/events.ts
 var eventsErrorMonitor = Symbol("events.errorMonitor");
 var eventsDefaultMaxListeners = 10;
 function emitEventEmitterMeta(emitter, metaEvent, args) {

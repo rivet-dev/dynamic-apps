@@ -1,9 +1,8 @@
-import { builtinPathStdlibModule } from "./module-loader.js";
+import { builtinPathStdlibModule } from "./builtin-modules.js";
 import { Blob } from "./network.js";
-import { TextDecoder } from "../polyfills.js";
+import { TextDecoder } from "../polyfills/index.js";
 import { urlStdlibModuleNs } from "../prelude.js";
 
-// .agent/recovery/secure-exec/nodejs/src/bridge/whatwg-url.ts
 var inspectCustomSymbol = /* @__PURE__ */ Symbol.for("nodejs.util.inspect.custom");
 var toStringTagSymbol = Symbol.toStringTag;
 var ERR_INVALID_THIS = "ERR_INVALID_THIS";

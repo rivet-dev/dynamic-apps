@@ -13,28 +13,28 @@ const registryPath = path.join(
 	"assets",
 	"polyfill-registry.json",
 );
-const moduleLoaderPath = path.join(
+const builtinModulesPath = path.join(
 	repoRoot,
 	"packages",
 	"build-tools",
 	"bridge-src",
 	"builtins",
-	"module-loader.ts",
+	"builtin-modules.ts",
 );
 
 const registry = JSON.parse(readFileSync(registryPath, "utf8"));
-const moduleLoaderSource = readFileSync(moduleLoaderPath, "utf8");
+const builtinModulesSource = readFileSync(builtinModulesPath, "utf8");
 const registryNames = new Set(
 	(registry.groups ?? []).flatMap((group) => group.names ?? []),
 );
 
 const builtinModules = extractStringList(
-	moduleLoaderSource,
+	builtinModulesSource,
 	/static builtinModules = \[([\s\S]*?)\];/,
 	"Module.builtinModules",
 );
 const loadBuiltinCases = new Set(
-	[...moduleLoaderSource.matchAll(/case "([^"]+)":/g)]
+	[...builtinModulesSource.matchAll(/case "([^"]+)":/g)]
 		.map((match) => match[1])
 		.filter((name) => builtinModules.has(name)),
 );
@@ -65,7 +65,7 @@ function extractStringList(source, pattern, label) {
 	const match = source.match(pattern);
 	if (!match) {
 		console.error(
-			`Unable to find ${label} in packages/build-tools/bridge-src/builtins/module-loader.ts`,
+			`Unable to find ${label} in packages/build-tools/bridge-src/builtins/builtin-modules.ts`,
 		);
 		process.exit(1);
 	}

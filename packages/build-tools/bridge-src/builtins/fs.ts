@@ -1,10 +1,11 @@
 import { deferCloseIfChildInheritedFd } from "./child-process.js";
-import { _umask, builtinCryptoModule, clearInterval, setInterval } from "./process.js";
+import { builtinCryptoModule } from "./crypto.js";
+import { _umask } from "./process.js";
+import { clearInterval, setInterval } from "./timers.js";
 import { exposeCustomGlobal } from "../global-exposure.js";
 import { require_buffer } from "../vendor/buffer.js";
 import { __toESM } from "../vendor/esbuild-runtime.js";
 
-// .agent/recovery/secure-exec/nodejs/src/bridge/fs.ts
 var import_buffer = __toESM(require_buffer(), 1);
 var O_RDONLY = 0;
 var O_WRONLY = 1;

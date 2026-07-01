@@ -189,6 +189,16 @@ where
             RequestRoute::FindBoundUdp(payload) => self.find_bound_udp(&request, payload),
             RequestRoute::VmFetch(payload) => self.vm_fetch(&request, payload),
             RequestRoute::Ext(payload) => self.ext(&request, payload),
+            RequestRoute::LinkPackage(payload) => {
+                // Package linking projects host-filesystem package trees into the
+                // VM, which the converged browser runtime does not provide.
+                let _ = payload;
+                rejected(
+                    &request,
+                    "unsupported",
+                    "link_package is not available in the converged browser runtime",
+                )
+            }
             RequestRoute::UnsupportedHostCallbackDirection => {
                 unsupported_host_callback_direction_dispatch(&request)
             }

@@ -1,6 +1,5 @@
 import { exposeCustomGlobal } from "../global-exposure.js";
 
-// .agent/recovery/secure-exec/nodejs/src/bridge/os.ts
 var config = {
   platform: typeof _osConfig !== "undefined" && _osConfig.platform || "linux",
   arch: typeof _osConfig !== "undefined" && _osConfig.arch || "x64",

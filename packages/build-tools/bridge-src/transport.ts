@@ -1,4 +1,3 @@
-// .agent/recovery/secure-exec/nodejs/src/bridge/dispatch.ts
 function encodeDispatchArgs(args) {
   return JSON.stringify(
     args,

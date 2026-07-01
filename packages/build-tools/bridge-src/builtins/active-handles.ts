@@ -2,7 +2,6 @@ import { _exited } from "./process.js";
 import { exposeCustomGlobal } from "../global-exposure.js";
 import { bridgeDispatchSync } from "../transport.js";
 
-// .agent/recovery/secure-exec/nodejs/src/bridge/active-handles.ts
 var HANDLE_DISPATCH = {
   register: "kernelHandleRegister",
   unregister: "kernelHandleUnregister",

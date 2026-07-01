@@ -3531,6 +3531,111 @@ if (!(file instanceof bufferModule.Blob)) {
     assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
 }
 
+fn javascript_execution_v8_tty_module_is_backed_by_live_process() {
+    let temp = tempdir().expect("create temp dir");
+    write_fixture(
+        &temp.path().join("entry.mjs"),
+        r#"
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+const tty = require("tty");
+
+// tty.isatty / ReadStream / WriteStream read process.std{in,out,err}. When the
+// bridge tty stub captured the `process` object at module-load time it snapshotted
+// `undefined` (process.ts initializes far later in the bundle's module-cycle order),
+// so these threw "Cannot read properties of undefined". Reading the live binding at
+// call time fixes it; this test guards against that regression class.
+if (typeof tty.isatty !== "function") {
+  throw new Error("require('tty').isatty was not exported");
+}
+for (const fd of [0, 1, 2]) {
+  if (typeof tty.isatty(fd) !== "boolean") {
+    throw new Error(`tty.isatty(${fd}) did not return a boolean`);
+  }
+}
+if (typeof tty.ReadStream !== "function" || typeof tty.WriteStream !== "function") {
+  throw new Error("require('tty') stream classes were not exported");
+}
+// Constructing the streams exercises the process-backed stdio getters.
+new tty.ReadStream(0);
+new tty.WriteStream(1);
+"#,
+    );
+
+    let mut engine = JavascriptExecutionEngine::default();
+    let context = engine.create_context(CreateJavascriptContextRequest {
+        vm_id: String::from("vm-js"),
+        bootstrap_module: None,
+        compile_cache_root: None,
+    });
+
+    let execution = engine
+        .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            env: BTreeMap::new(),
+            cwd: temp.path().to_path_buf(),
+            inline_code: None,
+        })
+        .expect("start JavaScript execution");
+
+    let result = execution.wait().expect("wait for JavaScript execution");
+    let stderr = String::from_utf8(result.stderr).expect("stderr utf8");
+    assert_eq!(result.exit_code, 0, "unexpected stderr: {stderr}");
+    assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
+}
+
+fn javascript_execution_v8_sqlite_module_resolves_via_global_install() {
+    let temp = tempdir().expect("create temp dir");
+    write_fixture(
+        &temp.path().join("entry.mjs"),
+        r#"
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
+// require("sqlite") routes through the `_sqliteModule` global. That install was
+// dropped once during the network-module split (it fell off the end of the slice),
+// making this throw "ReferenceError: _sqliteModule is not defined". Guard it.
+const sqlite = require("node:sqlite");
+if (typeof sqlite.DatabaseSync !== "function") {
+  throw new Error("require('node:sqlite').DatabaseSync was not exported");
+}
+if (typeof sqlite.StatementSync !== "function") {
+  throw new Error("require('node:sqlite').StatementSync was not exported");
+}
+"#,
+    );
+
+    let mut engine = JavascriptExecutionEngine::default();
+    let context = engine.create_context(CreateJavascriptContextRequest {
+        vm_id: String::from("vm-js"),
+        bootstrap_module: None,
+        compile_cache_root: None,
+    });
+
+    let execution = engine
+        .start_execution(StartJavascriptExecutionRequest {
+            limits: Default::default(),
+            guest_runtime: Default::default(),
+            vm_id: String::from("vm-js"),
+            context_id: context.context_id,
+            argv: vec![String::from("./entry.mjs")],
+            env: BTreeMap::new(),
+            cwd: temp.path().to_path_buf(),
+            inline_code: None,
+        })
+        .expect("start JavaScript execution");
+
+    let result = execution.wait().expect("wait for JavaScript execution");
+    let stderr = String::from_utf8(result.stderr).expect("stderr utf8");
+    assert_eq!(result.exit_code, 0, "unexpected stderr: {stderr}");
+    assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
+}
+
 fn javascript_execution_v8_commonjs_stack_frames_preserve_module_paths() {
     let temp = tempdir().expect("create temp dir");
     write_fixture(
@@ -5568,6 +5673,8 @@ fn javascript_v8_suite() {
     javascript_execution_v8_load_polyfill_returns_runtime_module_expressions();
     javascript_execution_v8_stream_wrapper_exports_common_node_classes();
     javascript_execution_v8_buffer_wrapper_exposes_commonjs_constants();
+    javascript_execution_v8_tty_module_is_backed_by_live_process();
+    javascript_execution_v8_sqlite_module_resolves_via_global_install();
     javascript_execution_v8_commonjs_stack_frames_preserve_module_paths();
     javascript_execution_v8_commonjs_main_entrypoints_preserve_entrypoint_paths();
     javascript_execution_v8_inline_commonjs_entrypoints_preserve_entrypoint_paths();
