@@ -2628,9 +2628,15 @@ fn build_v8_user_code(entrypoint: &str, env: &BTreeMap<String, String>) -> Strin
 }
 
 fn host_entrypoint_uses_module_mode(entrypoint: &Path) -> bool {
-    match entrypoint.extension().and_then(|ext| ext.to_str()) {
+    // Agent adapters are launched via an extensionless `/opt/agentos/bin/<cmd>`
+    // symlink into the packed package's `node_modules/<name>/<entry>`. Resolve it
+    // to the real file so the extension check and the nearest-`package.json` walk
+    // reflect the package (which carries `"type": "module"`), not the symlink farm
+    // (which has neither an extension nor a package.json).
+    let resolved = fs::canonicalize(entrypoint).unwrap_or_else(|_| entrypoint.to_path_buf());
+    match resolved.extension().and_then(|ext| ext.to_str()) {
         Some("mjs" | "mts") => true,
-        Some("js") => nearest_package_json_type(entrypoint).as_deref() == Some("module"),
+        Some("js") => nearest_package_json_type(&resolved).as_deref() == Some("module"),
         _ => false,
     }
 }
