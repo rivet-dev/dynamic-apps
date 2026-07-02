@@ -510,6 +510,7 @@ impl ActiveProcess {
             next_sqlite_database_id: 0,
             sqlite_statements: BTreeMap::new(),
             next_sqlite_statement_id: 0,
+            tty_master_owner: None,
             deferred_kernel_wait_rpc: None,
             module_resolution_cache: secure_exec_execution::LocalModuleResolutionCache::default(),
         }
@@ -6810,10 +6811,26 @@ where
         );
 
         let phase_start = Instant::now();
+        // Shared-terminal detection: when the child's kernel fd 1 is a PTY (the
+        // slave inherited from a TTY shell), record who owns the host-facing
+        // master so the child's stdio writes surface through master drains
+        // instead of child stdout events (see `tty_master_owner`).
+        let child_fd1_is_tty = vm
+            .kernel
+            .isatty(EXECUTION_DRIVER_NAME, kernel_pid, 1)
+            .unwrap_or(false);
         let process = vm
             .active_processes
             .get_mut(process_id)
             .ok_or_else(|| missing_process_error(vm_id, process_id))?;
+        let inherited_tty_master_owner = if child_fd1_is_tty {
+            process
+                .tty_master_fd
+                .map(|master_fd| (process.kernel_pid, master_fd))
+                .or(process.tty_master_owner)
+        } else {
+            None
+        };
         process.child_processes.insert(
             child_process_id.clone(),
             ActiveProcess::new(kernel_pid, kernel_handle, resolved.runtime, execution)
@@ -6822,16 +6839,19 @@ where
                 .with_env(resolved.env.clone())
                 .with_host_cwd(resolved.host_cwd.clone()),
         );
-        if let Some(kernel_stdin_writer_fd) = kernel_stdin_writer_fd {
-            process
+        {
+            let child = process
                 .child_processes
                 .get_mut(&child_process_id)
                 .ok_or_else(|| {
                     SidecarError::InvalidState(format!(
                         "child process {child_process_id} disappeared during spawn"
                     ))
-                })?
-                .kernel_stdin_writer_fd = Some(kernel_stdin_writer_fd);
+                })?;
+            child.tty_master_owner = inherited_tty_master_owner;
+            if let Some(kernel_stdin_writer_fd) = kernel_stdin_writer_fd {
+                child.kernel_stdin_writer_fd = Some(kernel_stdin_writer_fd);
+            }
         }
         record_execute_phase("child_process_register", phase_start.elapsed());
         record_execute_phase("child_process_spawn_total", total_start.elapsed());
@@ -7286,6 +7306,10 @@ where
         );
 
         let phase_start = Instant::now();
+        let child_fd1_is_tty = vm
+            .kernel
+            .isatty(EXECUTION_DRIVER_NAME, kernel_pid, 1)
+            .unwrap_or(false);
         let root = vm
             .active_processes
             .get_mut(process_id)
@@ -7296,6 +7320,14 @@ where
                     "unknown child process path {current_process_label} during nested spawn"
                 ))
             })?;
+        let inherited_tty_master_owner = if child_fd1_is_tty {
+            parent
+                .tty_master_fd
+                .map(|master_fd| (parent.kernel_pid, master_fd))
+                .or(parent.tty_master_owner)
+        } else {
+            None
+        };
         parent.child_processes.insert(
             child_process_id.clone(),
             ActiveProcess::new(kernel_pid, kernel_handle, resolved.runtime, execution)
@@ -7304,16 +7336,19 @@ where
                 .with_env(resolved.env.clone())
                 .with_host_cwd(resolved.host_cwd.clone()),
         );
-        if let Some(kernel_stdin_writer_fd) = kernel_stdin_writer_fd {
-            parent
+        {
+            let child = parent
                 .child_processes
                 .get_mut(&child_process_id)
                 .ok_or_else(|| {
                     SidecarError::InvalidState(format!(
                         "child process {child_process_id} disappeared during nested spawn"
                     ))
-                })?
-                .kernel_stdin_writer_fd = Some(kernel_stdin_writer_fd);
+                })?;
+            child.tty_master_owner = inherited_tty_master_owner;
+            if let Some(kernel_stdin_writer_fd) = kernel_stdin_writer_fd {
+                child.kernel_stdin_writer_fd = Some(kernel_stdin_writer_fd);
+            }
         }
         record_execute_phase("child_process_register", phase_start.elapsed());
         record_execute_phase("child_process_spawn_total", total_start.elapsed());
@@ -7667,6 +7702,67 @@ where
         Ok(true)
     }
 
+    /// Service `__kernel_stdio_write` for a process writing to the SHARED
+    /// terminal (`tty_master_owner` set): write through the process's own PTY
+    /// slave (line discipline applies), then drain the master and surface the
+    /// drained bytes as the OWNER's ordered output stream — the single
+    /// host-facing path. No child stdout event is queued, so nothing gets
+    /// relayed (and re-rendered) by the parent shell.
+    pub(crate) fn service_shared_tty_stdio_write(
+        &mut self,
+        vm_id: &str,
+        writer_kernel_pid: u32,
+        owner: (u32, u32),
+        request: &JavascriptSyncRpcRequest,
+    ) -> Result<Value, SidecarError> {
+        let fd = javascript_sync_rpc_arg_u32(&request.args, 0, "__kernel_stdio_write fd")?;
+        let chunk = javascript_sync_rpc_bytes_arg(&request.args, 1, "__kernel_stdio_write chunk")?;
+        if fd != 1 && fd != 2 {
+            return Err(SidecarError::InvalidState(format!(
+                "__kernel_stdio_write only supports fd 1/2, got {fd}"
+            )));
+        }
+        let Some(vm) = self.vms.get_mut(vm_id) else {
+            return Ok(json!(chunk.len()));
+        };
+        let written = if fd == 1 {
+            vm.kernel
+                .write_process_stdout(EXECUTION_DRIVER_NAME, writer_kernel_pid, &chunk)
+                .map_err(kernel_error)?
+        } else {
+            vm.kernel
+                .write_process_stderr(EXECUTION_DRIVER_NAME, writer_kernel_pid, &chunk)
+                .map_err(kernel_error)?
+        };
+        let (owner_pid, master_fd) = owner;
+        let mut drained: Vec<u8> = Vec::new();
+        loop {
+            match vm.kernel.fd_read_with_timeout_result(
+                EXECUTION_DRIVER_NAME,
+                owner_pid,
+                master_fd,
+                MAX_PTY_BUFFER_BYTES,
+                Some(Duration::ZERO),
+            ) {
+                Ok(Some(bytes)) if !bytes.is_empty() => drained.extend(bytes),
+                Ok(_) => break,
+                Err(error) if error.code() == "EAGAIN" => break,
+                Err(error) => return Err(kernel_error(error)),
+            }
+        }
+        if !drained.is_empty() {
+            if let Some(owner_process) = vm
+                .active_processes
+                .values_mut()
+                .find(|process| process.kernel_pid == owner_pid)
+            {
+                owner_process
+                    .queue_pending_execution_event(ActiveExecutionEvent::Stdout(drained))?;
+            }
+        }
+        Ok(json!(written))
+    }
+
     /// Re-check a child's parked kernel-wait RPC (see
     /// `service_child_kernel_wait_rpc`); called once per pump-loop iteration.
     fn recheck_child_deferred_kernel_wait_rpc(
@@ -7951,6 +8047,67 @@ where
                         // Replied immediately or parked on the child; the pump
                         // loop re-checks parked RPCs every iteration.
                         continue;
+                    }
+                    if request.method == "__kernel_stdio_write" {
+                        let shared_tty = {
+                            let Some(vm) = self.vms.get_mut(vm_id) else {
+                                return Ok(Value::Null);
+                            };
+                            let Some(root) = vm.active_processes.get_mut(process_id) else {
+                                return Ok(Value::Null);
+                            };
+                            let Some(parent) =
+                                Self::active_process_by_path_mut(root, current_process_path)
+                            else {
+                                return Ok(Value::Null);
+                            };
+                            parent
+                                .child_processes
+                                .get(child_process_id)
+                                .and_then(|child| {
+                                    child
+                                        .tty_master_owner
+                                        .map(|owner| (child.kernel_pid, owner))
+                                })
+                        };
+                        if let Some((child_kernel_pid, owner)) = shared_tty {
+                            let response = self.service_shared_tty_stdio_write(
+                                vm_id,
+                                child_kernel_pid,
+                                owner,
+                                &request,
+                            );
+                            let Some(vm) = self.vms.get_mut(vm_id) else {
+                                return Ok(Value::Null);
+                            };
+                            let Some(root) = vm.active_processes.get_mut(process_id) else {
+                                return Ok(Value::Null);
+                            };
+                            let Some(parent) =
+                                Self::active_process_by_path_mut(root, current_process_path)
+                            else {
+                                return Ok(Value::Null);
+                            };
+                            let Some(child) = parent.child_processes.get_mut(child_process_id)
+                            else {
+                                return Ok(Value::Null);
+                            };
+                            match response {
+                                Ok(result) => child
+                                    .execution
+                                    .respond_javascript_sync_rpc_response(request.id, result.into())
+                                    .or_else(ignore_stale_javascript_sync_rpc_response)?,
+                                Err(error) => child
+                                    .execution
+                                    .respond_javascript_sync_rpc_error(
+                                        request.id,
+                                        javascript_sync_rpc_error_code(&error),
+                                        error.to_string(),
+                                    )
+                                    .or_else(ignore_stale_javascript_sync_rpc_response)?,
+                            }
+                            continue;
+                        }
                     }
                     let response = if request.method == "process.signal_state" {
                         let (signal, registration) =

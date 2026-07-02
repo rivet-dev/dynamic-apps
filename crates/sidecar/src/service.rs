@@ -2208,6 +2208,27 @@ where
                     .map(Value::String)
                     .map(Into::into)
                 }
+                "__kernel_stdio_write"
+                    if self
+                        .vms
+                        .get(vm_id)
+                        .and_then(|vm| vm.active_processes.get(process_id))
+                        .is_some_and(|process| process.tty_master_owner.is_some()) =>
+                {
+                    let (writer_kernel_pid, owner) = {
+                        let process = self
+                            .vms
+                            .get(vm_id)
+                            .and_then(|vm| vm.active_processes.get(process_id))
+                            .expect("guarded by match arm");
+                        (
+                            process.kernel_pid,
+                            process.tty_master_owner.expect("guarded by match arm"),
+                        )
+                    };
+                    self.service_shared_tty_stdio_write(vm_id, writer_kernel_pid, owner, &request)
+                        .map(Into::into)
+                }
                 "__kernel_stdin_read" | "__kernel_poll"
                     if self.kernel_wait_rpc_is_deferrable(vm_id, process_id, &request) =>
                 {

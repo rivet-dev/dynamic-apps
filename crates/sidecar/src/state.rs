@@ -477,6 +477,14 @@ pub(crate) struct ActiveProcess {
     pub(crate) next_sqlite_database_id: u64,
     pub(crate) sqlite_statements: BTreeMap<u64, ActiveSqliteStatement>,
     pub(crate) next_sqlite_statement_id: u64,
+    /// For a child process whose stdio is the SHARED terminal (its kernel fd 1
+    /// is the same PTY slave as the shell's), the `(kernel pid, master fd)` of
+    /// the process that owns the host-facing PTY master. Set at spawn. Such a
+    /// child's stdio writes surface ONLY through master drains attributed to
+    /// the owner — never as child stdout events — exactly like a native
+    /// terminal reading the PTY master (a shell never relays its child's tty
+    /// output).
+    pub(crate) tty_master_owner: Option<(u32, u32)>,
     /// A parked `__kernel_stdin_read` / `__kernel_poll` sync RPC awaiting
     /// kernel readiness (reply-by-token deferral so servicing never blocks the
     /// dispatch loop). At most one per process: the guest thread is blocked in
