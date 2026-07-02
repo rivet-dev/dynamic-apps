@@ -1,13 +1,25 @@
 diff -ruN '--exclude=*.orig' a/src/basic/basic_shell.rs b/src/basic/basic_shell.rs
 --- a/src/basic/basic_shell.rs	2026-06-27 14:11:52.527433629 -0700
 +++ b/src/basic/basic_shell.rs	2026-06-27 14:11:52.527433629 -0700
-@@ -104,6 +104,13 @@
+@@ -104,6 +104,25 @@
          line: &str,
          cursor: usize,
      ) -> Result<brush_core::completion::Completions, ShellError> {
 +        #[cfg(target_os = "wasi")]
 +        {
-+            let _ = (line, cursor);
++            // Single-threaded wasi has no tokio runtime to block_on. The
++            // completion future only does synchronous VFS walks and
++            // uncontended lock acquisition, so drive it inline with a
++            // noop-waker poll loop (bounded: a future that parks on a waker
++            // can never be woken on one thread — bail to no completions).
++            let mut future = std::pin::pin!(self.generate_completions_async(line, cursor));
++            let mut context = std::task::Context::from_waker(std::task::Waker::noop());
++            for _ in 0..100_000 {
++                match std::future::Future::poll(future.as_mut(), &mut context) {
++                    std::task::Poll::Ready(result) => return result,
++                    std::task::Poll::Pending => std::hint::spin_loop(),
++                }
++            }
 +            return Ok(brush_core::completion::Completions::default());
 +        }
 +
@@ -32,13 +44,25 @@ diff -ruN '--exclude=*.orig' a/src/completion.rs b/src/completion.rs
 diff -ruN '--exclude=*.orig' a/src/reedline/completer.rs b/src/reedline/completer.rs
 --- a/src/reedline/completer.rs	2026-06-27 14:11:52.527433629 -0700
 +++ b/src/reedline/completer.rs	2026-06-27 14:11:52.527433629 -0700
-@@ -10,6 +10,13 @@
+@@ -10,6 +10,25 @@
  
  impl reedline::Completer for ReedlineCompleter {
      fn complete(&mut self, line: &str, pos: usize) -> Vec<reedline::Suggestion> {
 +        #[cfg(target_os = "wasi")]
 +        {
-+            let _ = (line, pos);
++            // Single-threaded wasi has no tokio runtime to block_on. The
++            // completion future only does synchronous VFS walks and
++            // uncontended lock acquisition, so drive it inline with a
++            // noop-waker poll loop (bounded: a future that parks on a waker
++            // can never be woken on one thread — bail to no completions).
++            let mut future = std::pin::pin!(self.complete_async(line, pos));
++            let mut context = std::task::Context::from_waker(std::task::Waker::noop());
++            for _ in 0..100_000 {
++                match std::future::Future::poll(future.as_mut(), &mut context) {
++                    std::task::Poll::Ready(result) => return result,
++                    std::task::Poll::Pending => std::hint::spin_loop(),
++                }
++            }
 +            return Vec::new();
 +        }
 +
