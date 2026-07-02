@@ -3184,8 +3184,13 @@ impl ActiveExecution {
             Self::Python(execution) => execution
                 .write_stdin(chunk)
                 .map_err(|error| SidecarError::Execution(error.to_string())),
+            // Sidecar wasm always runs with kernel-managed stdio
+            // (AGENTOS_WASI_STDIO_SYNC_RPC=1): the guest reads fd 0 via
+            // `__kernel_stdin_read`, so skip the V8 `stdin` stream event —
+            // it is never consumed and would flood the session's deferred
+            // message queue while the guest blocks in a sync read.
             Self::Wasm(execution) => execution
-                .write_stdin(chunk)
+                .write_stdin_kernel_only(chunk)
                 .map_err(|error| SidecarError::Execution(error.to_string())),
             Self::Tool(_) => Ok(()),
         }
@@ -9901,20 +9906,36 @@ fn sync_host_directory_tree_to_kernel_inner(
                     continue;
                 }
             }
-            let bytes = read_host_shadow_file(&host_path, desired_mode).map_err(|error| {
-                SidecarError::Io(format!(
-                    "failed to read host shadow file {}: {error}",
-                    host_path.display()
-                ))
-            })?;
-            vm.kernel.write_file(&guest_path, bytes).map_err(|error| {
-                SidecarError::InvalidState(format!(
-                    "failed to sync host shadow file {} to guest {}: {}",
-                    host_path.display(),
-                    guest_path,
-                    kernel_error(error)
-                ))
-            })?;
+            let bytes = match read_host_shadow_file(&host_path, desired_mode) {
+                Ok(bytes) => bytes,
+                // The host entry vanished between the walk and the read
+                // (short-lived files churn constantly — editor swap files,
+                // temp files). Skipping matches native semantics; failing
+                // here would poison EVERY subsequent fs op on the VM.
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+                Err(error) => {
+                    return Err(SidecarError::Io(format!(
+                        "failed to read host shadow file {}: {error}",
+                        host_path.display()
+                    )));
+                }
+            };
+            match vm.kernel.write_file(&guest_path, bytes) {
+                Ok(()) => {}
+                // ENOENT here means the guest-side path cannot currently
+                // receive the write (e.g. it is a symlink whose target was
+                // just unlinked by the guest — vim's swap-file dance). The
+                // entry is mid-churn; skip it rather than failing the VM.
+                Err(error) if error.code() == "ENOENT" => continue,
+                Err(error) => {
+                    return Err(SidecarError::InvalidState(format!(
+                        "failed to sync host shadow file {} to guest {}: {}",
+                        host_path.display(),
+                        guest_path,
+                        kernel_error(error)
+                    )));
+                }
+            }
             vm.kernel
                 .chmod(&guest_path, desired_mode)
                 .map_err(|error| {

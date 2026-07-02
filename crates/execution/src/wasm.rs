@@ -446,6 +446,18 @@ impl WasmExecution {
         self.inner.write_stdin(chunk).map_err(map_javascript_error)
     }
 
+    /// Feed stdin WITHOUT emitting a `stdin` stream event to the V8 session.
+    /// Sidecar-managed wasm always reads stdin through the kernel
+    /// (`__kernel_stdin_read`); the stream event is never consumed there, and
+    /// while the guest thread is blocked in a sync bridge call every
+    /// unconsumed event lands in the session's bounded deferred-message queue
+    /// — one dead event per keystroke until the queue limit kills the session.
+    pub fn write_stdin_kernel_only(&mut self, chunk: &[u8]) -> Result<(), WasmExecutionError> {
+        self.inner
+            .write_kernel_stdin_only(chunk)
+            .map_err(map_javascript_error)
+    }
+
     pub fn close_stdin(&mut self) -> Result<(), WasmExecutionError> {
         self.inner.close_stdin().map_err(map_javascript_error)
     }
