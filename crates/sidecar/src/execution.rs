@@ -498,6 +498,7 @@ impl ActiveProcess {
             next_sqlite_database_id: 0,
             sqlite_statements: BTreeMap::new(),
             next_sqlite_statement_id: 0,
+            deferred_kernel_wait_rpc: None,
             module_resolution_cache: secure_exec_execution::LocalModuleResolutionCache::default(),
         }
     }
@@ -4187,6 +4188,12 @@ where
             SidecarError::InvalidState(format!("VM {vm_id} has no active process {process_id}"))
         })?;
         let kernel_pid = process.kernel_pid;
+        if !matches!(signal, 0 | libc::SIGCONT) {
+            // A guest parked in a deferred kernel-wait sync RPC is blocked in a
+            // native bridge wait the kill cannot interrupt; answer the parked
+            // RPC first so the termination can take effect.
+            flush_parked_kernel_wait_rpc(process);
+        }
 
         enum KillBehavior {
             Tool,
@@ -7258,6 +7265,137 @@ where
         }
     }
 
+    /// Deferred servicing for a CHILD's `__kernel_stdin_read` / `__kernel_poll`
+    /// inside the child-event pump: probe readiness with a zero timeout, reply
+    /// when ready / expired / non-blocking, otherwise park the RPC on the child
+    /// (reply-by-token). The pump loop re-checks the parked RPC every
+    /// iteration, so the dispatch loop never blocks in a kernel wait on the
+    /// child's behalf. Returns false when the RPC must be serviced inline
+    /// (non-TTY JavaScript local stdin bridge).
+    fn service_child_kernel_wait_rpc(
+        &mut self,
+        vm_id: &str,
+        process_id: &str,
+        current_process_path: &[&str],
+        child_process_id: &str,
+        request: &JavascriptSyncRpcRequest,
+    ) -> Result<bool, SidecarError> {
+        let Some(vm) = self.vms.get_mut(vm_id) else {
+            return Ok(true);
+        };
+        let kernel = &mut vm.kernel;
+        let Some(root) = vm.active_processes.get_mut(process_id) else {
+            return Ok(true);
+        };
+        let Some(parent) = Self::active_process_by_path_mut(root, current_process_path) else {
+            return Ok(true);
+        };
+        let Some(child) = parent.child_processes.get_mut(child_process_id) else {
+            return Ok(true);
+        };
+        if request.method == "__kernel_stdin_read"
+            && matches!(child.execution, ActiveExecution::Javascript(_))
+            && child.tty_master_fd.is_none()
+        {
+            return Ok(false);
+        }
+        let now = Instant::now();
+        let requested_timeout_ms = match request.method.as_str() {
+            "__kernel_stdin_read" => parse_kernel_stdin_read_args(request)?.1,
+            _ => u64::try_from(parse_kernel_poll_args(request)?.1).unwrap_or(0),
+        };
+        let deadline = match &child.deferred_kernel_wait_rpc {
+            Some((parked, parked_deadline)) if parked.id == request.id => *parked_deadline,
+            _ => now + Duration::from_millis(requested_timeout_ms),
+        };
+        let kernel_pid = child.kernel_pid;
+        let probe = match request.method.as_str() {
+            "__kernel_stdin_read" => {
+                let (max_bytes, _) = parse_kernel_stdin_read_args(request)?;
+                kernel_stdin_read_response(kernel, kernel_pid, max_bytes, Duration::ZERO)
+            }
+            _ => {
+                let (fd_requests, _) = parse_kernel_poll_args(request)?;
+                kernel_poll_response(kernel, kernel_pid, &fd_requests, 0)
+            }
+        };
+        let probe = match probe {
+            Ok(value) => value,
+            Err(error) => {
+                child.deferred_kernel_wait_rpc = None;
+                child
+                    .execution
+                    .respond_javascript_sync_rpc_error(
+                        request.id,
+                        javascript_sync_rpc_error_code(&error),
+                        error.to_string(),
+                    )
+                    .or_else(ignore_stale_javascript_sync_rpc_response)?;
+                return Ok(true);
+            }
+        };
+        let ready = match request.method.as_str() {
+            "__kernel_stdin_read" => !probe.is_null(),
+            _ => {
+                probe
+                    .get("readyCount")
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0)
+                    > 0
+            }
+        };
+        if ready || requested_timeout_ms == 0 || now >= deadline {
+            child.deferred_kernel_wait_rpc = None;
+            child
+                .execution
+                .respond_javascript_sync_rpc_response(request.id, probe.into())
+                .or_else(ignore_stale_javascript_sync_rpc_response)?;
+            return Ok(true);
+        }
+        child.deferred_kernel_wait_rpc = Some((request.clone(), deadline));
+        Ok(true)
+    }
+
+    /// Re-check a child's parked kernel-wait RPC (see
+    /// `service_child_kernel_wait_rpc`); called once per pump-loop iteration.
+    fn recheck_child_deferred_kernel_wait_rpc(
+        &mut self,
+        vm_id: &str,
+        process_id: &str,
+        current_process_path: &[&str],
+        child_process_id: &str,
+    ) -> Result<(), SidecarError> {
+        let parked = {
+            let Some(vm) = self.vms.get_mut(vm_id) else {
+                return Ok(());
+            };
+            let Some(root) = vm.active_processes.get_mut(process_id) else {
+                return Ok(());
+            };
+            let Some(parent) = Self::active_process_by_path_mut(root, current_process_path)
+            else {
+                return Ok(());
+            };
+            let Some(child) = parent.child_processes.get_mut(child_process_id) else {
+                return Ok(());
+            };
+            child
+                .deferred_kernel_wait_rpc
+                .as_ref()
+                .map(|(request, _)| request.clone())
+        };
+        if let Some(request) = parked {
+            let _ = self.service_child_kernel_wait_rpc(
+                vm_id,
+                process_id,
+                current_process_path,
+                child_process_id,
+                &request,
+            )?;
+        }
+        Ok(())
+    }
+
     fn poll_descendant_javascript_child_process(
         &mut self,
         vm_id: &str,
@@ -7277,6 +7415,12 @@ where
                 vm_id,
                 process_id,
                 &child_path,
+            )?;
+            self.recheck_child_deferred_kernel_wait_rpc(
+                vm_id,
+                process_id,
+                current_process_path,
+                child_process_id,
             )?;
             enum ChildPollResult {
                 Event(Box<Option<ActiveExecutionEvent>>),
@@ -7484,6 +7628,20 @@ where
                 ActiveExecutionEvent::JavascriptSyncRpcRequest(request) => {
                     let mut current_child_path = current_process_path.to_vec();
                     current_child_path.push(child_process_id);
+                    if matches!(
+                        request.method.as_str(),
+                        "__kernel_stdin_read" | "__kernel_poll"
+                    ) && self.service_child_kernel_wait_rpc(
+                        vm_id,
+                        process_id,
+                        current_process_path,
+                        child_process_id,
+                        &request,
+                    )? {
+                        // Replied immediately or parked on the child; the pump
+                        // loop re-checks parked RPCs every iteration.
+                        continue;
+                    }
                     let response = if request.method == "process.signal_state" {
                         let (signal, registration) =
                             parse_process_signal_state_request(&request.args)
@@ -13656,7 +13814,21 @@ fn spawn_unix_socket_reader(
     });
 }
 
+/// Unblock a guest thread parked in a deferred `__kernel_stdin_read` /
+/// `__kernel_poll` sync RPC. Isolate termination cannot interrupt the native
+/// bridge wait, so teardown must answer the parked RPC BEFORE dropping the
+/// execution (drop joins the guest thread) or cleanup deadlocks against it.
+fn flush_parked_kernel_wait_rpc(process: &mut ActiveProcess) {
+    if let Some((request, _)) = process.deferred_kernel_wait_rpc.take() {
+        let _ = process
+            .execution
+            .respond_javascript_sync_rpc_error(request.id, "EINTR", "process teardown")
+            .or_else(ignore_stale_javascript_sync_rpc_response);
+    }
+}
+
 fn terminate_child_process_tree(kernel: &mut SidecarKernel, process: &mut ActiveProcess) {
+    flush_parked_kernel_wait_rpc(process);
     let sqlite_database_ids = process.sqlite_databases.keys().copied().collect::<Vec<_>>();
     for database_id in sqlite_database_ids {
         let _ = close_sqlite_database(kernel, process, database_id);
@@ -14745,7 +14917,7 @@ pub(crate) fn javascript_sync_rpc_bytes_value(bytes: &[u8]) -> Value {
 }
 
 #[derive(Debug, Deserialize)]
-struct KernelPollFdRequest {
+pub(crate) struct KernelPollFdRequest {
     fd: u32,
     events: u16,
 }
@@ -17640,6 +17812,19 @@ fn service_javascript_kernel_stdin_sync_rpc(
     process: &mut ActiveProcess,
     request: &JavascriptSyncRpcRequest,
 ) -> Result<Value, SidecarError> {
+    let (max_bytes, timeout_ms) = parse_kernel_stdin_read_args(request)?;
+    kernel_stdin_read_response(
+        kernel,
+        process.kernel_pid,
+        max_bytes,
+        Duration::from_millis(timeout_ms),
+    )
+}
+
+/// Parse `__kernel_stdin_read` args: (max bytes, requested timeout ms).
+pub(crate) fn parse_kernel_stdin_read_args(
+    request: &JavascriptSyncRpcRequest,
+) -> Result<(usize, u64), SidecarError> {
     let max_bytes =
         javascript_sync_rpc_arg_u64_optional(&request.args, 0, "__kernel_stdin_read max bytes")?
             .map(|value| value.clamp(1, DEFAULT_KERNEL_STDIN_READ_MAX_BYTES as u64) as usize)
@@ -17647,15 +17832,19 @@ fn service_javascript_kernel_stdin_sync_rpc(
     let timeout_ms =
         javascript_sync_rpc_arg_u64_optional(&request.args, 1, "__kernel_stdin_read timeout ms")?
             .unwrap_or(DEFAULT_KERNEL_STDIN_READ_TIMEOUT_MS);
+    Ok((max_bytes, timeout_ms))
+}
 
+/// One bounded stdin read against the kernel. `Duration::ZERO` = non-blocking
+/// probe (deferred servicing re-checks readiness with this before replying).
+pub(crate) fn kernel_stdin_read_response(
+    kernel: &mut SidecarKernel,
+    kernel_pid: u32,
+    max_bytes: usize,
+    timeout: Duration,
+) -> Result<Value, SidecarError> {
     match kernel
-        .fd_read_with_timeout_result(
-            EXECUTION_DRIVER_NAME,
-            process.kernel_pid,
-            0,
-            max_bytes,
-            Some(Duration::from_millis(timeout_ms)),
-        )
+        .fd_read_with_timeout_result(EXECUTION_DRIVER_NAME, kernel_pid, 0, max_bytes, Some(timeout))
         .map_err(kernel_error)
     {
         Ok(Some(chunk)) if !chunk.is_empty() => Ok(json!({
@@ -17861,6 +18050,14 @@ fn service_javascript_kernel_poll_sync_rpc(
     process: &ActiveProcess,
     request: &JavascriptSyncRpcRequest,
 ) -> Result<Value, SidecarError> {
+    let (fd_requests, timeout_ms) = parse_kernel_poll_args(request)?;
+    kernel_poll_response(kernel, process.kernel_pid, &fd_requests, timeout_ms)
+}
+
+/// Parse `__kernel_poll` args: (fd list, requested timeout ms).
+pub(crate) fn parse_kernel_poll_args(
+    request: &JavascriptSyncRpcRequest,
+) -> Result<(Vec<KernelPollFdRequest>, i32), SidecarError> {
     let fd_requests: Vec<KernelPollFdRequest> = serde_json::from_value(
         request
             .args
@@ -17879,7 +18076,17 @@ fn service_javascript_kernel_poll_sync_rpc(
     let timeout_ms = i32::try_from(timeout_ms).map_err(|_| {
         SidecarError::InvalidState(String::from("__kernel_poll timeout ms must fit within i32"))
     })?;
+    Ok((fd_requests, timeout_ms))
+}
 
+/// One bounded kernel poll. Timeout `0` = non-blocking probe (deferred
+/// servicing re-checks readiness with this before replying).
+pub(crate) fn kernel_poll_response(
+    kernel: &SidecarKernel,
+    kernel_pid: u32,
+    fd_requests: &[KernelPollFdRequest],
+    timeout_ms: i32,
+) -> Result<Value, SidecarError> {
     let poll_fds = fd_requests
         .iter()
         .map(|entry| PollFd {
@@ -17889,12 +18096,7 @@ fn service_javascript_kernel_poll_sync_rpc(
         })
         .collect::<Vec<_>>();
     let result = kernel
-        .poll_fds(
-            EXECUTION_DRIVER_NAME,
-            process.kernel_pid,
-            poll_fds,
-            timeout_ms,
-        )
+        .poll_fds(EXECUTION_DRIVER_NAME, kernel_pid, poll_fds, timeout_ms)
         .map_err(kernel_error)?;
     Ok(json!({
         "readyCount": result.ready_count,

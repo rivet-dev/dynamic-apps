@@ -2268,6 +2268,13 @@ impl<F: VirtualFileSystem + 'static> KernelVm<F> {
         })
     }
 
+    /// A cloneable, Send handle for waiting on kernel poll-state changes off
+    /// the kernel owner's thread. Pair with a zero-timeout `poll_fds` /
+    /// `fd_read_with_timeout_result` re-check on the owning thread.
+    pub fn poll_wait_handle(&self) -> crate::poll::PollWaitHandle {
+        crate::poll::PollWaitHandle::new(self.poll_notifier.clone())
+    }
+
     pub fn poll_targets(
         &self,
         requester_driver: &str,

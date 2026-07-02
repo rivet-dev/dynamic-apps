@@ -65,7 +65,6 @@ const DEFAULT_WASM_PREWARM_TIMEOUT_MS: u64 = 30_000;
 /// `Some(limit)` in [`WasmExecution::wait`] and pin a host CPU core forever,
 /// starving every other tenant on the shared process. Operators that need a
 /// tighter (or looser) bound can still set `AGENTOS_WASM_MAX_FUEL` explicitly.
-const DEFAULT_WASM_EXECUTION_TIMEOUT_MS: u64 = 30_000;
 /// Default V8 heap cap (MB) for the wasm *runner* isolate.
 ///
 /// The runner is trusted sidecar infrastructure: it compiles the WASI runtime +
@@ -3042,20 +3041,19 @@ fn warmup_metrics_line(
 fn resolve_wasm_execution_timeout(
     request: &StartWasmExecutionRequest,
 ) -> Result<Option<Duration>, WasmExecutionError> {
-    // Node's WASI runtime does not expose per-instruction fuel metering, so the
-    // configured "fuel" budget is currently enforced as a tight wall-clock
+    // Node's WASI runtime does not expose per-instruction fuel metering, so an
+    // EXPLICITLY configured "fuel" budget is enforced as a tight wall-clock
     // timeout. The value rides the typed `limits.max_fuel` (from the BARE-wire
     // resource limits), not an `AGENTOS_WASM_MAX_FUEL` env var.
     //
-    // When no explicit fuel budget is configured we still apply a default
-    // wall-clock timeout: otherwise `wait()` gates termination behind
-    // `Some(limit)` and a never-returning guest (e.g. an infinite loop) pins a
-    // host CPU core indefinitely, starving other tenants on the shared process.
-    let budget_ms = request
-        .limits
-        .max_fuel
-        .unwrap_or(DEFAULT_WASM_EXECUTION_TIMEOUT_MS);
-    Ok(Some(Duration::from_millis(budget_ms)))
+    // With no explicit fuel budget there is NO default wall-clock timeout —
+    // matching the JS execution philosophy (wall-clock backstop is opt-in).
+    // The guest stays bounded by default anyway: the wasm module executes on
+    // the runner isolate's thread, whose TRUE-CPU budget (the V8 CPU-time
+    // watchdog, default 30s ACTIVE CPU) terminates an infinite-loop module
+    // while letting an idle interactive guest (vim blocked in a kernel input
+    // wait) live indefinitely, exactly like native Linux.
+    Ok(request.limits.max_fuel.map(Duration::from_millis))
 }
 
 /// Resolve and validate the per-execution WASM stack cap from the typed wire
@@ -3560,8 +3558,7 @@ mod tests {
         wasm_sandbox_root, wasm_sync_read_length, wasm_sync_rpc_error_code,
         wasm_sync_rpc_method_routes_through_sidecar_kernel, GuestRuntimeConfig,
         JavascriptSyncRpcRequest, StartWasmExecutionRequest, Value, WasmExecutionError,
-        WasmExecutionLimits, WasmInternalSyncRpc, WasmPermissionTier,
-        DEFAULT_WASM_EXECUTION_TIMEOUT_MS, NODE_WASI_MODULE_SOURCE,
+        WasmExecutionLimits, WasmInternalSyncRpc, WasmPermissionTier, NODE_WASI_MODULE_SOURCE,
         WASM_CAPTURED_OUTPUT_LIMIT_BYTES, WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV,
         WASM_MAX_STACK_BYTES_ENV, WASM_PAGE_BYTES, WASM_PREWARM_TIMEOUT_MS_ENV,
         WASM_SANDBOX_ROOT_ENV, WASM_SIDECAR_ROUTED_FS_SYNC_METHODS, WASM_SYNC_READ_LIMIT_BYTES,
@@ -3680,13 +3677,14 @@ mod tests {
 
     #[test]
     fn wasm_limits_default_to_bounded_timeout_when_unset_even_with_env_present() {
-        // Same misleading env, but no typed limits: execution gets the default
-        // bounded timeout, while memory and stack limits remain absent.
+        // Same misleading env, but no typed limits: no wall-clock fuel timeout
+        // (the runner's V8 TRUE-CPU budget bounds runaways), and memory and
+        // stack limits remain absent.
         let request = request_with_typed_limits_and_misleading_env(WasmExecutionLimits::default());
 
         assert_eq!(
             resolve_wasm_execution_timeout(&request).expect("fuel"),
-            Some(Duration::from_millis(DEFAULT_WASM_EXECUTION_TIMEOUT_MS))
+            None
         );
         assert_eq!(wasm_memory_limit_bytes(&request).expect("memory"), None);
         assert_eq!(
@@ -3763,10 +3761,11 @@ mod tests {
             .expect("execution timeout resolves without fuel env");
 
         assert_eq!(
-            timeout,
-            Some(Duration::from_millis(DEFAULT_WASM_EXECUTION_TIMEOUT_MS)),
-            "a no-fuel guest must still be bounded by a default wall-clock timeout, \
-             otherwise wait() never terminates an infinite-loop module (F-004)"
+            timeout, None,
+            "no explicit fuel budget means no wall-clock timeout; the runner \
+             isolate's TRUE-CPU budget (default 30s active CPU) is the bound \
+             that terminates an infinite-loop module (F-004), so an idle \
+             interactive guest is not killed on wall time"
         );
     }
 

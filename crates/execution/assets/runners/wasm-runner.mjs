@@ -668,17 +668,26 @@ function stdioFdIsKernelTty(fd) {
   return isTty;
 }
 
+// Long event-driven in-RPC waits: the sidecar services __kernel_stdin_read /
+// __kernel_poll by parking the RPC and replying when kernel poll state changes
+// (reply-by-token), so a long wait costs no dispatch-loop time and near-zero
+// CPU (the guest thread blocks in Atomics.wait inside callSync). Keep each
+// slice under the 30s guest sync-RPC deadline.
+const KERNEL_WAIT_SLICE_MS = 10_000;
+
 function readKernelStdinChunk(maxBytes) {
   const requestedLength = Math.max(1, Number(maxBytes) >>> 0);
   while (true) {
-    const response = callSyncRpc('__kernel_stdin_read', [requestedLength, 10]);
+    const response = callSyncRpc('__kernel_stdin_read', [
+      requestedLength,
+      KERNEL_WAIT_SLICE_MS,
+    ]);
     if (response && typeof response.dataBase64 === 'string') {
       return Buffer.from(response.dataBase64, 'base64');
     }
     if (response && response.done === true) {
       return null;
     }
-    Atomics.wait(syntheticWaitArray, 0, 0, 10);
   }
 }
 
@@ -2804,18 +2813,30 @@ const hostNetImport = {
     // these, so net_poll must match or POLLOUT readiness is never reported and writers block.
     const POLLIN = 0x001;
     const POLLOUT = 0x002;
+    const POLLERR = 0x008;
+    const POLLHUP = 0x010;
+    const POLLNVAL = 0x020;
     const t = Number(timeoutMs) | 0;
     const deadline = t < 0 ? null : Date.now() + Math.max(0, t);
+    const kernelManagedStdio =
+      KERNEL_STDIO_SYNC_RPC ||
+      (typeof process?.env?.AGENTOS_SANDBOX_ROOT === 'string' &&
+        process.env.AGENTOS_SANDBOX_ROOT.length > 0);
     try {
       while (true) {
         const view = new DataView(instanceMemory.buffer);
         let ready = 0;
+        // fds the kernel owns (PTY/pipe stdio in sidecar-managed mode): their readiness
+        // comes from a batched __kernel_poll below, which doubles as the wait slice.
+        const kernelTargets = [];
+        const kernelEntries = [];
         for (let i = 0; i < n; i++) {
           const base = base0 + i * 8;
           const fd = view.getInt32(base, true);
           const events = view.getUint16(base + 4, true);
           let revents = 0;
           const socket = getHostNetSocket(fd);
+          const handle = fd >= 0 ? lookupFdHandle(fd >>> 0) : undefined;
           if (socket && !socket.closed) {
             if (socket.serverId) {
               if (events & POLLIN) {
@@ -2833,19 +2854,97 @@ const hostNetImport = {
               }
               if (events & POLLOUT) revents |= POLLOUT;
             }
+          } else if (handle?.kind === 'pipe-read') {
+            if (events & POLLIN) {
+              pumpPipeProducers(handle.pipe, 0);
+              if (handle.pipe.chunks.length > 0) {
+                revents |= POLLIN;
+              } else if (
+                handle.pipe.writeHandleCount === 0 &&
+                handle.pipe.producers.size === 0
+              ) {
+                revents |= POLLHUP;
+              }
+            }
+          } else if (handle?.kind === 'pipe-write') {
+            if (events & POLLOUT) revents |= POLLOUT;
+          } else if (
+            fd >= 0 &&
+            fd <= 2 &&
+            kernelManagedStdio &&
+            (!handle || (handle.kind === 'passthrough' && handle.targetFd === fd))
+          ) {
+            // Kernel-managed stdio (PTY slave / stdio pipes): ask the kernel, like a
+            // native poll(2) on the terminal fd.
+            kernelTargets.push({
+              fd,
+              events:
+                ((events & POLLIN) !== 0 ? KERNEL_POLLIN : 0) |
+                ((events & POLLOUT) !== 0 ? KERNEL_POLLOUT : 0),
+            });
+            kernelEntries.push({ base, fd, events });
+          } else if (handle) {
+            // Regular files / other VFS-backed fds: always ready, as on Linux.
+            revents |= events & (POLLIN | POLLOUT);
+          } else if (fd >= 0 && fd <= 2) {
+            // Non-kernel-managed stdio (plain runner stdio): report requested
+            // readiness rather than blocking a guest forever on fds we cannot wait on.
+            revents |= events & (POLLIN | POLLOUT);
+          } else if (fd >= 0) {
+            revents |= POLLNVAL;
           }
           view.setUint16(base + 6, revents, true);
           if (revents) ready++;
         }
+
+        if (kernelTargets.length > 0) {
+          // If something is already ready (or this is a non-blocking poll), probe the
+          // kernel without waiting; otherwise let the kernel wait one slice for us.
+          const remaining = deadline == null ? Infinity : deadline - Date.now();
+          const sliceMs =
+            ready > 0 || t === 0
+              ? 0
+              : Math.max(0, Math.min(KERNEL_WAIT_SLICE_MS, remaining));
+          let response = null;
+          try {
+            response = callSyncRpc('__kernel_poll', [kernelTargets, sliceMs]);
+          } catch {
+            response = null;
+          }
+          const responseEntries = Array.isArray(response?.fds) ? response.fds : [];
+          for (const entry of kernelEntries) {
+            const responseEntry = responseEntries.find(
+              (item) => (Number(item?.fd) >>> 0) === (entry.fd >>> 0),
+            );
+            const kernelRevents = Number(responseEntry?.revents) >>> 0;
+            let revents = 0;
+            if (kernelRevents & KERNEL_POLLIN) revents |= POLLIN & entry.events;
+            if (kernelRevents & KERNEL_POLLOUT) revents |= POLLOUT & entry.events;
+            if (kernelRevents & KERNEL_POLLERR) revents |= POLLERR;
+            if (kernelRevents & KERNEL_POLLHUP) revents |= POLLHUP;
+            new DataView(instanceMemory.buffer).setUint16(entry.base + 6, revents, true);
+            if (revents) ready++;
+          }
+        }
+
         if (ready > 0 || t === 0 || (deadline != null && Date.now() >= deadline)) {
           new DataView(instanceMemory.buffer).setUint32(Number(retReadyPtr) >>> 0, ready >>> 0, true);
           return 0;
         }
+        let pumpedSocket = false;
         const v2 = new DataView(instanceMemory.buffer);
         for (let i = 0; i < n; i++) {
           const fd = v2.getInt32(base0 + i * 8, true);
           const s = getHostNetSocket(fd);
-          if (s && s.socketId && !s.serverId) pollHostNetSocket(s, 10);
+          if (s && s.socketId && !s.serverId) {
+            pollHostNetSocket(s, 10);
+            pumpedSocket = true;
+          }
+        }
+        if (kernelTargets.length === 0 && !pumpedSocket) {
+          // Nothing to wait on except time: sleep a slice instead of hot-spinning.
+          const remaining = deadline == null ? Infinity : deadline - Date.now();
+          Atomics.wait(syntheticWaitArray, 0, 0, Math.max(1, Math.min(10, remaining)));
         }
       }
     } catch (_e) {
@@ -4950,6 +5049,12 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
       ) {
         hasRemappedPassthroughSubscription = true;
       }
+    } else if (!handle && fd <= 2 && (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC)) {
+      // Kernel-managed stdio with no local handle: fd 0/1/2 map straight to
+      // the kernel PTY/pipes, so readiness must come from __kernel_poll — the
+      // delegate's fds are the runner process's own stdio and never fire for
+      // guest terminal input (vim's RealWaitForChar polls fd 0 this way).
+      hasRemappedPassthroughSubscription = true;
     }
     subscriptions.push({
       kind: tag === 1 ? 'fd_read' : 'fd_write',
@@ -4973,19 +5078,27 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
       return [];
     }
 
+    const kernelPollFdFor = (subscription) => {
+      if (subscription.kind !== 'fd_read' && subscription.kind !== 'fd_write') {
+        return null;
+      }
+      const fd = Number(subscription.fd) >>> 0;
+      if (subscription.handle?.kind === 'passthrough') {
+        const targetFd = Number(subscription.handle.targetFd) >>> 0;
+        if (targetFd !== fd || (fd === 0 && (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC))) {
+          return targetFd;
+        }
+        return null;
+      }
+      if (!subscription.handle && fd <= 2 && (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC)) {
+        return fd;
+      }
+      return null;
+    };
     const pollTargets = subscriptions
-      .filter(
-        (subscription) =>
-          (subscription.kind === 'fd_read' || subscription.kind === 'fd_write') &&
-          subscription.handle?.kind === 'passthrough' &&
-          (
-            (Number(subscription.handle.targetFd) >>> 0) !== (Number(subscription.fd) >>> 0) ||
-            ((Number(subscription.fd) >>> 0) === 0 &&
-              (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC))
-          )
-      )
+      .filter((subscription) => kernelPollFdFor(subscription) != null)
       .map((subscription) => ({
-        fd: Number(subscription.handle.targetFd) >>> 0,
+        fd: kernelPollFdFor(subscription),
         events: subscription.kind === 'fd_read' ? KERNEL_POLLIN : KERNEL_POLLOUT,
       }));
     if (pollTargets.length === 0) {
@@ -5005,21 +5118,12 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
     const responseEntries = Array.isArray(response?.fds) ? response.fds : [];
     const ready = [];
     for (const subscription of subscriptions) {
-      if (
-        (subscription.kind !== 'fd_read' && subscription.kind !== 'fd_write') ||
-        subscription.handle?.kind !== 'passthrough' ||
-        (
-          (Number(subscription.handle.targetFd) >>> 0) === (Number(subscription.fd) >>> 0) &&
-          !(
-            (Number(subscription.fd) >>> 0) === 0 &&
-            (sidecarManagedProcess || KERNEL_STDIO_SYNC_RPC)
-          )
-        )
-      ) {
+      const kernelFd = kernelPollFdFor(subscription);
+      if (kernelFd == null) {
         continue;
       }
 
-      const targetFd = Number(subscription.handle.targetFd) >>> 0;
+      const targetFd = kernelFd;
       const responseEntry = responseEntries.find(
         (entry) => (Number(entry?.fd) >>> 0) === targetFd
       );
@@ -5087,8 +5191,17 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
     }
 
     if (hasRemappedPassthroughSubscription) {
-      const kernelWaitMs =
-        deadline == null ? 10 : Math.max(0, Math.min(10, deadline - Date.now()));
+      // Kernel fds wait event-driven in the sidecar (parked RPC), so the slice
+      // can be long. Synthetic (pipe) subscriptions still need short local
+      // pumping, so only use the long slice when every subscription is
+      // kernel-backed.
+      const kernelWaitMs = hasSyntheticSubscription
+        ? deadline == null
+          ? 10
+          : Math.max(0, Math.min(10, deadline - Date.now()))
+        : deadline == null
+          ? KERNEL_WAIT_SLICE_MS
+          : Math.max(0, Math.min(KERNEL_WAIT_SLICE_MS, deadline - Date.now()));
       readyEvents.push(...collectKernelReadyEvents(kernelWaitMs));
       if (readyEvents.length > 0) {
         break;
@@ -5150,18 +5263,22 @@ wasiImport.poll_oneoff = (inPtr, outPtr, nsubscriptions, neventsPtr) => {
 // (-1 as i32) means block until input. Backed by the same __kernel_stdin_read RPC
 // the wasi fd_read path uses, so it works identically under native and browser.
 const hostTtyImport = {
-  // Short-poll slices (like readKernelStdinChunk), never one long blocking
-  // read: a long `__kernel_stdin_read` occupies the sidecar service loop, so
-  // the very host->guest stdin write the caller is waiting for (e.g. the CPR
-  // reply to crossterm's cursor-position query) queues behind it and cannot
-  // land until the read times out — a self-deadlock.
+  // Long event-driven waits: the sidecar parks __kernel_stdin_read and replies
+  // when the PTY becomes readable (reply-by-token), so a host->guest write the
+  // caller is waiting for (e.g. the CPR reply to crossterm's cursor-position
+  // query) lands immediately — no polling slices, no self-deadlock.
   read(ptr, len, timeoutMs) {
     const cap = Number(len) >>> 0;
     if (cap === 0) return 0;
     const blocking = (timeoutMs >>> 0) === 0xffffffff;
     const deadline = blocking ? Infinity : Date.now() + (Number(timeoutMs) >>> 0);
     while (true) {
-      const response = callSyncRpc('__kernel_stdin_read', [cap, 10]);
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) return 0;
+      const response = callSyncRpc('__kernel_stdin_read', [
+        cap,
+        Math.min(remaining, KERNEL_WAIT_SLICE_MS),
+      ]);
       if (response && typeof response.dataBase64 === 'string') {
         const bytes = Buffer.from(response.dataBase64, 'base64');
         const n = Math.min(bytes.length, cap);
@@ -5171,8 +5288,6 @@ const hostTtyImport = {
         }
       }
       if (response && response.done === true) return 0;
-      if (Date.now() >= deadline) return 0;
-      Atomics.wait(syntheticWaitArray, 0, 0, 5);
     }
   },
   // `host_tty.isatty(fd)` -> 1 if the guest fd is a kernel PTY, else 0.

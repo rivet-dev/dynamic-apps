@@ -113,6 +113,34 @@ pub struct PollTargetResult {
     pub targets: Vec<PollTargetEntry>,
 }
 
+/// Cloneable, Send handle onto the kernel's poll notifier so a caller can wait
+/// for "some poll-visible state changed" OFF the thread that owns the kernel
+/// (deferred readiness servicing), then re-check readiness with a zero-timeout
+/// poll on the owning thread. Take `snapshot()` BEFORE the readiness check it
+/// guards so a change landing between the check and the wait wakes immediately
+/// instead of being lost.
+#[derive(Debug, Clone)]
+pub struct PollWaitHandle {
+    notifier: PollNotifier,
+}
+
+impl PollWaitHandle {
+    pub(crate) fn new(notifier: PollNotifier) -> Self {
+        Self { notifier }
+    }
+
+    /// Snapshot the current change generation.
+    pub fn snapshot(&self) -> u64 {
+        self.notifier.snapshot()
+    }
+
+    /// Block until the generation moves past `observed` or `timeout` elapses
+    /// (`None` = wait forever). Returns true when a change was observed.
+    pub fn wait_for_change(&self, observed: u64, timeout: Option<Duration>) -> bool {
+        self.notifier.wait_for_change(observed, timeout)
+    }
+}
+
 #[derive(Debug, Clone, Default)]
 pub(crate) struct PollNotifier {
     inner: Arc<PollNotifierInner>,

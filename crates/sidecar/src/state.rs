@@ -477,6 +477,11 @@ pub(crate) struct ActiveProcess {
     pub(crate) next_sqlite_database_id: u64,
     pub(crate) sqlite_statements: BTreeMap<u64, ActiveSqliteStatement>,
     pub(crate) next_sqlite_statement_id: u64,
+    /// A parked `__kernel_stdin_read` / `__kernel_poll` sync RPC awaiting
+    /// kernel readiness (reply-by-token deferral so servicing never blocks the
+    /// dispatch loop). At most one per process: the guest thread is blocked in
+    /// this RPC, so it cannot issue another. `(request, absolute deadline)`.
+    pub(crate) deferred_kernel_wait_rpc: Option<(JavascriptSyncRpcRequest, Instant)>,
     /// Per-process module resolution cache, persisted across module sync-RPCs
     /// (`__resolve_module` / `__load_file` / `__module_format` /
     /// `__batch_resolve_modules`) for the lifetime of this process so cold-start

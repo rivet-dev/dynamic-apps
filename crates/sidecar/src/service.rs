@@ -9,8 +9,9 @@ pub(crate) use crate::execution::{
     javascript_sync_rpc_option_bool, javascript_sync_rpc_option_u32,
     mark_execute_exit_event_queued, parse_signal, record_execute_exit_event_queue_wait,
     record_execute_phase, sanitize_javascript_child_process_internal_bootstrap_env,
-    service_javascript_sync_rpc, vm_network_resource_counts, JavascriptSyncRpcServiceRequest,
-    LoopbackHttpDispatchRequest,
+    kernel_poll_response, kernel_stdin_read_response, parse_kernel_poll_args,
+    parse_kernel_stdin_read_args, service_javascript_sync_rpc, vm_network_resource_counts,
+    JavascriptSyncRpcServiceRequest, LoopbackHttpDispatchRequest,
 };
 use crate::extension::{
     Extension, ExtensionBufferedProcessOutput, ExtensionContext, ExtensionFuture, ExtensionHost,
@@ -1723,6 +1724,152 @@ where
     // poll_javascript_child_process, write_javascript_child_process_stdin,
     // close_javascript_child_process_stdin, kill_javascript_child_process moved to crate::execution
 
+    /// Whether a `__kernel_stdin_read` / `__kernel_poll` RPC may be serviced
+    /// via the non-blocking deferral path. Non-TTY JavaScript keeps its
+    /// in-process local stdin bridge (serviced inline by the fallback arm).
+    fn kernel_wait_rpc_is_deferrable(
+        &self,
+        vm_id: &str,
+        process_id: &str,
+        request: &JavascriptSyncRpcRequest,
+    ) -> bool {
+        let Some(vm) = self.vms.get(vm_id) else {
+            return false;
+        };
+        let Some(process) = vm.active_processes.get(process_id) else {
+            return false;
+        };
+        if request.method == "__kernel_stdin_read"
+            && matches!(process.execution, crate::state::ActiveExecution::Javascript(_))
+            && process.tty_master_fd.is_none()
+        {
+            return false;
+        }
+        true
+    }
+
+    /// Service `__kernel_stdin_read` / `__kernel_poll` without blocking the
+    /// dispatch loop. Probes readiness with a zero timeout; when not ready and
+    /// the requested timeout has not expired, parks the RPC on the process
+    /// (reply-by-token) and spawns a waiter that re-enqueues it as a process
+    /// event when kernel poll state changes or the deadline passes. The kernel
+    /// waits stay event-driven (PollNotifier), so a host stdin write wakes the
+    /// guest immediately instead of after a polling slice.
+    ///
+    /// Returns `Ok(Some(response))` to reply now, `Ok(None)` when parked.
+    fn service_deferrable_kernel_wait_rpc(
+        &mut self,
+        vm_id: &str,
+        process_id: &str,
+        request: &JavascriptSyncRpcRequest,
+    ) -> Result<Option<crate::execution::JavascriptSyncRpcServiceResponse>, SidecarError> {
+        let requested_timeout_ms = match request.method.as_str() {
+            "__kernel_stdin_read" => parse_kernel_stdin_read_args(request)?.1,
+            _ => u64::try_from(parse_kernel_poll_args(request)?.1).unwrap_or(0),
+        };
+        let now = Instant::now();
+
+        let Some(vm) = self.vms.get_mut(vm_id) else {
+            log_stale_process_event(
+                &self.bridge,
+                vm_id,
+                process_id,
+                "deferred kernel wait RPC",
+            );
+            return Ok(None);
+        };
+        let wait_handle = vm.kernel.poll_wait_handle();
+        // Snapshot BEFORE the readiness probe: a write landing between the
+        // probe and the waiter's wait bumps the generation, so the wait
+        // returns immediately instead of losing the wakeup.
+        let generation = wait_handle.snapshot();
+        let Some(process) = vm.active_processes.get_mut(process_id) else {
+            log_stale_process_event(
+                &self.bridge,
+                vm_id,
+                process_id,
+                "deferred kernel wait RPC",
+            );
+            return Ok(None);
+        };
+        let kernel_pid = process.kernel_pid;
+        let deadline = match &process.deferred_kernel_wait_rpc {
+            Some((parked, parked_deadline)) if parked.id == request.id => *parked_deadline,
+            _ => now + Duration::from_millis(requested_timeout_ms),
+        };
+        let probe = match request.method.as_str() {
+            "__kernel_stdin_read" => {
+                let (max_bytes, _) = parse_kernel_stdin_read_args(request)?;
+                kernel_stdin_read_response(&mut vm.kernel, kernel_pid, max_bytes, Duration::ZERO)
+            }
+            _ => {
+                let (fd_requests, _) = parse_kernel_poll_args(request)?;
+                kernel_poll_response(&vm.kernel, kernel_pid, &fd_requests, 0)
+            }
+        };
+        let Some(process) = vm.active_processes.get_mut(process_id) else {
+            return Ok(None);
+        };
+        let probe = match probe {
+            Ok(value) => value,
+            Err(error) => {
+                process.deferred_kernel_wait_rpc = None;
+                return Err(error);
+            }
+        };
+        let ready = match request.method.as_str() {
+            "__kernel_stdin_read" => !probe.is_null(),
+            _ => {
+                probe
+                    .get("readyCount")
+                    .and_then(Value::as_u64)
+                    .unwrap_or(0)
+                    > 0
+            }
+        };
+        if ready || requested_timeout_ms == 0 || now >= deadline {
+            process.deferred_kernel_wait_rpc = None;
+            return Ok(Some(probe.into()));
+        }
+
+        let connection_id = vm.connection_id.clone();
+        let session_id = vm.session_id.clone();
+        let remaining = deadline.saturating_duration_since(now);
+        let sender = self.process_event_sender.clone();
+        let waiter_request = request.clone();
+        let envelope_vm_id = vm_id.to_owned();
+        let envelope_process_id = process_id.to_owned();
+        let spawned = std::thread::Builder::new()
+            .name(String::from("kernel-wait-rpc"))
+            .spawn(move || {
+                // Wake on any kernel poll-state change or the deadline; either
+                // way requeue exactly once — the handler re-probes and either
+                // replies or re-parks.
+                let _ = wait_handle.wait_for_change(generation, Some(remaining));
+                let _ = sender.blocking_send(ProcessEventEnvelope {
+                    connection_id,
+                    session_id,
+                    vm_id: envelope_vm_id,
+                    process_id: envelope_process_id,
+                    event: ActiveExecutionEvent::JavascriptSyncRpcRequest(waiter_request),
+                });
+            });
+        let Some(vm) = self.vms.get_mut(vm_id) else {
+            return Ok(None);
+        };
+        let Some(process) = vm.active_processes.get_mut(process_id) else {
+            return Ok(None);
+        };
+        if spawned.is_err() {
+            // Degrade to pre-deferral behavior: reply not-ready now and let the
+            // guest re-issue its bounded wait.
+            process.deferred_kernel_wait_rpc = None;
+            return Ok(Some(probe.into()));
+        }
+        process.deferred_kernel_wait_rpc = Some((request.clone(), deadline));
+        Ok(None)
+    }
+
     pub(crate) fn handle_javascript_sync_rpc_request(
         &mut self,
         vm_id: &str,
@@ -2067,6 +2214,17 @@ where
                     })
                     .map(Value::String)
                     .map(Into::into)
+                }
+                "__kernel_stdin_read" | "__kernel_poll"
+                    if self.kernel_wait_rpc_is_deferrable(vm_id, process_id, &request) =>
+                {
+                    match self.service_deferrable_kernel_wait_rpc(vm_id, process_id, &request) {
+                        Ok(Some(response)) => Ok(response),
+                        // Parked: an off-loop waiter re-enqueues this request as a
+                        // process event when kernel poll state changes.
+                        Ok(None) => return Ok(()),
+                        Err(error) => Err(error),
+                    }
                 }
                 _ => {
                     let Some(vm) = self.vms.get_mut(vm_id) else {
