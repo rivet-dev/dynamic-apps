@@ -20,10 +20,83 @@ docs-verify:
 	node website/scripts/compare-fixture.mjs
 	node website/scripts/compare-visual.mjs
 
+# --- Registry (@agentos-software/* packages) -------------------------------
+# Full flow + package format: registry/README.md.
+
+# Compile ALL native wasm command binaries (slow; needed once per checkout)
+registry-native:
+	make -C registry/native wasm
+
+# Recompile ONE command binary (cargo package cmd-<CMD>), e.g. `just registry-native-cmd sh`
+registry-native-cmd CMD:
+	make -C registry/native wasm-cmd CMD="{{ CMD }}"
+
+# Build one registry package (stage bin/ + tsc + assemble dist/package), or all when PKG is empty.
+# Bootstrap note: on a fresh checkout the `agentos-toolchain` bin symlinks are
+# only created by `pnpm install` AFTER the toolchain's dist exists — so prime it.
+registry-build PKG="":
+	#!/usr/bin/env bash
+	set -euo pipefail
+	npx turbo build --filter '@rivet-dev/agentos-toolchain' >/dev/null
+	pnpm install --frozen-lockfile >/dev/null
+	if [ -n "{{ PKG }}" ]; then
+		dir=""
+		for base in registry/software registry/agent; do
+			[ -d "$base/{{ PKG }}" ] && dir="$base/{{ PKG }}"
+		done
+		[ -n "$dir" ] || { echo "ERROR: no registry/software/{{ PKG }} or registry/agent/{{ PKG }}"; exit 1; }
+		npx turbo build --filter "./$dir"
+	else
+		npx turbo build --filter './registry/software/*' --filter './registry/agent/*'
+	fi
+
+# Run the registry integration tests (registry/tests)
+registry-test *args:
+	pnpm --dir registry test "$@"
+
+# Publish one software/agent package. Dist-tag defaults to `dev`; pass
+# TAG=latest ONLY for a deliberate release (it moves the latest pointer).
+registry-publish PKG TAG="dev":
+	#!/usr/bin/env bash
+	set -euo pipefail
+	dir=""
+	for base in registry/software registry/agent; do
+		[ -d "$base/{{ PKG }}" ] && dir="$base/{{ PKG }}"
+	done
+	[ -n "$dir" ] || { echo "ERROR: no registry/software/{{ PKG }} or registry/agent/{{ PKG }}"; exit 1; }
+	if [ "{{ TAG }}" = "latest" ]; then
+		node packages/agentos-toolchain/dist/cli.js publish "$dir" --latest
+	else
+		node packages/agentos-toolchain/dist/cli.js publish "$dir" --tag "{{ TAG }}"
+	fi
+
+# Publish ALL built software packages (skips unbuilt ones with a notice)
+registry-publish-all TAG="dev":
+	#!/usr/bin/env bash
+	set -euo pipefail
+	for dir in registry/software/*/; do
+		[ -f "$dir/package.json" ] || continue
+		if [ ! -f "$dir/dist/index.js" ]; then
+			echo "SKIP: $dir (not built)"
+			continue
+		fi
+		if [ "{{ TAG }}" = "latest" ]; then
+			node packages/agentos-toolchain/dist/cli.js publish "$dir" --latest
+		else
+			node packages/agentos-toolchain/dist/cli.js publish "$dir" --tag "{{ TAG }}"
+		fi
+	done
+
+# Show per-package state (version, staged bin/, assembled dist). --remote adds npm dist-tags.
+registry-status *args:
+	node registry/scripts/status.mjs "$@"
+
 release *args:
 	pnpm --filter=publish release "$@"
 
-preview-publish REF:
+# Cut a release-preview (debug build, npm-only, branch dist-tag; also publishes
+# the registry packages under that tag) — see the release-preview skill.
+release-preview REF:
 	gh workflow run .github/workflows/publish.yaml --ref "{{ REF }}"
 
 test-bounded cmd='pnpm test':

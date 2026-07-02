@@ -329,6 +329,14 @@ const sdkFileName = `claude-sdk-patched-${sdkHash}.mjs`;
 const sdkOutputPath = resolvePath(distDir, sdkFileName);
 writeFileSync(sdkOutputPath, patchedSdk, "utf-8");
 
+// Stable `claude` CLI entry for the package bin map (the patched CLI file is
+// content-hashed, so the bin target is this generated one-line import shim).
+writeFileSync(
+	resolvePath(distDir, "claude-cli.mjs"),
+	`#!/usr/bin/env node\nimport("./${fileName}");\n`,
+	"utf-8",
+);
+
 writeFileSync(
 	manifestPath,
 	JSON.stringify({ entry: `./${fileName}` }, null, 2) + "\n",

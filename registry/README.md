@@ -1,26 +1,21 @@
 # secure-exec Registry
 
-Software packages for secure-exec VMs. This includes WASM command binaries and JavaScript agent/tool packages.
+Software packages for secure-exec VMs: WASM command binaries
+(`registry/software/*`), JavaScript agent adapters (`registry/agent/*`), and
+tool packages (`registry/tool/*`). Everything under the `@agentos-software/*`
+npm scope.
 
-Non-software packages, including filesystem drivers like S3 and Google Drive plus sandbox providers, live under `registry/file-system/` and `registry/tool/`.
-
-## Installation
-
-Install individual packages:
+## Consuming packages
 
 ```bash
 npm install @agentos-software/coreutils @agentos-software/grep
-```
-
-Or use a meta-package for a complete set:
-
-```bash
+# or a meta-package for a complete set:
 npm install @agentos-software/common
 ```
 
-## Usage
-
-Each package exports a descriptor with command metadata and a `commandDir` path pointing to the WASM binaries:
+Each package default-exports a descriptor whose `packageDir` points at the
+self-contained runtime dir the sidecar projects under
+`/opt/agentos/<name>/<version>` (meta-packages export an array of descriptors):
 
 ```typescript
 import coreutils from "@agentos-software/coreutils";
@@ -29,82 +24,86 @@ import grep from "@agentos-software/grep";
 export const software = [coreutils, grep];
 ```
 
-## Package Types
+## Package anatomy
 
-### WASM Packages
+```
+registry/software/<pkg>/
+├── package.json           name, per-package semver version, build script
+├── agentos-package.json   manifest: runtime fields (name/agent/provides) +
+│                          staging fields (commands/aliases/stubs)
+├── src/index.ts           descriptor: packageDir -> ./package/ (dist/package)
+├── bin/                   staged command binaries (gitignored, built)
+└── dist/package/          the assembled runtime dir (shipped in the npm tarball):
+    ├── package.json       { name, version, bin: { <cmd>: "bin/<cmd>" } }
+    ├── agentos-package.json
+    └── bin/<cmd>          the binaries, copied verbatim
+```
 
-Pre-built WebAssembly binaries that register as executable commands in the VM. Each WASM package provides one or more commands (e.g., `coreutils` provides `sh`, `cat`, `ls`, etc.). Commands are compiled from Rust and C to WASM and distributed as npm packages.
+The whole lifecycle is owned by **`@rivet-dev/agentos-toolchain`**
+(`packages/agentos-toolchain`) — the same CLI 3rd-party repos use to build and
+publish their own agentOS packages (`npx @rivet-dev/agentos-toolchain`):
 
-### JavaScript Packages
-
-Node.js agent and tool packages that are projected into the VM via the ModuleAccessFileSystem overlay. These include coding agents (like PI) and CLI tools that run as Node.js scripts inside the VM.
-
-## Packages
-
-<!-- BEGIN PACKAGE TABLE -->
-### WASM Command Packages
-
-| Package | apt Equivalent | Description | Source | Combined Size | Gzipped |
-|---------|---------------|-------------|--------|---------------|---------|
-| `@agentos-software/codex` | codex | OpenAI Codex integration (codex, codex-exec) | rust | 274 KiB | 118 KiB |
-| `@agentos-software/coreutils` | coreutils | GNU coreutils: sh, cat, ls, cp, sort, and 80+ commands | rust | 51.4 MiB | 23.5 MiB |
-| `@agentos-software/curl` | curl | curl-compatible HTTP client | rust | - | - |
-| `@agentos-software/diffutils` | diffutils | GNU diffutils (diff) | rust | 120 KiB | 54.0 KiB |
-| `@agentos-software/fd` | fd-find | fd fast file finder | rust | 901 KiB | 328 KiB |
-| `@agentos-software/file` | file | file type detection | rust | 117 KiB | 49.9 KiB |
-| `@agentos-software/findutils` | findutils | GNU findutils (find, xargs) | rust | 950 KiB | 348 KiB |
-| `@agentos-software/gawk` | gawk | GNU awk text processing | rust | 1.11 MiB | 432 KiB |
-| `@agentos-software/git` | git | git version control (planned) *(planned)* | rust | - | - |
-| `@agentos-software/grep` | grep | GNU grep pattern matching (grep, egrep, fgrep) | rust | 2.59 MiB | 956 KiB |
-| `@agentos-software/gzip` | gzip | GNU gzip compression (gzip, gunzip, zcat) | rust | 391 KiB | 194 KiB |
-| `@agentos-software/jq` | jq | jq JSON processor | rust | 699 KiB | 298 KiB |
-| `@agentos-software/make` | make | GNU make build tool (planned) *(planned)* | rust | - | - |
-| `@agentos-software/ripgrep` | ripgrep | ripgrep fast recursive search | rust | 912 KiB | 330 KiB |
-| `@agentos-software/sed` | sed | GNU sed stream editor | rust | 1.19 MiB | 455 KiB |
-| `@agentos-software/sqlite3` | sqlite3 | SQLite3 command-line interface | c | - | - |
-| `@agentos-software/tar` | tar | GNU tar archiver | rust | 178 KiB | 85.4 KiB |
-| `@agentos-software/tree` | tree | tree directory listing | rust | 65.8 KiB | 30.0 KiB |
-| `@agentos-software/unzip` | unzip | unzip archive extraction | c | 63.0 KiB | 29.0 KiB |
-| `@agentos-software/wget` | wget | GNU wget HTTP client | c | - | - |
-| `@agentos-software/yq` | yq | yq YAML/JSON processor | rust | 972 KiB | 411 KiB |
-| `@agentos-software/zip` | zip | zip archive creation | c | 78.8 KiB | 33.6 KiB |
-
-### Meta-Packages
-
-| Package | Description | Includes |
-|---------|-------------|----------|
-| `@agentos-software/build-essential` | Build-essential WASM command set (standard + make + git + curl) | standard, make, git, curl |
-| `@agentos-software/common` | Common WASM command set (coreutils + sed + grep + gawk + findutils + diffutils + tar + gzip) | coreutils, sed, grep, gawk, findutils, diffutils, tar, gzip |
-<!-- END PACKAGE TABLE -->
+- `stage --commands-dir <dir>` — populate `bin/` from a compiled commands
+  directory, per the `commands` / `aliases` / `stubs` lists in
+  `agentos-package.json`.
+- `build` — assemble the clean `dist/package/` runtime dir from `bin/`.
+- `pack` — build a self-contained node-closure package (JS agents).
+- `publish` — publish to npm; dist-tag `dev` by default, `latest` only with an
+  explicit `--latest`.
 
 ## Building
 
-All WASM command source code lives in `native/`. Requires a Rust nightly toolchain (auto-installed via `rust-toolchain.toml`).
+All recipes run from the repo root (see `justfile`):
 
 ```bash
-# Build everything (WASM binaries + TypeScript packages)
-make build
-
-# Or step by step:
-make build-wasm    # Compile Rust + C commands to WASM
-make copy-wasm     # Copy binaries into per-package wasm/ directories
-make build         # Build TypeScript (includes above steps)
+just registry-native            # compile ALL native wasm command binaries (slow, once per checkout)
+just registry-native-cmd sh     # recompile ONE command (cargo package cmd-sh)
+just registry-build             # stage + assemble every registry package
+just registry-build coreutils   # ... or just one
+just registry-status            # per-package state; --remote adds npm dist-tags
+just registry-test              # registry integration tests (registry/tests)
 ```
+
+The native build (`registry/native`) compiles each `crates/commands/<name>`
+(cargo package `cmd-<name>`) to `wasm32-wasip1` with a patched std
+(`-Z build-std`, `patches/`), runs `wasm-opt -O3`, and drops the binaries in
+`registry/native/target/wasm32-wasip1/release/commands/`. Package builds then
+run `agentos-toolchain stage` (with `--if-missing skip`, so a checkout without
+the native build still assembles valid empty placeholders) followed by `tsc`
+and `agentos-toolchain build`.
+
+Within this repo, everything consumes the LOCAL builds by default: the registry
+packages are pnpm workspace members, so tests and examples resolve them via
+`workspace:*` — no publish needed for local development.
+
+Exceptions:
+- `software/codex/wasm/` is the install target of the codex fork's build
+  (`make -C registry/native codex`); `software/codex-cli` stages from it.
+- C-built commands (sqlite3, zip, unzip, wget, duckdb) need the patched
+  sysroot (`make -C registry/native/c`); without it those packages stay
+  empty placeholders.
 
 ## Publishing
 
-All packages use date-based versioning (`0.0.{YYMMDDHHmmss}`). Publishing skips unchanged packages via content hashing.
+Packages **version independently** (per-package semver in each
+`package.json`). Publishing NEVER moves the `latest` dist-tag unless asked:
 
 ```bash
-# Dry run
-make publish-dry
-
-# Publish changed packages
-make publish
-
-# Force publish all
-make publish-force
+just registry-publish coreutils            # publish @agentos-software/coreutils under dist-tag `dev`
+just registry-publish coreutils my-branch  # ... under a custom tag
+just registry-publish coreutils latest     # DELIBERATE release: moves `latest`
+just registry-publish-all                  # every built software package, dist-tag `dev`
 ```
+
+Bump the package's `version` in its `package.json` (commit it) before
+publishing. CI does not publish these packages (the publish workflow's package
+discovery skips `@agentos-software/*` except the manifest); the agent packages
+under `registry/agent/*` preview-publish via `.github/workflows/publish.yaml`
+under a branch dist-tag.
+
+agent-os consumes the published packages pinned per-package in its catalog
+(`just agentos-pkgs-status` there), and flips to these local checkouts with
+`just agentos-pkgs-local`.
 
 ## Contributing
 

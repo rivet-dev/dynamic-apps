@@ -188,6 +188,25 @@ wasm: vendor patch-vendor patch-std wasm-opt-check
 	@# Also produce the real codex-exec engine from the fork when present (skips with a notice if not).
 	@$(MAKE) --no-print-directory codex
 
+# Build ONE command binary (cargo package cmd-$(CMD) -> $(COMMANDS_DIR)/$(CMD)).
+# Usage: make wasm-cmd CMD=sh
+.PHONY: wasm-cmd
+wasm-cmd: vendor patch-vendor patch-std wasm-opt-check
+	@test -n "$(CMD)" || { echo "ERROR: pass CMD=<name> (a dir under crates/commands/)"; exit 1; }
+	@test -d "crates/commands/$(CMD)" || { echo "ERROR: no crates/commands/$(CMD)"; exit 1; }
+	RUSTFLAGS="-C link-arg=-L$(WASI_SYSROOT_SELF_CONTAINED) --cfg tokio_unstable" \
+	cargo build --target $(WASM_TARGET) \
+		-Z build-std=std,panic_abort \
+		--release \
+		-p cmd-$(CMD)
+	@mkdir -p $(COMMANDS_DIR)
+	@if command -v wasm-opt >/dev/null 2>&1; then \
+		wasm-opt -O3 --strip-debug --all-features "$(RELEASE_DIR)/$(CMD).wasm" -o "$(COMMANDS_DIR)/$(CMD)"; \
+	else \
+		cp "$(RELEASE_DIR)/$(CMD).wasm" "$(COMMANDS_DIR)/$(CMD)"; \
+	fi
+	@echo "Built $(COMMANDS_DIR)/$(CMD)"
+
 # Show per-command binary sizes in COMMANDS_DIR
 size-report:
 	@if [ ! -d "$(COMMANDS_DIR)" ]; then \

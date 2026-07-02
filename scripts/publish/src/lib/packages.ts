@@ -125,16 +125,27 @@ export function discoverPackages(
 		path: string;
 		private?: boolean;
 	}> = JSON.parse(pnpmList);
+	// PREVIEWS also publish the @agentos-software/* registry packages under the
+	// branch dist-tag (version 0.0.0-<branch>.<sha>), so a downstream (agent-os)
+	// can resolve the WHOLE dependency surface of one secure-exec sha from npm.
+	// RELEASES never include them: they version per-package and release via
+	// `just registry-publish <pkg> latest` (agentos-toolchain publish). See
+	// registry/README.md for the publish contract.
+	const includeRegistryPackages =
+		process.env.PUBLISH_INCLUDE_REGISTRY_PACKAGES === "1";
 	for (const p of workspacePkgs) {
 		if (!p.name) continue;
-		// Only the curated secure-exec workspace packages are published here. The
-		// @agentos-software/* SOFTWARE packages (registry/software/*) are NOT — they
-		// are published MANUALLY from a dev machine via `registry/Makefile` (`make
-		// publish`, under a non-`latest` dist-tag), never by CI. The only
-		// @agentos-software/* package CI publishes is the manifest (it carries no
-		// wasm payload and the runtime depends on it). See registry/Makefile's
-		// publish section for the manual-publish contract.
-		if (!SECURE_EXEC_WORKSPACE_PACKAGES.has(p.name)) continue;
+		// Only the curated secure-exec workspace packages are published on every
+		// trigger; the manifest is the one @agentos-software/* package always
+		// included (no wasm payload, the runtime depends on it).
+		const isRegistryPackage =
+			p.name.startsWith("@agentos-software/") &&
+			(p.path.includes("registry/software") || p.path.includes("registry/agent"));
+		if (
+			!SECURE_EXEC_WORKSPACE_PACKAGES.has(p.name) &&
+			!(includeRegistryPackages && isRegistryPackage)
+		)
+			continue;
 		add(p.path);
 	}
 

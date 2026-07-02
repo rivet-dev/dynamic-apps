@@ -243,6 +243,9 @@ jobs:
           pnpm --dir packages/core run copy-commands
           test -f packages/core/commands/sh
       - name: Bump package versions for build
+        env:
+          # Previews publish the registry packages under the branch dist-tag too.
+          PUBLISH_INCLUDE_REGISTRY_PACKAGES: ${{ needs.context.outputs.trigger != 'release' && '1' || '' }}
         run: |
           pnpm --filter=publish exec tsx src/ci/bin.ts bump-versions \
             --version ${{ needs.context.outputs.version }} \
@@ -253,12 +256,15 @@ jobs:
             --filter='!./examples/*' \
             --filter='!@secure-exec/website'
       - name: Finalize package versions for publish
+        env:
+          PUBLISH_INCLUDE_REGISTRY_PACKAGES: ${{ needs.context.outputs.trigger != 'release' && '1' || '' }}
         run: |
           pnpm --filter=publish exec tsx src/ci/bin.ts bump-versions \
             --version ${{ needs.context.outputs.version }}
       - name: Publish npm packages
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PUBLISH_INCLUDE_REGISTRY_PACKAGES: ${{ needs.context.outputs.trigger != 'release' && '1' || '' }}
         run: |
           pnpm --filter=publish exec tsx src/ci/bin.ts publish-npm \
             --tag ${{ needs.context.outputs.npm_tag }} \

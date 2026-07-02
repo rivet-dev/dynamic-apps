@@ -82,14 +82,14 @@ Every bound that protects a shared resource — memory/heap, CPU/wall-clock, fd/
 - JavaScript host-emulation config (`CreateVmConfig.jsRuntime`) mirrors esbuild's vocabulary so users carry over a known mental model. The host environment presented to guest JS is a `platform`; its values are esbuild's exactly — `node` | `browser` | `neutral` — plus the one sanctioned extension `bare` (language-only: ECMAScript spec globals + WebAssembly, nothing host-provided), for which esbuild has no equivalent. Do not invent other platform names. Wherever a JS runtime/resolution config property has an esbuild equivalent, take esbuild's name and value spelling over any other source (esbuild > tsconfig > ad-hoc); introduce a non-esbuild name only when esbuild has no equivalent concept (e.g. `moduleResolution`, `allowedBuiltins`).
 - `packages/core/` is `@secure-exec/core`, the generic TypeScript protocol, client, descriptor, and runtime asset package.
 - `packages/build-tools/` is `@secure-exec/build-tools`, the workspace-only generator package for V8 bridge and base filesystem assets. A fresh checkout must run `pnpm install` before any `cargo` build (including when a downstream like agent-os path-deps these crates): `v8-runtime/build.rs` generates the V8 bridge assets from `packages/build-tools/node_modules` and panics if they are absent.
-- Registry software, filesystem, and tool packages live under `registry/` with the `@secure-exec/*` npm scope.
+- Registry software and agent packages live under `registry/` with the `@agentos-software/*` npm scope (tool packages keep `@secure-exec/*`). Their build/publish lifecycle is owned by `@rivet-dev/agentos-toolchain` (`packages/agentos-toolchain`: `stage`/`build`/`pack`/`publish`) driven by the `just registry-*` recipes; the full flow is documented in `registry/README.md`. Never add package-local copy scripts or Makefile staging — declare commands/aliases/stubs in the package's `agentos-package.json` and let `stage` populate the gitignored `bin/`.
 
 ## Build And Assets
 
 - The VM base filesystem artifact is derived from Alpine Linux, but runtime source should stay generic.
 - Rebuild the base filesystem (requires Docker) with `pnpm --dir packages/build-tools build:base-filesystem`. The one script snapshots Alpine, applies the secure-exec transforms, and writes the single canonical `packages/core/fixtures/base-filesystem.json`, mirroring the same bytes into the crate-vendored `crates/sidecar/assets/` and `crates/vfs/assets/` copies (those exist only as the `cargo publish` fallback; never hand-edit them).
 - The V8 bridge bundle is generated from `packages/build-tools/scripts/build-v8-bridge.mjs`; keep its generated assets aligned with bridge-contract changes.
-- `registry/native` owns the Rust-to-WASM command build; package-local `registry/software/*/wasm/` output is release material.
+- `registry/native` owns the Rust-to-WASM command build (`just registry-native`, or `just registry-native-cmd <name>` for one `cmd-<name>` crate); its `target/wasm32-wasip1/release/commands/` output feeds `agentos-toolchain stage`, which populates each package's gitignored `bin/` for `agentos-toolchain build` to assemble into `dist/package/`.
 
 ## npm Compatibility
 
@@ -110,13 +110,13 @@ Every bound that protects a shared resource — memory/heap, CPU/wall-clock, fd/
 
 ### Release Tracks
 
-- **secure-exec runtime** — `@secure-exec/*` npm packages and `secure-exec-*` crates; releases keep npm/crates in sync, previews are npm-only. See "Preview-publishing" and "Publishing" for details.
+- **secure-exec runtime** — `@secure-exec/*` npm packages and `secure-exec-*` crates; releases keep npm/crates in sync, previews are npm-only. See "Release-previewing" and "Publishing" for details.
 - **`@agentos-software/*` registry packages** — generic VM software from secure-exec `registry/software/*` plus agent adapters from secure-exec `registry/agent/*`; versioned independently of secure-exec runtime packages.
 - **agent-os product/API** — `@rivet-dev/agentos*`, AgentOs APIs, sidecar wrapper, docs, quickstarts, and examples; see agent-os `CLAUDE.md` for its pinning workflow.
 
-### Preview-publishing
+### Release-previewing
 
-Dispatch `.github/workflows/publish.yaml` (workflow_dispatch) with no version input to cut a **preview** (debug sidecar build, npm-only, dist-tag = sanitized branch name) — for handing a build to a downstream (agent-os) or external project. **Preview-publish is for previews ONLY; never cut a release with it.** Caveats: WASM-bearing packages (`@secure-exec/core`, `@agentos-software/*`) publish MANUALLY (see Publishing), and the crates.io job is skipped on preview — a *crate* change only reaches consumers locally (path dep / `[patch]`) or via a real release.
+`just release-preview <branch>` dispatches `.github/workflows/publish.yaml` (workflow_dispatch, no version input) to cut a **preview** (debug sidecar build, npm-only, dist-tag = sanitized branch name) — for handing a build to a downstream (agent-os) or external project. **Preview-publish is for previews ONLY; never cut a release with it.** Caveats: WASM-bearing packages (`@secure-exec/core`, `@agentos-software/*`) publish MANUALLY (see Publishing), and the crates.io job is skipped on preview — a *crate* change only reaches consumers locally (path dep / `[patch]`) or via a real release.
 
 ### Testing a local build from an external project (same machine)
 
@@ -125,11 +125,16 @@ Dispatch `.github/workflows/publish.yaml` (workflow_dispatch) with no version in
 
 ## Publishing
 
+Workflow skills (follow these rather than improvising):
+- `.claude/skills/release` — stable release (npm + crates.io lockstep, incl. the manual `@secure-exec/core` wasm publish).
+- `.claude/skills/release-preview` — branch preview (`just release-preview <branch>`; npm-only, branch dist-tag, registry packages included).
+- `.claude/skills/publish-registry` — `@agentos-software/*` registry packages (per-package semver, `dev` tag default, `latest` deliberate).
+- agent-os side: its `.claude/skills/{bump-secure-exec,release-preview,release}` cover consuming/releasing against secure-exec.
+
 - **The `@secure-exec/*` npm packages and the `secure-exec-*` Cargo crates are always published at the same version** (npm and crates stay in sync), so a downstream pins both to one `<v>`. See "Release Tracks" for how this differs from `@agentos-software/*` and agent-os releases.
-- CI (`.github/workflows/publish.yaml`) does NOT build or publish the WASM command binaries. There is no `build-commands` job and nothing restores a `wasm-commands` artifact — the workflow only builds/publishes the sidecar binary and the pure-TS packages.
-- WASM-bearing packages are ALWAYS published MANUALLY: `@secure-exec/core` (which vendors `registry/native` commands into `packages/core/commands` via `copy-wasm-commands.mjs`, guarded by its `prepack --require`) and the `@agentos-software/*` registry software. `@secure-exec/core` is in `EXCLUDED` in `scripts/publish/src/lib/packages.ts`, so CI never publishes it.
-- Manual core flow: build the commands locally (`make -C registry/native wasm`), then `npm publish` (not `pnpm publish`) `@secure-exec/core` at the **same version** CI used for that release so dependents resolving `@secure-exec/core@<version>` succeed. `prepack` vendors the commands and fails loud if they are absent.
-- Rationale: building WASM in CI was slow/flaky and repeatedly shipped tarballs missing the command set (the `wasm/` output is a gitignored build artifact). Keeping the WASM publish manual makes the vendored command set authoritative and avoids empty-package regressions.
+- CI (`.github/workflows/publish.yaml`) DOES build and vendor the core WASM command set: the "Build and vendor core WASM commands" step runs `make -C registry/native wasm` + `packages/core run copy-commands` before the npm publish, and core's `prepack` fails loud if the commands are absent — so a published `@secure-exec/core` tarball always carries the command set. (`EXCLUDED` in `scripts/publish/src/lib/packages.ts` contains only the private `publish` package.)
+- `@agentos-software/*` registry software releases stay MANUAL and per-package (`just registry-publish <pkg> [tag]`; dist-tag `dev` unless `latest` is passed deliberately); PREVIEWS include them automatically under the branch dist-tag (`PUBLISH_INCLUDE_REGISTRY_PACKAGES`).
+- `copy-wasm-commands.mjs` (core's vendoring) is the ONE sanctioned package-local copy script: it vendors the baseline command set into the published `@secure-exec/core` tarball at build/prepack time. Every registry package instead declares commands in `agentos-package.json` and lets `agentos-toolchain stage` populate `bin/`.
 
 ## Website
 

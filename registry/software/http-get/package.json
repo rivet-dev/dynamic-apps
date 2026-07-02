@@ -7,9 +7,7 @@
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"files": [
-		"dist",
-		"dist/package",
-		"bin"
+		"dist"
 	],
 	"exports": {
 		".": {
@@ -18,11 +16,12 @@
 		}
 	},
 	"scripts": {
-		"build": "tsc && node ../../scripts/assemble-dist-package.mjs",
+		"build": "agentos-toolchain stage --commands-dir ../../native/target/wasm32-wasip1/release/commands --if-missing skip && tsc && agentos-toolchain build",
 		"check-types": "tsc --noEmit"
 	},
 	"devDependencies": {
 		"@agentos-software/manifest": "workspace:*",
+		"@rivet-dev/agentos-toolchain": "workspace:*",
 		"@types/node": "^22.10.2",
 		"typescript": "^5.9.2"
 	}

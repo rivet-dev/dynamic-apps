@@ -71,6 +71,10 @@ function handBuiltPackage(name = "pkg", version = "1.0.0"): string {
 	);
 	writeFileSync(join(pkgDir, "bin", "tool"), "#!/usr/bin/env node\nconsole.log('ok');\n");
 	chmodSync(join(pkgDir, "bin", "tool"), 0o755);
+	writeFileSync(
+		join(pkgDir, "agentos-package.json"),
+		`${JSON.stringify({ name }, null, 2)}\n`,
+	);
 	return pkgDir;
 }
 
