@@ -303,6 +303,7 @@ pub(crate) struct VmState {
     pub(crate) root_filesystem_mode: RootFilesystemMode,
     pub(crate) guest_cwd: String,
     pub(crate) cwd: PathBuf,
+    pub(crate) socket_root: PathBuf,
     pub(crate) host_cwd: PathBuf,
     pub(crate) kernel: SidecarKernel,
     pub(crate) loaded_snapshot: Option<FilesystemSnapshot>,
@@ -348,7 +349,7 @@ pub(crate) struct VmDnsConfig {
 
 #[derive(Debug, Clone)]
 pub(crate) struct JavascriptSocketPathContext {
-    pub(crate) sandbox_root: PathBuf,
+    pub(crate) socket_root: PathBuf,
     pub(crate) mounts: Vec<MountDescriptor>,
     pub(crate) listen_policy: VmListenPolicy,
     pub(crate) loopback_exempt_ports: BTreeSet<u16>,

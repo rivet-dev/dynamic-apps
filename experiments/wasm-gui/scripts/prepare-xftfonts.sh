@@ -9,15 +9,20 @@ rm -rf "$OUT"; mkdir -p "$OUT/etc/fonts" "$OUT/usr/share/fonts/truetype" "$OUT/v
 # install_tree only copies files (skips empty dirs), so drop a marker to ensure the cache dir exists.
 : > "$OUT/var/cache/fontconfig/.keep"
 
-# Pull a small, predictable set of TTFs from the host (DejaVu + Liberation are standard, metric-stable).
+# Pull a small, predictable set of TTFs from the host. Linux commonly has DejaVu/Liberation under
+# /usr/share; macOS has compact Verdana/Arial Narrow/SF fonts under /System/Library. Keep each file
+# comfortably below the sidecar protocol frame limit because VM trees are installed file-by-file.
 n=0
 for f in /usr/share/fonts/truetype/dejavu/DejaVuSans.ttf \
          /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf \
          /usr/share/fonts/truetype/dejavu/DejaVuSerif.ttf \
-         /usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf; do
+         /usr/share/fonts/truetype/liberation2/LiberationSans-Regular.ttf \
+         "/System/Library/Fonts/Supplemental/Verdana.ttf" \
+         "/System/Library/Fonts/Supplemental/Arial Narrow.ttf" \
+         /System/Library/Fonts/SFNSMono.ttf; do
   [ -f "$f" ] && cp "$f" "$OUT/usr/share/fonts/truetype/" && n=$((n+1))
 done
-[ "$n" -gt 0 ] || { echo "no host TTFs found under /usr/share/fonts"; exit 1; }
+[ "$n" -gt 0 ] || { echo "no host TTFs found under /usr/share/fonts or /System/Library/Fonts"; exit 1; }
 
 cat > "$OUT/etc/fonts/fonts.conf" <<'XML'
 <?xml version="1.0"?>
@@ -29,9 +34,9 @@ cat > "$OUT/etc/fonts/fonts.conf" <<'XML'
   <match target="font"><edit name="antialias" mode="assign"><bool>true</bool></edit></match>
   <match target="font"><edit name="hinting" mode="assign"><bool>true</bool></edit></match>
   <!-- Map the generic families to what we shipped. -->
-  <alias><family>sans-serif</family><prefer><family>DejaVu Sans</family></prefer></alias>
-  <alias><family>serif</family><prefer><family>DejaVu Serif</family></prefer></alias>
-  <alias><family>monospace</family><prefer><family>DejaVu Sans Mono</family></prefer></alias>
+  <alias><family>sans-serif</family><prefer><family>DejaVu Sans</family><family>Verdana</family></prefer></alias>
+  <alias><family>serif</family><prefer><family>DejaVu Serif</family><family>Verdana</family></prefer></alias>
+  <alias><family>monospace</family><prefer><family>DejaVu Sans Mono</family><family>SF Mono</family><family>Verdana</family></prefer></alias>
 </fontconfig>
 XML
 echo "staged $n TTFs + fonts.conf into $OUT"

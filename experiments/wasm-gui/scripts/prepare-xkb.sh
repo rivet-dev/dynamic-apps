@@ -8,6 +8,13 @@
 set -uo pipefail
 OUT="${1:-/tmp/vmxkb}"
 command -v xkbcomp >/dev/null || { echo "need xkbcomp (x11-xkb-utils)"; exit 1; }
+stat_bytes() {
+  if stat -c%s "$1" >/dev/null 2>&1; then
+    stat -c%s "$1"
+  else
+    stat -f%z "$1"
+  fi
+}
 mkdir -p "$OUT/xkb"
 TMP="$(mktemp -d)"
 cat > "$TMP/km.xkb" <<'EOF'
@@ -23,4 +30,4 @@ EOF
 xkbcomp -xkm "$TMP/km.xkb" "$OUT/xkb/default.xkm" >/dev/null 2>&1
 rm -rf "$TMP"
 [ -s "$OUT/xkb/default.xkm" ] || { echo "xkbcomp produced no .xkm"; exit 1; }
-echo "staged $OUT/xkb/default.xkm ($(stat -c%s "$OUT/xkb/default.xkm") bytes)"
+echo "staged $OUT/xkb/default.xkm ($(stat_bytes "$OUT/xkb/default.xkm") bytes)"

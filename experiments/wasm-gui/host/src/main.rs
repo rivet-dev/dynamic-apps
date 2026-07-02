@@ -50,6 +50,9 @@ struct Session {
     /// The host-backed shadow dir this VM created (for direct framebuffer readback). Identified at
     /// create time so concurrent sessions' same-named (vm-1) shadow dirs don't get mixed up.
     shadow_dir: Option<std::path::PathBuf>,
+    /// Short host root for guest AF_UNIX sockets. macOS has a small sockaddr_un path limit, so the
+    /// sidecar binds sockets under /tmp/sx-sock-* instead of the longer shadow dir.
+    socket_root: Option<std::path::PathBuf>,
 }
 
 /// List all current sidecar VM shadow dirs under the system temp dir.
@@ -66,6 +69,30 @@ fn list_shadow_dirs() -> Vec<std::path::PathBuf> {
         }
     }
     out
+}
+
+fn list_socket_roots() -> Vec<std::path::PathBuf> {
+    let mut out = Vec::new();
+    if let Ok(rd) = std::fs::read_dir("/tmp") {
+        for e in rd.flatten() {
+            if e.file_name().to_string_lossy().starts_with("sx-sock-") {
+                out.push(e.path());
+            }
+        }
+    }
+    out
+}
+
+fn newest_socket_root_for_vm(vm_id: &str) -> Option<std::path::PathBuf> {
+    list_socket_roots()
+        .into_iter()
+        .filter(|p| {
+            p.file_name()
+                .and_then(|n| n.to_str())
+                .map(|n| n.starts_with(&format!("sx-sock-{vm_id}-")))
+                .unwrap_or(false)
+        })
+        .max_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok())
 }
 
 impl Session {
@@ -117,6 +144,7 @@ impl Session {
         // Multiple concurrent sidecar processes each assign vm ids like "vm-1", so matching on vm_id
         // alone is ambiguous; the dir that newly appears after our CreateVm is unambiguously ours.
         let pre_shadows = list_shadow_dirs();
+        let pre_socket_roots = list_socket_roots();
 
         // Create a WebAssembly VM with the default (bundled base) filesystem.
         let vm = request(
@@ -152,7 +180,18 @@ impl Session {
             })
             .max_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok());
 
-        Ok(Session { t, connection_id, session_id, vm_id, shadow_dir })
+        let socket_root = list_socket_roots()
+            .into_iter()
+            .filter(|p| !pre_socket_roots.contains(p))
+            .filter(|p| {
+                p.file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|n| n.starts_with(&format!("sx-sock-{vm_id}-")))
+                    .unwrap_or(false)
+            })
+            .max_by_key(|p| std::fs::metadata(p).and_then(|m| m.modified()).ok());
+
+        Ok(Session { t, connection_id, session_id, vm_id, shadow_dir, socket_root })
     }
 
     fn vm_scope(&self) -> wire::OwnershipScope {
@@ -161,6 +200,14 @@ impl Session {
             session_id: self.session_id.clone(),
             vm_id: self.vm_id.clone(),
         })
+    }
+
+    fn x_socket_path(&self) -> Option<std::path::PathBuf> {
+        self.socket_root
+            .as_ref()
+            .map(|d| xinput::server_socket(d))
+            .or_else(|| newest_socket_root_for_vm(&self.vm_id).map(|d| xinput::server_socket(&d)))
+            .or_else(|| self.shadow_dir.as_ref().map(|d| xinput::server_socket(d)))
     }
 
     async fn fs_call(&self, req: wire::GuestFilesystemCallRequest) -> Result<wire::GuestFilesystemResultResponse> {
@@ -1418,7 +1465,7 @@ async fn run_xdemo(
     // changes (the "responsive" half of the B3 target). Mirrors the native xdotool baseline. Best with
     // a single focused app. Runs here (after the main loop) while the X server + clients are alive.
     if std::env::var("SECURE_EXEC_INPUTLATENCY").map(|v| v == "1").unwrap_or(false) {
-        if let Some(dir) = s.shadow_dir.as_ref() {
+        if let (Some(dir), Some(sock)) = (s.shadow_dir.as_ref(), s.x_socket_path()) {
             let fbpath = dir.join("data/Xvfb_screen0");
             let fingerprint = |p: &std::path::Path| -> u64 {
                 match std::fs::read(p) {
@@ -1453,7 +1500,6 @@ async fn run_xdemo(
                     Err(_) => 0,
                 }
             };
-            let sock = xinput::server_socket(dir);
             match xinput::XInput::connect(&sock) {
                 Ok(mut xi) => {
                     tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
@@ -1543,9 +1589,8 @@ async fn run_xdemo(
     // host-backed AF_UNIX socket and injects via XTEST. This is the working path (host->guest stdin /
     // file delivery does not propagate live data). The `pid` of each --inject entry is ignored.
     if !inject.is_empty() {
-        match s.shadow_dir.as_ref() {
-            Some(dir) => {
-                let sock = xinput::server_socket(dir);
+        match s.x_socket_path() {
+            Some(sock) => {
                 match xinput::XInput::connect(&sock) {
                     Ok(mut xi) => {
                         // Let clients finish mapping/realizing their windows before the first inject so
@@ -1576,7 +1621,7 @@ async fn run_xdemo(
                     Err(e) => eprintln!("secure-exec: XTEST connect failed: {e}"),
                 }
             }
-            None => eprintln!("secure-exec: no shadow dir; cannot connect for XTEST inject"),
+            None => eprintln!("secure-exec: no X socket path; cannot connect for XTEST inject"),
         }
     }
 
@@ -1666,6 +1711,7 @@ struct Args {
     dbus: Option<String>,
     dbus_services: Vec<String>,
     pty_shell: Option<String>,
+    desktop_scale: u32,
 }
 
 fn parse_args() -> Args {
@@ -1694,6 +1740,7 @@ fn parse_args() -> Args {
         dbus: None,
         dbus_services: Vec::new(),
         pty_shell: None,
+        desktop_scale: 1,
     };
     let mut i = 1;
     while i < argv.len() {
@@ -1713,6 +1760,10 @@ fn parse_args() -> Args {
                 if let Some(p) = argv.get(i) {
                     a.dbus_services.push(p.clone());
                 }
+            }
+            "--desktop-scale" => {
+                i += 1;
+                a.desktop_scale = argv.get(i).and_then(|s| s.parse().ok()).unwrap_or(1).clamp(1, 16);
             }
             "--pty-test" => a.pty_test = true,
             "--pty-shell" => {
@@ -1821,7 +1872,14 @@ async fn main() {
                     (w >= 1 && h >= 1 && w <= 8192 && h <= 8192).then_some((w, h))
                 })
                 .unwrap_or((640, 480));
-            eprintln!("secure-exec: interactive window {win_w}x{win_h} (from -screen geometry)");
+            eprintln!(
+                "secure-exec: interactive window {}x{} (guest {}x{}, scale {}x)",
+                win_w.saturating_mul(args.desktop_scale),
+                win_h.saturating_mul(args.desktop_scale),
+                win_w,
+                win_h,
+                args.desktop_scale,
+            );
             if let Err(e) = window::run_desktop(
                 args.sidecar.clone(),
                 server,
@@ -1830,8 +1888,11 @@ async fn main() {
                 args.fonts_dir.clone(),
                 args.locale_dir.clone(),
                 args.vm_trees.clone(),
+                args.dbus.clone(),
+                args.dbus_services.clone(),
                 win_w,
                 win_h,
+                args.desktop_scale,
             )
             .await
             {
@@ -1984,6 +2045,7 @@ mod window {
 
     use softbuffer::{Context, Surface};
     use winit::application::ApplicationHandler;
+    use winit::dpi::PhysicalSize;
     use winit::event::{ElementState, WindowEvent};
     use winit::event_loop::{ActiveEventLoop, EventLoop};
     use winit::keyboard::{Key, NamedKey};
@@ -2097,6 +2159,8 @@ mod window {
             surface: None,
             last: None,
             cursor: (0, 0),
+            output_size: (800, 600),
+            scale: 1,
             _session: s,
         };
         event_loop
@@ -2138,8 +2202,11 @@ mod window {
         fonts_dir: Option<String>,
         locale_dir: Option<String>,
         vm_trees: Vec<String>,
+        dbus_daemon: Option<String>,
+        dbus_services: Vec<String>,
         width: u32,
         height: u32,
+        scale: u32,
     ) -> Result<()> {
         let s = Session::connect(sidecar).await?;
         // --- VM setup (mirrors the headless xdemo path) ---
@@ -2191,13 +2258,57 @@ mod window {
         srv_env.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
         s.execute_env("xserver", &server_abs, &srv_argv, srv_env).await?;
 
+        let demo_start = tokio::time::Instant::now();
+        if let Some(dbusd) = dbus_daemon.as_deref() {
+            let dbusd_abs = abs_path(dbusd)?;
+            let dbus_argv = [
+                "--config-file=/etc/dbus-1/session.conf",
+                "--nofork",
+                "--nopidfile",
+                "--print-address",
+            ];
+            let mut denv = HashMap::new();
+            denv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+            for (k, v) in std::env::vars() {
+                if k.starts_with("SECURE_EXEC_") {
+                    denv.insert(k, v);
+                }
+            }
+            s.execute_env("dbusd", &dbusd_abs, &dbus_argv, denv).await?;
+            eprintln!("secure-exec: started dbus-daemon {dbusd_abs}");
+            eprintln!("[milestone +{}ms] dbus-daemon launched", demo_start.elapsed().as_millis());
+            tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+
+            for (i, svc) in dbus_services.iter().enumerate() {
+                let svc_abs = abs_path(svc)?;
+                let mut senv = HashMap::new();
+                senv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+                senv.insert(
+                    "DBUS_SESSION_BUS_ADDRESS".to_string(),
+                    "unix:path=/tmp/.dbus/session".to_string(),
+                );
+                senv.insert("HOME".to_string(), "/root".to_string());
+                for (k, v) in std::env::vars() {
+                    if k.starts_with("SECURE_EXEC_") {
+                        senv.insert(k, v);
+                    }
+                }
+                s.execute_env(&format!("dbussvc{i}"), &svc_abs, &[], senv).await?;
+                eprintln!("secure-exec: started dbus service {svc_abs}");
+                eprintln!("[milestone +{}ms] dbus service {i} launched", demo_start.elapsed().as_millis());
+                tokio::time::sleep(std::time::Duration::from_secs(4)).await;
+            }
+        }
+
         let s = Arc::new(s);
 
         // --- background launcher: wait for the server, then launch clients sequentially ---
         let (input_tx, mut input_rx) = tokio::sync::mpsc::unbounded_channel::<String>();
         let s_launch = s.clone();
         let clients_owned = clients.clone();
-        let demo_start = tokio::time::Instant::now();
+        let desktop_has_dbus = dbus_daemon.is_some();
+        let desktop_has_vm_trees = !vm_trees.is_empty();
+        let desktop_has_locale = locale_dir.is_some();
         tokio::spawn(async move {
             let mut server_ready = false;
             let mut wm_ready = false;
@@ -2240,11 +2351,51 @@ mod window {
                             cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                             cenv.insert("DISPLAY".to_string(), ":0".to_string());
                             cenv.insert("HOME".to_string(), "/root".to_string());
-                // The guests are an Xfce session: advertise it so freedesktop OnlyShowIn=XFCE / NotShowIn
-                // filters resolve correctly (e.g. xfce4-settings-manager's grid, which loads the settings
-                // .desktop via garcon -- they carry OnlyShowIn=XFCE and are hidden otherwise).
-                cenv.insert("XDG_CURRENT_DESKTOP".to_string(), "XFCE".to_string());
-                            cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
+                            cenv.insert("XDG_CURRENT_DESKTOP".to_string(), "XFCE".to_string());
+                            cenv.insert("GIO_USE_VOLUME_MONITOR".to_string(), "null".to_string());
+                            cenv.insert("GDK_CORE_DEVICE_EVENTS".to_string(), "1".to_string());
+                            if desktop_has_dbus {
+                                cenv.insert(
+                                    "DBUS_SESSION_BUS_ADDRESS".to_string(),
+                                    "unix:path=/tmp/.dbus/session".to_string(),
+                                );
+                            }
+                            if desktop_has_locale {
+                                cenv.insert("XLOCALEDIR".to_string(), "/locale".to_string());
+                            }
+                            if desktop_has_vm_trees {
+                                cenv.insert("FONTCONFIG_PATH".to_string(), "/etc/fonts".to_string());
+                                cenv.insert("FONTCONFIG_FILE".to_string(), "/etc/fonts/fonts.conf".to_string());
+                            }
+                            for k in [
+                                "GDK_DEBUG",
+                                "G_MESSAGES_DEBUG",
+                                "G_DBUS_DEBUG",
+                                "NO_AT_BRIDGE",
+                                "GTK_DEBUG",
+                                "GDK_BACKEND",
+                                "SECURE_EXEC_NET_TRACE",
+                                "SECURE_EXEC_POLL_TRACE",
+                                "SECURE_EXEC_FD_TRACE",
+                                "SECURE_EXEC_ROOT2_TRACE",
+                                "SECURE_EXEC_TRACE",
+                                "SECURE_EXEC_RPCPROF",
+                                "SECURE_EXEC_RPC_PROFILE",
+                                "SECURE_EXEC_POLLSTAT",
+                                "SECURE_EXEC_IMPORTPROF",
+                                "SECURE_EXEC_IMPORTPROF_EVERY",
+                                "SECURE_EXEC_RTPROBE",
+                                "SECURE_EXEC_HOPSPLIT",
+                                "SECURE_EXEC_DRAINPROF",
+                                "SECURE_EXEC_POLL_SCAN",
+                                "SECURE_EXEC_FD_SCOPED_POLL",
+                                "SECURE_EXEC_PERFCLOCK",
+                                "LIBXCB_ALLOW_SLOPPY_LOCK",
+                            ] {
+                                if let Ok(v) = std::env::var(k) {
+                                    cenv.insert(k.to_string(), v);
+                                }
+                            }
                             let id = format!("xclient{launched}");
                             let _ = s_launch.execute_env(&id, &path_abs, &argv, cenv).await;
                             eprintln!("secure-exec: launched {id} ({path})");
@@ -2260,10 +2411,8 @@ mod window {
         // --- input forwarder: host speaks X11+XTEST directly to the server's host-backed socket ---
         // A blocking thread owns the (sync) x11rb connection; a tokio task bridges winit tokens to it.
         let x_socket = s
-            .shadow_dir
-            .clone()
-            .map(|d| crate::xinput::server_socket(&d))
-            .ok_or_else(|| "no shadow dir for X11 input socket".to_string())?;
+            .x_socket_path()
+            .ok_or_else(|| "no X socket path for input".to_string())?;
         let (xtx, xrx) = std_mpsc::channel::<String>();
         tokio::spawn(async move {
             while let Some(line) = input_rx.recv().await {
@@ -2314,6 +2463,8 @@ mod window {
             surface: None,
             last: None,
             cursor: (0, 0),
+            output_size: (width, height),
+            scale,
             _session: s,
         };
         event_loop
@@ -2328,10 +2479,27 @@ mod window {
         surface: Option<Surface<Rc<Window>, Rc<Window>>>,
         last: Option<Frame>,
         cursor: (i32, i32),
+        output_size: (u32, u32),
+        scale: u32,
         _session: Arc<Session>,
     }
 
     impl App {
+        fn scaled_size(&self) -> (u32, u32) {
+            (
+                self.output_size.0.saturating_mul(self.scale),
+                self.output_size.1.saturating_mul(self.scale),
+            )
+        }
+
+        fn guest_cursor(&self) -> (i32, i32) {
+            let scale = self.scale.max(1) as i32;
+            (
+                (self.cursor.0 / scale).clamp(0, self.output_size.0.saturating_sub(1) as i32),
+                (self.cursor.1 / scale).clamp(0, self.output_size.1.saturating_sub(1) as i32),
+            )
+        }
+
         fn redraw(&mut self) {
             while let Ok(f) = self.frame_rx.try_recv() {
                 self.last = Some(f);
@@ -2339,15 +2507,24 @@ mod window {
             let (Some(surface), Some(frame)) = (self.surface.as_mut(), self.last.as_ref()) else {
                 return;
             };
+            let scale = self.scale.max(1);
+            let out_w = frame.w.saturating_mul(scale);
+            let out_h = frame.h.saturating_mul(scale);
             surface
                 .resize(
-                    std::num::NonZeroU32::new(frame.w).unwrap(),
-                    std::num::NonZeroU32::new(frame.h).unwrap(),
+                    std::num::NonZeroU32::new(out_w).unwrap(),
+                    std::num::NonZeroU32::new(out_h).unwrap(),
                 )
                 .unwrap();
             let mut buf = surface.buffer_mut().unwrap();
+            let frame_w = frame.w as usize;
+            let scale_usize = scale as usize;
             for (i, px) in buf.iter_mut().enumerate() {
-                let s = i * 4;
+                let x = i % out_w as usize;
+                let y = i / out_w as usize;
+                let src_x = x / scale_usize;
+                let src_y = y / scale_usize;
+                let s = (src_y * frame_w + src_x) * 4;
                 let r = frame.rgba[s] as u32;
                 let g = frame.rgba[s + 1] as u32;
                 let b = frame.rgba[s + 2] as u32;
@@ -2359,7 +2536,11 @@ mod window {
 
     impl ApplicationHandler for App {
         fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-            let attrs = Window::default_attributes().with_title("secure-exec — wasm GUI");
+            let (window_w, window_h) = self.scaled_size();
+            let attrs = Window::default_attributes()
+                .with_title("secure-exec — wasm GUI")
+                .with_inner_size(PhysicalSize::new(window_w, window_h))
+                .with_resizable(false);
             let window = Rc::new(event_loop.create_window(attrs).unwrap());
             let context = Context::new(window.clone()).unwrap();
             let surface = Surface::new(&context, window.clone()).unwrap();
@@ -2374,9 +2555,10 @@ mod window {
                 // pointer motion, button down/up (so window drags work), and key press by keycode.
                 WindowEvent::CursorMoved { position, .. } => {
                     self.cursor = (position.x as i32, position.y as i32);
+                    let (x, y) = self.guest_cursor();
                     let _ = self
                         .input_tx
-                        .send(format!("motion {} {}", self.cursor.0, self.cursor.1));
+                        .send(format!("motion {x} {y}"));
                 }
                 WindowEvent::MouseInput { state, button, .. } => {
                     let n = match button {
@@ -2386,9 +2568,10 @@ mod window {
                         _ => 1,
                     };
                     // Move the pointer to the current spot first so the press lands where expected.
+                    let (x, y) = self.guest_cursor();
                     let _ = self
                         .input_tx
-                        .send(format!("motion {} {}", self.cursor.0, self.cursor.1));
+                        .send(format!("motion {x} {y}"));
                     let verb = if state == ElementState::Pressed { "buttondn" } else { "buttonup" };
                     let _ = self.input_tx.send(format!("{verb} {n}"));
                 }

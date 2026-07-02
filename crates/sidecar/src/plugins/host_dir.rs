@@ -1,4 +1,7 @@
 use nix::errno::Errno;
+#[cfg(not(target_os = "linux"))]
+use nix::fcntl::{openat, readlinkat, renameat, AtFlags, OFlag};
+#[cfg(target_os = "linux")]
 use nix::fcntl::{openat2, readlinkat, renameat, AtFlags, OFlag, OpenHow, ResolveFlag};
 use nix::libc;
 use nix::sys::stat::{fstatat, mkdirat, utimensat, Mode, SFlag, UtimensatFlags};
@@ -33,7 +36,14 @@ struct AnchoredFd {
 
 impl AnchoredFd {
     fn proc_path(&self) -> PathBuf {
-        PathBuf::from(format!("/proc/self/fd/{}", self.fd))
+        #[cfg(target_os = "linux")]
+        {
+            return PathBuf::from(format!("/proc/self/fd/{}", self.fd));
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            return PathBuf::from(format!("/dev/fd/{}", self.fd));
+        }
     }
 }
 
@@ -180,12 +190,28 @@ impl HostDirFilesystem {
         (normalized, relative)
     }
 
+    fn mode_from_u32(mode: u32) -> Mode {
+        Mode::from_bits_truncate(mode as libc::mode_t)
+    }
+
+    #[cfg(target_os = "linux")]
+    fn o_path() -> OFlag {
+        OFlag::O_PATH
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    fn o_path() -> OFlag {
+        OFlag::O_RDONLY
+    }
+
+    #[cfg(target_os = "linux")]
     fn resolve_flags() -> ResolveFlag {
         ResolveFlag::RESOLVE_BENEATH | ResolveFlag::RESOLVE_NO_MAGICLINKS
     }
 
     fn open_beneath(&self, relative: &Path, flags: OFlag, mode: Mode) -> VfsResult<AnchoredFd> {
         let relative_display = relative.display().to_string();
+        #[cfg(target_os = "linux")]
         let fd = openat2(
             self.host_root_dir.as_raw_fd(),
             relative,
@@ -202,6 +228,30 @@ impl HostDirFilesystem {
             ),
             other => io_error_to_vfs("open", &relative_display, nix_to_io(other)),
         })?;
+        #[cfg(not(target_os = "linux"))]
+        let fd = {
+            if flags.intersects(OFlag::O_WRONLY | OFlag::O_RDWR | OFlag::O_CREAT | OFlag::O_TRUNC) {
+                return Err(VfsError::new(
+                    "ENOTSUP",
+                    format!(
+                        "open '{relative_display}': writable host_dir mounts require Linux openat2 confinement"
+                    ),
+                ));
+            }
+            openat(
+                Some(self.host_root_dir.as_raw_fd()),
+                relative,
+                flags | OFlag::O_CLOEXEC,
+                mode,
+            )
+            .map_err(|error| io_error_to_vfs("open", &relative_display, nix_to_io(error)))?
+        };
+        #[cfg(not(target_os = "linux"))]
+        {
+            let resolved = fs::read_link(PathBuf::from(format!("/dev/fd/{fd}")))
+                .map_err(|error| io_error_to_vfs("open", &relative_display, error))?;
+            self.ensure_within_root(&resolved, &relative_display)?;
+        }
         Ok(AnchoredFd { fd })
     }
 
@@ -223,7 +273,7 @@ impl HostDirFilesystem {
     fn open_metadata_beneath(&self, path: &str, op: &'static str) -> VfsResult<AnchoredFd> {
         let (_, relative) = self.relative_virtual_path(path);
         let handle =
-            self.open_beneath(&relative, OFlag::O_PATH | OFlag::O_NOFOLLOW, Mode::empty())?;
+            self.open_beneath(&relative, Self::o_path() | OFlag::O_NOFOLLOW, Mode::empty())?;
         let metadata =
             fs::metadata(handle.proc_path()).map_err(|error| io_error_to_vfs(op, path, error))?;
         if metadata.file_type().is_symlink() {
@@ -273,7 +323,7 @@ impl HostDirFilesystem {
             match mkdirat(
                 Some(parent_dir.as_raw_fd()),
                 name,
-                Mode::from_bits_truncate(mode),
+                Self::mode_from_u32(mode),
             ) {
                 Ok(()) => {}
                 Err(Errno::EEXIST) => {}
@@ -457,11 +507,11 @@ impl HostDirFilesystem {
         let ctime_nsec = stat.st_ctime_nsec.clamp(0, 999_999_999) as u32;
 
         VirtualStat {
-            mode: stat.st_mode,
+            mode: stat.st_mode as u32,
             size: stat.st_size as u64,
             blocks: stat.st_blocks as u64,
-            dev: stat.st_dev,
-            rdev: stat.st_rdev,
+            dev: stat.st_dev as u64,
+            rdev: stat.st_rdev as u64,
             is_directory: file_type == SFlag::S_IFDIR,
             is_symbolic_link: file_type == SFlag::S_IFLNK,
             atime_ms,
@@ -473,7 +523,7 @@ impl HostDirFilesystem {
             birthtime_ms: ctime_ms,
             ino: stat.st_ino,
             // st_nlink is u64 on x86_64 but u32 on aarch64; widen for both.
-            nlink: stat.st_nlink,
+            nlink: stat.st_nlink as u64,
             uid: stat.st_uid,
             gid: stat.st_gid,
         }
@@ -569,7 +619,7 @@ impl HostDirFilesystem {
         let handle = self.open_beneath(
             &relative,
             OFlag::O_WRONLY | OFlag::O_CREAT | OFlag::O_TRUNC,
-            Mode::from_bits_truncate(file_mode),
+            Self::mode_from_u32(file_mode),
         )?;
         let mut file = File::options()
             .write(true)
@@ -585,7 +635,7 @@ impl HostDirFilesystem {
         mkdirat(
             Some(parent_dir.as_raw_fd()),
             name.as_os_str(),
-            Mode::from_bits_truncate(mode),
+            Self::mode_from_u32(mode),
         )
         .map_err(|error| io_error_to_vfs("mkdir", &normalized, nix_to_io(error)))
     }
@@ -687,13 +737,13 @@ impl VirtualFileSystem for HostDirFilesystem {
 
     fn exists(&self, path: &str) -> bool {
         let (_, relative) = self.relative_virtual_path(path);
-        self.open_beneath(&relative, OFlag::O_PATH, Mode::empty())
+        self.open_beneath(&relative, Self::o_path(), Mode::empty())
             .is_ok()
     }
 
     fn stat(&mut self, path: &str) -> VfsResult<VirtualStat> {
         let (_, relative) = self.relative_virtual_path(path);
-        let handle = self.open_beneath(&relative, OFlag::O_PATH, Mode::empty())?;
+        let handle = self.open_beneath(&relative, Self::o_path(), Mode::empty())?;
         fs::metadata(handle.proc_path())
             .map(Self::stat_from_metadata)
             .map_err(|error| io_error_to_vfs("stat", path, error))
@@ -733,7 +783,7 @@ impl VirtualFileSystem for HostDirFilesystem {
 
     fn realpath(&self, path: &str) -> VfsResult<String> {
         let (_, relative) = self.relative_virtual_path(path);
-        let file = self.open_beneath(&relative, OFlag::O_PATH, Mode::empty())?;
+        let file = self.open_beneath(&relative, Self::o_path(), Mode::empty())?;
         let resolved = self.host_path_for_fd(&file, path)?;
         self.host_to_virtual_path(&resolved, path)
     }

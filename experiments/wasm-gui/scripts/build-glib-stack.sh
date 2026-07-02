@@ -10,7 +10,7 @@
 #   GLib 2.78.4      -> third_party/glib/build-wasm/{glib,gobject,gthread,gmodule}/lib*-2.0.a
 # GObject linking the shim's <ffi.h> is the proof the libffi dead end is gone. (GIO is partially built;
 # its BSD-socket networking files need further wasi sockaddr adaptation — the next M8 step.)
-set -uo pipefail
+set -euo pipefail
 cd "$(dirname "$0")/.."
 EXP="$(pwd)"
 source "$EXP/toolchain/cross-env.sh"
@@ -18,6 +18,10 @@ export PATH="/home/linuxbrew/.linuxbrew/bin:$PATH"
 TP="$EXP/third_party"
 # Honor cross-env PREFIX (wasm-prefix vs wasm-prefix-threads under SECURE_EXEC_WASM_THREADS=1).
 BUILDDIR="build-wasm${SECURE_EXEC_WASM_THREADS:+-threads}"
+
+stat_bytes() {
+  stat -f%z "$1" 2>/dev/null || stat -c%s "$1"
+}
 
 # 1) libffi-wasm shim + intl stub.
 bash "$EXP/scripts/build-libffi-wasm.sh"
@@ -57,9 +61,13 @@ fi
 # 2b) zlib (GIO/gresource dependency). Per-profile source dir (custom configure, in-tree build).
 ZLIBDIR="$TP/zlib${SECURE_EXEC_WASM_THREADS:+-threads}"
 if [ ! -f "$PREFIX/lib/libz.a" ]; then
+  if [ ! -d "$TP/zlib" ]; then
+    [ -f "$TP/zlib.tar.gz" ] || curl -fsSL -o "$TP/zlib.tar.gz" "https://zlib.net/fossils/zlib-1.3.1.tar.gz"
+    ( cd "$TP" && tar xf zlib.tar.gz && mv zlib-1.3.1 zlib )
+  fi
   if [ ! -d "$ZLIBDIR" ]; then cp -r "$TP/zlib" "$ZLIBDIR"; ( cd "$ZLIBDIR" && make distclean >/dev/null 2>&1 || true ); fi
   ( cd "$ZLIBDIR" && CC="$CC" CFLAGS="$CFLAGS" AR="$AR" RANLIB="$RANLIB" ./configure --static --prefix="$PREFIX" >/dev/null 2>&1
-    make -j4 libz.a >/dev/null 2>&1 && make install >/dev/null 2>&1 || true )
+    make -j4 AR="$AR" ARFLAGS=rc libz.a >/dev/null 2>&1 && make AR="$AR" ARFLAGS=rc install >/dev/null 2>&1 )
 fi
 [ -f "$PREFIX/lib/libz.a" ] || { echo "FATAL: zlib ($ZLIBDIR) failed to build into $PREFIX"; exit 1; }
 echo "deps installed: libffi.a libpcre2-8.a libintl.a libz.a"
@@ -117,8 +125,11 @@ meson setup "$BUILDDIR" --cross-file "$CROSS_INI" --wrap-mode=nofallback --prefi
 echo "== building glib / gobject / gthread / gmodule / gio =="
 for lib in glib/libglib-2.0.a gobject/libgobject-2.0.a gthread/libgthread-2.0.a gmodule/libgmodule-2.0.a gio/libgio-2.0.a; do
   ninja -C "$BUILDDIR" "$lib"
-  echo "BUILT $(basename "$lib") ($(stat -c%s "$BUILDDIR/$lib") bytes)"
+  echo "BUILT $(basename "$lib") ($(stat_bytes "$BUILDDIR/$lib") bytes)"
 done
+# Install headers, generated glibconfig.h, tooling scripts, and pkg-config metadata. The explicit archive
+# copy below keeps the static libs next to the installed .pc files on older Meson tag layouts.
+meson install -C "$BUILDDIR" --no-rebuild --tags devel
 # Install the static archives into $PREFIX/lib so downstream pkg-config (harfbuzz/pango/gtk, whose
 # glib-2.0.pc resolves -L${libdir} -lglib-2.0) finds them next to the .pc/headers that build-gtk-deps
 # installs via `meson install --tags devel`. (meson's devel tag covers .pc + headers, not the .a.)

@@ -11682,6 +11682,7 @@ function tryHostNetAcceptOnce(socket) {
     closed: false,
     lastError: null,
   });
+  registerGuestFd(acceptedFd, result.socketId);
 
   let address;
   if (result.info?.remoteAddress != null && result.info?.remotePort != null) {

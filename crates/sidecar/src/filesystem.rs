@@ -17,12 +17,15 @@ use crate::service::{
 };
 use crate::state::{
     ActiveExecution, ActiveExecutionEvent, ActiveProcess, BridgeError, SidecarKernel, VmState,
-    EXECUTION_DRIVER_NAME, PYTHON_VFS_RPC_GUEST_ROOT,
+    EXECUTION_DRIVER_NAME, EXECUTION_SANDBOX_ROOT_ENV, PYTHON_VFS_RPC_GUEST_ROOT,
 };
 use crate::{DispatchResult, NativeSidecar, NativeSidecarBridge, SidecarError};
 
 use base64::Engine;
 use nix::errno::Errno;
+#[cfg(not(target_os = "linux"))]
+use nix::fcntl::{open, openat, OFlag};
+#[cfg(target_os = "linux")]
 use nix::fcntl::{open, openat2, OFlag, OpenHow, ResolveFlag};
 use nix::libc;
 use nix::sys::stat::{utimensat, Mode, UtimensatFlags};
@@ -48,11 +51,9 @@ fn javascript_sync_rpc_bytes_arg_bulk_aware(
 ) -> Result<Vec<u8>, SidecarError> {
     if let Some(value) = args.get(index) {
         if value.get("__agentOsType").and_then(Value::as_str) == Some("bulk") {
-            let declared_len = value
-                .get("len")
-                .and_then(Value::as_u64)
-                .ok_or_else(|| SidecarError::InvalidState(format!("{label} bulk ref missing len")))?
-                as usize;
+            let declared_len = value.get("len").and_then(Value::as_u64).ok_or_else(|| {
+                SidecarError::InvalidState(format!("{label} bulk ref missing len"))
+            })? as usize;
             // The bulk SAB is keyed by the V8 session id, which both JS and WASM (e.g. Xvfb) executions carry.
             let v8_session = match &process.execution {
                 ActiveExecution::Javascript(js_exec) => Some(js_exec.v8_session_handle()),
@@ -105,6 +106,7 @@ struct MappedRuntimeHostPath {
     guest_path: String,
     host_root: PathBuf,
     host_path: PathBuf,
+    allow_non_linux_writable_fallback: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -120,7 +122,14 @@ struct AnchoredFd {
 
 impl AnchoredFd {
     fn proc_path(&self) -> PathBuf {
-        PathBuf::from(format!("/proc/self/fd/{}", self.fd))
+        #[cfg(target_os = "linux")]
+        {
+            return PathBuf::from(format!("/proc/self/fd/{}", self.fd));
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            return PathBuf::from(format!("/dev/fd/{}", self.fd));
+        }
     }
 }
 
@@ -979,7 +988,9 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                 use std::sync::OnceLock;
                 static G: OnceLock<bool> = OnceLock::new();
                 if *G.get_or_init(|| {
-                    std::env::var("SECURE_EXEC_PATHOPENPROF").map(|v| v == "1").unwrap_or(false)
+                    std::env::var("SECURE_EXEC_PATHOPENPROF")
+                        .map(|v| v == "1")
+                        .unwrap_or(false)
                 }) {
                     // Shared cross-boundary perf clock (µs since the same monotonic origin the guest's
                     // __perf_now reads) — directly comparable to the guest [pathopen] issuePerfUs/donePerfUs.
@@ -1002,7 +1013,7 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                         &mapped_host,
                         "fs.open",
                         OFlag::from_bits_truncate(flags as i32),
-                        Mode::from_bits_truncate(mode.unwrap_or(0o666)),
+                        mode_from_u32(mode.unwrap_or(0o666)),
                     )?;
                     let host_path = opened.host_path.clone();
                     return open_mapped_host_fd(
@@ -1158,15 +1169,19 @@ pub(crate) fn service_javascript_fs_sync_rpc(
         }
         "fs.writeFileSync" | "fs.promises.writeFile" => {
             let path = javascript_sync_rpc_arg_str(&request.args, 0, "filesystem writeFile path")?;
-            let contents =
-                javascript_sync_rpc_bytes_arg(&request.args, 1, "filesystem writeFile contents")?;
+            let contents = javascript_sync_rpc_bytes_arg_bulk_aware(
+                process,
+                &request.args,
+                1,
+                "filesystem writeFile contents",
+            )?;
             match mapped_runtime_host_path(process, path, true) {
                 Some(MappedRuntimeHostAccess::Writable(mapped_host)) => {
                     let opened = open_mapped_runtime_beneath(
                         &mapped_host,
                         "fs.writeFile",
                         OFlag::O_WRONLY | OFlag::O_CREAT | OFlag::O_TRUNC,
-                        Mode::from_bits_truncate(
+                        mode_from_u32(
                             javascript_sync_rpc_option_u32(&request.args, 2, "mode")?
                                 .unwrap_or(0o666),
                         ),
@@ -1203,7 +1218,7 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                 let opened = open_mapped_runtime_beneath(
                     &mapped_host,
                     "fs.stat",
-                    OFlag::O_PATH,
+                    mapped_o_path(),
                     Mode::empty(),
                 )?;
                 let metadata = fs::metadata(opened.handle.proc_path()).map_err(|error| {
@@ -1269,11 +1284,13 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                         )),
                         host_root: mapped_host.host_root.clone(),
                         host_path: directory.host_path.join(entry.file_name()),
+                        allow_non_linux_writable_fallback: mapped_host
+                            .allow_non_linux_writable_fallback,
                     };
                     let Ok(opened) = open_mapped_runtime_beneath(
                         &child,
                         "fs.readdir entry",
-                        OFlag::O_PATH,
+                        mapped_o_path(),
                         Mode::empty(),
                     ) else {
                         continue;
@@ -1338,7 +1355,7 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                 let opened = open_mapped_runtime_beneath(
                     &mapped_host,
                     "fs.access",
-                    OFlag::O_PATH,
+                    mapped_o_path(),
                     Mode::empty(),
                 )?;
                 fs::metadata(opened.handle.proc_path()).map_err(|error| {
@@ -1407,7 +1424,7 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                             &mapped_host,
                             "fs.copyFile destination",
                             OFlag::O_WRONLY | OFlag::O_CREAT | OFlag::O_TRUNC,
-                            Mode::from_bits_truncate(0o666),
+                            mode_from_u32(0o666),
                         )?;
                         fs::write(opened.handle.proc_path(), contents)
                             .map(|()| Value::Null)
@@ -1454,7 +1471,7 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                 let exists = match open_mapped_runtime_beneath(
                     &mapped_host,
                     "fs.exists",
-                    OFlag::O_PATH,
+                    mapped_o_path(),
                     Mode::empty(),
                 ) {
                     Ok(opened) => fs::metadata(opened.handle.proc_path()).is_ok(),
@@ -1605,7 +1622,7 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                     let opened = open_mapped_runtime_beneath(
                         &mapped_host,
                         "fs.chmod",
-                        OFlag::O_PATH,
+                        mapped_o_path(),
                         Mode::empty(),
                     )?;
                     if kernel
@@ -1702,7 +1719,7 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                             let opened = open_mapped_runtime_beneath(
                                 &mapped_host,
                                 "fs.utimes",
-                                OFlag::O_PATH,
+                                mapped_o_path(),
                                 Mode::empty(),
                             )?;
                             opened.handle.proc_path()
@@ -1919,6 +1936,12 @@ fn mapped_runtime_host_path(
         } else {
             normalize_host_path(&std::env::current_dir().ok()?.join(host_root))
         };
+        let allow_non_linux_writable_fallback = process
+            .env
+            .get(EXECUTION_SANDBOX_ROOT_ENV)
+            .map(|sandbox_root| normalize_host_path(Path::new(sandbox_root)))
+            .map(|sandbox_root| normalized_host_root == sandbox_root)
+            .unwrap_or(false);
         let suffix = if guest_root == "/" {
             normalized.trim_start_matches('/')
         } else {
@@ -1944,6 +1967,7 @@ fn mapped_runtime_host_path(
                 guest_path: normalized.clone(),
                 host_root: normalized_host_root.clone(),
                 host_path,
+                allow_non_linux_writable_fallback,
             }));
         }
         if is_cache_path {
@@ -1951,6 +1975,7 @@ fn mapped_runtime_host_path(
                 guest_path: normalized.clone(),
                 host_root: normalized_host_root.clone(),
                 host_path,
+                allow_non_linux_writable_fallback,
             }));
         }
 
@@ -1966,6 +1991,7 @@ fn mapped_runtime_host_path(
                 guest_path: normalized.clone(),
                 host_root: read_root.clone(),
                 host_path,
+                allow_non_linux_writable_fallback,
             }));
         }
         if let Some(write_root) = writable_roots
@@ -1977,6 +2003,7 @@ fn mapped_runtime_host_path(
                 guest_path: normalized.clone(),
                 host_root: write_root.clone(),
                 host_path,
+                allow_non_linux_writable_fallback,
             }));
         }
         if guest_root != "/" {
@@ -1984,6 +2011,7 @@ fn mapped_runtime_host_path(
                 guest_path: normalized.clone(),
                 host_root: read_root.clone(),
                 host_path,
+                allow_non_linux_writable_fallback,
             }));
         }
     }
@@ -2091,6 +2119,37 @@ fn read_only_mapped_runtime_host_path_error(guest_path: &str) -> SidecarError {
     SidecarError::Kernel(format!("EROFS: read-only filesystem: {guest_path}"))
 }
 
+fn mode_from_u32(mode: u32) -> Mode {
+    Mode::from_bits_truncate(mode as libc::mode_t)
+}
+
+#[cfg(target_os = "linux")]
+fn mapped_o_path() -> OFlag {
+    OFlag::O_PATH
+}
+
+#[cfg(not(target_os = "linux"))]
+fn mapped_o_path() -> OFlag {
+    OFlag::O_RDONLY
+}
+
+#[cfg(target_os = "linux")]
+fn mapped_o_tmpfile() -> OFlag {
+    OFlag::O_TMPFILE
+}
+
+#[cfg(not(target_os = "linux"))]
+fn mapped_o_tmpfile() -> OFlag {
+    OFlag::empty()
+}
+
+fn mapped_runtime_open_flags_may_write(flags: OFlag) -> bool {
+    flags.intersects(
+        OFlag::O_WRONLY | OFlag::O_RDWR | OFlag::O_CREAT | OFlag::O_TRUNC | mapped_o_tmpfile(),
+    )
+}
+
+#[cfg(target_os = "linux")]
 fn mapped_runtime_resolve_flags() -> ResolveFlag {
     ResolveFlag::RESOLVE_BENEATH | ResolveFlag::RESOLVE_NO_MAGICLINKS
 }
@@ -2149,11 +2208,12 @@ fn open_mapped_runtime_beneath(
 ) -> Result<MappedRuntimeOpenedPath, SidecarError> {
     let root_dir = open_mapped_runtime_root_dir(mapped, operation)?;
     let relative = mapped_runtime_relative_path(mapped)?;
-    let open_mode = if flags.intersects(OFlag::O_CREAT | OFlag::O_TMPFILE) {
+    let open_mode = if flags.intersects(OFlag::O_CREAT | mapped_o_tmpfile()) {
         mode
     } else {
         Mode::empty()
     };
+    #[cfg(target_os = "linux")]
     let fd = openat2(
         root_dir.as_raw_fd(),
         &relative,
@@ -2163,9 +2223,89 @@ fn open_mapped_runtime_beneath(
             .resolve(mapped_runtime_resolve_flags()),
     )
     .map_err(|error| mapped_runtime_open_error(operation, mapped, error))?;
+    #[cfg(not(target_os = "linux"))]
+    let fd = {
+        if mapped_runtime_open_flags_may_write(flags) {
+            if mapped.allow_non_linux_writable_fallback {
+                return open_mapped_runtime_beneath_no_follow(
+                    root_dir, mapped, operation, flags, open_mode, relative,
+                );
+            }
+            return Err(SidecarError::Unsupported(format!(
+                "{operation}: writable mapped host paths require Linux openat2 confinement"
+            )));
+        }
+        openat(
+            Some(root_dir.as_raw_fd()),
+            &relative,
+            flags | OFlag::O_CLOEXEC,
+            open_mode,
+        )
+        .map_err(|error| mapped_runtime_open_error(operation, mapped, error))?
+    };
     let handle = AnchoredFd { fd };
     let host_path = mapped_runtime_host_path_from_fd(mapped, operation, &handle)?;
+    if !path_is_within_root(
+        &normalize_host_path(&host_path),
+        &normalize_host_path(&mapped.host_root),
+    ) {
+        return Err(mapped_runtime_host_path_escape_error(mapped, &host_path));
+    }
     Ok(MappedRuntimeOpenedPath { handle, host_path })
+}
+
+#[cfg(not(target_os = "linux"))]
+fn open_mapped_runtime_beneath_no_follow(
+    root_dir: AnchoredFd,
+    mapped: &MappedRuntimeHostPath,
+    operation: &str,
+    flags: OFlag,
+    open_mode: Mode,
+    relative: PathBuf,
+) -> Result<MappedRuntimeOpenedPath, SidecarError> {
+    let components = relative.components().collect::<Vec<_>>();
+    let Some((file_name, parent_components)) = components.split_last() else {
+        return Err(SidecarError::InvalidState(format!(
+            "{operation}: mapped guest path {} has no relative target",
+            mapped.guest_path
+        )));
+    };
+    let std::path::Component::Normal(file_name) = file_name else {
+        return Err(SidecarError::InvalidState(format!(
+            "{operation}: mapped guest path {} has invalid relative target",
+            mapped.guest_path
+        )));
+    };
+
+    let mut parent_dir = root_dir;
+    for component in parent_components {
+        let std::path::Component::Normal(name) = component else {
+            return Err(SidecarError::InvalidState(format!(
+                "{operation}: mapped guest path {} has invalid parent component",
+                mapped.guest_path
+            )));
+        };
+        let fd = openat(
+            Some(parent_dir.as_raw_fd()),
+            Path::new(name),
+            OFlag::O_CLOEXEC | OFlag::O_DIRECTORY | OFlag::O_RDONLY | OFlag::O_NOFOLLOW,
+            Mode::empty(),
+        )
+        .map_err(|error| mapped_runtime_open_error(operation, mapped, error))?;
+        parent_dir = AnchoredFd { fd };
+    }
+
+    let fd = openat(
+        Some(parent_dir.as_raw_fd()),
+        Path::new(file_name),
+        flags | OFlag::O_CLOEXEC | OFlag::O_NOFOLLOW,
+        open_mode,
+    )
+    .map_err(|error| mapped_runtime_open_error(operation, mapped, error))?;
+    Ok(MappedRuntimeOpenedPath {
+        handle: AnchoredFd { fd },
+        host_path: mapped.host_path.clone(),
+    })
 }
 
 fn open_mapped_runtime_directory_beneath(
@@ -2174,6 +2314,7 @@ fn open_mapped_runtime_directory_beneath(
     relative: &Path,
 ) -> Result<MappedRuntimeOpenedPath, SidecarError> {
     let root_dir = open_mapped_runtime_root_dir(mapped, operation)?;
+    #[cfg(target_os = "linux")]
     let fd = openat2(
         root_dir.as_raw_fd(),
         relative,
@@ -2183,8 +2324,22 @@ fn open_mapped_runtime_directory_beneath(
             .resolve(mapped_runtime_resolve_flags()),
     )
     .map_err(|error| mapped_runtime_open_error(operation, mapped, error))?;
+    #[cfg(not(target_os = "linux"))]
+    let fd = openat(
+        Some(root_dir.as_raw_fd()),
+        relative,
+        OFlag::O_CLOEXEC | OFlag::O_DIRECTORY | OFlag::O_RDONLY,
+        Mode::empty(),
+    )
+    .map_err(|error| mapped_runtime_open_error(operation, mapped, error))?;
     let handle = AnchoredFd { fd };
     let host_path = mapped_runtime_host_path_from_fd(mapped, operation, &handle)?;
+    if !path_is_within_root(
+        &normalize_host_path(&host_path),
+        &normalize_host_path(&mapped.host_root),
+    ) {
+        return Err(mapped_runtime_host_path_escape_error(mapped, &host_path));
+    }
     Ok(MappedRuntimeOpenedPath { handle, host_path })
 }
 
@@ -2489,7 +2644,7 @@ fn materialize_mapped_host_path_from_kernel(
             mapped,
             "fs.materialize",
             OFlag::O_CREAT | OFlag::O_TRUNC | OFlag::O_WRONLY,
-            Mode::from_bits_truncate(stat.mode & 0o7777),
+            mode_from_u32(stat.mode & 0o7777),
         )?;
         fs::write(opened.handle.proc_path(), bytes).map_err(|error| {
             SidecarError::Io(format!(
@@ -2501,7 +2656,7 @@ fn materialize_mapped_host_path_from_kernel(
     }
 
     let opened =
-        open_mapped_runtime_beneath(mapped, "fs.materialize", OFlag::O_PATH, Mode::empty())?;
+        open_mapped_runtime_beneath(mapped, "fs.materialize", mapped_o_path(), Mode::empty())?;
     fs::set_permissions(
         opened.handle.proc_path(),
         fs::Permissions::from_mode(stat.mode & 0o7777),
@@ -3316,6 +3471,7 @@ mod tests {
             guest_path: guest_path.to_owned(),
             host_path: host_root.join("file.txt"),
             host_root: host_root.clone(),
+            allow_non_linux_writable_fallback: false,
         })
     }
 
@@ -3402,6 +3558,7 @@ mod tests {
             guest_path: String::from("/workspace"),
             host_root: host_root.clone(),
             host_path: host_root.join("workspace"),
+            allow_non_linux_writable_fallback: false,
         };
 
         assert_eq!(
@@ -3429,6 +3586,7 @@ mod tests {
             guest_path: String::from("/node_modules"),
             host_root: host_root.clone(),
             host_path: host_root.clone(),
+            allow_non_linux_writable_fallback: false,
         };
 
         let metadata = mapped_runtime_symlink_metadata(&mapped, "test").expect("lstat mapped root");
@@ -3454,6 +3612,7 @@ mod tests {
             guest_path: String::from("/"),
             host_root: host_link.clone(),
             host_path: host_link,
+            allow_non_linux_writable_fallback: false,
         };
 
         let target = read_mapped_runtime_link(&mapped, "/", "test").expect("read mapped root link");
@@ -3477,6 +3636,7 @@ mod tests {
             guest_path: String::from("/workspace"),
             host_root: host_root.clone(),
             host_path: existing_dir,
+            allow_non_linux_writable_fallback: false,
         };
 
         let parent = open_mapped_runtime_parent_beneath(&mapped, "test")
@@ -3542,6 +3702,7 @@ mod tests {
             guest_path: String::from("/workspace/link/out.txt"),
             host_root: host_root.clone(),
             host_path: host_root.join("link/out.txt"),
+            allow_non_linux_writable_fallback: false,
         };
 
         materialize_mapped_host_path_from_kernel(
@@ -3578,6 +3739,7 @@ mod tests {
             guest_path: String::from("/workspace/out.txt"),
             host_root: host_root.clone(),
             host_path: host_root.join("out.txt"),
+            allow_non_linux_writable_fallback: false,
         };
 
         materialize_mapped_host_path_from_kernel(&mut kernel, pid, "/workspace/out.txt", &mapped)

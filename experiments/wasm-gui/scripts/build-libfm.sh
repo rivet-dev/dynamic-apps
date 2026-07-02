@@ -19,7 +19,11 @@ export PERL5LIB="$EXP/toolchain/host-bin/perl5:${PERL5LIB:-}"
 # the host gettext tools (xgettext/msgfmt) need libxml2.so.2; point at the nix copy if present
 XML2=$(find /nix/store -maxdepth 2 -name "libxml2.so.2" 2>/dev/null | head -1)
 [ -n "$XML2" ] && export LD_LIBRARY_PATH="$(dirname "$XML2"):${LD_LIBRARY_PATH:-}"
-newest_config_sub() { echo "$TP/libX11-threads/config.sub"; }
+newest_config_sub() {
+  find "$TP" -name config.sub -type f | while read -r f; do
+    "$f" wasm32-wasi >/dev/null 2>&1 && { echo "$f"; exit 0; }
+  done
+}
 LDADD_HOST="-lhostcompat -Wl,--allow-undefined"
 
 # 0. libhostcompat.a must exist (build-openbox.sh makes it; rebuild here too in case). Regenerate the
@@ -29,10 +33,13 @@ LDADD_HOST="-lhostcompat -Wl,--allow-undefined"
 "$CC" $CFLAGS -c "$EXP/toolchain/openbox-compat.c" -o "$EXP/toolchain/openbox-compat.o" 2>/dev/null
 _COMPAT_CC=("$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 \
   -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_SIGNAL -DSECURE_EXEC_WASM_THREADS -pthread)
+mkdir -p "$EXP/toolchain/threads-libs" "$PREFIX/lib"
 "${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/wasi-compat.c" -o "$EXP/toolchain/wasi-compat-threads.o"
-"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/fcntl.c" -o "$EXP/toolchain/threads-libs/override_fcntl.o"
-"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/ioctl.c" -o "$EXP/toolchain/threads-libs/override_ioctl.o"
-"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/writev_hostnet.c" -o "$EXP/toolchain/threads-libs/override_writev.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/threads-libs/host_socket.c" -o "$EXP/toolchain/threads-libs/host_socket.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/threads-libs/host_pipe_dup.c" -o "$EXP/toolchain/threads-libs/host_pipe_dup.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$REPO/registry/native/patches/wasi-libc-overrides/fcntl.c" -o "$EXP/toolchain/threads-libs/override_fcntl.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$REPO/registry/native/patches/wasi-libc-overrides/ioctl.c" -o "$EXP/toolchain/threads-libs/override_ioctl.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$REPO/registry/native/patches/wasi-libc-overrides/writev_hostnet.c" -o "$EXP/toolchain/threads-libs/override_writev.o"
 "$AR" rcs "$PREFIX/lib/libhostcompat.a" "$EXP"/toolchain/threads-libs/{host_socket,host_pipe_dup,override_fcntl,override_ioctl,override_writev}.o \
   "$EXP/toolchain/wasi-compat-threads.o" "$EXP/toolchain/openbox-compat.o"
 

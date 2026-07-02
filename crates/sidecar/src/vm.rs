@@ -138,6 +138,7 @@ where
         self.next_vm_id += 1;
         let vm_id = format!("vm-{}", self.next_vm_id);
         let cwd = create_vm_shadow_root(&vm_id)?;
+        let socket_root = create_vm_socket_root(&vm_id)?;
         let (guest_cwd, host_cwd) = resolve_vm_cwds(create_config.cwd.as_ref(), &cwd)?;
         fs::create_dir_all(&host_cwd)
             .map_err(|error| SidecarError::Io(format!("failed to create VM cwd: {error}")))?;
@@ -262,6 +263,7 @@ where
                 },
                 guest_cwd,
                 cwd,
+                socket_root,
                 host_cwd,
                 kernel,
                 loaded_snapshot,
@@ -648,6 +650,7 @@ where
         self.python_engine.dispose_vm(vm_id);
         self.wasm_engine.dispose_vm(vm_id);
         self.prune_extension_vm_resource(vm_id);
+        let _ = fs::remove_dir_all(&vm.socket_root);
         let _ = fs::remove_dir_all(&vm.cwd);
 
         if let Some(session) = self.sessions.get_mut(session_id) {
@@ -1593,6 +1596,23 @@ fn create_vm_shadow_root(vm_id: &str) -> Result<PathBuf, SidecarError> {
     fs::create_dir_all(&root)
         .map_err(|error| SidecarError::Io(format!("failed to create VM shadow root: {error}")))?;
     bootstrap_shadow_root(&root)?;
+    Ok(root)
+}
+
+fn create_vm_socket_root(vm_id: &str) -> Result<PathBuf, SidecarError> {
+    let nonce = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|error| SidecarError::Io(format!("failed to compute socket-root nonce: {error}")))?
+        .as_nanos();
+    let root = PathBuf::from("/tmp").join(format!("sx-sock-{vm_id}-{nonce}"));
+    fs::create_dir_all(&root)
+        .map_err(|error| SidecarError::Io(format!("failed to create VM socket root: {error}")))?;
+    fs::set_permissions(&root, fs::Permissions::from_mode(0o700)).map_err(|error| {
+        SidecarError::Io(format!(
+            "failed to set VM socket root mode on {}: {error}",
+            root.display()
+        ))
+    })?;
     Ok(root)
 }
 

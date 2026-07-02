@@ -66,13 +66,16 @@ fi
 # into the same link (gtk's gtkbuilder.c.o etc.). The threaded errno is TLS, so all objects must agree.
 _COMPAT_CC=("$WSDK/bin/clang" --target=wasm32-wasip1-threads --sysroot="$WSDK/share/wasi-sysroot" -O2 \
   -D_WASI_EMULATED_MMAN -D_WASI_EMULATED_SIGNAL -DSECURE_EXEC_WASM_THREADS -pthread -matomics -mbulk-memory)
+mkdir -p "$TL" "$PREFIX/lib"
 "${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$EXP/toolchain/wasi-compat.c" -o "$EXP/toolchain/wasi-compat-threads.o"
-"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/fcntl.c" -o "$TL/override_fcntl.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$TL/host_socket.c" -o "$TL/host_socket.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$TL/host_pipe_dup.c" -o "$TL/host_pipe_dup.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$REPO/registry/native/patches/wasi-libc-overrides/fcntl.c" -o "$TL/override_fcntl.o"
 # override_ioctl.o: host_net FIONREAD so libX11 uses STOCK upstream ioctl(FIONREAD) — constraint #5.
-"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/ioctl.c" -o "$TL/override_ioctl.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$REPO/registry/native/patches/wasi-libc-overrides/ioctl.c" -o "$TL/override_ioctl.o"
 # override_writev.o: host_net writev (looped send) so libxcb uses STOCK upstream writev — needs the
 # -Wl,--wrap=writev on the final link below; for non-host_net fds it delegates to __real_writev.
-"${_COMPAT_CC[@]}" -c "$REPO/registry/native/patches/wasi-libc-overrides/writev_hostnet.c" -o "$TL/override_writev.o"
+"${_COMPAT_CC[@]}" -I"$EXP/toolchain/compat-include" -c "$REPO/registry/native/patches/wasi-libc-overrides/writev_hostnet.c" -o "$TL/override_writev.o"
 "$AR" rcs "$PREFIX/lib/libhostcompat.a" "$TL/host_socket.o" "$TL/host_pipe_dup.o" "$TL/override_fcntl.o" \
   "$TL/override_ioctl.o" "$TL/override_writev.o" "$EXP/toolchain/wasi-compat-threads.o" "$EXP/toolchain/openbox-compat.o"
 echo "  OK libhostcompat.a"

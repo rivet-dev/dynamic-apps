@@ -14,6 +14,9 @@ TP="$EXP/third_party"
 SRC="$TP/mousepad"
 [ -d "$SRC" ] || { echo "FATAL: $SRC not fetched"; exit 1; }
 [ -f "$PREFIX/lib/libgtksourceview-4.a" ] || { echo "FATAL: gtksourceview not built (run build-gtksourceview.sh)"; exit 1; }
+stat_bytes() {
+  stat -c%s "$1" 2>/dev/null || stat -f%z "$1"
+}
 
 cd "$SRC"
 if [ -f "$EXP/third_party/mousepad.tar.bz2" ]; then
@@ -75,10 +78,10 @@ rm -f "$PREFIX/lib/libwasmshims.a"   # rebuild fresh (ar rcs only updates)
 # errno or __wasilibc_pthread_self. CLEAN FIX = provide __wasi_init_tp in the wasm-gui-host runtime imports
 # (ONE symbol; the runtime already sets up instance TLS) -- a runtime/TCB change SURFACED for sign-off.
 # gtksourceview-4 + its libxml2 dep, then the GTK/X stack.
-GTKTRANS="-lwasmshims -lgtksourceview-4 -lxml2 -lXinerama -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
+GTKTRANS="-lwasmshims -lgtksourceview-4 -lxml2 -latk-bridge-2.0 -latk-1.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp"
 # -Wl,-u,errno force-pulls libc.a's TLS errno.o definition; otherwise --allow-undefined synthesizes
 # errno in non-TLS .bss and gtk/gtksourceview's TLS errno relocs (R_WASM_MEMORY_ADDR_TLS_SLEB) fail.
-LINK="-L$PREFIX/lib -lglibcompat $LDFLAGS -ldbuscreds -Wl,--allow-undefined -Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat -Wl,-z,stack-size=8388608"
+LINK="-L$PREFIX/lib $LDFLAGS -Wl,--allow-undefined -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat -Wl,-z,stack-size=8388608"
 echo "== compiling mousepad objects (libtool link is discarded; see direct link below) =="
 rm -f "$SRC/mousepad/mousepad"
 make -j4 -C mousepad LDFLAGS="$LINK" LIBS="$GTKTRANS $SETJMP" >> /tmp/make-mousepad.log 2>&1
@@ -88,17 +91,24 @@ echo "make rc=$? (compiles the .o; the libtool binary is discarded)"
 # A DIRECT clang link of the objects (exactly as appfinder's non-libtool link does) pulls __init_tls.o ->
 # __wasi_init_tp is DEFINED. The full GTK closure comes from pkg-config (libmousepad_la-*.o = the app lib,
 # mousepad-main.o = the binary's main).
-WRAPS="-Wl,--wrap=read -Wl,--wrap=getsockopt -Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat"
+WRAPS="-Wl,--wrap=writev -Wl,--wrap=g_vfs_get_default -Wl,--wrap=open -Wl,--wrap=openat -Wl,--wrap=fopen -Wl,--wrap=stat -Wl,--wrap=lstat"
 GTKLIBS=$(PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig" pkg-config --static --libs gtk+-3.0 gtksourceview-4 2>/dev/null)
 echo "== direct (non-libtool) final link =="
 "$WSDK/bin/clang" $LDFLAGS -lhostcompat \
   "$SRC"/mousepad/mousepad-main.o "$SRC"/mousepad/libmousepad_la-*.o \
   -o "$SRC/mousepad/mousepad" \
-  -L"$PREFIX/lib" -lwasmshims -lglibcompat -ldbuscreds -lgtksourceview-4 $GTKLIBS \
-  -lXinerama -latk-bridge-2.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp \
+  -L"$PREFIX/lib" -lwasmshims -lgtksourceview-4 $GTKLIBS \
+  -latk-bridge-2.0 -lepoxy -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -lXtst -lXft -lXrender -lXext -lX11 -lXau -lXdmcp \
   "$SETJMP" -Wl,--allow-undefined $WRAPS -Wl,-z,stack-size=8388608 2>> /tmp/make-mousepad.log
 RC=$?
 echo "mousepad direct-link rc=$RC"
 if [ -f "$SRC/mousepad/mousepad" ]; then
-  echo "binary $(stat -c%s "$SRC/mousepad/mousepad") bytes; __wasi_init_tp defined: $("$WSDK/bin/llvm-nm" "$SRC/mousepad/mousepad" 2>/dev/null | grep -acawE '__wasi_init_tp')"
-else echo "no binary"; tail -20 /tmp/make-mousepad.log; fi
+  echo "binary $(stat_bytes "$SRC/mousepad/mousepad") bytes; __wasi_init_tp defined: $("$WSDK/bin/llvm-nm" "$SRC/mousepad/mousepad" 2>/dev/null | grep -acawE '__wasi_init_tp')"
+else echo "no binary"; tail -20 /tmp/make-mousepad.log; exit 1; fi
+[ "$RC" -eq 0 ] || exit "$RC"
+
+OUT="$EXP/mousepad.wasm"
+wasm-opt --fpcast-emu -pa max-func-params@128 --enable-bulk-memory --enable-threads -O0 "$SRC/mousepad/mousepad" -o "$OUT.1"
+wasm-opt -Oz --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory --enable-threads "$OUT.1" -o "$OUT"
+rm -f "$OUT.1"
+echo "OK: mousepad.wasm ($(( $(stat_bytes "$OUT")/1024/1024 ))MB stripped)"

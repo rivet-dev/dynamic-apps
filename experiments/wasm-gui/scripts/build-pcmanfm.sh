@@ -20,7 +20,19 @@ SETJMP="$WSDK/share/wasi-sysroot/lib/$WASMSUB/libsetjmp.a"; LIBC="$THREADS_SYSRO
 # over the deep main-window tree (toolbar/notebook/treeview/statusbar) overflow the small default stack,
 # which surfaces as "memory access out of bounds" inside the show_all vfunc recursion.
 CLEAN_LDFLAGS="$LDFLAGS -lhostcompat -Wl,--allow-undefined -Wl,-z,stack-size=8388608 -Wl,--wrap=writev"
-cs() { cp "$TP/libX11-threads/config.sub" "$TP/libX11-threads/config.guess" "$TP/$1/" 2>/dev/null; }
+newest_config_sub() {
+  find "$TP" -name config.sub -type f | while read -r f; do
+    "$f" wasm32-wasi >/dev/null 2>&1 && { echo "$f"; exit 0; }
+  done
+}
+cs() {
+  local sub
+  sub="$(newest_config_sub)"
+  [ -n "$sub" ] && cp "$sub" "$(dirname "$sub")/config.guess" "$TP/$1/" 2>/dev/null || true
+}
+stat_bytes() {
+  stat -c%s "$1" 2>/dev/null || stat -f%z "$1"
+}
 
 # libfm-gtk3 + libhostcompat must already exist (build-libfm.sh).
 [ -f "$PREFIX/lib/libfm-gtk3.a" ] || bash "$EXP/scripts/build-libfm.sh"
@@ -42,7 +54,7 @@ cd "$TP/pcmanfm-threads"
   XCBLIBS="-lX11-xcb -lxcb -lxcb-shm -lxcb-render -lxcb-randr -lxcb-shape -lxcb-xfixes -lxcb-present -lxcb-sync -lxcb-damage -lxcb-composite -lxcb-glx -lxcb-dri2"
   XLIBS="-lfm-gtk3 -lfm -lfm-extra -lmenu-cache -lXi -lXrandr -lXcursor -lXcomposite -lXdamage -lXfixes -latk-bridge-2.0 -latk-1.0 -lepoxy -lXft -lXrender -lXext -lX11 $XCBLIBS -lXau -lXdmcp"
   make LDFLAGS="$CLEAN_LDFLAGS" LIBS="${PCMANFM_EXTRA_OBJ:-} $XLIBS $SETJMP $LIBC" -j4 ) >/tmp/make-pcmanfm.log 2>&1 \
-  && echo "  OK pcmanfm/pcmanfm ($(stat -c%s src/pcmanfm) bytes)" || { echo "  FAIL pcmanfm"; tail -16 /tmp/make-pcmanfm.log; exit 1; }
+  && echo "  OK pcmanfm/pcmanfm ($(stat_bytes src/pcmanfm) bytes)" || { echo "  FAIL pcmanfm"; tail -16 /tmp/make-pcmanfm.log; exit 1; }
 
 # fpcast wide-signature fix + strip DWARF (the linked GTK/X libs carry tens of MB of DWARF that OOMs
 # the V8 isolate during compile).
@@ -57,9 +69,9 @@ if [ -n "${SECURE_EXEC_KEEP_NAMES:-}" ]; then
   wasm-opt --strip-dwarf --debuginfo --enable-bulk-memory --enable-threads -Oz \
     "$EXP/pcmanfm.wasm.1" -o "$EXP/pcmanfm.wasm" 2>/dev/null
   rm -f "$EXP/pcmanfm.wasm.1"
-  echo "OK: pcmanfm.wasm ($(( $(stat -c%s "$EXP/pcmanfm.wasm")/1024/1024 ))MB, name section KEPT)"
+  echo "OK: pcmanfm.wasm ($(( $(stat_bytes "$EXP/pcmanfm.wasm")/1024/1024 ))MB, name section KEPT)"
 else
   wasm-opt --fpcast-emu --pass-arg=max-func-params@128 --strip-debug --strip-dwarf --strip-producers --enable-bulk-memory --enable-threads -Oz \
     src/pcmanfm -o "$EXP/pcmanfm.wasm" 2>/dev/null
-  echo "OK: pcmanfm.wasm ($(( $(stat -c%s "$EXP/pcmanfm.wasm")/1024/1024 ))MB stripped)"
+  echo "OK: pcmanfm.wasm ($(( $(stat_bytes "$EXP/pcmanfm.wasm")/1024/1024 ))MB stripped)"
 fi

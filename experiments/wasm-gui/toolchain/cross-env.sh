@@ -52,6 +52,16 @@ export LDFLAGS="--target=$WASM_TARGET --sysroot=$THREADS_SYSROOT $THREADS_LDFLAG
 export PKG_CONFIG_LIBDIR="$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig"
 export PKG_CONFIG_PATH=""
 export ACLOCAL_PATH="$PREFIX/share/aclocal"
+PKG_CONFIG_BIN="${PKG_CONFIG_BIN:-$(command -v pkg-config || true)}"
+if [ -z "$PKG_CONFIG_BIN" ] && [ -x /opt/homebrew/bin/pkg-config ]; then
+  PKG_CONFIG_BIN=/opt/homebrew/bin/pkg-config
+fi
+if [ -z "$PKG_CONFIG_BIN" ] && [ -x /home/linuxbrew/.linuxbrew/bin/pkg-config ]; then
+  PKG_CONFIG_BIN=/home/linuxbrew/.linuxbrew/bin/pkg-config
+fi
+if [ -z "$PKG_CONFIG_BIN" ]; then
+  PKG_CONFIG_BIN=pkg-config
+fi
 # Wrapper scripts (clang-wasi-wrap.sh) inherit the toolchain home so their REAL clang resolves.
 export SECURE_EXEC_TOOLCHAIN_HOME="$REPO"
 
@@ -99,7 +109,7 @@ cpp = '$EXP/toolchain/clangxx-wasi-wrap.sh'
 ar = wasi_sdk / 'bin/llvm-ar'
 strip = wasi_sdk / 'bin/llvm-strip'
 nm = wasi_sdk / 'bin/llvm-nm'
-pkg-config = '/usr/bin/pkg-config'
+pkg-config = '$PKG_CONFIG_BIN'
 
 [properties]
 pkg_config_libdir = '$PREFIX/lib/pkgconfig:$PREFIX/share/pkgconfig'

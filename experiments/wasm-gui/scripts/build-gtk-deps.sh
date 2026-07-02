@@ -71,13 +71,20 @@ if [ ! -f "$PREFIX/lib/libfontconfig.a" ]; then
   d="fontconfig$SFX"; [ -d "$TP/$d" ] || cp -r "$TP/fontconfig" "$TP/$d"
   ( cd "$TP/$d" && ( make distclean >/dev/null 2>&1 || true ) \
       && eval "./configure --host=wasm32-wasi --prefix=$PREFIX --enable-static --disable-shared --disable-docs --with-default-fonts=/fonts --sysconfdir=/etc --with-cache-dir=/var/cache/fontconfig $NDEP" \
+      && perl -0pi -e 's/#define FC_GPERF_SIZE_T .*/#define FC_GPERF_SIZE_T size_t/' config.h \
       && ( cd src && for f in fcobjshash.gperf fcobjshash.h stamp-fcobjshash.gperf; do cp -f "$TP/fontconfig/src/$f" . 2>/dev/null; done; \
            touch fcobjshash.gperf.h fcobjs.h Makefile; sleep 1; touch stamp-fcobjshash.gperf fcobjshash.gperf fcobjshash.h ) \
-      && eval "make -j4 $NDEP" && eval "make install $NDEP" \
+      && eval "make -C fontconfig $NDEP" \
+      && eval "make -C fc-case $NDEP" \
+      && eval "make -C fc-lang $NDEP" \
+      && eval "make -C src -j4 $NDEP" \
+      && eval "make -C fontconfig install $NDEP" \
+      && eval "make -C src install $NDEP" \
+      && mkdir -p "$PREFIX/lib/pkgconfig" \
       && cp -f fontconfig.pc "$PREFIX/lib/pkgconfig/" ) >/tmp/dep-fontconfig.log 2>&1
 fi
 [ -f "$PREFIX/lib/pkgconfig/fontconfig.pc" ] && ! grep -q lexpat "$PREFIX/lib/pkgconfig/fontconfig.pc" \
-  && sed -i 's/^\(Libs: .*-lfontconfig\)$/\1 -lexpat/' "$PREFIX/lib/pkgconfig/fontconfig.pc"
+  && perl -0pi -e 's/^(Libs: .*-lfontconfig)$/$1 -lexpat/m' "$PREFIX/lib/pkgconfig/fontconfig.pc"
 _autodep libXft libXft.a
 echo "expat/fontconfig/libXft: $(ls "$PREFIX"/lib/libexpat.a "$PREFIX"/lib/libfontconfig.a "$PREFIX"/lib/libXft.a 2>/dev/null | wc -l)/3 built"
 
@@ -100,7 +107,7 @@ echo "harfbuzz: $(PKG_CONFIG_LIBDIR=$PREFIX/lib/pkgconfig pkg-config --modversio
 #  - x11/xext/xrender/... require header-only X protocol packages (xproto/kbproto/...) whose .pc were
 #    never installed; synthesize header-only stubs so transitive pkg-config resolution succeeds.
 FCPC="$PREFIX/lib/pkgconfig/fontconfig.pc"
-[ -f "$FCPC" ] && ! grep -q "lexpat" "$FCPC" && sed -i 's/^\(Libs: .*-lfontconfig\)$/\1 -lexpat/' "$FCPC"
+[ -f "$FCPC" ] && ! grep -q "lexpat" "$FCPC" && perl -0pi -e 's/^(Libs: .*-lfontconfig)$/$1 -lexpat/m' "$FCPC"
 for proto in xproto kbproto xextproto renderproto inputproto fixesproto fontsproto recordproto; do
   pc="$PREFIX/lib/pkgconfig/$proto.pc"
   [ -f "$pc" ] || printf 'prefix=%s\nincludedir=${prefix}/include\nName: %s\nDescription: X11 %s headers\nVersion: 2024.1\nCflags: -I${includedir}\n' "$PREFIX" "$proto" "$proto" > "$pc"

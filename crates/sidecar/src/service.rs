@@ -2130,7 +2130,8 @@ where
                     as u32;
                 let socket_id =
                     javascript_sync_rpc_arg_str(&request.args, 1, "net.register_guest_fd socket id")?
-                        .to_string();                if let Some(vm) = self.vms.get_mut(vm_id) {
+                        .to_string();
+                if let Some(vm) = self.vms.get_mut(vm_id) {
                     let owner = net_owner_process_id(process_id).to_string();
                     if socket_id.is_empty() {
                         // Empty socket id = unregister (the fd was closed).
@@ -2176,7 +2177,8 @@ where
                     .vms
                     .get(vm_id)
                     .and_then(|vm| vm.guest_net_fds.get(owner))
-                    .and_then(|m| m.get(&fd));                match entry {
+                    .and_then(|m| m.get(&fd));
+                match entry {
                     Some(e) => Ok(serde_json::json!({
                         "socketId": e.socket_id,
                         "nonblock": e.nonblock,

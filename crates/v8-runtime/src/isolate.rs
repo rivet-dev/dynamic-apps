@@ -243,16 +243,16 @@ fn classify_stack(bt: &str) -> &'static str {
 /// are read; layout must match v8/include/v8-callbacks.h exactly.
 #[repr(C)]
 struct JitCodeEventRaw {
-    event_type: i32,            // 0: CODE_ADDED=0, CODE_MOVED=1, ...
-    code_type: i32,             // 4: BYTE_CODE=0, JIT_CODE=1, WASM_CODE=2
-    code_start: *const u8,      // 8
-    code_len: usize,            // 16
-    _script: *const c_void,     // 24: Local<UnboundScript>
-    _user_data: *const c_void,  // 32
+    event_type: i32,                  // 0: CODE_ADDED=0, CODE_MOVED=1, ...
+    code_type: i32,                   // 4: BYTE_CODE=0, JIT_CODE=1, WASM_CODE=2
+    code_start: *const u8,            // 8
+    code_len: usize,                  // 16
+    _script: *const c_void,           // 24: Local<UnboundScript>
+    _user_data: *const c_void,        // 32
     _wasm_source_info: *const c_void, // 40
-    name_str: *const u8,        // 48: union { name_t { str, len } } arm
-    name_len: usize,            // 56
-    _isolate: *const c_void,    // 64
+    name_str: *const u8,              // 48: union { name_t { str, len } } arm
+    name_len: usize,                  // 56
+    _isolate: *const c_void,          // 64
 }
 
 /// Recorded JIT code blobs: (start_addr, end_addr, name). Process-global — JIT addresses are unique
@@ -277,7 +277,13 @@ extern "C" fn jit_code_event_handler(event: *const JitCodeEventRaw) {
         String::from_utf8_lossy(bytes).into_owned()
     } else {
         // BYTE_CODE/JIT_CODE/WASM_CODE without a name string.
-        format!("<{}@{:#x}>", ["bytecode", "jit", "wasm"].get(ev.code_type as usize).unwrap_or(&"code"), start)
+        format!(
+            "<{}@{:#x}>",
+            ["bytecode", "jit", "wasm"]
+                .get(ev.code_type as usize)
+                .unwrap_or(&"code"),
+            start
+        )
     };
     if let Ok(mut map) = JIT_CODE_MAP
         .get_or_init(|| std::sync::Mutex::new(Vec::new()))
@@ -387,6 +393,7 @@ fn scan_stack_for_wasm_frames(label: &str) {
 }
 
 /// (lowest, highest) address of the current thread's stack, via pthread, so the scan stays in-bounds.
+#[cfg(not(target_os = "macos"))]
 fn current_thread_stack_bounds() -> Option<(usize, usize)> {
     unsafe {
         let mut attr: libc::pthread_attr_t = std::mem::zeroed();
@@ -402,6 +409,21 @@ fn current_thread_stack_bounds() -> Option<(usize, usize)> {
         }
         let lo = base as usize;
         Some((lo, lo + size))
+    }
+}
+
+/// (lowest, highest) address of the current thread's stack, via pthread, so the scan stays in-bounds.
+#[cfg(target_os = "macos")]
+fn current_thread_stack_bounds() -> Option<(usize, usize)> {
+    unsafe {
+        let thread = libc::pthread_self();
+        let stack_top = libc::pthread_get_stackaddr_np(thread) as usize;
+        let stack_size = libc::pthread_get_stacksize_np(thread);
+        if stack_top == 0 || stack_size == 0 {
+            return None;
+        }
+        let stack_size = stack_size as usize;
+        Some((stack_top.saturating_sub(stack_size), stack_top))
     }
 }
 
@@ -436,7 +458,7 @@ pub fn register_isolate_for_diag(isolate: &mut v8::OwnedIsolate) {
         Some(ms) => ms,
         None => return,
     };
-    let tid = unsafe { libc::syscall(libc::SYS_gettid) };
+    let tid = current_thread_diag_id();
     let name = std::thread::current()
         .name()
         .map(|s| s.to_owned())
@@ -462,7 +484,9 @@ pub fn register_isolate_for_diag(isolate: &mut v8::OwnedIsolate) {
             .spawn(move || {
                 std::thread::sleep(std::time::Duration::from_millis(after_ms));
                 for round in 0..samples.max(1) {
-                    eprintln!("[stackdump] === round {round} (t={after_ms}ms+{round}x{interval}ms) ===");
+                    eprintln!(
+                        "[stackdump] === round {round} (t={after_ms}ms+{round}x{interval}ms) ==="
+                    );
                     if let Some(reg) = DIAG_ISOLATES.get() {
                         let guard = reg.lock().unwrap();
                         for (label, handle) in guard.iter() {
@@ -480,6 +504,16 @@ pub fn register_isolate_for_diag(isolate: &mut v8::OwnedIsolate) {
             })
             .ok();
     });
+}
+
+#[cfg(not(target_os = "macos"))]
+fn current_thread_diag_id() -> u64 {
+    unsafe { libc::syscall(libc::SYS_gettid) as u64 }
+}
+
+#[cfg(target_os = "macos")]
+fn current_thread_diag_id() -> u64 {
+    unsafe { libc::pthread_mach_thread_np(libc::pthread_self()) as u64 }
 }
 
 /// Create a new V8 isolate with an optional heap limit in MB.

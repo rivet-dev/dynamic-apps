@@ -58,20 +58,51 @@ autobuild() {  # autobuild <dir> [fallback configure args...]
   cd "$EXP"
 }
 
+build_libX11() {
+  local d="libX11${SECURE_EXEC_WASM_THREADS:+-threads}"
+  [ -d "$TP/$d" ] || { echo "  SKIP libX11 (no dir)"; return; }
+  cd "$TP/$d"
+  [ -n "${SECURE_EXEC_WASM_THREADS:-}" ] && ( make distclean >/dev/null 2>&1 || true )
+  local cfg="./configure $CROSS_CONFIGURE_ARGS"
+  local NOREGEN="ACLOCAL=true AUTOCONF=true AUTOMAKE=true AUTOHEADER=true MAKEINFO=true AUTORECONF=true"
+  # Full `make install` regenerates NLS locale aliases and can fail on macOS sed byte-sequence handling.
+  # The runtime stages its locale DB separately, so install the built libraries, headers, XErrorDB, and
+  # pkg-config files directly.
+  ( eval "$cfg" \
+      && eval "make -C include -j4 $NOREGEN" \
+      && eval "make -C src -j4 $NOREGEN" \
+      && eval "make -C include install $NOREGEN" \
+      && eval "make -C src install $NOREGEN" \
+      && eval "make install-pkgconfigDATA $NOREGEN" ) > "/tmp/rb-$d.log" 2>&1
+  if [ $? -eq 0 ]; then echo "  OK   $d"; ok=$((ok+1)); else echo "  FAIL $d (/tmp/rb-$d.log)"; fail=$((fail+1)); fi
+  cd "$EXP"
+}
+
 echo "== util-macros / protos =="
 autobuild util-macros
-# xorgproto is headers-only and must use meson (its autotools configure can't probe wasi fd_set).
-if [ -d "$TP/xorgproto" ]; then
-  ( cd "$TP/xorgproto" && rm -rf build-wasm && meson setup build-wasm --cross-file "$CROSS_INI" --prefix="$PREFIX" -Dlegacy=true >/dev/null 2>&1; ninja -C build-wasm install ) >/tmp/rb-xorgproto.log 2>&1 \
-    && { echo "  OK   xorgproto"; ok=$((ok+1)); } || { echo "  FAIL xorgproto (/tmp/rb-xorgproto.log)"; fail=$((fail+1)); }
-fi
+install_xorgproto() {
+  [ -d "$TP/xorgproto" ] || { echo "  SKIP xorgproto (no dir)"; return; }
+  mkdir -p "$PREFIX/include" "$PREFIX/lib/pkgconfig"
+  cp -R "$TP/xorgproto/include/"* "$PREFIX/include/"
+  # xorgproto's configure/meson insists on discovering the private fd_set bitset field for Xpoll.h.
+  # WASI's fd_set is intentionally not that layout. The X clients built here configure USE_POLL, so
+  # this branch is not used at compile time; keep the generated header syntactically complete.
+  sed 's/@USE_FDS_BITS@/fds_bits/g' "$TP/xorgproto/include/X11/Xpoll.h.in" > "$PREFIX/include/X11/Xpoll.h"
+  for pcin in "$TP"/xorgproto/*.pc.in; do
+    pc="$PREFIX/lib/pkgconfig/$(basename "$pcin" .in)"
+    sed "s|@prefix@|$PREFIX|g; s|@includedir@|$PREFIX/include|g" "$pcin" > "$pc"
+  done
+  echo "  OK   xorgproto (headers/pkg-config)"
+  ok=$((ok+1))
+}
+install_xorgproto
 autobuild xcbproto
 autobuild font-util
 autobuild libxtrans   # X transport headers (our patched Xtranssock.c recv/send lives here)
 
 echo "== zlib (custom configure) =="
 ( cd "$TP/zlib" && CC="$CC" CFLAGS="$CFLAGS" AR="$AR" RANLIB="$RANLIB" ./configure --static --prefix="$PREFIX" \
-  && make -j4 libz.a && make install ) >/tmp/rb-zlib.log 2>&1 \
+  && make -j4 AR="$AR" ARFLAGS=rc libz.a && make AR="$AR" ARFLAGS=rc install ) >/tmp/rb-zlib.log 2>&1 \
   && { echo "  OK   zlib"; ok=$((ok+1)); } || { echo "  FAIL zlib (/tmp/rb-zlib.log)"; fail=$((fail+1)); }
 
 echo "== pixman (meson) =="
@@ -102,7 +133,7 @@ HOSTTOOL="$PREFIX/lib/libhosttoolcompat.a"  # err()/getuid() for demo/test progs
 echo "== X client libs (dependency order) =="
 # libXaw needs Xt+Xmu+Xpm, so it must come AFTER the libXt/libXmu section below.
 for d in libXau libxdmcp libxcb libX11 libXext libXrender libXfixes libXi libXtst libICE libSM; do
-  autobuild "$d"
+  if [ "$d" = "libX11" ]; then build_libX11; else autobuild "$d"; fi
 done
 
 echo "== libXpm (src/ only; its sxpm tool links getuid, absent on wasi) =="

@@ -787,10 +787,10 @@ fn timeval_to_micros(value: libc::timeval) -> u64 {
 
 fn current_thread_resource_usage() -> Result<ThreadResourceUsageSnapshot, String> {
     let mut usage = MaybeUninit::<libc::rusage>::uninit();
-    let result = unsafe { libc::getrusage(libc::RUSAGE_THREAD, usage.as_mut_ptr()) };
+    let result = unsafe { libc::getrusage(resource_usage_scope(), usage.as_mut_ptr()) };
     if result != 0 {
         return Err(format!(
-            "getrusage(RUSAGE_THREAD) failed: {}",
+            "getrusage failed: {}",
             std::io::Error::last_os_error()
         ));
     }
@@ -813,6 +813,16 @@ fn current_thread_resource_usage() -> Result<ThreadResourceUsageSnapshot, String
         voluntary_context_switches: non_negative_c_long(usage.ru_nvcsw),
         involuntary_context_switches: non_negative_c_long(usage.ru_nivcsw),
     })
+}
+
+#[cfg(target_os = "macos")]
+fn resource_usage_scope() -> libc::c_int {
+    libc::RUSAGE_SELF
+}
+
+#[cfg(not(target_os = "macos"))]
+fn resource_usage_scope() -> libc::c_int {
+    libc::RUSAGE_THREAD
 }
 
 fn normalize_openssl_version(raw: &str) -> String {

@@ -38,11 +38,19 @@ const CPU_BUDGET_POLL_INTERVAL: Duration = Duration::from_millis(50);
 /// The POSIX per-thread CPU clock id is derived from the thread's `pthread_t`
 /// and remains valid for the lifetime of that thread, so the watchdog can poll
 /// it via `clock_gettime` without running on the execution thread itself.
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 #[cfg_attr(test, allow(dead_code))]
 #[derive(Clone, Copy)]
 pub(crate) struct ThreadCpuClock {
     clockid: libc::clockid_t,
+}
+
+/// An opaque handle to a specific thread's CPU-time counter on macOS.
+#[cfg(target_os = "macos")]
+#[cfg_attr(test, allow(dead_code))]
+#[derive(Clone, Copy)]
+pub(crate) struct ThreadCpuClock {
+    thread: libc::mach_port_t,
 }
 
 /// Capture the CALLING thread's CPU-time clock. Must be invoked on the thread
@@ -50,7 +58,7 @@ pub(crate) struct ThreadCpuClock {
 ///
 /// Returns `None` if the platform refuses to expose a per-thread CPU clock, in
 /// which case no CPU budget can be enforced.
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "macos")))]
 #[cfg_attr(test, allow(dead_code))]
 pub(crate) fn current_thread_cpu_clock() -> Option<ThreadCpuClock> {
     // SAFETY: `pthread_self` is always callable; `pthread_getcpuclockid` writes
@@ -66,7 +74,20 @@ pub(crate) fn current_thread_cpu_clock() -> Option<ThreadCpuClock> {
     }
 }
 
-#[cfg(unix)]
+/// Capture the CALLING thread's CPU-time clock. Must be invoked on the thread
+/// whose CPU time should be measured (i.e. the execution thread).
+#[cfg(target_os = "macos")]
+#[cfg_attr(test, allow(dead_code))]
+pub(crate) fn current_thread_cpu_clock() -> Option<ThreadCpuClock> {
+    let thread = unsafe { libc::pthread_mach_thread_np(libc::pthread_self()) };
+    if thread == 0 {
+        None
+    } else {
+        Some(ThreadCpuClock { thread })
+    }
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
 impl ThreadCpuClock {
     /// Read accumulated CPU time for the captured thread, in milliseconds.
     /// Returns `None` if the clock read fails.
@@ -84,6 +105,42 @@ impl ThreadCpuClock {
             }
         }
     }
+}
+
+#[cfg(target_os = "macos")]
+impl ThreadCpuClock {
+    /// Read accumulated CPU time for the captured thread, in milliseconds.
+    /// Returns `None` if the Mach thread-info query fails.
+    #[cfg_attr(test, allow(dead_code))]
+    fn elapsed_ms(self) -> Option<u64> {
+        unsafe {
+            let mut info = std::mem::MaybeUninit::<libc::thread_basic_info_data_t>::uninit();
+            let mut count = libc::THREAD_BASIC_INFO_COUNT;
+            let rc = libc::thread_info(
+                self.thread,
+                libc::THREAD_BASIC_INFO as libc::thread_flavor_t,
+                info.as_mut_ptr() as libc::thread_info_t,
+                &mut count,
+            );
+            if rc != libc::KERN_SUCCESS {
+                return None;
+            }
+            let info = info.assume_init();
+            let user_ms = time_value_to_ms(info.user_time);
+            let system_ms = time_value_to_ms(info.system_time);
+            Some(user_ms.saturating_add(system_ms))
+        }
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn time_value_to_ms(value: libc::time_value_t) -> u64 {
+    let seconds = i128::from(value.seconds).max(0);
+    let micros = i128::from(value.microseconds).max(0);
+    seconds
+        .saturating_mul(1_000)
+        .saturating_add(micros / 1_000)
+        .min(i128::from(u64::MAX)) as u64
 }
 
 /// Guard for per-execution TRUE CPU-time budget enforcement.
