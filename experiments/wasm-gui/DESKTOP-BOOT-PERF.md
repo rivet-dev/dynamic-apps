@@ -433,6 +433,28 @@ _(template)_
 - Lever 1 (wakeup) DONE/disproven. Oversubscription PARTIAL (3 apps 2/3 vs 5 apps 1/3). Boot ~59 s is
   fixed-overhead-bound (dbus sleeps + settle-gate), independent of app count.
 
+### ★★★2026-07-02 — SERIALIZE-TO-READY WORKS: Phase 1 (determinism) ACHIEVED + concurrency CONFIRMED as root
+- Definitive test — heavy serial boot (`APP_SETTLE_MS=12000`, honest FULL_MIN=40 metric): **5/5 FULL renders
+  at 95.1-95.2 % coverage, ~72 s, ZERO black.** vs concurrent (default) ~1/3. This CONFIRMS the root: the
+  flaky total-black IS concurrent-boot oversubscription — booting the heavy wasm guests one-at-a-time
+  removes the contention and the desktop converges every time.
+- ⇒ **Phase 1 (reliable full render, ≥5 consecutive zero-black) is MET by serial launch.** Trades launch
+  time (~72 s) for determinism — exactly the determinism-first goal. Phase 2 then drives 72 s down (it is
+  ~60 s of settle-gate stagger + fixed dbus sleeps; can be tightened / partially re-parallelised carefully).
+- ★ **`SX_SERIAL_LAUNCH=1` VALIDATED: 5/5 FULL renders (3× 95.1 %, 2× 99.9 %), ~61 s median, ZERO black.**
+  Dedicated opt-in (host `run_desktop`): strictly one app at a time, gated on the current app having become
+  ACTIVE (emitted output) AND then quiet for its own `SX_SERIAL_SETTLE_MS` (default 12 s — its OWN var, so
+  the harness's APP_SETTLE_MS=6 s can't silently override it; 6 s was too short → 5/5 black, the bug found +
+  fixed), with a `SX_SERIAL_APP_TIMEOUT_MS` safety cap. Slightly FASTER than the fixed-12 s proxy (61 vs
+  72 s) because it advances as soon as each app settles. **This is the Phase-1 fix — shippable as an opt-in.**
+- NOTE this also retro-explains the earlier "heavy-stagger → panel-only 4.8 %" reject: that was PRE-MERGE;
+  codex's "Fix wasm GUI desktop default launch" changes (now merged) + serial launch together give the
+  reliable 95 % render. Good example of why re-measuring on the current tree matters.
+- **Phase 2 backlog (speed, only now that Phase 1 holds):** (a) trim the fixed dbus 2+4 s sleeps → readiness
+  polls; (b) shorten the 12 s serial settle toward the minimum that still converges (binary-search it);
+  (c) carefully re-introduce LIMITED concurrency (e.g. launch in pairs, or cap concurrent wasm-compiles)
+  to approach wall ≈ slowest app; (d) the per-app compute floor (~2.2 s first-paint) is the toolchain floor.
+
 ### ★2026-07-02 — TOTAL-BLACK FLAKINESS is the acceptance blocker (new top theory T0)
 - Forensics on a black run (skip-prewarm, cov 0.0 for 110 s, all 5 launched): every client emits only its
   2 launch lines then is SILENT; the WM (xclient0, launched +12 s) NEVER reaches its event loop / paints

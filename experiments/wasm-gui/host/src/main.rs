@@ -2389,16 +2389,47 @@ mod window {
             let mut launched = 0usize;
             let mut last_launch = tokio::time::Instant::now();
             let mut last_activity = tokio::time::Instant::now();
+            // ★ SX_SERIAL_LAUNCH=1 (opt-in): boot the desktop STRICTLY one app at a time — launch the next
+            // client only after the previous has become ACTIVE (emitted output = it actually started) AND
+            // then gone quiet for `settle`. This removes the concurrent-boot CPU/thread oversubscription
+            // that flakily blanks the desktop (co-booting N heavy wasm guests starves the graph so it
+            // sometimes never converges). Measured: serial (12 s settle) = 5/5 FULL 95% render vs concurrent
+            // ~1/3. Trades launch time (~72 s) for determinism; Phase-2 re-introduces concurrency carefully.
+            // See experiments/wasm-gui/DESKTOP-BOOT-PERF.md.
+            let serial_launch = std::env::var("SX_SERIAL_LAUNCH").ok().as_deref() == Some("1");
             // Launch the next client only after the previously-launched clients have gone quiet for this
-            // long (idle in their event loops), so a heavy Xfce startup never contends with an
-            // already-starting one on the single-threaded X server (the concurrent-guest starvation that
-            // blanks the 3rd+ client). Mirrors the headless run_xdemo settle-gating. Env-tunable.
-            let settle = std::time::Duration::from_millis(
-                std::env::var("APP_SETTLE_MS")
+            // long (idle in their event loops). Serial mode uses its OWN settle window (SX_SERIAL_SETTLE_MS,
+            // default 12 s — the measured 5/5-reliable value) so a caller's APP_SETTLE_MS (e.g. the harness's
+            // 6 s default, too short for reliable serial convergence) does not silently override it.
+            let settle = if serial_launch {
+                std::time::Duration::from_millis(
+                    std::env::var("SX_SERIAL_SETTLE_MS")
+                        .ok()
+                        .and_then(|v| v.parse().ok())
+                        .unwrap_or(12000),
+                )
+            } else {
+                std::time::Duration::from_millis(
+                    std::env::var("APP_SETTLE_MS")
+                        .ok()
+                        .and_then(|v| v.parse().ok())
+                        .unwrap_or(6000),
+                )
+            };
+            // Serial-mode safety cap: if the current app never becomes active / never settles within this,
+            // launch the next anyway so a single stalled app cannot hang the whole session forever.
+            let serial_app_timeout = std::time::Duration::from_millis(
+                std::env::var("SX_SERIAL_APP_TIMEOUT_MS")
                     .ok()
                     .and_then(|v| v.parse().ok())
-                    .unwrap_or(6000),
+                    .unwrap_or(45000),
             );
+            // Whether the MOST-RECENTLY-launched X client has emitted any output yet (it actually started,
+            // vs a stalled/never-scheduled guest). Reset on each launch. Only used in serial mode.
+            let mut cur_app_active = false;
+            if serial_launch {
+                eprintln!("secure-exec: SX_SERIAL_LAUNCH=1 — booting clients strictly one at a time (settle={}ms)", settle.as_millis());
+            }
             // PAINT_GATE (default OFF — opt-in via PAINT_GATE=1): launch the next client only after the
             // previously-launched one has PAINTED (guest-fb coverage rose since its launch). REJECTED as a
             // default 2026-07-02: the WM (xfwm4) produces ZERO coverage on its own (a window manager paints
@@ -2432,6 +2463,12 @@ mod window {
                         if o.process_id.starts_with("xclient") {
                             last_activity = tokio::time::Instant::now();
                         }
+                        // Serial mode: mark the just-launched app "active" once IT emits output, so the
+                        // settle window measures quiet-AFTER-start (a stalled guest that never emits is not
+                        // mistaken for settled).
+                        if launched > 0 && o.process_id == format!("xclient{}", launched - 1) {
+                            cur_app_active = true;
+                        }
                         if !server_ready && o.process_id == "xserver" && txt.contains("m_pre_dispatch") {
                             server_ready = true;
                         }
@@ -2453,7 +2490,13 @@ mod window {
                 //    since its launch), or a long fallback elapsed so we never hard-stall. This never piles
                 //    a new app onto a not-yet-painted WM -> deterministic render.
                 //  - legacy: the WM is up (wm_ready) and X clients have been quiet for `settle`.
-                let ready_next = if paint_gate {
+                let ready_next = if serial_launch {
+                    // Strictly serial: the current app has STARTED (became active) and gone quiet for
+                    // `settle`, or the safety timeout elapsed. Never launches onto a not-yet-started app.
+                    launched == 0
+                        || (cur_app_active && last_activity.elapsed() >= settle)
+                        || last_launch.elapsed() >= serial_app_timeout
+                } else if paint_gate {
                     let cov_now = fb_path
                         .as_ref()
                         .map(|p| fb_coverage_pct(p, width, height))
@@ -2542,6 +2585,8 @@ mod window {
                 eprintln!("[milestone +{}ms] {id} launched (cov@launch {:.1}%)", demo_start.elapsed().as_millis(), cov_at_last_launch);
                             launched += 1;
                             last_launch = tokio::time::Instant::now();
+                            cur_app_active = false; // serial: wait for THIS app to start before advancing
+                            last_activity = tokio::time::Instant::now();
                         }
                     }
                 }
