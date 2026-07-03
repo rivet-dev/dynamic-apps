@@ -1,0 +1,41 @@
+# cargo-nextest configuration.
+#
+# Tests run one process per test, which isolates the process-global V8/Pyodide
+# platform, warm-isolate pool, module caches, and env that previously forced
+# `cargo test -- --test-threads=1`. See CLAUDE.md > Testing. Doctests are not run
+# by nextest — ci.sh runs `cargo test --doc` separately.
+
+[profile.default]
+# Backstop for a genuinely hung test (the runtime's own watchdogs fire well
+# before this); terminate rather than hang the run.
+slow-timeout = { period = "120s", terminate-after = 1 }
+# Timing-sensitive cases are gated behind SECURE_EXEC_RUN_TIMING_TESTS at their
+# call sites (and #[ignore] for any standalone ones); both are skipped by default.
+
+# The Pyodide "*_suite" tests are single collapsed #[test]s that run every Python
+# case sequentially in one process; Pyodide is CPU-heavy, so under the CPU
+# contention of a parallel run they legitimately need minutes. Give them room —
+# their own internal watchdogs still catch real hangs. (Overrides are per-profile
+# in nextest, so this is repeated under [profile.ci].)
+[[profile.default.overrides]]
+filter = 'test(/python.*_suite/)'
+slow-timeout = { period = "600s", terminate-after = 1 }
+
+[profile.ci]
+# Absorb rare load-induced flakes without masking real failures — a test that
+# only passes on retry is still surfaced in the report.
+retries = 2
+fail-fast = false
+slow-timeout = { period = "180s", terminate-after = 1 }
+
+[[profile.ci.overrides]]
+filter = 'test(/python.*_suite/)'
+slow-timeout = { period = "600s", terminate-after = 1 }
+
+[profile.timing]
+# Nightly serial lane for the timing-sensitive tests: single-threaded and
+# un-retried so wall-clock assertions are measured on a quiet box. Invoked as
+# `SECURE_EXEC_RUN_TIMING_TESTS=1 cargo nextest run --profile timing --run-ignored all`.
+test-threads = 1
+retries = 0
+slow-timeout = { period = "300s", terminate-after = 1 }

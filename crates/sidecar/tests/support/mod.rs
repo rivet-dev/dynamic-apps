@@ -4,7 +4,6 @@
 mod bridge_support;
 
 pub use bridge_support::RecordingBridge;
-use nix::fcntl::{Flock, FlockArg};
 use secure_exec_sidecar::protocol::{
     DisposeReason, EventFrame, GuestRuntimeKind, OwnershipScope, RequestFrame, RequestId,
     RequestPayload, ResponseFrame,
@@ -12,32 +11,18 @@ use secure_exec_sidecar::protocol::{
 use secure_exec_sidecar::{DispatchResult, NativeSidecar, NativeSidecarConfig};
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
-use std::fs::OpenOptions;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::OnceLock;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 pub const TEST_AUTH_TOKEN: &str = "sidecar-test-token";
 const MAX_COLLECTED_PROCESS_STREAM_BYTES: usize = 1024 * 1024;
 
 pub fn acquire_sidecar_runtime_test_lock() {
-    static LOCK_FILE: OnceLock<Flock<std::fs::File>> = OnceLock::new();
-    let _ = LOCK_FILE.get_or_init(|| {
-        let path = std::env::temp_dir().join("secure-exec-sidecar-runtime-tests.lock");
-        let file = OpenOptions::new()
-            .create(true)
-            .truncate(false)
-            .read(true)
-            .write(true)
-            .open(&path)
-            .unwrap_or_else(|error| {
-                panic!("open sidecar test runtime lock {}: {error}", path.display())
-            });
-        Flock::lock(file, FlockArg::LockExclusive).unwrap_or_else(|(_, error)| {
-            panic!("lock sidecar test runtime {}: {error}", path.display())
-        })
-    });
+    // No-op under cargo-nextest: each test runs in its own process, so the
+    // process-global V8 platform, env, and compile cache are already isolated.
+    // Previously an exclusive flock serialized runtime tests across binaries. See
+    // CLAUDE.md > Testing.
 }
 
 pub fn assert_node_available() {

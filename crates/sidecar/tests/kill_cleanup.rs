@@ -260,6 +260,13 @@ fn append_process_output(buffer: &mut String, chunk: &[u8], process_id: &str, ch
 }
 
 fn kill_process_terminates_running_wasm_execution() {
+    // Timeout-dependent: the infinite-loop wasm module's prewarm runs into the
+    // ~30s V8 CPU-time watchdog before the kill lands, so this case takes ~30s
+    // regardless. Gate it to the nightly timing lane (SECURE_EXEC_RUN_TIMING_TESTS=1)
+    // rather than pay 30s on every PR. See CLAUDE.md > Testing.
+    if std::env::var_os("SECURE_EXEC_RUN_TIMING_TESTS").is_none() {
+        return;
+    }
     assert_node_available();
 
     let mut sidecar = new_sidecar("kill-process-wasm");
@@ -552,10 +559,54 @@ fn remove_connection_disposes_owned_sessions_and_vms() {
 fn kill_cleanup_suite() {
     // Multiple libtest cases in this V8-backed integration binary still trip
     // teardown/init crashes, so keep the coverage in one top-level suite.
+    //
+    // cargo-nextest runs every `#[test]` in its OWN process, so that crash cannot
+    // occur there — `mod kill_cleanup_split` below exposes each case as a separate
+    // test that nextest runs in parallel across cores. Skip the collapsed run under
+    // nextest so the work isn't done twice; the split cases skip themselves under
+    // `cargo test`. nextest sets `NEXTEST=1` in each test process; libtest/`cargo
+    // test` does not.
+    if std::env::var_os("NEXTEST").is_some() {
+        return;
+    }
     close_session_removes_the_session_and_disposes_owned_vms();
     dispose_vm_succeeds_even_when_a_guest_process_is_running();
     kill_process_terminates_running_guest_execution();
     sigkill_synthesizes_exit_for_shared_v8_guest_execution();
     kill_process_terminates_running_wasm_execution();
     remove_connection_disposes_owned_sessions_and_vms();
+}
+
+/// Per-case split of `kill_cleanup_suite` for cargo-nextest (process-per-test).
+///
+/// Each `#[test]` here runs exactly one case in its own process, so the
+/// shared-process V8 teardown/init crash that forces the collapsed
+/// `kill_cleanup_suite` above does not apply, and the cases run in parallel across
+/// cores instead of serially. Each case skips itself under plain `cargo test`
+/// (where `NEXTEST` is unset) so the collapsed suite owns the run there; the
+/// collapsed suite likewise skips under nextest so the work isn't duplicated.
+mod kill_cleanup_split {
+    macro_rules! nextest_cases {
+        ($($case:ident),+ $(,)?) => {
+            $(
+                #[test]
+                fn $case() {
+                    // Covered by the collapsed `super::kill_cleanup_suite` under `cargo test`.
+                    if std::env::var_os("NEXTEST").is_none() {
+                        return;
+                    }
+                    super::$case();
+                }
+            )+
+        };
+    }
+
+    nextest_cases!(
+        close_session_removes_the_session_and_disposes_owned_vms,
+        dispose_vm_succeeds_even_when_a_guest_process_is_running,
+        kill_process_terminates_running_guest_execution,
+        sigkill_synthesizes_exit_for_shared_v8_guest_execution,
+        kill_process_terminates_running_wasm_execution,
+        remove_connection_disposes_owned_sessions_and_vms,
+    );
 }

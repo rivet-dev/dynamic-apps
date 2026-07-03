@@ -3878,8 +3878,20 @@ fn python_cli_suite() {
 
 #[test]
 fn python_suite() {
-    // Multiple libtest cases in this V8/Pyodide-backed integration binary
-    // still trip teardown/init crashes, so keep the coverage in one suite.
+    // Multiple libtest cases in this V8/Pyodide-backed integration binary still
+    // trip shared-process teardown/init crashes, so under plain `cargo test`
+    // (one process for the whole binary) keep the coverage in one suite.
+    //
+    // cargo-nextest runs every `#[test]` in its OWN process, so that crash
+    // cannot occur there — `mod python_split` below exposes each case as a
+    // separate test that nextest runs in parallel across cores (this suite was
+    // the single longest test in CI at ~400s serial). Skip the collapsed run
+    // under nextest so the work isn't done twice; the split cases skip
+    // themselves under `cargo test`. nextest sets `NEXTEST=1` in each test
+    // process; libtest/`cargo test` does not.
+    if std::env::var_os("NEXTEST").is_some() {
+        return;
+    }
     static_file_server_rejects_traversal_paths();
     python_runtime_executes_code_end_to_end();
     python_runtime_executes_workspace_py_file_by_path();
@@ -3909,4 +3921,97 @@ fn python_suite() {
     python_runtime_surfaces_subprocess_permission_errors();
     python_cli_suite();
     python_rootfs_suite();
+}
+
+/// Per-case split of `python_suite` for cargo-nextest (process-per-test).
+///
+/// Each `#[test]` here runs exactly one Pyodide case in its own process, so the
+/// shared-process V8/Pyodide teardown/init crash that forces the collapsed
+/// `python_suite` above does not apply, and the ~36 cases run in parallel across
+/// cores instead of serially. Each case skips itself under plain `cargo test`
+/// (where `NEXTEST` is unset) so the collapsed suite owns the run there; the
+/// collapsed suite likewise skips under nextest so the work isn't duplicated.
+mod python_split {
+    macro_rules! nextest_cases {
+        ($($case:ident),+ $(,)?) => {
+            $(
+                #[test]
+                fn $case() {
+                    // Covered by the collapsed `super::python_suite` under `cargo test`.
+                    if std::env::var_os("NEXTEST").is_none() {
+                        return;
+                    }
+                    super::$case();
+                }
+            )+
+        };
+    }
+
+    nextest_cases!(
+        static_file_server_rejects_traversal_paths,
+        python_runtime_executes_code_end_to_end,
+        python_runtime_executes_workspace_py_file_by_path,
+        python_runtime_reports_syntax_errors_over_stderr,
+        python_runtime_blocks_pyodide_js_escape_hatches,
+        concurrent_python_processes_stay_isolated_across_vms,
+        python_runtime_mounts_workspace_over_the_kernel_vfs,
+        python_runtime_supports_file_delete_and_rename,
+        python_runtime_supports_raw_tcp_and_udp_sockets,
+        python_runtime_supports_symlink_readlink_and_metadata,
+        workspace_files_are_shared_between_javascript_and_python_runtimes,
+        python_workspace_mount_respects_read_only_root_permissions,
+        python_runtime_blocks_mapped_pyodide_cache_symlink_metadata_escape,
+        python_runtime_blocks_mapped_pyodide_cache_symlink_swap_toctou_escape,
+        python_runtime_routes_stdin_writes_and_close_to_pyodide,
+        python_runtime_supports_interactive_input_prompts_and_multiple_streaming_writes,
+        python_runtime_close_stdin_triggers_input_eof_and_empty_read,
+        python_runtime_kill_process_terminates_blocked_stdin_reads,
+        python_runtime_imports_bundled_numpy_without_network,
+        python_runtime_imports_bundled_pandas_without_network,
+        python_runtime_routes_dns_and_http_through_sidecar_bridge,
+        python_runtime_routes_requests_through_sidecar_bridge,
+        python_runtime_surfaces_network_permission_errors,
+        python_runtime_runs_node_subprocesses_through_sidecar_bridge,
+        python_runtime_surfaces_subprocess_permission_errors,
+        python_command_runs_inline_code,
+        python_command_runs_script_with_argv,
+        python_command_runs_module_with_dash_m,
+        python_command_reads_program_from_stdin,
+        python_command_runs_interactive_repl,
+        python_command_runs_as_nested_child_process,
+        python_command_pip_installs_via_micropip,
+        python_reads_and_writes_arbitrary_vm_paths,
+        python_pip_installs_persist_across_invocations,
+    );
+
+    // The network-DENIED micropip case can't load the micropip package on its
+    // own (network is denied, so the fetch hangs); it relies on micropip already
+    // being loaded in the same *process* by a prior network-ALLOWED install
+    // (Pyodide's module state is process-global). Under nextest's
+    // process-per-test model that shared state is gone, so pair it in one
+    // sequential case with a network-allowed install that loads micropip first.
+    // The other micropip/pip installs are self-contained (they load micropip
+    // themselves) and stay split for parallelism. Skips under `cargo test`,
+    // where the collapsed `super::python_suite` owns the run.
+    // Named `*_suite` so it inherits nextest.toml's 600s slow-timeout override
+    // for `test(/python.*_suite/)` when the denied case runs (nightly).
+    #[test]
+    fn python_micropip_suite() {
+        if std::env::var_os("NEXTEST").is_none() {
+            return;
+        }
+        // Both micropip installs are heavy COLD work under process-per-test (no
+        // warm micropip load to reuse): the network-allowed install is ~24s, and
+        // the network-denied variant is timeout-bound (~2min on the denied-op
+        // timeout). Neither is on the critical path, so run the whole group only in
+        // the nightly timing lane (SECURE_EXEC_RUN_TIMING_TESTS=1); `cargo test`'s
+        // collapsed `super::python_suite` still covers both locally. The denied
+        // case also needs the allowed install loaded in the SAME process, so they
+        // stay grouped. See CLAUDE.md > Testing.
+        if std::env::var_os("SECURE_EXEC_RUN_TIMING_TESTS").is_none() {
+            return;
+        }
+        super::python_runtime_supports_micropip_package_installation();
+        super::python_runtime_micropip_install_respects_network_permissions();
+    }
 }

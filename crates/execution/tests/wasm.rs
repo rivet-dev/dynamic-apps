@@ -2744,6 +2744,17 @@ fn wasm_deep_recursion_respects_configured_stack_byte_limit() {
 
 // Separate libtest cases in this binary still trip a V8 teardown/init crash, so
 // keep the WASM runtime coverage in one top-level suite until that boundary is fixed.
+//
+// NOT split for cargo-nextest (unlike `python_suite`/`kill_cleanup_suite`): three
+// cases here run an infinite-loop guest module (`wasm_execution_times_out_when_
+// fuel_budget_is_exhausted`, `..._poll_path_times_out_...`, `..._allows_prewarm_
+// timeout_to_differ_...`). In this collapsed run they are cheap because earlier
+// cases warmed the process-global V8 state, but in a COLD nextest process the
+// infinite loop is bounded only by the ~30s V8 CPU-time watchdog, so each costs
+// ~30s in isolation and grouping only those three SIGSEGVs (the very shared-
+// process teardown crash this suite guards against). Splitting therefore makes
+// the binary's wall WORSE (33-92s vs this ~20s collapsed run) and is unsafe, so
+// the coverage stays collapsed here.
 #[test]
 fn wasm_suite() {
     wasm_contexts_preserve_vm_and_module_configuration();
