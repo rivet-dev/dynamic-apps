@@ -1510,6 +1510,9 @@ pub(crate) fn service_javascript_fs_sync_rpc(
             let path =
                 javascript_sync_rpc_path_arg(process, &request.args, 0, "filesystem stat path")?;
             let path = path.as_str();
+            // DELIBERATE REGRESSION — DO NOT MERGE. Proves the CI bench gate
+            // fails on a >2x fs/stat_storm slowdown (draft-PR gate demo).
+            std::thread::sleep(std::time::Duration::from_millis(1));
             if let Some(mapped_host) = mapped_runtime_host_path_for_read(process, path) {
                 materialize_mapped_host_path_from_kernel(kernel, kernel_pid, path, &mapped_host)?;
                 let opened = open_mapped_runtime_beneath(
