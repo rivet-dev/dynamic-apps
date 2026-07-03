@@ -9523,6 +9523,7 @@ if (wasmThreadToken != null) {
   })();
 }
 
+try { if (process.env.SECURE_EXEC_PERFCLOCK === '1') process.stderr.write('[prewarm-runner] reached prewarm gate prewarmOnly=' + prewarmOnly + '\n'); } catch (_e) {}
 if (prewarmOnly) {
   process.exit(0);
 }

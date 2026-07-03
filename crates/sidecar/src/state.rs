@@ -1634,6 +1634,18 @@ pub(crate) struct ActiveUnixListener {
     pub(crate) path: String,
     pub(crate) backlog: usize,
     pub(crate) active_connection_ids: BTreeSet<String>,
+    /// Stop flag for the accept-notifier thread. The notifier (spawned in `net.listen`) wakes the
+    /// server's `net.poll_wait` the instant a client connects, so the server accepts immediately
+    /// instead of waiting out the poll ceiling (event-driven connection setup — completes the
+    /// readiness notify-graph on the accept edge). Set on drop so the thread exits within ~1s.
+    pub(crate) accept_notifier_stop: Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl Drop for ActiveUnixListener {
+    fn drop(&mut self) {
+        self.accept_notifier_stop
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+    }
 }
 
 // ---------------------------------------------------------------------------

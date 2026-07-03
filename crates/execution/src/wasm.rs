@@ -902,10 +902,24 @@ impl WasmExecutionEngine {
         // wasi_thread_start. It must NOT prewarm — a prewarm run would consume the one-shot registry
         // token before the real worker run. (The module is already warm from the parent execution.)
         let is_worker_thread = request.env.contains_key(WASM_THREAD_TOKEN_ENV);
-        let warmup_metrics = if is_worker_thread {
+        // Skip the blocking prewarm EXECUTION for THREADED modules (those importing a shared memory).
+        // The synchronous, dispatch-task-blocking prewarm cannot safely run a module that spawns a thread
+        // during static-init/instantiate: the spawn needs a sync-RPC the blocked dispatch task must itself
+        // deliver -> a circular deadlock that burns the whole prewarm timeout (measured 30 s for thunar,
+        // 0 rpcs; see experiments/wasm-gui/DESKTOP-BOOT-PERF.md). Prewarm's only benefit is warming the V8
+        // compile cache, which the real run's own (non-blocking, on its isolate thread) compile provides
+        // anyway, so for threaded guests skipping is a strict win for dispatch-task availability. The env
+        // override forces the skip for any module (used to A/B the whole class).
+        let skip_prewarm = std::env::var("SECURE_EXEC_WASM_SKIP_PREWARM").as_deref() == Ok("1")
+            || wasm_module_is_threaded(&resolved_module);
+        let warmup_metrics = if is_worker_thread || skip_prewarm {
             None
         } else {
-            match prewarm_wasm_path(
+            // [prewarm-probe] (SECURE_EXEC_PERFCLOCK=1): time prewarm + label how it exited, to learn
+            // whether `prewarmOnly` is honored (fast Exit) or the app ran to the 30 s timeout.
+            let __pp = std::env::var("SECURE_EXEC_PERFCLOCK").as_deref() == Ok("1");
+            let __t0 = Instant::now();
+            let result = prewarm_wasm_path(
                 import_cache,
                 &mut self.javascript_engine,
                 &javascript_context_id,
@@ -913,7 +927,22 @@ impl WasmExecutionEngine {
                 &request,
                 frozen_time_ms,
                 prewarm_timeout,
-            ) {
+            );
+            if __pp {
+                let outcome = match &result {
+                    Ok(Some(_)) => "ok(metrics)",
+                    Ok(None) => "ok(none)",
+                    Err(WasmExecutionError::WarmupTimeout(_)) => "timeout",
+                    Err(_) => "err",
+                };
+                eprintln!(
+                    "[prewarm-probe] {} took {}ms -> {}",
+                    resolved_module.specifier,
+                    __t0.elapsed().as_millis(),
+                    outcome,
+                );
+            }
+            match result {
                 Ok(metrics) => metrics,
                 Err(WasmExecutionError::WarmupTimeout(_)) => None,
                 Err(error) => return Err(error),
@@ -4916,10 +4945,27 @@ fn prewarm_wasm_path(
     let mut stdout = Vec::new();
     let mut stderr = Vec::new();
     let started = Instant::now();
+    let mut rpc_count: usize = 0;
+    let mut last_method = String::new();
+    let mut method_tally: BTreeMap<String, usize> = BTreeMap::new();
 
     loop {
         let poll_timeout = prewarm_timeout.saturating_sub(started.elapsed());
         if poll_timeout.is_zero() {
+            if std::env::var("SECURE_EXEC_PERFCLOCK").as_deref() == Ok("1") {
+                let tail: String = String::from_utf8_lossy(&stderr)
+                    .chars()
+                    .rev()
+                    .take(1500)
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .rev()
+                    .collect();
+                eprintln!(
+                    "[prewarm-stuck] {} timed out: {} rpcs, last='{}', tally={:?}; stderr tail:\n{}",
+                    resolved_module.specifier, rpc_count, last_method, method_tally, tail
+                );
+            }
             let _ = prewarm_execution.terminate();
             return Err(WasmExecutionError::WarmupTimeout(prewarm_timeout));
         }
@@ -4944,6 +4990,9 @@ fn prewarm_wasm_path(
                 break;
             }
             Some(JavascriptExecutionEvent::SyncRpcRequest(sync_request)) => {
+                rpc_count += 1;
+                last_method = sync_request.method.clone();
+                *method_tally.entry(sync_request.method.clone()).or_insert(0) += 1;
                 let handled = handle_internal_wasm_sync_rpc_request(
                     &mut prewarm_execution,
                     &mut internal_sync_rpc,
@@ -4961,6 +5010,18 @@ fn prewarm_wasm_path(
             }
             Some(JavascriptExecutionEvent::SignalState { .. }) => {}
             None => {
+                if std::env::var("SECURE_EXEC_PERFCLOCK").as_deref() == Ok("1") {
+                    let s = String::from_utf8_lossy(&stderr);
+                    eprintln!(
+                        "[prewarm-stuck-none] {} blocked (poll None) after {}ms: {} rpcs, last='{}', tally={:?}; full stderr:\n{}",
+                        resolved_module.specifier,
+                        started.elapsed().as_millis(),
+                        rpc_count,
+                        last_method,
+                        method_tally,
+                        s
+                    );
+                }
                 let _ = prewarm_execution.terminate();
                 return Err(WasmExecutionError::WarmupTimeout(prewarm_timeout));
             }
@@ -5231,6 +5292,20 @@ fn warmup_marker_contents(resolved_module: &ResolvedWasmModule) -> String {
         module_fingerprint,
     ]
     .join("\n")
+}
+
+/// A threaded (wasi-threads) guest imports a SHARED memory. Prewarm cannot safely run such a module
+/// (see the skip in [`WasmExecutionEngine::start_execution_with_net_drain`]): a thread spawned during
+/// static-init/instantiate needs a sync-RPC the blocked dispatch task must deliver, which deadlocks the
+/// synchronous prewarm. Detected here from the module's import section. Best-effort: any read/parse
+/// failure returns false so the normal prewarm path is used.
+fn wasm_module_is_threaded(resolved_module: &ResolvedWasmModule) -> bool {
+    match fs::read(&resolved_module.resolved_path) {
+        Ok(bytes) => extract_wasm_module_limits(&bytes)
+            .map(|limits| limits.memory_shared)
+            .unwrap_or(false),
+        Err(_) => false,
+    }
 }
 
 fn warmup_metrics_line(

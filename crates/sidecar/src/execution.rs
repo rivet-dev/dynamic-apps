@@ -2041,6 +2041,7 @@ impl ActiveUnixListener {
             backlog: usize::try_from(backlog.unwrap_or(DEFAULT_JAVASCRIPT_NET_BACKLOG))
                 .expect("default backlog fits within usize"),
             active_connection_ids: BTreeSet::new(),
+            accept_notifier_stop: Arc::new(AtomicBool::new(false)),
         })
     }
 
@@ -12936,6 +12937,62 @@ fn spawn_unix_socket_reader(
     });
 }
 
+/// Accept-notifier: wake the server process's `net.poll_wait` the instant a client connects to `listener`,
+/// completing the readiness notify-graph on the accept edge. A blocked `net.poll_wait` polls the readiness
+/// GENERATION across all of a process's fds; a new connection did not advance it, so the server previously
+/// discovered a connection only when its poll TIMED OUT at the ceiling and re-scanned — up to 50ms/connect,
+/// and catastrophic at a large ceiling (D-Bus/X connection setup times out). This thread owns a dup of the
+/// listener fd and `notify()`s on the readable (accept-ready) edge so the server accepts immediately.
+///
+/// Uses POSIX `poll` (not epoll) so it compiles on every sidecar target (Linux + macOS). The listener fd
+/// stays readable until the server accepts, so a backoff throttle bounds the notify rate for the brief
+/// pending window (and defuses a pathological never-accepting server into ≤2 notifies/s) — never a storm.
+fn spawn_unix_listener_accept_notifier(
+    listener: UnixListener,
+    readiness: Arc<crate::state::SocketReadiness>,
+    stop: Arc<AtomicBool>,
+) {
+    use nix::poll::{poll, PollFd, PollFlags, PollTimeout};
+    use std::os::fd::AsFd;
+    thread::spawn(move || {
+        let err_flags = PollFlags::POLLNVAL | PollFlags::POLLERR | PollFlags::POLLHUP;
+        // 1s poll timeout so `stop` (set when the listener drops) is observed within a second.
+        let timeout = PollTimeout::try_from(1000i32).unwrap_or(PollTimeout::MAX);
+        let mut pending_ms: u64 = 0;
+        loop {
+            if stop.load(Ordering::Relaxed) {
+                break;
+            }
+            let mut fds = [PollFd::new(listener.as_fd(), PollFlags::POLLIN)];
+            match poll(&mut fds, timeout) {
+                Ok(0) => {
+                    pending_ms = 0; // timeout: nothing pending, re-check stop
+                    continue;
+                }
+                Ok(_) => {}
+                Err(nix::errno::Errno::EINTR) => continue,
+                Err(_) => break, // fd invalid / listener gone
+            }
+            let re = fds[0].revents().unwrap_or(PollFlags::empty());
+            if re.intersects(err_flags) {
+                readiness.notify(); // let the server observe the listener error/close, then exit
+                break;
+            }
+            if re.contains(PollFlags::POLLIN) {
+                // A client is in the accept queue -> wake the server's poll so it accepts NOW.
+                readiness.notify();
+                // The fd stays readable until the server accepts; throttle (with backoff) so a slow or
+                // pathological server can't turn this into a notify storm.
+                let sleep_ms = if pending_ms >= 400 { 500 } else { 50 };
+                pending_ms = pending_ms.saturating_add(sleep_ms);
+                thread::sleep(Duration::from_millis(sleep_ms));
+            } else {
+                pending_ms = 0;
+            }
+        }
+    });
+}
+
 fn terminate_child_process_tree(kernel: &mut SidecarKernel, process: &mut ActiveProcess) {
     let sqlite_database_ids = process.sqlite_databases.keys().copied().collect::<Vec<_>>();
     for database_id in sqlite_database_ids {
@@ -20523,7 +20580,21 @@ where
 // the documented 50ms contract in crates/sidecar/CLAUDE.md. TCB note: this changes only poll EFFICIENCY,
 // not the boundary — a guest could already poll; it adds no new capability and the ceiling still bounds
 // the thread hold. (Human TCB sign-off obtained for the wasm-gui cross-VM render fix, 2026-06-22.)
-const JAVASCRIPT_NET_POLL_MAX_WAIT: Duration = Duration::from_millis(3);
+//
+// DO NOT lower this below 50ms. A perf-era experiment set it to 3ms chasing single-keystroke ir; that
+// reintroduced exactly the failure this ceiling exists to prevent — idle desktop clients (WM, panel,
+// xfdesktop) re-poll the single-threaded wasm X server ~333x/s, starving each newly-launched app's
+// startup so its first draw never completes. Measured 2026-07-01: at 3ms the 3rd+ heavy X client stays
+// black; at 50ms the full xfwm4+panel+xfdesktop+Thunar+mousepad stack renders. The multi-app desktop is
+// the acceptance target, so 50ms wins.
+//
+// Honest cost: 50ms is ~5ms SLOWER on warm single-keystroke ir than 3ms (median 33ms vs 28ms, B2). That
+// residual means a few productive ir exchanges wait out part of the ceiling instead of being woken by a
+// notify — i.e. the readiness notify-graph is INCOMPLETE (some data-ready transitions don't call
+// notify(), so the guest only catches them by re-polling). Completing that graph (Phase A #3, the idle
+// busy-spin defect, PERF-ARCHITECTURE §8) reclaims the 5ms AND removes the idle spin, letting the ceiling
+// be large with zero ir cost. Until then, 50ms is the correct trade: it renders the multi-app desktop.
+const JAVASCRIPT_NET_POLL_MAX_WAIT: Duration = Duration::from_millis(50);
 const EXITED_PROCESS_SNAPSHOT_RETENTION: Duration = Duration::from_secs(2);
 
 fn resolve_http2_file_response_guest_path(process: &ActiveProcess, path: &str) -> String {
@@ -20899,6 +20970,18 @@ where
                     host_mount_path_for_guest_path_from_mounts(&socket_paths.mounts, &guest_path)
                         .is_some();
                 let listener = ActiveUnixListener::bind(&host_path, &guest_path, payload.backlog)?;
+                // Accept-notifier: wake THIS process's net.poll_wait the instant a client connects, so
+                // the server accepts immediately instead of waiting out the poll ceiling. Without it a new
+                // connection only surfaces when the server's poll times out (up to the 50ms ceiling) and
+                // re-scans — which at a large ceiling starves D-Bus/X connection setup (the notify-graph
+                // gap on the accept edge). Owns a dup of the listener fd; exits when the listener drops.
+                if let Ok(fd_dup) = listener.listener.try_clone() {
+                    spawn_unix_listener_accept_notifier(
+                        fd_dup,
+                        Arc::clone(&process.socket_readiness),
+                        Arc::clone(&listener.accept_notifier_stop),
+                    );
+                }
                 if !on_host_mount {
                     ensure_kernel_parent_directories(kernel, &guest_path)?;
                     kernel

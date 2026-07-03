@@ -57,3 +57,13 @@ third_party/*/build-wasm-threads/
 # Self-contained interactive-demo bundle (prebuilt wasm guests + fonts/locale) so a fresh pull runs on macOS/Linux without the wasm toolchain.
 !demo-assets/
 !demo-assets/**
+scripts/window-test/out/
+
+# Host-side native build binaries + measurement run outputs (rebuildable; must never be committed).
+# Committing wasm-gui-host (~363MB) exceeded GitHub's 100MB limit and rejected the push.
+wasm-gui-host
+*-bin
+*.wasm.elf
+*.symbols
+scripts/window-test/out/
+scripts/native-ir/out/

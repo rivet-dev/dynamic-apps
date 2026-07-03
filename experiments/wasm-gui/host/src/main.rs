@@ -2189,6 +2189,37 @@ mod window {
         Some(Frame { w, h, rgba })
     }
 
+    /// Fraction (0..100) of non-black pixels in the guest framebuffer file (BGRX, sampling every 64th
+    /// pixel). Used to PAINT-GATE desktop client launches: launch the next app only once the previous has
+    /// actually painted, so a still-initializing app is never piled onto a not-yet-painted WM. The old
+    /// launch gate used X-client SILENCE as the "settled" proxy, but a STARVED client is also silent, so
+    /// it launched the next app onto a stalled one and deepened the concurrent-boot starvation that flakily
+    /// blanks the desktop. Best-effort: returns 0.0 if the fb is absent/short.
+    fn fb_coverage_pct(path: &std::path::Path, w: u32, h: u32) -> f64 {
+        let Ok(bytes) = std::fs::read(path) else {
+            return 0.0;
+        };
+        let need = (w as usize) * (h as usize) * 4;
+        if bytes.len() < need {
+            return 0.0;
+        }
+        let hdr = bytes.len() - need;
+        let (mut nb, mut tot) = (0usize, 0usize);
+        let mut i = hdr;
+        while i + 3 < bytes.len() {
+            if bytes[i] > 16 || bytes[i + 1] > 16 || bytes[i + 2] > 16 {
+                nb += 1;
+            }
+            tot += 1;
+            i += 64 * 4;
+        }
+        if tot == 0 {
+            0.0
+        } else {
+            100.0 * nb as f64 / tot as f64
+        }
+    }
+
     /// Interactive desktop window: runs the X server + window manager + apps in one VM, streams the
     /// live framebuffer into a native winit window, and forwards mouse/keyboard back through the XTEST
     /// `follow` agent (via the /data/input-cmds file the agent tails). Cross-platform (winit +
@@ -2302,23 +2333,105 @@ mod window {
 
         let s = Arc::new(s);
 
-        // --- background launcher: wait for the server, then launch clients sequentially ---
+        // --- background launcher: bring up the D-Bus session bus + services, then the X clients ---
         let (input_tx, mut input_rx) = tokio::sync::mpsc::unbounded_channel::<String>();
         let s_launch = s.clone();
         let clients_owned = clients.clone();
+        let demo_start = tokio::time::Instant::now();
         let desktop_has_dbus = dbus_daemon.is_some();
         let desktop_has_vm_trees = !vm_trees.is_empty();
         let desktop_has_locale = locale_dir.is_some();
         tokio::spawn(async move {
+            // D-Bus session bus for a full Xfce session (xfconfd/xfsettingsd/panel talk to it via GDBus).
+            // Mirrors the headless run_xdemo sequencing: launch the daemon, let it bind, then each
+            // long-lived service fully settled BEFORE the X clients so a starting service never contends
+            // with a starting X client. The interactive window is already open (winit owns the main
+            // thread); this runs in the background while the guest desktop comes up.
+            if let Some(dbusd) = dbus_daemon.as_deref() {
+                if let Ok(dbusd_abs) = abs_path(dbusd) {
+                    let mut denv = HashMap::new();
+                    denv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+                    let _ = s_launch
+                        .execute_env(
+                            "dbusd",
+                            &dbusd_abs,
+                            &[
+                                "--config-file=/etc/dbus-1/session.conf",
+                                "--nofork",
+                                "--nopidfile",
+                                "--print-address",
+                            ],
+                            denv,
+                        )
+                        .await;
+                    eprintln!("secure-exec: started dbus-daemon {dbusd_abs}");
+                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                    for (i, svc) in dbus_services.iter().enumerate() {
+                        if let Ok(svc_abs) = abs_path(svc) {
+                            let mut senv = HashMap::new();
+                            senv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
+                            senv.insert(
+                                "DBUS_SESSION_BUS_ADDRESS".to_string(),
+                                "unix:path=/tmp/.dbus/session".to_string(),
+                            );
+                            senv.insert("HOME".to_string(), "/root".to_string());
+                            let _ = s_launch
+                                .execute_env(&format!("dbussvc{i}"), &svc_abs, &[], senv)
+                                .await;
+                            eprintln!("secure-exec: started dbus service {svc_abs}");
+                            tokio::time::sleep(std::time::Duration::from_secs(4)).await;
+                        }
+                    }
+                }
+            }
             let mut server_ready = false;
             let mut wm_ready = false;
             let mut launched = 0usize;
             let mut last_launch = tokio::time::Instant::now();
+            let mut last_activity = tokio::time::Instant::now();
+            // Launch the next client only after the previously-launched clients have gone quiet for this
+            // long (idle in their event loops), so a heavy Xfce startup never contends with an
+            // already-starting one on the single-threaded X server (the concurrent-guest starvation that
+            // blanks the 3rd+ client). Mirrors the headless run_xdemo settle-gating. Env-tunable.
+            let settle = std::time::Duration::from_millis(
+                std::env::var("APP_SETTLE_MS")
+                    .ok()
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(6000),
+            );
+            // PAINT_GATE (default OFF — opt-in via PAINT_GATE=1): launch the next client only after the
+            // previously-launched one has PAINTED (guest-fb coverage rose since its launch). REJECTED as a
+            // default 2026-07-02: the WM (xfwm4) produces ZERO coverage on its own (a window manager paints
+            // only decorations around OTHER apps' windows), so the coverage-rise signal never fires for the
+            // WM hop and falls back to the 30 s timer; the resulting slow serial launch left xfdesktop
+            // unrendered (panel-only ~4.8 % vs the silence-gate's full 95 %). Kept behind the flag for
+            // future refinement (a per-app readiness signal, not raw coverage).
+            let paint_gate = std::env::var("PAINT_GATE").ok().as_deref() == Some("1");
+            let paint_fallback = std::time::Duration::from_millis(
+                std::env::var("PAINT_FALLBACK_MS")
+                    .ok()
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(30_000),
+            );
+            let paint_delta: f64 = std::env::var("PAINT_DELTA")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(1.5);
+            let fb_path = s_launch
+                .shadow_dir
+                .clone()
+                .map(|d| d.join("data/Xvfb_screen0"));
+            let mut cov_at_last_launch = 0.0f64;
             loop {
                 let timed = tokio::time::timeout(std::time::Duration::from_millis(300), events.recv());
                 match timed.await {
                     Ok(Ok((_, wire::EventPayload::ProcessOutputEvent(o)))) => {
                         let txt = String::from_utf8_lossy(&o.chunk);
+                        // Track quiescence of the X clients only (the X server + dbus are chatty and would
+                        // never let the settle window elapse).
+                        if o.process_id.starts_with("xclient") {
+                            last_activity = tokio::time::Instant::now();
+                        }
                         if !server_ready && o.process_id == "xserver" && txt.contains("m_pre_dispatch") {
                             server_ready = true;
                         }
@@ -2335,9 +2448,25 @@ mod window {
                 {
                     wm_ready = true;
                 }
-                let can = launched == 0 || wm_ready;
-                if server_ready && launched < clients_owned.len() && can
-                    && last_launch.elapsed() >= std::time::Duration::from_millis(1500)
+                // Readiness to launch the next client:
+                //  - PAINT_GATE (default): the previous app has PAINTED (fb coverage rose >= paint_delta
+                //    since its launch), or a long fallback elapsed so we never hard-stall. This never piles
+                //    a new app onto a not-yet-painted WM -> deterministic render.
+                //  - legacy: the WM is up (wm_ready) and X clients have been quiet for `settle`.
+                let ready_next = if paint_gate {
+                    let cov_now = fb_path
+                        .as_ref()
+                        .map(|p| fb_coverage_pct(p, width, height))
+                        .unwrap_or(0.0);
+                    launched == 0
+                        || cov_now >= cov_at_last_launch + paint_delta
+                        || last_launch.elapsed() >= paint_fallback
+                } else {
+                    let can = launched == 0 || wm_ready;
+                    can && last_activity.elapsed() >= settle
+                };
+                if server_ready && launched < clients_owned.len() && ready_next
+                    && last_launch.elapsed() >= std::time::Duration::from_millis(800)
                 {
                     let spec = &clients_owned[launched];
                     let mut parts = spec.split_whitespace();
@@ -2351,9 +2480,13 @@ mod window {
                             cenv.insert("AGENT_OS_V8_CPU_TIME_LIMIT_MS".to_string(), "0".to_string());
                             cenv.insert("DISPLAY".to_string(), ":0".to_string());
                             cenv.insert("HOME".to_string(), "/root".to_string());
+                            // The guests are an Xfce session: advertise it so freedesktop OnlyShowIn=XFCE /
+                            // NotShowIn filters resolve correctly (e.g. xfce4-settings-manager's grid).
                             cenv.insert("XDG_CURRENT_DESKTOP".to_string(), "XFCE".to_string());
                             cenv.insert("GIO_USE_VOLUME_MONITOR".to_string(), "null".to_string());
                             cenv.insert("GDK_CORE_DEVICE_EVENTS".to_string(), "1".to_string());
+                            // Connect GDBus clients (xfwm4/panel/xfdesktop/Thunar) to the running session
+                            // bus instead of trying to autolaunch one (which needs a machine-id + fails).
                             if desktop_has_dbus {
                                 cenv.insert(
                                     "DBUS_SESSION_BUS_ADDRESS".to_string(),
@@ -2390,6 +2523,7 @@ mod window {
                                 "SECURE_EXEC_POLL_SCAN",
                                 "SECURE_EXEC_FD_SCOPED_POLL",
                                 "SECURE_EXEC_PERFCLOCK",
+                                "SECURE_EXEC_WASM_SKIP_PREWARM",
                                 "LIBXCB_ALLOW_SLOPPY_LOCK",
                             ] {
                                 if let Ok(v) = std::env::var(k) {
@@ -2397,9 +2531,15 @@ mod window {
                                 }
                             }
                             let id = format!("xclient{launched}");
+                            // Snapshot fb coverage at launch so the NEXT app gates on a rise above this
+                            // (i.e. THIS app has painted). Cheap read of the shadow fb file.
+                            cov_at_last_launch = fb_path
+                                .as_ref()
+                                .map(|p| fb_coverage_pct(p, width, height))
+                                .unwrap_or(0.0);
                             let _ = s_launch.execute_env(&id, &path_abs, &argv, cenv).await;
                             eprintln!("secure-exec: launched {id} ({path})");
-                eprintln!("[milestone +{}ms] {id} launched", demo_start.elapsed().as_millis());
+                eprintln!("[milestone +{}ms] {id} launched (cov@launch {:.1}%)", demo_start.elapsed().as_millis(), cov_at_last_launch);
                             launched += 1;
                             last_launch = tokio::time::Instant::now();
                         }
@@ -2422,6 +2562,16 @@ mod window {
             }
         });
         std::thread::spawn(move || {
+            // Optionally delay connecting the XTEST input client so it doesn't add a 6th X client to the
+            // guest X server during the heavy multi-app startup storm (diagnostic for whether the
+            // --desktop overhead tips the single-threaded X-server render ceiling). Default 0.
+            let xtest_delay_s: u64 = std::env::var("SX_XTEST_DELAY_S")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(0);
+            if xtest_delay_s > 0 {
+                std::thread::sleep(std::time::Duration::from_secs(xtest_delay_s));
+            }
             // The server may not be accepting yet; retry the connect for a few seconds.
             let mut xi = None;
             for _ in 0..200 {
@@ -2443,7 +2593,14 @@ mod window {
             }
         });
 
-        // --- framebuffer streamer: read the shadow file ~30fps and push frames to the window ---
+        // --- framebuffer streamer: read the shadow file and push frames to the window ---
+        // Rate env-tunable (SX_FB_STREAM_MS, default 33 = ~30fps). A slower rate cuts host I/O contention
+        // with the guest's fb writeback during startup (diagnostic for the --desktop render stall).
+        let fb_stream_ms: u64 = std::env::var("SX_FB_STREAM_MS")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .filter(|&v| v > 0)
+            .unwrap_or(33);
         let (frame_tx, frame_rx) = std_mpsc::channel::<Frame>();
         std::thread::spawn(move || loop {
             if let Some(frame) = read_x_frame(&shadow_fb, width, height) {
@@ -2451,7 +2608,7 @@ mod window {
                     return;
                 }
             }
-            std::thread::sleep(std::time::Duration::from_millis(33));
+            std::thread::sleep(std::time::Duration::from_millis(fb_stream_ms));
         });
 
         // --- winit takes the main thread ---

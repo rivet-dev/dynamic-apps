@@ -4,7 +4,120 @@ Living spec (**DRAFT v1**, 2026-06-24). Status legend: ⬜ todo · 🟡 in progr
 
 ---
 
-## ⚡ DIRECTION (2026-06-26): performance-first → a HIGH-PERFORMANCE full Xubuntu desktop running multiple apps
+## ⚡ DIRECTION (2026-07-01): perf ACCEPTED → clear deferred items → full Xubuntu desktop end-to-end
+
+**North star (unchanged):** a **full Xubuntu desktop, all-wasm in secure-exec, running end-to-end** — the
+xfwm4 + xfce4-panel + xfdesktop + Thunar shell **plus several real apps at once**, live in one session,
+WM-decorated and arranged on the panel/desktop, and **interactive in the native window** (`bash
+scripts/run-desktop.sh`, macOS/Linux): type, click, switch windows. Not a static framebuffer scrape.
+
+**Single-app performance is DONE and accepted (2026-07-01).** Keystroke input→response (B2: Xvfb + GTK) is
+**~26 ms, ~5.9× native (4.4 ms)**, down from a true ~98 ms — the CORE-reachable floor. Levers landed
+(fd-poll bound, tighter spin-before-park wake); the remaining gap to a strict 3× is out-of-CORE toolchain
+work. **The per-keystroke perf-lever hunt is CLOSED.** Full architecture + measured findings + how-to-measure:
+**→ [`PERF-ARCHITECTURE.mdx`](./PERF-ARCHITECTURE.mdx)** (authoritative). Detailed log: `PERF-OPTIMIZATION.md`
+§6-§7.
+
+### ★ STATUS 2026-07-02 — render unblocked; the notify-graph is THE next fix for full simultaneity
+
+Progress (landed + committed, PR #104): the "3rd+ heavy X client stays black" ceiling was the **`net.poll_wait`
+clamp lowered to 3 ms** (not isolate-divergence). **Restored the 50 ms contract** → the full 5-guest stack
+renders headless; the interactive `run_desktop`/`run-desktop.sh` path is wired for the full Xfce session
+(D-Bus + xfconfd + settle-gating, panel launched 2nd so it doesn't time out); **in-band input is proven**
+(real xdotool→winit→guest round-trip changes the desktop).
+
+Remaining blocker (evidence-checked, see `2026-07-01…-concurrent-client-ceiling.md`): **5 heavy GTK clients
+painting simultaneously in the interactive path is non-deterministic** — the single-threaded wasm X server
+intermittently stalls under that load and serves nothing (even a trivial background fill), and warm ir at the
+50 ms clamp is +5 ms over 3 ms. Both symptoms are the SAME root: the **incomplete readiness notify-graph** —
+the X server's own `poll()` (and idle clients') spin at the ceiling instead of blocking event-driven, because
+some event sources that make an fd ready do not call `readiness.notify()`. Render-gated launch was RULED OUT
+(the stall happens with sequential, well-spread launches).
+
+### ⏭ UP NEXT (the primary fix — do this now): complete the readiness notify-graph
+
+**Goal:** every event source that makes a guest fd ready must wake a blocked `net.poll_wait` immediately, so
+guests block **event-driven** (never timer-poll the 50 ms ceiling). Then: the X-server stall disappears (its
+poll blocks until real data), idle clients stop stealing X-server throughput, idle CPU → ~0, and ir at 50 ms
+returns to ~28 ms (== 3 ms) — proving the hot path no longer waits out the clamp.
+- **Scope the notify sites** in `crates/sidecar/src/{state.rs,execution.rs}`: socket data-arrival (reader
+  thread), **new-connection accept** (listener readiness), socket **close/EOF**, cross-guest **write→peer
+  read** readiness, pipe/PTY data. Find which transitions advance a socket's state WITHOUT calling
+  `SocketReadiness::notify()/notify_key()` — those are the missing edges.
+- **Test-first (acceptance for the fix):** (a) `bash scripts/bench-ir.sh "SECURE_EXEC_POLL_MAX_WAIT_MS=50" 3`
+  ≈ `bash scripts/bench-ir.sh "" 3` (the +5 ms gap closes → notify-graph complete on the hot path);
+  (b) `scripts/verify-desktop-headless.sh` renders the multi-app desktop **reliably** across ≥3 runs (no
+  intermittent all-black stall); (c) idle-CPU near 0 while the VM sits idle; (d) existing guest-I/O tests
+  still green (a regression here breaks ALL guest I/O — verify broadly).
+- **Danger:** this edits the core poll/readiness path. Land it behind measurement, not by feel; keep the 50 ms
+  ceiling as the safety backstop (a missed notify then costs ≤50 ms, never a hang).
+
+### The path (this is the live plan — work top-to-bottom)
+
+**Phase A — clear the prioritized deferred items:**
+
+1. **Notify-graph completion** *(★ UP NEXT — see the dedicated section above; the primary fix for XU7
+   simultaneity + the idle-CPU spin + the +5 ms ir).*
+2. **Isolate-divergence audit fixes** *(a real latent wasi-threads bug — NOT the multi-app blocker after all;
+   see STATUS above; task #30, deprioritized below Phase B).* Under wasi-threads a worker
+   isolate gets fresh/empty copies of state Linux shares across threads. **Report:**
+   `~/progress/secure-exec-wasmgui/2026-06-27-isolate-divergence-audit/audit-report.md`. Already fixed:
+   GWakeup pipes, host_net sockets.
+   **Re-scoped 2026-07-01 (`2026-07-01-xubuntu-de/…-phaseA1-…-investigation.md`) — the audit's single
+   kernel-resolve edge is incomplete; guest-file fds split into two sub-classes needing different fixes:**
+   - **(1a) kernel-backed guest-file fds** (staged VM paths — `/root/.config`, `/usr/share`, `/tmp`; what
+     the Xfce apps read cross-thread): kernel-resolve fallback in `lookupFdHandle`, or range-encode like
+     `KERNEL_PIPE_FD_BASE`. **High-value; do first.**
+   - **(1b) preopen/host-fs guest-file fds** (sandbox root): the `targetFd` is an isolate-local host fd, so
+     the worker must **re-open by the shared `guestPath`** (needs a small kernel-side fd→path registry
+     populated at `path_open`). Lower priority (apps rarely read the sandbox root cross-thread).
+   - **(1c) `proc_waitpid` ECHILD:** add a kernel `process.waitpid(pid)` RPC (process table is shared) and
+     route to it on a `spawnedChildren` miss (mirrors `proc_kill`'s `process.kill` fallthrough).
+   **Test-first:** these edit the fundamental guest fd/process paths (a regression breaks ALL guest I/O), so
+   build a wasi-threads repro guest (open-on-main / read-on-worker → EBADF; spawn-on-main / waitpid-on-worker
+   → ECHILD) BEFORE the fix, and re-run it green after. *(Start here.)*
+2. **XU5 Thunar window-map** *(the file manager).* Worker-thread completion never wakes the main
+   `GMainContext` poll (cross-thread wakeup, same family as #1). Fix → Thunar's window maps → XU5 closes.
+3. **Idle-CPU busy-spin / notify-graph completion. ★ PARTIALLY DONE 2026-07-01 — this was THE multi-app
+   blocker, not isolate-divergence (#1).** The `net.poll_wait` clamp had been lowered to **3 ms** (a perf-era
+   ir experiment), which made every idle desktop client (WM, panel, xfdesktop) re-poll the single-threaded
+   wasm X server ~333×/s and **starve each newly-launched app's startup so its first draw never completed**
+   — the long-standing "3rd+ heavy client stays black" ceiling. **Restored the clamp to the documented 50 ms
+   contract** (`crates/sidecar/.../execution.rs`, `JAVASCRIPT_NET_POLL_MAX_WAIT`; crates/sidecar/CLAUDE.md:24).
+   Result (measured, screenshots in `2026-07-01-xubuntu-de/`): the **full xfwm4 + xfce4-panel + xfdesktop +
+   Thunar + mousepad stack renders headless** where at 3 ms the 3rd client was black. Cost: +~5 ms warm ir
+   (28→33 ms) — a few productive exchanges wait out part of the ceiling because the readiness notify-graph is
+   still INCOMPLETE. **Remaining:** complete the notify-graph so data-ready transitions always `notify()` →
+   idle guests block event-driven (kills the ~100% idle spin) AND ir loses the +5 ms even at a large clamp.
+   See [`PERF-ARCHITECTURE.mdx`](./PERF-ARCHITECTURE.mdx) §8 and `2026-07-01…-concurrent-client-ceiling.md`.
+4. **Repo hygiene.** Strip committed binary bloat (`third_party/*` ~500 MB + `.pnpm-store-local/`) from
+   history — clones are ~1 GB. (Dangling `node_modules` symlinks already fixed.) Refresh the PR #104 title.
+5. **Gated-lever decision.** Keep or delete the measured-null gated levers `SECURE_EXEC_FD_SCOPED_POLL` +
+   `SECURE_EXEC_POLL_SCAN` (both correct + render-green but ir-null; see PERF-ARCHITECTURE.mdx §6).
+
+**Phase B — the full Xubuntu desktop end-to-end** (the acceptance; details in §6 milestones):
+
+- **XU7 — multi-app simultaneity (THE acceptance milestone):** xfwm4 + xfce4-panel + xfdesktop + Thunar +
+  several apps at once, live in one session, decorated + arranged, and **responsive to interact with**,
+  proven **IN-BAND** (a real input round-trip through the native window, not an out-of-band framebuffer
+  scrape — see review correction C6).
+- **XU8 — full session:** xfce4-terminal (VTE `fork`→`proc_spawn` seam + a shell guest) and a hand-launched
+  session harness so the whole Xfce shell boots and is usable.
+
+**Where the work happens:** the **main repo** (`/home/nathan/secure-exec`) — sidecar / kernel / toolchain.
+This wasm-gui desktop is the **benchmark / proving ground**.
+
+**PROOF — screenshots for ALL progress (not just the finish).** Every meaningful step and every milestone
+(each Phase-A item and each XU) must produce a **screenshot artifact** saved under
+`~/progress/secure-exec-wasmgui/{YYYY-MM-DD}-{slug}/` named `{ISO-8601}-{slug}.png`, captured from the
+running desktop (the framebuffer / the native window via `run-desktop.sh`, or the headless
+`scripts/verify-window-headless.sh`). **A milestone with no screenshot artifact is not done.** The final XU7
+acceptance additionally requires an **in-band interactivity** capture (a real input round-trip visibly
+changing the desktop — per review-correction C6, not an out-of-band framebuffer scrape).
+
+---
+
+## ⚡ DIRECTION (2026-06-26): performance-first → a HIGH-PERFORMANCE full Xubuntu desktop running multiple apps  — SUPERSEDED by the 2026-07-01 direction above; kept for the perf-lever background (Root-1..4 = the OUT-OF-SCOPE toolchain levers if perf is ever revisited)
 
 **THE MILESTONE (the one that matters — XU7 acceptance):** a **high-performance, genuinely usable Xubuntu
 desktop** running **multiple real applications simultaneously**. Concretely: xfwm4 + xfce4-panel + xfdesktop +
@@ -14,6 +127,16 @@ interact with** (type, click, switch windows) — NOT a single static screenshot
 components already render individually (XU0–XU6 done; gmodule SOLVED + consolidated); the remaining gap is
 **performance** (the runtime can't currently schedule that many heavy guests fast enough), not more components.
 So the work now leads with performance, and "done" = the multi-app desktop is fast and usable.
+
+**NEXT STEP after the current XU7 spin fix (per-isolate divergence cleanup):** the XU7 multi-app
+blocker turned out to be a **per-isolate guest-state divergence under wasi-threads** (a worker isolate
+gets fresh/empty copies of state Linux shares across threads). The full audit of this class — confirmed
+bugs, ranked by blast radius, with the single generalizing fix (kernel-as-shared-source-of-truth +
+range-encoded fds + per-isolate cache with a kernel-resolve fallback) — is here and is the next work
+item after the current fix lands: **`~/progress/secure-exec-wasmgui/2026-06-27-isolate-divergence-audit/audit-report.md`**.
+Already fixed: GWakeup/cross-thread pipes, host_net sockets (mitigated). Still unfixed: `syntheticFdEntries`
+(guest-file fds → spurious `EBADF` cross-thread) and `spawnedChildren`/`proc_waitpid` (→ spurious `ECHILD`).
+See `experiments/wasm-gui/XU7-STARVATION-INVESTIGATION.md` for the investigation that surfaced it.
 
 **Where the work happens:** the **main repo** (`/home/nathan/secure-exec`) — sidecar / kernel / toolchain. This
 wasm-gui desktop is the **benchmark / proving ground**, not where the perf code lives.

@@ -1,0 +1,151 @@
+# wasm-gui runtime performance — architecture & measured findings
+
+Status: **perf accepted (2026-07-01).** Single-keystroke input→response (ir) for the B2 scenario
+(Xvfb + mousepad/GTK) is **~26 ms median, ~5.9× the native baseline (4.4 ms)**, down from a true ~98 ms.
+This is the CORE-reachable floor; closing the last ~13 ms to a strict 3× needs out-of-CORE toolchain work
+(see [§7](#7-the-floor-and-what-it-would-take-to-go-lower)).
+
+This is the authoritative architecture doc for how the wasm desktop performs and why. The blow-by-blow
+measurement log lives in [`PERF-OPTIMIZATION.md`](./PERF-OPTIMIZATION.md) §6-§7; the RPC-routing detail in
+[`PERF-ARCHITECTURE-RESOLVED.md`](./PERF-ARCHITECTURE-RESOLVED.md). This doc is the durable summary.
+
+---
+
+## 1. The runtime model (how a keystroke becomes a pixel)
+
+Every guest — the X server (Xvfb), the window manager, each app — is a **`wasm32-wasip1` program running in
+its own V8 isolate** inside one secure-exec sidecar. Guests never share memory or threads with each other;
+they talk over the **X11 protocol on kernel-owned sockets**, exactly as separate Linux processes would.
+
+A single keystroke render is therefore a **chain of cross-guest X round-trips**, e.g.:
+
+```
+host XTEST inject → Xvfb (isolate A) → key event → mousepad/GTK (isolate B)
+   → GTK lays out + emits draw requests → Xvfb rasterizes → framebuffer
+```
+
+Each hop is a guest **`poll()` that blocks waiting for the peer to produce data**. In the runtime this is a
+`net.poll_wait` sync-RPC that parks until a reader thread delivers the peer's bytes and calls
+`readiness.notify()`. So render latency ≈ **(number of productive cross-guest exchanges) × (per-exchange
+peer turnaround)**.
+
+Native does the same ~X protocol exchanges over local kernel sockets at ~µs each. In wasm each exchange is
+a cross-isolate turnaround; making that turnaround cheap — without letting a guest see a degraded
+environment — is the whole performance problem.
+
+## 2. Sync-RPC routing is split (why some ops are cheap)
+
+A guest sync-RPC takes one of two paths, decided per call in `handle_internal_wasm_sync_rpc_request`
+(`crates/execution/src/wasm.rs`):
+
+- **Executor-internal (fast):** module resolution, module-file reads, and fs ops whose guest path maps to a
+  WASI preopen host path. Serviced directly in the isolate against the sandbox-root host fs — never emits a
+  SyncRpcRequest, never reaches the sidecar.
+- **Kernel-forwarded (the render hot path):** anything hitting the kernel VFS (the framebuffer device),
+  the kernel **socket table** (the X11 connections), synthetic `/proc`, `/dev`, DNS, permission checks. These
+  cross to the sidecar's single service loop.
+
+The X11 socket traffic and the framebuffer blit are kernel-forwarded, so they are what the runtime levers
+target.
+
+## 3. The dispatch fast paths (the "inline-dispatch family")
+
+The blocking `net.poll_wait` runs off a dedicated `PollWaiterPool` (never on the single service thread, so
+one guest can't stall others). On top of that, the hot **non-blocking** ops are serviced **inline on each
+guest's per-session bridge thread** via the `InlineNetDrain` trait, bypassing the shared `select!` funnel:
+
+- `net.poll` drain (F10), `__kernel_fd_poll` (C-lite), `net.server_accept` readiness (T-accept), and the
+  `net.poll_wait` fast-path (zero-wait / already-advanced).
+
+These landed the run from ~98 → ~56 ms and are default-on.
+
+## 4. Where the time goes (measured decomposition)
+
+Per **productive** cross-guest exchange (GAPTRACE, whole-run):
+
+| segment | cost | meaning |
+|--|--|--|
+| `peerWait` (register→notify) | **~1.3 ms** | the PEER producing the reply (its compute + own poll cycle) |
+| `wakeLag` (notify→resume) | **~11 µs** | the runtime's cross-thread wake path |
+| `resp` (channel send) | **~27 µs** | delivering the response |
+
+So the runtime wake/deliver path a CORE lever can touch is **~38 µs (~3%)** of an exchange; the other ~97%
+is the peer's own turnaround. The render is **~9 productive exchanges + churn**, landing at ~26 ms.
+
+**The render is compute/turnaround-bound, not dispatch-bound.** Proof by measurement: the op-count collapse
+(§6) fully engaged across both guests (~5400 drain/fd-poll ops collapsed into one RPC) and ir did **not**
+move. If dispatch/op-count were the bottleneck it would have.
+
+## 5. Levers that LANDED (default-on wins)
+
+| lever | change | effect |
+|--|--|--|
+| **fd-poll busy-spin bound** | `KERNEL_POLL_INLINE_BOUND` 2000 µs → **200 µs** (`crates/kernel/src/kernel.rs`) | ir **61 → 46 ms** |
+| **tighter wake (spin-before-park)** | `ChannelResponseReceiver::recv_response` spins `try_recv` up to `SECURE_EXEC_TIGHTER_WAKE_SPINS` (default **30000**) before parking (`crates/v8-runtime/src/session.rs`) | ir **46 → ~26 ms** + variance collapse |
+
+- **fd-poll bound:** the inline empty-pipe poll parked up to 2 ms per glib iteration (a redundant
+  "busy-spin guard" — the guest blocks on `net.poll_wait` right after). SYNCSPLIT showed `_kernelFdPollRaw`
+  at ~2.2 ms rt (20× the drain). 200 µs is the swept knee (0 is unstable, 500+ regresses).
+- **tighter wake:** the ~100 µs/op floor was the guest thread **parking on the separate bridge thread**
+  (SYNCSPLIT: not marshalling). On a many-core host the bridge produces an inline-op response in ~µs, so a
+  short spin catches it without the futex round-trip. Idle CPU unchanged (100.5% with and without — the
+  pre-existing poll-spin dominates; see §8).
+
+## 6. Levers that are GATED (implemented, measured null/marginal — kept as infra, default-off)
+
+| lever | flag | measured result |
+|--|--|--|
+| **fd-scoped wakeups** | `SECURE_EXEC_FD_SCOPED_POLL` | spurious wakes 59% → 35%, but **ir-null** — spurious wakes are cheap after tighter-wake |
+| **op-count collapse** (`net.poll_scan`) | `SECURE_EXEC_POLL_SCAN` | fully engaged both guests (~5400 ops collapsed), **ir-null** — proves compute-bound, not op-count-bound; substitutes with tighter-wake |
+
+Both are correct + render-green; they are null **because tighter-wake already drove per-op cost to ~µs**, so
+reducing spurious-wake count or op count adds nothing on top. Kept behind flags rather than deleted so the
+infrastructure survives if the regime changes.
+
+## 7. The floor, and what it would take to go lower
+
+- **Compute floor:** B1 (`bench-gobject`) measures pure GObject `new+unref` at **0.67 µs/op wasm vs ~0.03 µs
+  native ≈ 22×**. The render's operation *mix* averages ~5.9×. So the render is at the wasm-compute floor for
+  its op mix.
+- **A strict 3× (~13 ms) coincides with that floor.** The goal's own definition puts the guest-compute floor
+  at ~2.9× native (wasm toolchain + single-thread), so 3× leaves essentially zero budget for runtime
+  overhead. Reaching it needs one of, all **out of the CORE scope** this work targets:
+  - faster wasm compute — toolchain (SIMD, opt-level, threads),
+  - fewer guest X round-trips — a guest-binary change (Constraint #5, forbidden),
+  - or a shared-memory inter-guest ring (**lever D**) — measured a likely **null**, because `wakeLag`=11 µs
+    shows the transport it would remove is already ~µs; the ~1.3 ms peerWait is peer *processing*, not
+    transport.
+
+**Decision (2026-07-01): accept ~26 ms as the CORE floor.** The remaining gap is toolchain/architecture,
+tracked separately, not blocking the desktop roadmap.
+
+## 8. The one real remaining CORE defect: idle-CPU busy-spin (and why it also gated the multi-app desktop)
+
+Separate from render-ir: the sidecar burns CPU while the VM is idle (native ≈ 0%). Root cause is an
+**incomplete readiness notify-graph** — well-behaved guests request long (100 ms+) `poll()` timeouts, but
+the `net.poll_wait` clamp (`JAVASCRIPT_NET_POLL_MAX_WAIT`) makes them re-poll on the ceiling instead of
+blocking event-driven. This violates the "wakeups are event-driven, never timer-polled" invariant.
+
+**2026-07-01 — this defect also caused the multi-app "3rd+ client stays black" ceiling.** The clamp had been
+lowered to **3 ms** (a perf-era ir experiment), so every idle desktop client re-polled the single-threaded
+wasm X server ~333×/s and starved each newly-launched app's startup. **Restored to the documented 50 ms
+contract** → the full xfwm4 + panel + xfdesktop + Thunar + mousepad stack renders (see the XUBUNTU-SPEC
+DIRECTION + `2026-07-01…-concurrent-client-ceiling.md`). 50 ms cuts the idle re-poll rate ~17× and unblocks
+the desktop, at a cost of ~+5 ms warm ir (28→33 ms) because a few productive exchanges wait out part of the
+ceiling — proof the notify-graph is still incomplete. **Remaining CORE work:** complete the notify-graph so
+every data-ready transition calls `notify()`; then idle guests block indefinitely (idle CPU → ~0), the
+ceiling can be large with zero ir cost, and both this defect and the ir tax close together.
+
+## 9. How to measure (honest metric + diagnostics)
+
+- **Trustworthy ir:** `bash experiments/wasm-gui/scripts/bench-ir.sh "" 3` — warm, single keystroke,
+  caret-blink-off, glyph-region detect (measures the actual typed glyph, not cursor/caret artifacts). Render
+  gate green.
+- **Native baseline (re-measure each session):** `experiments/wasm-gui/scripts/native-ir/` (Docker; identical
+  mousepad/Xvfb/GTK). ~4.4 ms median, 36 samples.
+- **Diagnostics (all default-OFF):** `SECURE_EXEC_GAPTRACE` (peerWait/wakeLag split), `SECURE_EXEC_SYNCSPLIT`
+  (per-op ser/roundtrip/de), `SECURE_EXEC_OPTRACE` (per-call bridge trace), `SECURE_EXEC_POLLSTAT` (glib
+  iteration + spurious-wake counts), `SECURE_EXEC_WAKEPROF` (wake-cause histogram).
+
+CLAUDE.md invariant (added this effort): *a perf gap vs native Linux is a runtime bug until a 1:1 native
+trace proves otherwise — never call it a "floor" without the native comparison.*

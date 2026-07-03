@@ -1,0 +1,9 @@
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    xvfb mousepad python3 fonts-dejavu-core x11-apps x11-utils xdotool \
+    xfwm4 xfce4-panel xfdesktop4 thunar dbus-x11 xtrace procps \
+    && rm -rf /var/lib/apt/lists/*
+COPY desktop-measure.py /desktop-measure.py
+COPY desktop.sh /desktop.sh
+RUN chmod +x /desktop.sh
+CMD ["/desktop.sh"]
