@@ -32,11 +32,62 @@ char *tgetstr(const char *id, char **area) {
 	return (char *)0;
 }
 
-char *tgoto(const char *cap, int col, int row) {
-	(void)cap;
-	(void)col;
-	(void)row;
-	return (char *)0;
+/* tgoto — expand a parameterized termcap capability (cursor motion T_CM,
+ * scroll region T_CS, etc.). With HAVE_TGETENT defined, vim routes ALL
+ * parameterized caps through this external tgoto; a NULL/stub return silently
+ * drops the escape (so t_cm/t_cs are set but never emitted → linear draw, no
+ * scroll region, status line on the wrong row). This is vim's own minimal
+ * tgoto (src/term.c, the #ifndef HAVE_TGETENT branch): parse %i, %d, %+char,
+ * %%; termcap convention is tgoto(cap, destcol, destline) with %d emitting the
+ * LINE first, then swapping to the column. */
+char *tgoto(const char *cap, int col, int line) {
+	static char buf[64];
+	char *s = buf;
+	char *e = buf + sizeof(buf) - 1;
+	int x = col;
+	int y = line;
+
+	if (!cap) {
+		return "OOPS";
+	}
+	for (; s < e && *cap; cap++) {
+		if (*cap != '%') {
+			*s++ = *cap;
+			continue;
+		}
+		switch (*++cap) {
+		case 'd': {
+			/* emit y as decimal, then swap so the next %d emits x */
+			char num[16];
+			int n = 0;
+			unsigned v = (unsigned)(y < 0 ? 0 : y);
+			do {
+				num[n++] = (char)('0' + v % 10);
+				v /= 10;
+			} while (v && n < (int)sizeof(num));
+			while (n > 0 && s < e) {
+				*s++ = num[--n];
+			}
+			y = x;
+			break;
+		}
+		case 'i':
+			x++;
+			y++;
+			break;
+		case '+':
+			*s++ = (char)(*++cap + y);
+			y = x;
+			break;
+		case '%':
+			*s++ = '%';
+			break;
+		default:
+			return "OOPS";
+		}
+	}
+	*s = '\0';
+	return buf;
 }
 
 int tputs(const char *str, int affcnt, int (*putc_fn)(int)) {

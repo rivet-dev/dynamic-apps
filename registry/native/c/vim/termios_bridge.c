@@ -55,6 +55,16 @@ static void ensure_shadow(void) {
 	}
 }
 
+/* isatty: delegate to the kernel's host_tty view. wasi-libc's isatty inspects
+ * WASI fdstat (must be CHARACTER_DEVICE with NO seek/tell rights); a PTY fd
+ * that carries seek/tell rights is wrongly reported as not-a-tty, so terminal
+ * apps (vim) print "Output is not to a terminal" and refuse full-screen mode.
+ * host_tty.isatty is the authoritative PTY check the kernel exposes (a strong
+ * symbol overriding the weak libc alias). */
+int isatty(int fd) {
+	return __host_tty_isatty((unsigned int)fd) ? 1 : 0;
+}
+
 int tcgetattr(int fd, struct termios *t) {
 	(void)fd;
 	if (!t) { errno = EFAULT; return -1; }

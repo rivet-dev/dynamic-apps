@@ -5,6 +5,16 @@
 #include <sys/types.h>
 #include <poll.h>
 #include <sys/time.h>
+#include <signal.h>
+/* Force termios everywhere so TIOCGWINSZ + struct winsize are visible in EVERY
+ * translation unit (os_unix.c's window-size query is gated on TIOCGWINSZ, which
+ * is only defined where <termios.h> is included). */
+#include <termios.h>
+
+/* wasi-libc declares no sigprocmask (no signals), but our posix_stubs.c
+ * implements it and configure detects it (HAVE_SIGPROCMASK) — declare it so
+ * os_unix.c's calls compile instead of failing with implicit-declaration. */
+int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 
 /* waitpid flags (no sys/wait.h with these on wasi) */
 #ifndef WNOHANG
