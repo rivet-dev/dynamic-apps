@@ -44,8 +44,9 @@ all: wasm
 # Build EVERYTHING that lands in COMMANDS_DIR: all Rust commands (+ codex when
 # the fork is present), then the opted-in C commands (curl, wget, sqlite3, zip,
 # unzip, envsubst, duckdb). C runs second so a C port wins over a Rust crate of
-# the same name (e.g. curl). Binaries with no source pipeline here (vim, vix)
-# must still be dropped into COMMANDS_DIR by hand.
+# the same name (e.g. curl). vim builds from source via `make cmd/vim` (not in
+# the bulk C set); vix has no source pipeline and must still be dropped into
+# COMMANDS_DIR by hand.
 commands: wasm
 	$(MAKE) -C c programs install
 
@@ -205,8 +206,8 @@ wasm: vendor patch-vendor patch-std wasm-opt-check
 #   external  hand-built drop-zone binaries with no source pipeline yet
 # `just registry-native-cmd <name>` calls this. `make wasm` still builds the
 # whole Rust set; `make -C c programs install` still builds the whole C set.
-C_COMMANDS := zip unzip envsubst sqlite3 curl wget duckdb
-EXTERNAL_COMMANDS := vim vix
+C_COMMANDS := zip unzip envsubst sqlite3 curl wget duckdb vim http_get
+EXTERNAL_COMMANDS := vix
 
 .PHONY: cmd/%
 cmd/%:

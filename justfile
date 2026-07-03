@@ -50,9 +50,9 @@ registry-build PKG="":
 			[ -d "$base/{{ PKG }}" ] && dir="$base/{{ PKG }}"
 		done
 		[ -n "$dir" ] || { echo "ERROR: no registry/software/{{ PKG }} or registry/agent/{{ PKG }}"; exit 1; }
-		npx turbo build --filter "./$dir"
+		npx turbo build --force --filter "./$dir"
 	else
-		npx turbo build --filter './registry/software/*' --filter './registry/agent/*'
+		npx turbo build --force --filter './registry/software/*' --filter './registry/agent/*'
 	fi
 
 # Run the registry integration tests (registry/tests)

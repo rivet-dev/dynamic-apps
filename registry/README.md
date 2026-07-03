@@ -72,7 +72,8 @@ per-binary entry point; it dispatches to whichever toolchain owns the command:
 | Rust | any `crates/commands/<name>` (sh, ls, rg, git, …) | `cargo build -p cmd-<name>` (build-std) + `wasm-opt` |
 | C | `zip unzip envsubst sqlite3 curl wget duckdb` | `make -C c sysroot build/<src>` + per-command install |
 | codex | `codex`, `codex-exec` | the codex fork build (needs the fork checkout) |
-| external | `vim`, `vix` | validates the hand-built binary is in the drop zone; errors with instructions otherwise |
+| C | `vim` (pinned upstream clone + bridge in `c/vim/`) | `make -C c sysroot build/vim` + install |
+| external | `vix` | validates the hand-built binary is in the drop zone; errors with instructions otherwise |
 
 The native build (`registry/native`) compiles each `crates/commands/<name>`
 (cargo package `cmd-<name>`) to `wasm32-wasip1` with a patched std
@@ -92,10 +93,12 @@ Exceptions:
 - C-built commands (sqlite3, zip, unzip, wget, duckdb) need the patched
   sysroot; `just registry-native-cmd <name>` builds it on demand. Without it
   those packages stay empty placeholders.
-- `vim`/`vix` have no source pipeline yet: drop the hand-built wasm binaries
-  into `registry/native/target/wasm32-wasip1/release/commands/` and
-  `just registry-build vim` does the rest (vim's runtime tree is staged by its
+- `vim` builds from source: `just registry-native-cmd vim` clones the pinned
+  vim tag and compiles it against the patched sysroot + the termios/termcap
+  bridge in `registry/native/c/vim/` (its runtime tree is staged by the
   package `scripts/stage-runtime.mjs` and applied via manifest `provides`).
+- `vix` is the one remaining external drop-zone binary (no source pipeline):
+  place the hand-built wasm at `registry/native/target/.../commands/vix`.
 
 ## Publishing
 

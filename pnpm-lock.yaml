@@ -590,9 +590,6 @@ importers:
       '@agentos-software/git':
         specifier: workspace:*
         version: link:../git
-      '@agentos-software/make':
-        specifier: workspace:*
-        version: link:../make
     devDependencies:
       '@agentos-software/manifest':
         specifier: workspace:*
@@ -904,21 +901,6 @@ importers:
         version: 5.9.3
 
   registry/software/jq:
-    devDependencies:
-      '@agentos-software/manifest':
-        specifier: workspace:*
-        version: link:../../../packages/manifest
-      '@rivet-dev/agentos-toolchain':
-        specifier: workspace:*
-        version: link:../../../packages/agentos-toolchain
-      '@types/node':
-        specifier: ^22.10.2
-        version: 22.19.15
-      typescript:
-        specifier: ^5.9.2
-        version: 5.9.3
-
-  registry/software/make:
     devDependencies:
       '@agentos-software/manifest':
         specifier: workspace:*

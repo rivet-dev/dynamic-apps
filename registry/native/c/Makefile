@@ -63,7 +63,7 @@ NATIVE_CFLAGS := -O0 -g -D_LARGEFILE64_SOURCE -I include/
 COMMANDS_DIR ?= ../target/wasm32-wasip1/release/commands
 
 # Real commands to install (add command names as they are opted in)
-COMMANDS := zip unzip envsubst sqlite3 curl wget duckdb
+COMMANDS := zip unzip envsubst sqlite3 curl wget duckdb http_get vim
 
 # Programs requiring patched sysroot (Tier 2+ custom host imports)
 PATCHED_PROGRAMS := isatty_test getpid_test getppid_test getppid_verify userinfo pipe_test dup_test spawn_child spawn_exit_code pipeline kill_child waitpid_return waitpid_edge syscall_coverage getpwuid_test signal_tests sigaction_self sigaction_behavior delayed_tcp_echo delayed_kill pipe_edge tcp_accept_spawn tcp_echo tcp_server http_server udp_echo unix_socket signal_handler http_get dns_lookup sqlite3_cli curl wget
@@ -630,3 +630,70 @@ install:
 
 clean:
 	rm -rf $(BUILD_DIR)
+
+# --- vim: real vim 9.2 -> wasm32-wasip1 against the full-OS libc ---
+#
+# vim compiles as a normal terminal program against the PATCHED sysroot plus a
+# small bridge library (vim/): termios via host_tty (raw-mode + winsize),
+# a termcap stub (builtin termcaps), and POSIX stubs the full-OS libc lacks.
+# Recipe recovered from the original hand build (see vim/ headers). The result
+# lands in $(BUILD_DIR)/vim; `make -C .. cmd/vim` installs it into the shared
+# commands dir. NOTE: run as `vim -n <file>` docs-wise is no longer needed —
+# swap files work; kept here for archaeology.
+VIM_VERSION ?= v9.2.0780
+VIM_SRC := libs/vim
+VIM_BRIDGE_SRC := vim
+VIM_BRIDGE_BUILD := $(BUILD_DIR)/vim-bridge
+VIM_BRIDGE_OBJS := $(VIM_BRIDGE_BUILD)/termios_bridge.o $(VIM_BRIDGE_BUILD)/termcap_stub.o $(VIM_BRIDGE_BUILD)/posix_stubs.o
+VIM_WCC := $(VIM_BRIDGE_BUILD)/wcc
+
+.PHONY: fetch-vim
+fetch-vim: $(VIM_SRC)/src/vim.h
+$(VIM_SRC)/src/vim.h:
+	git clone --depth 1 --branch $(VIM_VERSION) https://github.com/vim/vim $(VIM_SRC)
+
+$(VIM_BRIDGE_BUILD)/%.o: $(VIM_BRIDGE_SRC)/%.c $(WASI_SDK_DIR)/bin/clang sysroot
+	@mkdir -p $(VIM_BRIDGE_BUILD)
+	$(CC) --target=wasm32-wasip1 --sysroot=$(PATCHED_SYSROOT) -O2 -I $(VIM_BRIDGE_SRC) -c -o $@ $<
+
+$(VIM_BRIDGE_BUILD)/libtermcap.a: $(VIM_BRIDGE_OBJS)
+	$(WASI_SDK_DIR)/bin/llvm-ar rcs $@ $(VIM_BRIDGE_OBJS)
+
+# Wrapper compiler: every vim TU gets the sysroot, the bridge headers, and the
+# forced compat include, so vim's own Makefile needs no flag surgery.
+$(VIM_WCC): $(WASI_SDK_DIR)/bin/clang
+	@mkdir -p $(VIM_BRIDGE_BUILD)
+	@printf '#!/bin/sh\nexec %s --target=wasm32-wasip1 --sysroot=%s -O2 -I %s -include %s "$$@"\n' \
+		"$(abspath $(WASI_SDK_DIR)/bin/clang)" \
+		"$(abspath $(PATCHED_SYSROOT))" \
+		"$(abspath $(VIM_BRIDGE_SRC))" \
+		"$(abspath $(VIM_BRIDGE_SRC)/compat.h)" > $@
+	@chmod +x $@
+
+$(BUILD_DIR)/vim: fetch-vim $(VIM_BRIDGE_BUILD)/libtermcap.a $(VIM_WCC) wasm-opt-check
+	cd $(VIM_SRC)/src && \
+	CC="$(abspath $(VIM_WCC))" \
+	LDFLAGS="-L$(abspath $(VIM_BRIDGE_BUILD))" \
+	vim_cv_toupper_broken=no \
+	vim_cv_terminfo=no \
+	vim_cv_tgetent=zero \
+	vim_cv_getcwd_broken=no \
+	vim_cv_stat_ignores_slash=no \
+	vim_cv_memmove_handles_overlap=yes \
+	vim_cv_bcopy_handles_overlap=yes \
+	vim_cv_memcpy_handles_overlap=yes \
+	vim_cv_tty_group=world \
+	vim_cv_tty_mode=0620 \
+	./configure --host=wasm32-wasip1 --build=$$(cc -dumpmachine 2>/dev/null || echo x86_64-pc-linux-gnu) \
+		--with-features=normal --with-tlib=termcap \
+		--disable-gui --without-x --disable-nls --disable-channel \
+		--disable-netbeans --disable-selinux --disable-gpm --disable-sysmouse \
+		--disable-icon-cache-update --disable-desktop-database-update
+	$(MAKE) -C $(VIM_SRC)/src vim
+	@mkdir -p $(BUILD_DIR)
+	@if [ "$(HAS_WASM_OPT)" = "1" ]; then \
+		wasm-opt -O3 --strip-debug --all-features $(VIM_SRC)/src/vim -o $(BUILD_DIR)/vim; \
+	else \
+		cp $(VIM_SRC)/src/vim $(BUILD_DIR)/vim; \
+	fi
+	@echo "Built $(BUILD_DIR)/vim"
