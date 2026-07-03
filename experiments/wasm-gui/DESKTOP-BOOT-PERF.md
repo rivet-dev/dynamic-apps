@@ -518,3 +518,336 @@ _(template)_
   Reverted T1.a. Next: probe whether `prewarmOnly` reaches the runner + how prewarm exits (Exit vs 30 s
   timeout). If false, the correct T1 fix = make `prewarmOnly` honored → clean fast exit at 9526 (no
   mid-init terminate, no double-run) and re-measure whether the real run still renders.
+
+### ★★2026-07-02 — CORRECTED CPU/thread measurement: it's a DISPATCH-FUNNEL, box is 92% idle (not compute floor)
+- (Earlier "72 CPU-s compute-bound" was a PROBE BUG — matched the HOST process, not the sidecar. Fixed the
+  probe to match comm="secure-exec-sid".) Corrected, actual sidecar:
+  | | CPU-s | wall | cores avg | threads | outcome |
+  |--|--|--|--|--|--|
+  | serial | 101 | 60.5 s | **1.67** | 162 | ✓ renders |
+  | concurrent | 102 | 100 s (timeout) | **1.02** | 157 | ✗ black |
+- **★ Findings:** ~100 CPU-s of REAL work (not idle-blocked), but the box is **92 % IDLE** (1.67/20 cores),
+  with **162 threads mostly PARKED.** The guests do NOT parallelize. Concurrent boot does the SAME work on
+  FEWER cores (1.02) and FAILS → adding concurrency makes it worse (guests stall/contend, not spread).
+- **★ Mechanism = SINGLE-DISPATCH-TASK FUNNEL.** All guest sync-RPCs serialize through the one select!/pump
+  task; ~1 of the 1.67 cores is likely that thread busy processing RPCs (base64 every syscall + VFS), only
+  ~0.67 cores is actual guest compute. Serial (1-2 guests) → funnel keeps up → render. Concurrent (8 guests
+  hammering it) → funnel is the bottleneck → guests stall → black. NOT the wasm compute floor (box idle).
+- **★ Phase-2 is RUNTIME-fixable (not toolchain):** the cores are there. Levers: (a) cut per-RPC overhead
+  (extend the binary-SAB path beyond fb-writes so every syscall isn't base64'd on the dispatch thread); (b)
+  PARALLELIZE sync-RPC servicing so 8 guests don't serialize through one thread. Either lets guests spread
+  onto the idle cores → concurrent boot fast AND reliable → ~≤15 s. This is the same single-dispatch-task
+  root that PR #123 / the inline-dispatch levers chipped at — now the measured #1 Phase-2 target.
+- Open: split the ~1.67 cores into dispatch-RPC-overhead vs guest-compute (SECURE_EXEC_RPCPROF) to decide if
+  cutting RPC cost alone is a big win or full dispatch-parallelization is needed.
+
+### ★★2026-07-03 — the CPU is largely BUSY-SPIN (50ms re-poll), + the thread/isolate model, measured
+- **SIDECAR_IDLE_CPU_CORES=0.56** at a SETTLED/idle desktop (native ~0). So ~0.56 cores is pure busy-spin,
+  and likely ~half the boot's 100 CPU-s is re-poll churn, NOT productive compute. (Earlier "compute-bound"
+  was wrong twice — first the host-vs-sidecar probe bug, now: much of the sidecar CPU is spin.)
+- **Thread histogram (162, all HOST/sidecar — the VM has no threads of its own):** 40 `se-poll-waiter-`
+  (= cores×2, `PollWaiterPool::with_default_size`, tunable `SECURE_EXEC_POLL_WAITERS`), 53 V8-exec
+  (`secure-exec-v8-`+`session-v8-exec` = guest ISOLATES incl. wasi-thread workers), 53 main sidecar/tokio,
+  16 V8 DefaultWorker (compile/GC).
+- **Spin mechanism:** the pool threads BLOCK (state.rs:1002 `poll_waiter_loop` = condvar wait + `wait_changed`).
+  The spin is the GUESTS: each idle `net.poll_wait` hits the 50ms clamp (`JAVASCRIPT_NET_POLL_MAX_WAIT`) →
+  times out → isolate wakes → re-polls → re-registers, ~20×/s per idle guest × ~8 guests ≈ 160 wakeups/s ≈
+  0.56 cores. Root = the 50ms clamp is a re-poll SAFETY NET for an INCOMPLETE notify-graph.
+- **Isolate model:** `create_isolate` = `CreateParams::default()` — NO SNAPSHOT; each of the ~53 exec
+  isolates built fresh. GTK apps are wasi-THREADED so each GLib/GIO worker = another fresh isolate (why 53
+  isolates for 8 guests).
+- **★ Phase-2 levers (measured, prioritized):** (A) complete the notify-graph so the clamp can go/grow →
+  idle guests BLOCK (native-like ~0 idle CPU), frees ~0.56+ cores AND unloads the dispatch funnel — BIGGEST.
+  (B) snapshot isolates → faster creation for the ~53 fresh isolates. (C) parallelize the dispatch funnel.
+  All RUNTIME fixes (box is idle; not the wasm compute floor).
+
+### ★★★2026-07-03 — the 60s SERIAL boot is SETTLE-DOMINATED, not compute-dominated (Phase-2 reframe)
+- The serial launch gate (host/src/main.rs:1305) launches the next app only once the previous app has been
+  QUIET (no output) for `settle` = SX_SERIAL_SETTLE_MS (default 12000). Comment at :2396 = "12s is the
+  measured 5/5-reliable value." So the 60.5s ≈ 5 apps × ~12s quiet-wait. The 72-101 CPU-s of real compute
+  OVERLAPS INSIDE those windows — the wall time is the DELIBERATE settle delays, not a compute floor.
+- **∴ Phase-2's dominant lever is SHRINKING THE SETTLE WINDOW (12s → target ~3s → 5×3=15s).** The 12s is a
+  conservative "wait until the app is surely done initializing" heuristic; shorter was flaky (contention →
+  black), which is WHY 12s was chosen. So shrinking it reliably requires REDUCING the contention that makes
+  apps slow to settle: (a) the 50ms re-poll spin (0.56 idle cores), (b) the single dispatch funnel, (c) the
+  wasm compile burst. Reduce those → apps settle faster → shorter settle window is reliable → faster boot.
+- **First cheap experiment (respects Phase 1):** measure each app's ACTUAL active-init time (launch→quiet)
+  vs the 12s quiet window. If apps go quiet in ~2s, the 12s is mostly conservatism → shrink SX_SERIAL_SETTLE_MS
+  and find the reliability cliff via measure-boot.sh (must stay 5/5 FULL, zero-black). No core rewrite.
+- Deeper levers unlock an even shorter settle: kill the re-poll spin (notify-graph), snapshot isolates
+  (faster ~53-isolate creation), parallelize the dispatch funnel.
+
+### ★★★2026-07-03 — NATIVE-LINUX EQUIVALENCE AUDIT (4 parallel subagents, evidence-backed)
+Verified each observed behavior against native Linux under the "behave like native Linux" invariant. 3 of 4 DIVERGE;
+none are covered by the allowed concessions (single-thread / bounded-CPU / default-deny egress) → all faithfulness
+bugs. All four converged on ONE root: the single-threaded host broker + incomplete event delivery.
+
+| # | Behavior | Native | secure-exec | Verdict | Phase-2 rank |
+|---|----------|--------|-------------|---------|--------------|
+| 1 | idle poll | poll(-1) parks 0 CPU (strace: 1 syscall, 3s, 0 wakeups) | force-wake every 50ms → 0.56 idle cores | **DIVERGENT bug** | **#1** |
+| 2 | host syscall dispatch | per-core parallel, fair (8 procs measured all R, ~1.5s CPU each) | ALL guest RPCs funnel 1 `&mut NativeSidecar` (current-thread tokio), HOL starvation → needs 12s settle | **DIVERGENT bug (incidental, NOT the concession)** | **#1 (co-root)** |
+| 3a | thread SEMANTICS | pthreads: shared mem, futex | real OS threads + shared WebAssembly.Memory + atomic.wait/notify | **EQUIVALENT** ✓ | — |
+| 3b | thread/isolate COST | pthread_create 10.5µs, no runtime built | fresh NO-SNAPSHOT isolate per wasi-thread (~53 for 8 guests) | **DIVERGENT perf gap** | secondary |
+| 4 | launch compile | execve: no recompile, shared text pages | recompile wasm per launch, no cross-launch code cache | **DIVERGENT mechanism, NEGLIGIBLE magnitude** | log only |
+
+- **#1 detail:** guest requests only 1000ms for an infinite poll (node_import_cache.rs:11922), sidecar clamps to
+  50ms (execution.rs:20738 JAVASCRIPT_NET_POLL_MAX_WAIT; clamp :20787; deadline :21575). Clamp is a SAFETY NET for
+  the incomplete notify-graph (code comment execution.rs:20734). Fix: complete notify-graph (every readiness edge
+  calls notify()) → guest poll(-1) blocks indefinitely on the PollWaiterPool → idle spin → ~0, like native.
+- **#2 detail:** guest COMPUTE is already parallel (each isolate own host thread session.rs:300). Divergence is
+  only the HOST syscall broker: single `select!` loop (stdio.rs:123 current-thread, :211-320) holds `&mut sidecar`;
+  in-code comment javascript.rs:447 measures ~636µs of a ~742µs hop is just waiting to be picked up. Co-boot = all
+  guests burst RPCs → HOL starvation → slow guest never converges → black. 12s settle = only-one-guest-bursts hack.
+  Fix: shard kernel state / per-subsystem interior locking (extend InlineNetDrain/PollWaiterPool to whole surface)
+  → concurrent boot reliable AND ~1-2s → **the 12s settle + serial-launch become UNNECESSARY** (the 60s→~few-s win).
+- **#3b:** semantics faithful; the no-snapshot fresh-isolate cost is real but the concession ("no OS threads") is
+  scoped to registry/native commands, NOT GTK wasi-threads guests (which DO spawn real OS-thread worker isolates).
+  Snapshot facility already exists (session main isolate uses it, session.rs:897); extend to worker path
+  (wasm_threads.rs:320 create_isolate(None)) — compatible w/ __threadMod reuse. SECONDARY lever, below #1.
+- **#4:** REFUTED as a boot lever by repo's own measurement — Liftoff compiles the 17MB module in ~12ms; L-X
+  (persist compiled module) already measured = ~14ms = null. Co-boot stall is NOT compile-bound. Log-only faithfulness note.
+
+**∴ Phase-2 conclusion:** the 60s isn't a compute floor — it's TWO host-faithfulness bugs (a busy-poll clamp
+papering over an incomplete notify-graph, and a single-threaded syscall broker forcing the 12s settle). Fixing
+them makes the desktop behave like native Linux: idle at ~0 CPU, concurrent launch reliable + ~1-2s. Snapshot is a
+secondary polish; compile-caching is negligible.
+
+### ★★★2026-07-03 — D2 funnel profiling: the REAL freezers are blocking net.poll + thread_spawn, NOT socket data
+Instrumented an env-tunable `[rpc-block]` threshold (SECURE_EXEC_RPC_BLOCK_US, default 300000 preserved) and ran a
+concurrent (non-serial) boot at 2ms. Per-method cumulative time HOLDING the single dispatch task:
+- **net.poll — 8 calls × EXACTLY ~50ms = 400ms.** Blocking poll (`socket.poll(clamp)` at execution.rs:21294/21307)
+  SLEEPS up to the 50ms clamp ON the dispatch task → a single call FREEZES EVERY guest for 50ms. No deferral path
+  (unlike net.poll_wait which defers to PollWaiterPool). This is D1's clamp manifesting as a D2 funnel freeze.
+- **wasm.thread_spawn — 18 calls × ~12-23ms = 306ms.** `spawn_wasm_thread` (execution.rs:5772) runs
+  `start_execution_with_net_drain` (worker-isolate bootstrap, NO snapshot) SYNCHRONOUSLY on `&mut self` → each spawn
+  freezes all guests ~17ms. This is D3's no-snapshot isolate cost manifesting as a D2 funnel freeze.
+- **net.listen — 2 × 21ms = 43ms.**
+- **[select-block] EMPTY** (no branch held >1s) → the framebuffer event-drain is NOT a monopolizer. **Plan's
+  Increment 3 (fb) DEPRIORITIZED.** And net.write/net.read never hit 2ms → **Plan's Increment 1 (socket data) REFUTED.**
+- pump-starve = 8.1s cumulative; the >2ms blocks (~750ms) are the ACUTE harmful part (each freezes all guests); the
+  rest is the sub-2ms long tail + legit idle.
+- NOTE: this concurrent run CONVERGED at 59s / 95.2% cov — concurrent boot is FLAKY (earlier 3/3 timed out), and a
+  few 50ms/17ms freezes at the wrong moment in the convergence window is a plausible flakiness tipping mechanism.
+
+**∴ D2 first increment (data-driven, replaces the plan's socket-data guess):** stop BLOCKING/EXPENSIVE ops from
+monopolizing the shared dispatch task. Two contained targets, both "one guest's op freezes all guests" = the D2
+thesis: (1) blocking net.poll → defer off-funnel like net.poll_wait (or fix the guest caller to use drain+poll_wait);
+(2) wasm.thread_spawn → bootstrap the worker isolate off the dispatch task and/or via snapshot (D3-mechanism).
+Structural per-VM servicing (plan Increment 4) remains the wholesale fix for the long tail.
+
+### ★★2026-07-03 — D2.1 LANDED (gated): blocking recv() now blocks off-broker — determinism 5/5, net.poll freezes gone
+Fix (node_import_cache.rs recv loop, gated SECURE_EXEC_RECV_OFFBROKER, default-OFF): a blocking socket recv()
+no longer sleeps net.poll(50) on the shared dispatch task; it mirrors net_poll's proven off-broker pattern
+(snapshot readiness gen → non-blocking drain THIS socket → net.poll_wait deferred to PollWaiterPool). So a
+blocking recv freezes only its own guest, like native.
+- **Mechanism CONFIRMED:** concurrent-boot [rpc-block] histogram with the gate ON → `net.poll` GONE (was
+  8×~50ms=400ms of all-guest freezes → 0). Only wasm.thread_spawn (313ms) + net.listen (46ms) remain.
+- **Determinism gate PASSED:** serial ×5 with the gate ON = 5/5 FULL, zero total-black, cov 95.1-99.9%, median
+  62.4s (no regression vs ~61s baseline). No lost-wakeup — the readiness change is safe.
+- Still GATED default-OFF: D2.1 alone doesn't make concurrent boot reliable (thread_spawn + the sub-2ms long
+  tail remain), so the settle stays until the freezer stack is cleared. Flip defaults ON once concurrent is 5/5.
+- NEXT: D2.2 (wasm.thread_spawn — worker-isolate bootstrap off the dispatch task and/or snapshot).
+
+### ★★★2026-07-03 — CORRECTED: boot is SERIAL-APP-INIT-bound (~N × app-init), settle must ≥ app-init-time
+MEASUREMENT BUG FOUND + FIXED: SX_SERIAL_SETTLE_MS was NOT forwarded through measure-boot.sh/inside-measure.sh,
+so an earlier "settle=8s" test silently ran at 12s (log showed settle=12000). Fixed the forwarding, re-measured:
+- **settle=12s → 5/5 FULL, ~61s.** (5 apps → ~12.2s/app.)
+- **settle=6s → 5/5 TOTAL-BLACK (cov 0.0%).** The gate launches the next app before the previous reaches
+  quiet → co-init contention → total collapse. So the 12s is NOT pure conservatism: apps genuinely take
+  ~6-12s to initialize/quiet, and the settle must be ≥ that. Reliability cliff is in (6s, 12s].
+- ∴ **boot time ≈ SUM of serial per-app init times** (the launch gate runs apps one at a time by design to
+  avoid contention). The settle just has to cover each app's init. Shaving the settle within the cliff gives
+  only a modest win (~61s → ~45-50s at best) and can't approach ≤15s.
+- **∴ The ≤15s target REQUIRES concurrent app launch (all at once) + the structural per-VM parallel servicing
+  (D2.3) so concurrent init doesn't contend/collapse.** Then boot ≈ MAX(app-init) ≈ 10-15s, not the serial SUM.
+  Contained freezer-removals (D2.1 ✓ net.poll, D2.2 thread_spawn) are correct native-faithfulness fixes and
+  necessary groundwork (fewer freezes under concurrent load) but do NOT by themselves delete the serialization.
+- D2.1 status: determinism-safe (5/5 at 12s), net.poll freezes gone — banked/gated. It does NOT lower the
+  settle cliff alone (6s still collapses). The real lever is the structural change + concurrent launch.
+
+### ★★★2026-07-03 — the 61s is a BLACK BARRIER (~20s/app DEAD-WAIT init), NOT settle or per-app-serial-CPU
+Coverage-over-time of a full 5-app boot: first-paint(>3%)=61134ms, FULL(95%)=61435ms — only 300ms apart. So the
+screen is BLACK for 61s then big-bangs to 95%. Decisive control: a 2-app boot (xfwm4+panel) first-paints at
+**55.7s** — barely below the 5-app 61s. ∴ the cost is NOT per-app-serial (2 apps ≈ 5 apps); it's a largely-FIXED
+~55s barrier dominated by the FIRST apps' cold init (~20s each: xfwm4 quiet ~22s, panel launched 34s → paint 55.7s
+= ~22s). Each app takes ~20s launch→paint vs native <1s, and SIDECAR_CPU≈1.3 cores (box mostly idle) → the ~20s
+is DEAD-WAIT, not compute.
+- ∴ the boot-SPEED lever is killing the ~20s/app dead-wait, NOT shrinking the settle (already shown settle-cliff
+  is 6-12s and time is init-bound) and NOT (only) the structural concurrent-launch change.
+- **Prime suspect: D1.** An app doing thousands of poll_waits during init, each stalled up to the 50ms clamp by
+  the INCOMPLETE notify-graph, = thousands×~50ms = many seconds of dead-wait per app. If so, D1 (complete the
+  notify-graph, remove the clamp) is the BOOT-SPEED lever, not just the idle-spin lever — it would cut both the
+  ~20s/app init AND the 0.56 idle cores. Tracing wake-cause (WAKEPROF deadline% vs notify%) to confirm.
+
+### ★★★★2026-07-03 — WAKEPROF CONFIRMS D1 is the BOOT-SPEED lever: X server 90.7% deadline-wait
+WAKEPROF on a 2-app boot — every infra guest is dominated by DEADLINE (50ms-clamp timeout) wakes, not notify():
+  Xvfb 90.7% deadline | dbus 58.0% | xfconfd 57.8% | xfwm4 38.4% | xfce4-panel 41.1%
+The X SERVER (the hub every client renders through) wakes 90.7% from the 50ms deadline, NOT from client data
+arriving. So every X-protocol round-trip during app init waits up to 50ms for the server's poll to RESCAN
+instead of being notified the instant a client writes → hundreds of round-trips/app × up-to-50ms = the ~20s/app
+init barrier. This UNIFIES the whole problem: D1 (complete the readiness notify-graph so a socket write notifies
+the PEER's poll_wait, then remove the 50ms clamp) collapses BOTH the ~20s/app boot barrier AND the 0.56 idle
+cores. D1 is the primary lever; the structural per-VM change (D2.3) is secondary once round-trips are fast.
+Existing mechanisms to build on: SECURE_EXEC_DATA_NOTIFIER (spawn_unix_socket_data_notifier),
+SECURE_EXEC_INLINE_PEER_NOTIFY (net.write → peer readiness notify). Testing whether they cut Xvfb deadline%/boot.
+
+### 2026-07-03 — existing notifiers DON'T fix the X-server wake gap (D1 edge located)
+Ran the 2-app boot with SECURE_EXEC_DATA_NOTIFIER=1 + SECURE_EXEC_INLINE_PEER_NOTIFY=1: NO change —
+first-paint 56.3s (was 55.7s), Xvfb deadline% = 92.0 (was 90.7). So the existing peer/data notifiers do NOT
+wake the X server's client-connection poll. The precise D1 gap: a client writing X-protocol data to the X
+server's socket does not call notify() on the readiness object the X server's poll_wait blocks on. Fixing THIS
+edge (and the analogous dbus/xfconfd ones) is the D1 boot-speed work. Next: trace the X server's wait path
+(net.poll_wait vs __kernel_fd_poll, which readiness object) and where a client write should notify it.
+
+### ★★★2026-07-03 — the barrier is COMPOSITE: deadline-latency (D1) is real but ~22%, serial sequencing is the rest
+Subagent pushback (well-cited): the client-write→server-notify edge is NOT missing — it's wired 3× (per-socket
+reader thread execution.rs:12943 + 2 gated copies), all notifying the same process.socket_readiness. So "missing
+notify" was WRONG. Its theory: host-thread oversubscription delays the (correct) notify past the 50ms clamp.
+Tension: box is ~92% idle, so CPU-starvation is a weak explanation.
+DECISIVE TEST — drop the clamp 50ms→5ms (SECURE_EXEC_POLL_MAX_WAIT_MS, now forwarded): 2-app first-paint
+55.7s→**43.4s** (−12s, −22%). So deadline-latency IS on the critical path (reducing it speeds boot), but NOT
+proportionally (10× less clamp ≠ 10× less barrier) → the barrier is COMPOSITE:
+  ~33s serial launch sequencing (settle-bound; panel doesn't launch until 33s) + ~10-22s per-app init
+  (deadline-latency-bound, clamp cuts it) + ~10s init floor.
+∴ BOTH levers are real and needed for ≤15s: (1) D1 kill the deadline-latency on the critical path — but the
+faithful fix isn't lowering the clamp (raises idle spin) nor adding a 4th notify (redundant); it's either the
+subagent's shared-poll-loop (fold N reader threads → 1, if late-notify) OR notifying the critical unnotified
+sources (POLLOUT/framebuffer/timers, if idle-source polling) — still to disambiguate; (2) concurrent launch +
+structural per-VM servicing to remove the ~33s serial sequencing. Neither alone reaches ≤15s.
+
+### ★★★★★2026-07-03 — clamp=5 REGRESSES full boot (3/3 timeout, 493 CPU-s) → D1 notify-graph is THE unifying lever
+Full 5-app boot at clamp=5ms: 3/3 TIMEOUT (cov 4.84% panel-only), SIDECAR_CPU=493s (5× the ~100s at clamp=50).
+So the clamp is a TRADEOFF not a free lever: lower clamp = less deadline-latency (helped 2-app 55.7→43.4s) BUT
+10× more re-polls = a funnel-SATURATING storm that collapses the full boot. Latency and re-poll-storm are the
+SAME clamp's two sides — clamp-tuning can't win.
+∴ **D1 (complete the notify-graph so guests BLOCK on a real notify instead of re-polling at the clamp) is the
+ONE lever that fixes everything at once:** kills deadline-latency (fast X round-trips → faster app-init), kills
+the re-poll storm (low funnel load → concurrent boot viable → removes the serial-sequencing barrier too), kills
+the 0.56 idle cores. The subagent showed the SOCKET-DATA notify is already wired (reader thread); the remaining
+UNNOTIFIED sources that force the clamp re-polls are the NON-socket ones: POLLOUT/write-readiness, framebuffer/
+VFS-write readiness, glib timers. Completing D1 = wire those to notify() (and give timed waits their real
+deadline, not the 50ms clamp), then raise/remove the clamp. THIS is the primary work; concurrent launch +
+structural D2 follows once the funnel load drops.
+- D2.1 remains banked (recv off-broker, determinism-safe, gated). clamp stays at default 50ms (5ms regresses).
+
+### ★★★★2026-07-03 — D1 mechanism CONFIRMED (b) GENUINE no-data — refutes late-notify / shared-poll-loop fix
+Added [deadprobe] (SECURE_EXEC_DEADLINE_PROBE, sidecar-side): at the moment net.poll_wait is about to BLOCK
+(guest drained nothing, gen unchanged), non-blocking-poll the process's socket OS buffers. Result on a 2-app
+boot — OS buffers essentially EMPTY at block-entry for ALL guests: Xvfb 0.1% had-data (1/1074), dbus 0.0%,
+xfconfd 0.3%, xfwm4 0.1%, panel 0.1%.
+∴ the reader threads are NOT behind — data isn't sitting unread. The 90% deadline waits are GENUINE no-data
+waits, NOT late/starved notifies. **This REFUTES the subagent's late-notify theory and its shared-per-VM-poll-
+loop fix** (folding reader threads would fix a problem that doesn't exist). Investigating-before-implementing
+saved a big black-screen-prone refactor built on a wrong mechanism.
+Caveat: Probe B is entry-time; a reader never-behind at entry across ~10k idle-core samples won't be >50ms late
+mid-wait, so (b) is well-supported (Probe A deadline-exit would make it airtight).
+∴ D1 reduces to branch (b): the deadlines are genuine timed/no-data waits for NON-socket events. clamp=5 sped
+the 2-app boot 22% by discovering some unnotified non-socket event faster (socket/pipe/POLLOUT already
+notify/immediate) — so the critical unnotified events are timers / framebuffer / cross-thread. Faithful fix =
+wire those specific critical non-socket edges to notify() (instant discovery, no re-poll storm) and give timer
+waits their real deadline. Subtler + ~22% payoff; the bigger lever remains the ~33s serial sequencing
+(concurrent launch + structural D2). Reader-thread notify graph for sockets is COMPLETE — leave it alone.
+
+### ★★★2026-07-03 — D1(b) refined: waits are 99.9% INFINITE event-waits; socket+pipe notify graph is COMPLETE
+POLLWAITPROF (requested pre-clamp timeout): 11986/12000 = 99.9% are [100+]ms (the 1000ms infinite sentinel).
+So the deadline waits are INFINITE event-waits (block-until-event), NOT timers → "give timers real deadlines"
+barely applies. Verified the kernel-pipe notify path: service_javascript_kernel_fd_write_sync_rpc
+(execution.rs:17616) notifies owner_socket_readiness (the main thread's readiness for a worker's GWakeup
+write) — so BOTH socket data (reader thread) AND kernel pipes (GWakeup) already notify the SAME readiness
+net.poll_wait blocks on. The notify-graph for socket+pipe is COMPLETE.
+∴ D1(b)'s clean targets are already wired. Yet raising the clamp historically caused cascade-timeouts
+(exposed gaps), and clamp=5 sped the boot 22% — so SOME non-socket/pipe source IS unnotified and on the
+critical path. Candidates (not yet pinned): framebuffer/VFS-write readiness, eventfd/timerfd, cross-VM
+non-socket edges. Pinning it needs a targeted trace of what NON-socket/pipe fds sit in the deadline-ing poll
+sets (net_poll's fd set at the block point). The 22% clamp=5 gain may also be partly GLib main-loop
+ITERATION-RATE (internal idle-source state machines advancing per poll iteration), which is not a runtime
+notify gap. ∴ D1(b) boot-speed payoff is more uncertain than the 22% suggested; the clean bounded win is the
+idle-spin reduction (0.56→~0 cores) once the non-socket sources are wired so a longer clamp is safe.
+
+### ★★★★★2026-07-03 — ROOT CAUSE: slow WAKE PROPAGATION (4-24ms per productive wake), not missing notify
+Built a guest-stderr tee (SECURE_EXEC_TEE_GUEST_STDERR, javascript.rs _log/_error branch → sidecar stderr →
+host.log) — unblocks ALL guest probes (9898 [guest] lines/boot; POLL_TRACE now in the forward list). Decisive
+data:
+- POLLTRACE: every deadline-ing poll blocks on GLib GWakeup PIPE fds (hasPipes=true, k5/k7/k9/k11), revents=0.
+- **[rt] (guest-observed blocking net.poll_wait duration): notify DOES fire (productive wakes 25-887/guest),
+  but productive wakes are SLOW — prodAvgUs=4000-24000µs (4-24ms), prodMaxUs up to 147ms. deadline waits =
+  50ms clamp. [rt-outer]: blockingPolls avg 27-347ms, MAX 11 SECONDS.**
+- Native notify→wake = microseconds. Here it's MILLISECONDS. So the problem was NEVER a missing notify (the
+  socket+pipe notify graph IS complete, as verified) — it's SLOW WAKE PROPAGATION: notify() fires, but the path
+  notify → PollWaiterPool worker → deferred-completion delivery → guest isolate RESUME takes ms, and across
+  hundreds of X round-trips/app = the ~20s/app barrier.
+- **This UNIFIES D1 and D2**: the deferred poll_wait completion is almost certainly delivered through the
+  contended single dispatch funnel (or a slow cross-thread resume). The fix = make the wake completion reach the
+  blocked guest isolate in ~µs, off the funnel. clamp=5's 22% gain is explained: more frequent re-polls catch
+  the event without waiting for the slow propagation. Next: trace the deferred-completion → isolate-resume path.
+
+### ★★★★★2026-07-03 — DEFINITIVE: runtime wake overhead is ~20µs; the 9-10ms/round-trip is GENUINE cross-guest causality
+[hopprof] decomposition of productive wakes (2-app boot): peerWait avgUs=9124-10009 (max 50ms=clamp) |
+wakeLag(notify->resume) avgUs=11-13 (max 2.3ms) | respond avgUs=9 (max 95µs).
+∴ **the runtime notify→resume→deliver overhead is ~20µs — the wake path is already microsecond-fast.** The
+entire 9-10ms per round-trip is peerWait = the PEER genuinely taking that long to produce the response. So
+BOTH "missing notify" AND "slow wake propagation" are refuted. **D1(b) is a dead end for boot SPEED**: the
+notify already fires in µs; the deadlines are genuine cross-guest/cross-thread waits for work-not-yet-produced.
+The 22% clamp=5 gain = the peerWait TAIL (waits hitting the 50ms clamp for a cross-thread signal not produced
+within 50ms) resolving faster on more-frequent re-poll — but that storms at scale (D1 idle-spin lever only).
+**∴ the ONLY path to ≤15s is CONCURRENT LAUNCH (overlap the serial per-guest causality chains) via the
+structural per-VM change — the runtime per-op overhead is already µs, not the bottleneck.** The ~9-10ms/round-
+trip is the guest's genuine work (wasm X-protocol processing + cross-thread GLib) which is serial today because
+apps launch one-at-a-time. D1 remaining value = idle-spin reduction only (not boot speed).
+
+### 2026-07-03 — concurrent collapse is STUCK not STORM (clamp=500: CPU 493→48s but still 3/3 timeout 0% cov)
+Tested the cheap hypothesis (raise clamp → less storm → concurrent converges). REFUTED: concurrent clamp=500
+cut SIDECAR_CPU to ~48s (10× less than clamp=5's 493s — storm genuinely reduced) but STILL 3/3 timeout at 0.0%
+coverage. So the concurrent-boot collapse is NOT the re-poll storm — the guests are STUCK (low CPU, nothing
+renders), not thrashing. Neither clamp direction unlocks it (low=storm, high=slower-init fools the settle gate).
+∴ concurrent boot has a correctness/scheduling STUCK-state under co-init (matches the old "4th heavy guest
+starves, ceiling ~3" finding), not a throughput problem. The structural per-VM concurrent-servicing change is
+confirmed necessary — but the collapse ROOT (a specific cross-guest deadlock/missed-wake vs funnel-serialization
+starvation) must be diagnosed first, since a low-CPU stuck-state is not the signature of pure funnel contention.
+
+### ★★★★2026-07-03 — concurrent-collapse ROOT (via tee): LIVELOCK — only xclient0 launches, guests freeze on GWakeups
+Concurrent boot with the tee: only `secure-exec: launched xclient0 (xfwm4)` — the OTHER 4 apps never launch. All
+guests freeze in an IDENTICAL repeating poll cycle on GLib GWakeup pipe fds (k5/k7/k9/k11, revents=0), many with
+remain=298s/563s (waiting effectively forever). So concurrent boot LIVELOCKS: xfwm4 launches once the X server
+is "serving" but BEFORE dbus/xfconfd finish initing → xfwm4 blocks on a cross-guest readiness signal that never
+fires → xfwm4 never settles → the launch gate never releases the next app → 0% render. Root = DEPENDENCY-ORDERING
++ cross-guest starvation (matches "ceiling ~3 heavy guests"), NOT throughput/storm (CPU is low). Serial mode
+works precisely because each dep is fully settled before the next launches (breaking the circular wait).
+∴ two candidate fixes to scope: (1) SMARTER LAUNCH GATING (host) — gate each app on a PRECISE readiness signal
+(X serving + dbus serving + xfconfd serving + WM managing) instead of the crude 12s quiet-settle, and launch the
+mutually-INDEPENDENT apps (panel/xfdesktop/thunar/mousepad) together once deps are ready → boot ≈ infra +
+max(app-init); (2) STRUCTURAL per-VM servicing (runtime) — raise the concurrent-guest ceiling so co-init doesn't
+starve. (1) may be far cheaper and is where the ~33s waste actually lives (conservative settle, not required
+ordering). Scope both.
+
+### ★★2026-07-03 — Phase 2B increment 1: DEDUP infra launch (SX_READY_GATE) unblocks the launch-gate livelock
+Found + fixed a real bug: dbus-daemon + xfconfd were each launched TWICE (synchronous main.rs:2293-2332 AND
+background launcher :2350-2386); the second dbusd collides on the bound session socket. Gated the duplicate
+synchronous block behind SX_READY_GATE (default-OFF preserves the banked serial-5/5 baseline). Result: concurrent
+boot with SX_READY_GATE=1 now launches ALL 5 xclients (was only xclient0 — xfwm4 previously never reached
+wm_ready). So the dedup breaks the FIRST livelock. Still 0% render (times out) because concurrent apps launch 6s
+apart (APP_SETTLE_MS) and 6s-settle-too-short → co-init contention (the same cliff). ∴ increment 2 = precise
+readiness gating (X/dbus/xfconfd/WM serving) so the settle can shrink + independent apps burst safely.
+
+### 2026-07-03 — 6s-collapse is NOT funnel-HOL but pump-STARVE (pickup latency) → Phase 2A justified differently
+6s-settle collapse diagnostic: NO large held RPC (max 22ms, only the usual thread_spawn 18×17ms) — so NOT
+funnel head-of-line blocking. BUT [pump-starve]=7.6s over 537 gaps (the dispatch not running ~14% of the time).
+So the funnel cost is per-hop PICKUP LATENCY (D16 in-code: 636µs of a 742µs hop is waiting to be picked up by
+the single dispatch task), not held RPCs. Across the many hops of each ~9-10ms round-trip × hundreds of
+round-trips, that accumulated cross-guest pickup latency IS the peerWait/boot cost. The plan's "held-RPC"
+Phase-1 criterion was the WRONG test — parallel servicing (Phase 2A) eliminates the pickup latency (each guest's
+hops serviced on its own task, not queued behind other guests). ∴ Phase 2A justified. Dedup (increment 1) is
+banked (serial 5/5, 56.7s median). Shorter settle collapses on app-init OVERLAP (X server serializes concurrent
+clients at ~9-10ms/round-trip) — the same pickup-latency root. Next: implement per-VM parallel servicing.
+
+### 2026-07-03 — inline net.write (F10-INLINE-WRITE) REFUTED: slower (73s vs 56.7s) + flaky (1/2), gated OFF
+Implemented net.write off-broker (SECURE_EXEC_INLINE_SOCKET_DATA): extend InlineSock with stream+peer_readiness,
+try_socket_write on the bridge thread (write + peer.notify, byte-decode via javascript_sync_rpc_bytes_arg),
+dispatch net.write inline. RPC_PROFILE justified it (net.write = 4.7k calls/boot, #1 non-poll on-pump op). But
+serial+gate-ON = 1/2 (one FULL at 73s SLOWER than 56.7s baseline, one launched=False hard-fail). So it's a NET
+NEGATIVE: the inline path's overhead (per-write base64 decode + extra peer-notify wake cycles on the bridge
+thread, plus a possible double-write-on-error/race) outweighs the ~636µs pickup latency saved. Refuted; gated
+default-OFF (inert — try_socket_write returns None → net.write falls through to the pump unchanged), kept as a
+scaffold. Lesson: moving INDIVIDUAL hot ops off-broker piecemeal introduces races + overhead that negate the
+pickup-latency win — the funnel pickup latency needs the WHOLESALE parallel-servicing re-shard (per-VM tasks),
+not per-op inlining, to actually pay off. That (the big change) is the remaining lever for ≤15s.
