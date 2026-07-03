@@ -2290,7 +2290,14 @@ mod window {
         s.execute_env("xserver", &server_abs, &srv_argv, srv_env).await?;
 
         let demo_start = tokio::time::Instant::now();
-        if let Some(dbusd) = dbus_daemon.as_deref() {
+        // SX_READY_GATE dedup (Phase 2B increment 1): dbus-daemon + xfconfd are ALSO launched by the
+        // background launcher below (~main.rs:2350). This synchronous block is a DUPLICATE — the second
+        // dbusd collides on the already-bound session socket and the duplicate xfconfd adds co-init
+        // contention, feeding the concurrent-boot livelock. Under the gate, skip it so infra launches
+        // exactly once. Default-OFF keeps the banked serial-5/5 baseline byte-identical for instant revert.
+        if dbus_daemon.is_some() && std::env::var("SX_READY_GATE").as_deref() == Ok("1") {
+            eprintln!("secure-exec: [ready-gate] skipping duplicate synchronous dbus/xfconfd launch");
+        } else if let Some(dbusd) = dbus_daemon.as_deref() {
             let dbusd_abs = abs_path(dbusd)?;
             let dbus_argv = [
                 "--config-file=/etc/dbus-1/session.conf",
