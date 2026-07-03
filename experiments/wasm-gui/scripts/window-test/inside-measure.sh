@@ -37,7 +37,12 @@ LAST_IDX=$(( NCLIENTS - 1 ))
 
 # Record host launch time (ns) so the python monitor can compute wall-from-launch.
 date +%s.%N > /tmp/host_t0
-APP_SETTLE_MS="${APP_SETTLE_MS:-6000}" SX_SERIAL_LAUNCH="${SX_SERIAL_LAUNCH:-0}" NO_AT_BRIDGE=1 \
+APP_SETTLE_MS="${APP_SETTLE_MS:-6000}" SX_SERIAL_LAUNCH="${SX_SERIAL_LAUNCH:-0}" \
+  SX_SERIAL_SETTLE_MS="${SX_SERIAL_SETTLE_MS:-12000}" NO_AT_BRIDGE=1 \
+  SX_READY_GATE="${SX_READY_GATE:-0}" \
+  SECURE_EXEC_INLINE_SOCKET_DATA="${SECURE_EXEC_INLINE_SOCKET_DATA:-0}" \
+  SECURE_EXEC_RPC_PROFILE="${SECURE_EXEC_RPC_PROFILE:-0}" \
+  SECURE_EXEC_RPC_PROFILE_EVERY="${SECURE_EXEC_RPC_PROFILE_EVERY:-5000}" \
   SX_XTEST_DELAY_S="${SX_XTEST_DELAY_S:-0}" SX_FB_STREAM_MS="${SX_FB_STREAM_MS:-33}" \
   SECURE_EXEC_PERFCLOCK="${SECURE_EXEC_PERFCLOCK:-0}" \
   SECURE_EXEC_WASM_SKIP_PREWARM="${SECURE_EXEC_WASM_SKIP_PREWARM:-0}" \
@@ -46,6 +51,16 @@ APP_SETTLE_MS="${APP_SETTLE_MS:-6000}" SX_SERIAL_LAUNCH="${SX_SERIAL_LAUNCH:-0}"
   SECURE_EXEC_INLINE_PEER_NOTIFY="${SECURE_EXEC_INLINE_PEER_NOTIFY:-0}" \
   SECURE_EXEC_KEEP_NAMES="${SECURE_EXEC_KEEP_NAMES:-0}" \
   SECURE_EXEC_PATHOPENPROF="${SECURE_EXEC_PATHOPENPROF:-0}" \
+  SECURE_EXEC_RPC_BLOCK_US="${SECURE_EXEC_RPC_BLOCK_US:-300000}" \
+  SECURE_EXEC_RECV_OFFBROKER="${SECURE_EXEC_RECV_OFFBROKER:-0}" \
+  SECURE_EXEC_POLL_MAX_WAIT_MS="${SECURE_EXEC_POLL_MAX_WAIT_MS:-0}" \
+  SECURE_EXEC_RTPROBE="${SECURE_EXEC_RTPROBE:-0}" \
+  SECURE_EXEC_POLLSTAT="${SECURE_EXEC_POLLSTAT:-0}" \
+  SECURE_EXEC_DEADLINE_PROBE="${SECURE_EXEC_DEADLINE_PROBE:-0}" \
+  SECURE_EXEC_POLLWAITPROF="${SECURE_EXEC_POLLWAITPROF:-0}" \
+  SECURE_EXEC_TEE_GUEST_STDERR="${SECURE_EXEC_TEE_GUEST_STDERR:-0}" \
+  SECURE_EXEC_POLL_TRACE="${SECURE_EXEC_POLL_TRACE:-0}" \
+  SECURE_EXEC_HOPPROF="${SECURE_EXEC_HOPPROF:-0}" \
   "$HOST_BIN" --desktop \
   --server "$EXP/Xvfb.wasm" \
   --dbus "$EXP/dbus-daemon.wasm" \
@@ -58,6 +73,28 @@ APP_SETTLE_MS="${APP_SETTLE_MS:-6000}" SX_SERIAL_LAUNCH="${SX_SERIAL_LAUNCH:-0}"
   -- :0 -screen 0 "${W}x${H}x24" -nolisten tcp -nolock -listen local -noreset -fbdir /data \
   >/out/host.log 2>&1 &
 HOSTPID=$!
+
+# ★ Peak-thread sampler: track the sidecar's PEAK live-thread count during boot (catches the concurrent-
+# compile burst — each guest's WebAssembly.Module compile spawns several V8 threads; N guests compiling at
+# once = a thread spike that oversubscribes the cores). Runs in the background for the boot's duration.
+echo 0 > /tmp/peak_threads
+(
+  PEAK=0
+  for _ in $(seq 1 500); do
+    SP=""
+    for p in /proc/[0-9]*; do
+      # Match the sidecar by process NAME (comm, truncated to 15 chars), NOT cmdline — the HOST's cmdline
+      # contains "--sidecar /path/secure-exec-sidecar" so a cmdline grep matches the host, not the sidecar.
+      [ "$(cat "$p/comm" 2>/dev/null)" = "secure-exec-sid" ] && { SP="${p#/proc/}"; break; }
+    done
+    if [ -n "$SP" ]; then
+      T=$(ls "/proc/$SP/task" 2>/dev/null | wc -l)
+      [ "${T:-0}" -gt "$PEAK" ] && { PEAK=$T; echo "$PEAK" > /tmp/peak_threads; }
+    fi
+    sleep 0.25
+  done
+) &
+SAMPLER=$!
 
 python3 - "$W" "$H" "$LAST_IDX" "$SX_BOOT_TIMEOUT" "$COV_SETTLE_S" "$COV_MIN" "$FULL_MIN" <<'PY'
 import glob, os, re, sys, time
@@ -147,7 +184,7 @@ RC=$?
 # settle/timeout. CPU-s << wall = wait-bound (runtime-fixable); CPU-s ≈ wall × busy-threads = compute-bound.
 SPID=""
 for p in /proc/[0-9]*; do
-  if tr '\0' ' ' < "$p/cmdline" 2>/dev/null | grep -qa "secure-exec-sidecar"; then
+  if [ "$(cat "$p/comm" 2>/dev/null)" = "secure-exec-sid" ]; then
     SPID="${p#/proc/}"; break
   fi
 done
@@ -156,9 +193,20 @@ if [ -n "$SPID" ] && [ -r "/proc/$SPID/stat" ]; then
   SC_THR=$(ls "/proc/$SPID/task" 2>/dev/null | wc -l)
   NCPU=$(nproc 2>/dev/null)
   echo "SIDECAR_CPU_SECONDS=${SC_CPU} SIDECAR_THREADS=${SC_THR} NCPU=${NCPU} (compare to boot wall BOOT_MS)"
+  # ★ SPIN CHECK: the desktop is now settled/IDLE. Sample CPU over 4s of doing NOTHING. If cores are still
+  # burning, the CPU is a BUSY-SPIN (poll loops), not productive work. Native idles at ~0.
+  C1=$(awk '{print $14+$15}' "/proc/$SPID/stat" 2>/dev/null)
+  sleep 4
+  C2=$(awk '{print $14+$15}' "/proc/$SPID/stat" 2>/dev/null)
+  echo "SIDECAR_IDLE_CPU_CORES=$(awk "BEGIN{printf \"%.2f\", ($C2-$C1)/100/4}")  (>0.1 = busy-spin, not real work)"
+  # ★ THREAD ENUM: what ARE the ~160 threads? (comm histogram). Isolate-execution threads vs helper threads.
+  echo "=== sidecar thread comm histogram (top 20) ==="
+  for t in /proc/$SPID/task/*/comm; do cat "$t" 2>/dev/null; done | sort | uniq -c | sort -rn | head -20
 else
   echo "SIDECAR_CPU_SECONDS=unknown (sidecar pid not found)"
 fi
+kill "${SAMPLER:-0}" 2>/dev/null
+echo "PEAK_SIDECAR_THREADS=$(cat /tmp/peak_threads 2>/dev/null)"
 
 echo "=== select-block probes (dispatch-task holds >1s) ==="
 grep -aE "\[select-block\]|\[pump-gap\]" /out/host.log | head -40 || true
