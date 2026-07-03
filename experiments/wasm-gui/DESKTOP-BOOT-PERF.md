@@ -35,12 +35,22 @@ wins to the `wasm-gui-desktop` branch (PR #104).
 
 ---
 
-## ★ TOP PRIORITY (Phase 1 root fix) — kill the concurrent-boot thread-contention stall
+## ★ TOP PRIORITY (Phase 1 root fix) — kill the concurrent-boot CPU/thread OVERSUBSCRIPTION stall
 
-The X server is ~91 % deadline-driven: client requests do not wake it (it re-polls every 50 ms), and under
-concurrent boot that latency compounds → flaky total-black. The reader-thread and a per-socket data-notifier
-BOTH fail because they are extra host threads that get starved (data-notifier A/B: notify count froze while
-deadline % stayed ~90 % — REJECTED). The wakeup must NOT depend on a thread being scheduled.
+**★ UPDATED 2026-07-02: the X-server-wakeup theory below (lever 1) is DISPROVEN — see the top Fix-Log
+entry.** Lever 1 was fully implemented + measured: the inline peer-notify fires 1500+ times/boot, all clients
+pair correctly, and it changes NOTHING (still 1/3, deadline% unchanged). The 90.9 % Xvfb deadline% is normal
+IDLE-polling, not a stall. So the wakeup graph is NOT the bug.
+
+**THE LEAD IS NOW LEVER 2 — CPU / host-thread OVERSUBSCRIPTION.** In a black run the CLIENTS' deadline%
+jumps (25 %→62-72 %): the apps are starved in their OWN init, not waiting on X. We run 6+ heavy wasm isolates
+(GTK ~15-22× native compute) + ~30-40 host threads on the cores; native runs 5 procs with ~0 contention.
+Validate first (cheap): render reliability vs guest count (3 vs 5 apps), and live host-thread count in a
+black vs rendered boot. Then reduce pressure: fold per-socket reader threads into ONE shared poll loop per
+VM, and/or cap/serialize the concurrent wasm COMPILE (the CPU-heaviest boot phase — "4 large guests
+compiling at once", node_import_cache.rs). Everything below (lever 1) is kept for the record but is DONE.
+
+### (DISPROVEN, kept for record) lever 1 — inline/synchronous cross-process peer-notify
 
 ### ★ THE PLAN — lever 1: inline/synchronous cross-process peer-notify (the direction we're going)
 When a guest writes to a guest↔guest AF_UNIX socket, wake the PEER process INLINE, in the write handler
@@ -354,6 +364,33 @@ _(template)_
   + isolate threads oversubscribe the cores) so the existing notifies aren't starved; (c) revisit whether
   the single dispatch task + N isolates is simply oversubscribing CPU (native uses procs on cores, ~0
   contention). (a) is the most principled and matches native's "writer wakes reader synchronously".
+
+### ★★★2026-07-02 — LEVER 1 (inline peer-notify) — ❌ REJECTED, and it DISPROVES the X-server-wakeup root
+- Implemented lever 1 fully: `peer_readiness` on `ActiveUnixSocket`, client→server pairing via a global
+  `host_path → Weak<SocketReadiness>` registry (register at `net.listen`, look up at `net.connect`), inline
+  `peer.notify()` in the `net.write` unix handler. Gated `SECURE_EXEC_INLINE_PEER_NOTIFY=1` (default off).
+- **The mechanism works perfectly** (diagnostic probes): both servers register (X0 + dbus), ALL 5 X clients
+  + 4 dbus clients pair `paired=true`, and the inline notify **fires 1500+ times per boot**.
+- **But it changes nothing:** 3-run = 1/3 render (unchanged), Xvfb deadline% ~88-94 % (unchanged), Xvfb
+  notify-wakes only ~128 despite 1500+ `notify()` calls (most fire while the server is NOT blocked → no-op).
+- **★★ROOT CORRECTION — the X-server-wakeup was a RED HERRING.** The X server IS woken fine; the 90.9 %
+  deadline% is just normal IDLE-polling (the X server polls with a 50 ms timeout and is mostly caught-up /
+  waiting for the next request — that is not a stall). Making the wakeup instant (lever 1) does NOT fix the
+  flaky total-black. So the whole "X-server request-wakeup latency" theory is disproven by direct measurement.
+- **★ WHERE THE STALL ACTUALLY IS (new lead):** the flaky black is CPU / host-THREAD OVERSUBSCRIPTION. In a
+  black run the CLIENTS' deadline% jumps (25 % → 62-72 %) — the apps are starved in their OWN init, not
+  waiting on X. We run 6+ heavy wasm ISOLATES (each GTK at ~15-22× native compute) + ~30-40 host threads
+  (per-isolate + bridge + per-socket reader + accept/data notifier threads) on the cores; native runs 5
+  PROCESSES on cores with ~0 contention. Under this oversubscription some guests intermittently make no
+  progress → flaky black. This is **lever 2 territory (reduce host-thread count / concurrency pressure)**,
+  now the lead — NOT the wakeup graph.
+- Lever 1 code kept gated-off (correct mechanism, zero-cost when off; useful reference). Debug eprintlns
+  only fire when the feature is on.
+- **NEXT:** validate the oversubscription hypothesis before a big lever-2 build — e.g. measure render
+  reliability vs guest count / vs pinning fewer host threads, or count live host threads during a black vs a
+  rendered boot. Then reduce threads (fold per-socket reader threads into one shared poll loop per VM;
+  cap/serialize concurrent wasm COMPILE which is the CPU-heaviest boot phase — the "4 large guests compiling
+  at once" note in node_import_cache.rs).
 
 ### ★2026-07-02 — TOTAL-BLACK FLAKINESS is the acceptance blocker (new top theory T0)
 - Forensics on a black run (skip-prewarm, cov 0.0 for 110 s, all 5 launched): every client emits only its

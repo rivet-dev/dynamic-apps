@@ -1596,6 +1596,12 @@ pub(crate) struct ActiveUnixSocket {
     /// readiness on the readable edge so a blocked `net.poll_wait` wakes the instant a request lands
     /// (instead of discovering it up to 50ms late on the next re-poll). Set on Drop so the thread exits.
     pub(crate) data_notifier_stop: Arc<AtomicBool>,
+    /// ★ Lever 1 (inline cross-process peer-notify): the readiness of the process on the OTHER end of this
+    /// socket (whom to wake when WE write). Set at `net.connect` from the listener-owning process's
+    /// readiness (client→server pairing). When present, the `net.write` handler `notify()`s it INLINE after
+    /// a successful write, so the peer's blocked `net.poll_wait` wakes the instant the request lands —
+    /// scheduling-independent (no notifier thread to starve). `None` when the feature is off / unpaired.
+    pub(crate) peer_readiness: Option<Arc<SocketReadiness>>,
 }
 
 impl Drop for ActiveUnixSocket {

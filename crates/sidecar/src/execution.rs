@@ -1946,6 +1946,7 @@ impl ActiveUnixSocket {
             close_notified,
             readiness_key,
             data_notifier_stop: Arc::new(AtomicBool::new(false)),
+            peer_readiness: None,
         })
     }
 
@@ -14308,6 +14309,63 @@ fn data_notifier_enabled() -> bool {
     *EN.get_or_init(|| std::env::var("SECURE_EXEC_DATA_NOTIFIER").as_deref() == Ok("1"))
 }
 
+/// ★ Lever 1 gate (default OFF while A/B-validating). When on, a guest→guest AF_UNIX write wakes the PEER
+/// process's `net.poll_wait` INLINE in the write handler (no notifier thread to starve). See
+/// experiments/wasm-gui/DESKTOP-BOOT-PERF.md "THE PLAN — lever 1".
+fn inline_peer_notify_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_INLINE_PEER_NOTIFY").as_deref() == Ok("1"))
+}
+
+/// Global registry mapping a unix LISTENER's host path -> the listening process's `SocketReadiness` (Weak,
+/// so a dead server auto-invalidates and the map never keeps a process alive). Populated at `net.listen`,
+/// looked up at `net.connect` to pair a connecting client socket with the server it is talking to, so the
+/// client's write can wake the server inline. The host path is unique per listener, so it is the natural
+/// key (both listen + connect resolve it via `resolve_guest_socket_host_path`).
+fn unix_listener_readiness_registry(
+) -> &'static std::sync::Mutex<std::collections::HashMap<std::path::PathBuf, std::sync::Weak<crate::state::SocketReadiness>>>
+{
+    static REG: std::sync::OnceLock<
+        std::sync::Mutex<
+            std::collections::HashMap<std::path::PathBuf, std::sync::Weak<crate::state::SocketReadiness>>,
+        >,
+    > = std::sync::OnceLock::new();
+    REG.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()))
+}
+
+/// Record `host_path -> Weak(readiness)` so a later `net.connect` to this listener can find the server's
+/// readiness. No-op unless lever 1 is enabled.
+fn register_unix_listener_readiness(
+    host_path: &std::path::Path,
+    readiness: &Arc<crate::state::SocketReadiness>,
+) {
+    if !inline_peer_notify_enabled() {
+        return;
+    }
+    eprintln!("[peer-notify] register listener host_path={}", host_path.display());
+    if let Ok(mut map) = unix_listener_readiness_registry().lock() {
+        map.insert(host_path.to_path_buf(), Arc::downgrade(readiness));
+    }
+}
+
+/// Resolve the server-process readiness paired with a client connecting to `host_path`. `None` if lever 1
+/// is off, no server is listening there, or the server has gone.
+fn lookup_unix_listener_readiness(
+    host_path: &std::path::Path,
+) -> Option<Arc<crate::state::SocketReadiness>> {
+    if !inline_peer_notify_enabled() {
+        return None;
+    }
+    let map = unix_listener_readiness_registry().lock().ok()?;
+    let paired = map.get(host_path).and_then(std::sync::Weak::upgrade);
+    eprintln!(
+        "[peer-notify] connect host_path={} paired={}",
+        host_path.display(),
+        paired.is_some()
+    );
+    paired
+}
+
 impl secure_exec_execution::InlineNetDrain for UnixInlineNetDrain {
     fn try_poll(&self, socket_ids: &[String], single: bool) -> Option<Value> {
         // No registry (e.g. a worker-thread drain) => net.poll always routes to
@@ -20937,11 +20995,14 @@ where
             if let Some(path) = payload.path.as_deref() {
                 let guest_path = normalize_path(path);
                 let host_path = resolve_guest_socket_host_path(socket_paths, &guest_path);
-                let socket = ActiveUnixSocket::connect(
+                let mut socket = ActiveUnixSocket::connect(
                     &host_path,
                     &guest_path,
                     Arc::clone(&process.socket_readiness),
                 )?;
+                // ★ Lever 1: pair this client socket with the server listening at host_path, so our writes
+                // wake the server inline (no-op unless the feature is enabled / no server found).
+                socket.peer_readiness = lookup_unix_listener_readiness(&host_path);
                 let socket_id = process.allocate_unix_socket_id();
                 process.register_inline_unix_socket(&socket_id, &socket);
                 process.unix_sockets.insert(socket_id.clone(), socket);
@@ -21065,6 +21126,9 @@ where
                         Arc::clone(&listener.accept_notifier_stop),
                     );
                 }
+                // ★ Lever 1: record this server's readiness under its listener host path so a client that
+                // later connects here can wake it inline on write (no-op unless the feature is enabled).
+                register_unix_listener_readiness(&host_path, &process.socket_readiness);
                 if !on_host_mount {
                     ensure_kernel_parent_directories(kernel, &guest_path)?;
                     kernel
@@ -22020,7 +22084,25 @@ where
                 let socket = process.unix_sockets.get(socket_id).ok_or_else(|| {
                     SidecarError::InvalidState(format!("unknown net socket {socket_id}"))
                 })?;
-                socket.write_all(&chunk).map(|written| json!(written))
+                let written = socket.write_all(&chunk)?;
+                // ★ Lever 1: wake the PEER (e.g. the X server) INLINE now that its request is on the wire,
+                // so its blocked net.poll_wait completes immediately instead of up to 50ms late on re-poll.
+                // No-op unless paired at connect (feature on). Cheap: an atomic gen bump + condvar notify.
+                if let Some(peer) = &socket.peer_readiness {
+                    peer.notify();
+                    static PN: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+                    let n = PN.fetch_add(1, std::sync::atomic::Ordering::Relaxed) + 1;
+                    if n % 500 == 0 {
+                        eprintln!("[peer-notify] fired {n} inline peer-notifies from net.write");
+                    }
+                } else if inline_peer_notify_enabled() {
+                    static UNP: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+                    let n = UNP.fetch_add(1, std::sync::atomic::Ordering::Relaxed) + 1;
+                    if n % 500 == 0 {
+                        eprintln!("[peer-notify] {n} net.write on UNPAIRED unix socket (peer_readiness=None)");
+                    }
+                }
+                Ok(json!(written))
             }
         }
         "net.shutdown" => {
