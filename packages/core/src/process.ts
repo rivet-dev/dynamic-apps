@@ -26,6 +26,7 @@ export class StdioSidecarProcess {
 	private constructor(child: ChildProcessWithoutNullStreams) {
 		this.child = child;
 		this.child.stderr.on("data", (chunk: Buffer | string) => {
+			console.error(`DBGSIDECAR ${String(chunk).trimEnd()}`);
 			this.stderrChunks.push(
 				typeof chunk === "string" ? Buffer.from(chunk) : Buffer.from(chunk),
 			);

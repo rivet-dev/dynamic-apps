@@ -21,26 +21,12 @@ run_step() {
 	"$@"
 }
 
+# DEBUG DRAFT — DO NOT MERGE: minimal repro of the core vitest CI timeouts.
 run_step pnpm install --frozen-lockfile
-run_step pnpm build
-run_step pnpm run check-generated
-run_step pnpm check-types
-run_step node --test scripts/check-secure-exec-boundary.test.mjs
-run_step node scripts/check-secure-exec-boundary.mjs
-run_step node --test scripts/check-no-escaping-local-deps.test.mjs
-run_step node scripts/check-no-escaping-local-deps.mjs
-run_step pnpm --dir scripts/publish run check-types
-run_step pnpm --dir scripts/publish test
-run_step cargo fmt --check
-run_step cargo clippy --workspace --all-targets -- -D warnings
-# Service fs/shell regression tests stage guest WASM command binaries
-# (registry/native or packages/core/commands) and fail hard when missing.
+run_step pnpm exec turbo run build --filter=@secure-exec/core...
+run_step cargo build -p secure-exec-sidecar
 run_step make -C registry/native wasm
 run_step node packages/core/scripts/copy-wasm-commands.mjs
-run_step env CARGO_INCREMENTAL=0 cargo test --workspace -- --test-threads=1
-
-if [[ "${CI_FORK_PULL_REQUEST:-0}" == "1" ]]; then
-	run_step pnpm exec turbo run test --concurrency=1
-else
-	run_step env SECURE_EXEC_E2E_NETWORK=1 pnpm exec turbo run test --concurrency=1
-fi
+cd packages/core
+run_step pnpm exec vitest run --no-file-parallelism tests/mount-fs-custom-vfs.test.ts tests/node-runtime-exec-output.test.ts
+exit 0
