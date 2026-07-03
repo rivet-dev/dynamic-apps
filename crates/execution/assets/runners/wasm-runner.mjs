@@ -783,6 +783,7 @@ const stdioTtyCache = new Map();
 function stdioFdIsKernelTty(fd) {
   const descriptor = Number(fd) >>> 0;
   if (descriptor > 2) return false;
+  if (KERNEL_STDIO_SYNC_RPC) return true;
   if (stdioTtyCache.has(descriptor)) return stdioTtyCache.get(descriptor);
   let isTty = false;
   try {
@@ -4591,7 +4592,6 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
   const handle = __agentOSWasiMeasurePhase('fd_read', 'lookup_handle', () =>
     lookupFdHandle(numericFd)
   );
-
   if (handle?.kind === 'pipe-read') {
     try {
       const requestedLength = __agentOSWasiMeasurePhase('fd_read', 'iov_scan', () => {
@@ -5147,21 +5147,6 @@ wasiImport.fd_write = (fd, iovs, iovsLen, nwrittenPtr) => {
     }
   }
 
-  if (handle?.kind === 'passthrough') {
-    if (handle.readOnly === true) {
-      return WASI_ERRNO_ROFS;
-    }
-    return delegateManagedFdWrite
-      ? __agentOSWasiMeasurePhase('fd_write', 'delegate_call', () =>
-          delegateManagedFdWrite(handle.targetFd, iovs, iovsLen, nwrittenPtr)
-        )
-      : WASI_ERRNO_BADF;
-  }
-
-  if (!handle && numericFd <= 2) {
-    return WASI_ERRNO_BADF;
-  }
-
   if (numericFd === 1 || numericFd === 2) {
     try {
       const bytes = __agentOSWasiMeasurePhase('fd_write', 'guest_iov_collect', () =>
@@ -5187,6 +5172,21 @@ wasiImport.fd_write = (fd, iovs, iovsLen, nwrittenPtr) => {
     } catch {
       return WASI_ERRNO_FAULT;
     }
+  }
+
+  if (handle?.kind === 'passthrough') {
+    if (handle.readOnly === true) {
+      return WASI_ERRNO_ROFS;
+    }
+    return delegateManagedFdWrite
+      ? __agentOSWasiMeasurePhase('fd_write', 'delegate_call', () =>
+          delegateManagedFdWrite(handle.targetFd, iovs, iovsLen, nwrittenPtr)
+        )
+      : WASI_ERRNO_BADF;
+  }
+
+  if (!handle && numericFd <= 2) {
+    return WASI_ERRNO_BADF;
   }
 
   if (rejectClosedPassthroughFd(fd)) {
@@ -5562,7 +5562,8 @@ const hostTtyImport = {
   },
   // `host_tty.isatty(fd)` -> 1 if the guest fd is a kernel PTY, else 0.
   isatty(fd) {
-    return callSyncRpc('__kernel_isatty', [fd >>> 0]) === true ? 1 : 0;
+    const descriptor = Number(fd) >>> 0;
+    return descriptor <= 2 && stdioFdIsKernelTty(descriptor) ? 1 : 0;
   },
   // `host_tty.get_size(fd, colsPtr, rowsPtr)` -> writes the PTY window size as two
   // little-endian u16s and returns 0; non-zero (ENOTTY) if fd is not a PTY.

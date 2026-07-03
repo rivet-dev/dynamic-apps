@@ -673,7 +673,7 @@ $(VIM_WCC): $(WASI_SDK_DIR)/bin/clang
 $(BUILD_DIR)/vim: fetch-vim $(VIM_BRIDGE_BUILD)/libtermcap.a $(VIM_WCC) wasm-opt-check
 	cd $(VIM_SRC)/src && \
 	CC="$(abspath $(VIM_WCC))" \
-	LDFLAGS="-L$(abspath $(VIM_BRIDGE_BUILD))" \
+	LDFLAGS="$(abspath $(VIM_BRIDGE_BUILD)/termios_bridge.o) -L$(abspath $(VIM_BRIDGE_BUILD))" \
 	vim_cv_toupper_broken=no \
 	vim_cv_terminfo=no \
 	vim_cv_tgetent=zero \

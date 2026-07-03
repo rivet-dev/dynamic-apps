@@ -61,8 +61,16 @@ static void ensure_shadow(void) {
  * apps (vim) print "Output is not to a terminal" and refuse full-screen mode.
  * host_tty.isatty is the authoritative PTY check the kernel exposes (a strong
  * symbol overriding the weak libc alias). */
-int isatty(int fd) {
+static int bridge_isatty(int fd) {
 	return __host_tty_isatty((unsigned int)fd) ? 1 : 0;
+}
+
+int __isatty(int fd) {
+	return bridge_isatty(fd);
+}
+
+int isatty(int fd) {
+	return bridge_isatty(fd);
 }
 
 int tcgetattr(int fd, struct termios *t) {
