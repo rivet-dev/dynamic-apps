@@ -392,6 +392,20 @@ _(template)_
   cap/serialize concurrent wasm COMPILE which is the CPU-heaviest boot phase — the "4 large guests compiling
   at once" note in node_import_cache.rs).
 
+### 2026-07-02 — concurrency sweep (3 apps vs 5): oversubscription is PARTIAL, not the whole story
+- 3 apps (xfwm4 + xfce4-panel + xfdesktop; still 6 guests incl. X + dbus + xfconfd): **2/3 render** @59s vs
+  5 apps **1/3**. Fewer guests helps a bit → oversubscription CONTRIBUTES. But 3 apps is STILL 1/3 black, so
+  it is not the sole cause: even a minimal 6-guest desktop stalls flakily. And boot ≈59s for BOTH 3 and 5
+  apps → boot-time is dominated by FIXED overhead (dbus 2+4s sleeps + the settle-gating), not app count
+  (a Phase-2/speed detail, not the Phase-1 blocker).
+- ⇒ The flaky black is a timing-sensitive race present even at 6 guests — reducing threads (lever 2) may
+  raise reliability but is unlikely to fully fix it alone. Open sub-questions before a big lever-2 build:
+  (i) in a black run does the X SERVER keep serving after the initial accepts, or does IT stall? (ii) is
+  there a specific EARLY guest (dbus/xfconfd/X) that intermittently fails to come up, blocking the rest?
+  (iii) does the single dispatch task (pump_process_events, which still serves fs sync-RPCs) get monopolised
+  by one guest in a black run? Instrument per-guest first-RPC / last-RPC timeline in a black vs rendered run
+  to see WHICH guest stalls first, rather than assuming oversubscription.
+
 ### ★2026-07-02 — TOTAL-BLACK FLAKINESS is the acceptance blocker (new top theory T0)
 - Forensics on a black run (skip-prewarm, cov 0.0 for 110 s, all 5 launched): every client emits only its
   2 launch lines then is SILENT; the WM (xclient0, launched +12 s) NEVER reaches its event loop / paints
