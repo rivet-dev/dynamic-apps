@@ -37,9 +37,17 @@ STUB_COMMANDS := \
 	pinky who users uptime \
 	stty sync tty
 
-.PHONY: all wasm wasm-opt-check host test clean patch-std patch-check vendor patch-vendor vendor-patch-check size-report install c-wasm codex
+.PHONY: all commands wasm wasm-opt-check host test clean patch-std patch-check vendor patch-vendor vendor-patch-check size-report install c-wasm codex
 
 all: wasm host
+
+# Build EVERYTHING that lands in COMMANDS_DIR: all Rust commands (+ codex when
+# the fork is present), then the opted-in C commands (curl, wget, sqlite3, zip,
+# unzip, envsubst, duckdb). C runs second so a C port wins over a Rust crate of
+# the same name (e.g. curl). Binaries with no source pipeline here (vim, vix)
+# must still be dropped into COMMANDS_DIR by hand.
+commands: wasm
+	$(MAKE) -C c programs install
 
 # Build the real wasm32-wasip1 `codex-exec` agent engine from the codex fork
 # (branch wasi-port-codex-core). The fork ships a committed, idempotent, self-prepping build script
@@ -187,6 +195,40 @@ wasm: vendor patch-vendor patch-std wasm-opt-check
 	echo "=== Build complete ==="
 	@# Also produce the real codex-exec engine from the fork when present (skips with a notice if not).
 	@$(MAKE) --no-print-directory codex
+
+# ---------------------------------------------------------------------------
+# Uniform per-binary entry point: `make cmd/<name>` builds ONE command binary
+# into $(COMMANDS_DIR), dispatching to the toolchain that owns it:
+#   Rust      crates/commands/<name>  (cargo package cmd-<name>, via wasm-cmd)
+#   C         the C opt-in set below  (registry/native/c, patched sysroot)
+#   codex     the codex fork build    (codex, codex-exec)
+#   external  hand-built drop-zone binaries with no source pipeline yet
+# `just registry-native-cmd <name>` calls this. `make wasm` still builds the
+# whole Rust set; `make -C c programs install` still builds the whole C set.
+C_COMMANDS := zip unzip envsubst sqlite3 curl wget duckdb
+EXTERNAL_COMMANDS := vim vix
+
+.PHONY: cmd/%
+cmd/%:
+	@name="$*"; \
+	if [ -d "crates/commands/$$name" ]; then \
+		$(MAKE) wasm-cmd CMD=$$name; \
+	elif echo " $(C_COMMANDS) " | grep -q " $$name "; then \
+		src=$$name; [ "$$name" = "sqlite3" ] && src=sqlite3_cli; \
+		$(MAKE) -C c sysroot "build/$$src" && $(MAKE) -C c install COMMANDS="$$name"; \
+	elif [ "$$name" = "codex" ] || [ "$$name" = "codex-exec" ]; then \
+		$(MAKE) codex-required; \
+	elif echo " $(EXTERNAL_COMMANDS) " | grep -q " $$name "; then \
+		if [ -f "$(COMMANDS_DIR)/$$name" ]; then \
+			echo "cmd/$$name: external hand-built binary present at $(COMMANDS_DIR)/$$name"; \
+		else \
+			echo "ERROR: '$$name' has no source pipeline yet — place the hand-built wasm binary at $(COMMANDS_DIR)/$$name (see registry/README.md)"; \
+			exit 1; \
+		fi; \
+	else \
+		echo "ERROR: unknown command '$$name' (no crates/commands/$$name; not in C_COMMANDS, codex, or EXTERNAL_COMMANDS)"; \
+		exit 1; \
+	fi
 
 # Build ONE command binary (cargo package cmd-$(CMD) -> $(COMMANDS_DIR)/$(CMD)).
 # Usage: make wasm-cmd CMD=sh

@@ -57,12 +57,22 @@ All recipes run from the repo root (see `justfile`):
 
 ```bash
 just registry-native            # compile ALL native wasm command binaries (slow, once per checkout)
-just registry-native-cmd sh     # recompile ONE command (cargo package cmd-sh)
+just registry-native-cmd <name> # build ONE command binary, whatever its toolchain
 just registry-build             # stage + assemble every registry package
 just registry-build coreutils   # ... or just one
 just registry-status            # per-package state; --remote adds npm dist-tags
 just registry-test              # registry integration tests (registry/tests)
 ```
+
+`registry-native-cmd` (= `make -C registry/native cmd/<name>`) is the uniform
+per-binary entry point; it dispatches to whichever toolchain owns the command:
+
+| kind | commands | what it runs |
+|---|---|---|
+| Rust | any `crates/commands/<name>` (sh, ls, rg, git, …) | `cargo build -p cmd-<name>` (build-std) + `wasm-opt` |
+| C | `zip unzip envsubst sqlite3 curl wget duckdb` | `make -C c sysroot build/<src>` + per-command install |
+| codex | `codex`, `codex-exec` | the codex fork build (needs the fork checkout) |
+| external | `vim`, `vix` | validates the hand-built binary is in the drop zone; errors with instructions otherwise |
 
 The native build (`registry/native`) compiles each `crates/commands/<name>`
 (cargo package `cmd-<name>`) to `wasm32-wasip1` with a patched std
@@ -80,8 +90,12 @@ Exceptions:
 - `software/codex/wasm/` is the install target of the codex fork's build
   (`make -C registry/native codex`); `software/codex-cli` stages from it.
 - C-built commands (sqlite3, zip, unzip, wget, duckdb) need the patched
-  sysroot (`make -C registry/native/c`); without it those packages stay
-  empty placeholders.
+  sysroot; `just registry-native-cmd <name>` builds it on demand. Without it
+  those packages stay empty placeholders.
+- `vim`/`vix` have no source pipeline yet: drop the hand-built wasm binaries
+  into `registry/native/target/wasm32-wasip1/release/commands/` and
+  `just registry-build vim` does the rest (vim's runtime tree is staged by its
+  package `scripts/stage-runtime.mjs` and applied via manifest `provides`).
 
 ## Publishing
 

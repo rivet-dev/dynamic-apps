@@ -23,13 +23,18 @@ docs-verify:
 # --- Registry (@agentos-software/* packages) -------------------------------
 # Full flow + package format: registry/README.md.
 
-# Compile ALL native wasm command binaries (slow; needed once per checkout)
+# Compile ALL native wasm command binaries — Rust + codex + opted-in C
+# (slow; needed once per checkout)
 registry-native:
-	make -C registry/native wasm
+	make -C registry/native commands
 
-# Recompile ONE command binary (cargo package cmd-<CMD>), e.g. `just registry-native-cmd sh`
+# Build everything end to end: all native binaries, then all registry packages
+registry-all: registry-native (registry-build "")
+
+# Build/recompile ONE command binary, whatever its toolchain (Rust crate, C
+# program, codex fork, or external drop zone), e.g. `just registry-native-cmd sh`
 registry-native-cmd CMD:
-	make -C registry/native wasm-cmd CMD="{{ CMD }}"
+	make -C registry/native "cmd/{{ CMD }}"
 
 # Build one registry package (stage bin/ + tsc + assemble dist/package), or all when PKG is empty.
 # Bootstrap note: on a fresh checkout the `agentos-toolchain` bin symlinks are
