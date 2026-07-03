@@ -40,20 +40,38 @@ wins to the `wasm-gui-desktop` branch (PR #104).
 The X server is ~91 % deadline-driven: client requests do not wake it (it re-polls every 50 ms), and under
 concurrent boot that latency compounds → flaky total-black. The reader-thread and a per-socket data-notifier
 BOTH fail because they are extra host threads that get starved (data-notifier A/B: notify count froze while
-deadline % stayed ~90 % — REJECTED). Two candidate fixes, in priority order:
+deadline % stayed ~90 % — REJECTED). The wakeup must NOT depend on a thread being scheduled.
 
-1. **★ Inline/synchronous cross-process notify (most principled).** When a client's `net.write` runs, look
-   up the PAIRED server socket → the server process's `SocketReadiness` and `notify()` it INLINE (same
-   thread, no notifier thread), so the wake is immediate + scheduling-independent (this is how native
-   "writer wakes reader" works). Needs a client-socket↔server-socket peer registry — the X path is
-   host-backed `UnixStream`s (execution.rs `ActiveUnixSocket`), so the sidecar must record the pairing at
-   `connect`/`accept` time (it creates both ends) and reach the peer's readiness from the write handler.
-2. **Reduce host-thread count during boot.** The per-socket reader threads + per-isolate threads
-   oversubscribe the cores (native runs procs on cores with ~0 contention). Fewer threads → existing
-   notifies aren't starved. E.g. fold per-socket reader threads into a shared poll/epoll loop.
+### ★ THE PLAN — lever 1: inline/synchronous cross-process peer-notify (the direction we're going)
+When a guest writes to a guest↔guest AF_UNIX socket, wake the PEER process INLINE, in the write handler
+itself (no notifier thread, so nothing to starve — this is exactly how native "writer wakes reader" works).
+Concrete implementation:
 
-Validate with `SECURE_EXEC_WAKEPROF=1`: success = Xvfb deadline % collapses toward the clients' ~25 %, AND
-render becomes reliable (≥5 runs zero-black). See the full diagnosis in the Fix Log below.
+1. **Add `peer_readiness: Option<Arc<SocketReadiness>>` to `ActiveUnixSocket`** (state.rs). It holds the
+   readiness of the process on the OTHER end of this socket (whom to wake when WE write).
+2. **Establish the pairing at connect/accept** (execution.rs, the sidecar has `&mut self` → all processes):
+   - CLIENT→SERVER (the confirmed-broken direction, do FIRST): at `net.connect` to a host path, find the
+     process that owns a `unix_listeners` entry at that path (the X server), and set the client socket's
+     `peer_readiness = server.socket_readiness`. `SocketReadiness` is per-PROCESS, so waking the server
+     process is enough — its `poll_wait` re-scans all its sockets and finds the request.
+   - SERVER→CLIENT (already ~OK — clients are 25 % deadline — do as a follow-up): pair the accepted socket
+     with the connecting client's readiness (record the client readiness on the pending connection at
+     connect, read it at accept).
+3. **Notify inline on write:** in the `net.write` unix branch (execution.rs ~21935), after `write_all`
+   succeeds, call `peer_readiness.notify()` (cheap: atomic gen bump + condvar). Happens exactly when the
+   client produces the request → the server's blocked `poll_wait` wakes immediately, scheduling-independent.
+4. **Gate it** (`SECURE_EXEC_INLINE_PEER_NOTIFY=1`, default off) so it can A/B against the WAKEPROF baseline;
+   flip default-on once validated.
+
+**Validate:** `SECURE_EXEC_WAKEPROF=1` — success = **Xvfb deadline % collapses toward the clients' ~25 %**
+(the leading indicator the wake now lands before the 50 ms deadline), AND render becomes reliable
+(**≥5 consecutive zero-black runs**, FULL coverage ≥40 %). If deadline % drops but render is still flaky,
+the remaining stall is elsewhere (re-diagnose with WAKEPROF on the black run).
+
+### Fallback — lever 2: reduce host-thread count during boot
+If lever 1 is insufficient: the per-socket reader threads + per-isolate threads oversubscribe the cores
+(native runs procs on cores with ~0 contention). Fold per-socket reader threads into ONE shared poll/epoll
+loop per VM so a handful of guests don't spawn dozens of contending threads.
 
 ---
 
