@@ -8894,6 +8894,10 @@ function pollTrace(msg) { if (globalThis.__polltrace) { try { process.stderr.wri
 // L-opcount (SECURE_EXEC_POLL_SCAN=1, default-OFF): collapse net_poll's per-iteration drain + pipe-poll +
 // gen-snapshot (3 sync-RPCs) into ONE net.poll_scan round-trip. Reduces the per-render op count ~1.5-2x.
 try { if (process.env.SECURE_EXEC_POLL_SCAN === '1') globalThis.__pollScan = true; } catch (_e) {}
+// D2.1 (SECURE_EXEC_RECV_OFFBROKER=1, default-OFF): make a blocking socket recv() block via the
+// off-broker net.poll_wait (PollWaiterPool) instead of a blocking net.poll(50) that sleeps the 50ms
+// clamp ON the single sync-RPC dispatch task and freezes EVERY guest. Mirrors net_poll's proven pattern.
+try { if (process.env.SECURE_EXEC_RECV_OFFBROKER === '1') globalThis.__recvOffbroker = true; } catch (_e) {}
 const prewarmOnly = process.env.AGENT_OS_WASM_PREWARM_ONLY === '1';
 const maxMemoryBytesValue = Number(process.env.AGENT_OS_WASM_MAX_MEMORY_BYTES);
 const maxMemoryPages = Number.isFinite(maxMemoryBytesValue)
@@ -12482,14 +12486,39 @@ const hostNetImport = {
           return writeGuestUint32(retReceivedPtr, 0);
         }
 
-        const pollWaitMs =
-          deadline == null ? 50 : Math.max(0, Math.min(50, deadline - Date.now()));
-        if (deadline != null && pollWaitMs === 0) {
-          return WASI_ERRNO_AGAIN;
-        }
-        pollHostNetSocket(socket, pollWaitMs);
-        if (deadline != null && Date.now() >= deadline) {
-          return WASI_ERRNO_AGAIN;
+        if (globalThis.__recvOffbroker) {
+          // D2.1: block OFF the shared sync-RPC broker. A blocking net.poll(wait) sleeps `wait` (up to the
+          // 50ms clamp) ON the single dispatch task, freezing EVERY guest (measured: 8×50ms co-boot
+          // freezes). Mirror net_poll's proven off-broker pattern: snapshot the process readiness
+          // generation, non-blocking-drain THIS socket, then net.poll_wait — which defers to the
+          // PollWaiterPool so only this guest's recv blocks, exactly like a native recv() blocks only its
+          // own thread. Snapshotting the generation BEFORE the drain is the lost-wakeup guard: data landing
+          // during/after the drain advances the generation past __gen, so poll_wait returns immediately.
+          const __genR = callSyncRpc('net.poll_wait', [0, 0]);
+          const __gen = __genR && typeof __genR.generation === 'number' ? __genR.generation : 0;
+          pollHostNetSocket(socket, 0);
+          if (socket.readChunks.length > 0 || socket.lastError ||
+              socket.readableEnded || socket.closed || !socket.socketId) {
+            continue; // loop top consumes the drained bytes / returns EOF / fault
+          }
+          const remain = deadline == null ? 1000 : Math.max(0, deadline - Date.now());
+          if (deadline != null && remain === 0) {
+            return WASI_ERRNO_AGAIN;
+          }
+          callSyncRpc('net.poll_wait', [__gen, remain]); // off-broker block on readiness (sidecar clamps)
+          if (deadline != null && Date.now() >= deadline) {
+            return WASI_ERRNO_AGAIN;
+          }
+        } else {
+          const pollWaitMs =
+            deadline == null ? 50 : Math.max(0, Math.min(50, deadline - Date.now()));
+          if (deadline != null && pollWaitMs === 0) {
+            return WASI_ERRNO_AGAIN;
+          }
+          pollHostNetSocket(socket, pollWaitMs);
+          if (deadline != null && Date.now() >= deadline) {
+            return WASI_ERRNO_AGAIN;
+          }
         }
       }
     } catch {

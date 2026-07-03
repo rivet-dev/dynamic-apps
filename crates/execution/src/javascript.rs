@@ -486,6 +486,18 @@ pub trait InlineNetDrain: Send + Sync {
         None
     }
 
+    /// F10-INLINE-WRITE: service a unix `net.write` INLINE on the per-session bridge thread (write the
+    /// bytes to the socket + notify the peer's readiness) instead of queuing it on the single dispatch
+    /// task. Returns the written-byte count as the on-pump handler would, or `None` to fall through to the
+    /// service loop (unknown/tcp socket, write error — the pump owns error/teardown handling).
+    fn try_socket_write(
+        &self,
+        _socket_id: &str,
+        _chunk_value: &serde_json::Value,
+    ) -> Option<serde_json::Value> {
+        None
+    }
+
     /// Service the NON-BLOCKING `net.server_accept` "nothing pending" case inline,
     /// off the single shared service task. `listener_id` is arg0. The real accept
     /// needs `&mut kernel`/the socket table, so this path does only a
@@ -2897,6 +2909,23 @@ fn spawn_v8_event_bridge(
                     // Handle logging locally (produce stdout/stderr events)
                     if method == "_log" || method == "_error" {
                         let output = decode_bridge_output_args(&args);
+                        // [tee] SECURE_EXEC_TEE_GUEST_STDERR=1 (default-OFF): echo guest process.stdout/
+                        // stderr writes (incl. the gated guest-side probes POLLTRACE/[rt]/[pollstat]) to the
+                        // sidecar's own stderr so they reach host.log. The desktop guests' Stdout/Stderr
+                        // events are otherwise not surfaced in the boot harness, hiding all guest probes.
+                        {
+                            use std::sync::OnceLock;
+                            static TEE: OnceLock<bool> = OnceLock::new();
+                            if *TEE.get_or_init(|| {
+                                std::env::var("SECURE_EXEC_TEE_GUEST_STDERR").as_deref() == Ok("1")
+                            }) {
+                                use std::io::Write;
+                                let mut e = std::io::stderr().lock();
+                                let _ = e.write_all(b"[guest] ");
+                                let _ = e.write_all(&output);
+                                let _ = e.write_all(b"\n");
+                            }
+                        }
                         // Respond to the bridge call
                         let _ = v8_session.send_bridge_response(
                             call_id,
@@ -2970,6 +2999,29 @@ fn spawn_v8_event_bridge(
                                             .send_bridge_response(call_id, 0, cbor);
                                         continue;
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    // F10-INLINE-WRITE: service unix `net.write` (X protocol requests) INLINE on this
+                    // per-session bridge thread, skipping the single dispatch task's ~636µs per-hop pickup
+                    // latency (~4.7k writes/boot). The drain writes the bytes + notifies the peer, returning
+                    // the written-byte count; `None` (unknown/tcp socket, decode/write error, or gate off)
+                    // falls through to the service loop, which owns error/teardown handling.
+                    if method == "net.write" {
+                        if let Some(net_drain) = local_bridge.net_drain.clone() {
+                            if let (Some(Value::String(socket_id)), Some(chunk_value)) =
+                                (args.first(), args.get(1))
+                            {
+                                if let Some(value) =
+                                    net_drain.try_socket_write(socket_id.as_str(), chunk_value)
+                                {
+                                    let payload = translate_legacy_bridge_value_to_v8(&value);
+                                    let cbor = v8_runtime::json_to_cbor_payload(&payload)
+                                        .unwrap_or_default();
+                                    let _ = v8_session.send_bridge_response(call_id, 0, cbor);
+                                    continue;
                                 }
                             }
                         }

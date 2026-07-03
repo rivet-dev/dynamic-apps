@@ -454,6 +454,8 @@ impl ActiveProcess {
                     events: std::sync::Arc::clone(&socket.events),
                     event_sender: socket.event_sender.clone(),
                     remote_path: socket.remote_path.clone(),
+                    stream: std::sync::Arc::clone(&socket.stream),
+                    peer_readiness: socket.peer_readiness.clone(),
                 },
             );
         }
@@ -14288,6 +14290,16 @@ fn new_unix_inline_drain(
 /// committed behavior). Set to `1`/`true` to inject the inline net-drain + kernel
 /// poll handle so those hops are serviced off the funnel on the per-session
 /// bridge thread.
+fn inline_socket_data_enabled() -> bool {
+    // F10-INLINE-WRITE (SECURE_EXEC_INLINE_SOCKET_DATA=1, default-OFF): service unix `net.write` on the
+    // per-session bridge thread instead of the single dispatch task, removing the ~636µs pickup latency for
+    // the ~4.7k X-request writes/boot. Gated for A/B + instant revert while validating determinism.
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_INLINE_SOCKET_DATA").as_deref() == Ok("1")
+    })
+}
+
 fn inline_dispatch_enabled() -> bool {
     // DEFAULT-ON (2026-06-30): inline net.poll + non-blocking __kernel_fd_poll on the per-session bridge
     // thread (levers A + C-lite). Measured against the TRUSTWORTHY glyph-render ir metric it is a clean
@@ -14451,6 +14463,43 @@ impl secure_exec_execution::InlineNetDrain for UnixInlineNetDrain {
         } else {
             Some(Value::Array(values))
         }
+    }
+
+    fn try_socket_write(&self, socket_id: &str, chunk_value: &Value) -> Option<Value> {
+        // F10-INLINE-WRITE (gated SECURE_EXEC_INLINE_SOCKET_DATA): write the bytes to the socket + notify
+        // the peer INLINE on the per-session bridge thread, mirroring the on-pump `net.write` handler
+        // byte-for-byte, so the ~4.7k X-request writes/boot skip the ~636µs dispatch-pickup latency. Fall
+        // through (None) for any socket this drain can't see or a write error — the service loop owns
+        // error/teardown handling.
+        if !inline_socket_data_enabled() {
+            return None;
+        }
+        // Decode the chunk exactly as the on-pump handler does (string or base64 bytes payload); fall
+        // through on any decode error so the service loop reports it identically.
+        let chunk = javascript_sync_rpc_bytes_arg(std::slice::from_ref(chunk_value), 0, "net.write chunk")
+            .ok()?;
+        let chunk = chunk.as_slice();
+        let registry = self.registry.as_ref()?;
+        // Brief registry lock: clone the InlineSock, then release before touching the stream (same lock
+        // discipline as try_poll — the service loop never locks the registry while holding the stream).
+        let sock = {
+            let registry = registry.lock().ok()?;
+            registry.get(socket_id).cloned()?
+        };
+        {
+            xtrace_dump(sock.remote_path.as_deref(), "C>S", chunk);
+            let mut stream = sock.stream.lock().ok()?;
+            use std::io::Write;
+            if stream.write_all(chunk).is_err() {
+                return None; // fall through to the service loop for error/teardown handling
+            }
+        }
+        // Wake the peer (e.g. the X server) now that its request is on the wire — the SAME readiness object
+        // + notify() the on-pump handler uses (lever 1), so there is no lost-wakeup window.
+        if let Some(peer) = &sock.peer_readiness {
+            peer.notify();
+        }
+        Some(json!(chunk.len()))
     }
 
     fn try_fd_poll(&self, fds: &[u32]) -> Option<Value> {
@@ -21501,6 +21550,34 @@ where
                     },
                 );
                 return Ok(json!({ "generation": current }));
+            }
+            // [deadprobe] D1 Phase-1 (SECURE_EXEC_DEADLINE_PROBE=1): we are about to block (guest drained
+            // nothing, readiness unchanged past last_seen). Non-blocking-poll this process's socket OS
+            // buffers: data already readable here means the per-socket reader thread is behind and the wake
+            // will land late (a = LATE notify); empty means a genuine no-data wait (b). Non-consuming.
+            if crate::state::deadline_probe_enabled() {
+                use std::os::fd::AsFd;
+                let mut os_readable = false;
+                for sock in process.unix_sockets.values() {
+                    if let Ok(guard) = sock.stream.lock() {
+                        let mut fds =
+                            [nix::poll::PollFd::new(guard.as_fd(), nix::poll::PollFlags::POLLIN)];
+                        if nix::poll::poll(&mut fds, nix::poll::PollTimeout::ZERO).unwrap_or(0) > 0
+                            && fds[0]
+                                .revents()
+                                .is_some_and(|r| r.intersects(nix::poll::PollFlags::POLLIN))
+                        {
+                            os_readable = true;
+                        }
+                    }
+                    if os_readable {
+                        break;
+                    }
+                }
+                crate::state::deadline_probe_record(
+                    std::sync::Arc::as_ptr(&readiness) as usize,
+                    os_readable,
+                );
             }
             // L-L fd-scoped wakeups (SECURE_EXEC_FD_SCOPED_POLL): if the guest passed the host-net socket
             // ids it is awaiting (arg 2) and EVERY one resolves to a keyed unix socket in THIS process,

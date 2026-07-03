@@ -829,6 +829,20 @@ impl JavascriptSocketPathContext {
 
 // ActiveProcess, NetworkResourceCounts moved to crate::state
 
+// [rpc-block] threshold (microseconds), env-tunable for funnel profiling. Default 300ms preserves the
+// original probe; lower it (e.g. SECURE_EXEC_RPC_BLOCK_US=1000) to capture the per-method cumulative
+// histogram of what holds the single dispatch task during concurrent boot. Observability-only.
+fn rpc_block_threshold_us() -> u64 {
+    use std::sync::OnceLock;
+    static T: OnceLock<u64> = OnceLock::new();
+    *T.get_or_init(|| {
+        std::env::var("SECURE_EXEC_RPC_BLOCK_US")
+            .ok()
+            .and_then(|v| v.parse().ok())
+            .unwrap_or(300_000)
+    })
+}
+
 pub struct NativeSidecar<B> {
     pub(crate) config: NativeSidecarConfig,
     pub(crate) bridge: SharedBridge<B>,
@@ -2250,7 +2264,7 @@ where
         if let Some(s) = __m0 {
             if !poll_deferred.get() {
                 let t = secure_exec_bridge::perf_now_micros().saturating_sub(s);
-                if t > 300_000 {
+                if t > rpc_block_threshold_us() {
                     eprintln!("[rpc-block] {} took {}us", request.method, t);
                 }
             }

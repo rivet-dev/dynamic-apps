@@ -518,6 +518,57 @@ pub(crate) fn wakeprof_record(key: usize, cause_idx: usize) {
     }
 }
 
+// [deadprobe] D1 Phase-1 mechanism confirmation (SECURE_EXEC_DEADLINE_PROBE=1, default-OFF; run alongside
+// SECURE_EXEC_WAKEPROF=1 so the pid/name maps are populated). At the moment a net.poll_wait is ABOUT TO BLOCK
+// (guest drained nothing, readiness unchanged), the handler non-blocking-polls this process's socket OS
+// buffers. If data is ALREADY readable there, the per-socket reader thread is BEHIND — a client's bytes sit
+// unread in the kernel buffer, so the notify will land after the 50ms deadline (a = LATE notify). If empty,
+// the block is a genuine no-data wait (b). Per-process, reuses the wakeprof pid/name maps. Diagnostic only.
+pub(crate) fn deadline_probe_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| {
+        std::env::var("SECURE_EXEC_DEADLINE_PROBE").map(|v| v == "1").unwrap_or(false)
+    })
+}
+
+pub(crate) fn deadline_probe_record(key: usize, os_readable: bool) {
+    if !deadline_probe_enabled() {
+        return;
+    }
+    static REG: std::sync::OnceLock<std::sync::Mutex<BTreeMap<usize, [u64; 2]>>> =
+        std::sync::OnceLock::new();
+    let reg = REG.get_or_init(|| std::sync::Mutex::new(BTreeMap::new()));
+    static TOTAL: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let n = TOTAL.fetch_add(1, std::sync::atomic::Ordering::Relaxed) + 1;
+    if let Ok(mut reg) = reg.lock() {
+        let entry = reg.entry(key).or_insert([0u64; 2]); // [empty, os_readable]
+        entry[usize::from(os_readable)] = entry[usize::from(os_readable)].saturating_add(1);
+        if n % 2000 == 0 {
+            let pids = wakeprof_pidmap().lock().map(|m| m.clone()).unwrap_or_default();
+            let names = wakeprof_namemap().lock().map(|m| m.clone()).unwrap_or_default();
+            eprintln!(
+                "[deadprobe] === block-entry OS-buffer readability (a=LATE-notify if OSdata%% high) ==="
+            );
+            for (k, c) in reg.iter() {
+                let tot = c[0] + c[1];
+                if tot == 0 {
+                    continue;
+                }
+                let pid = pids.get(k).copied().unwrap_or(0);
+                let name = names.get(&pid).map(|s| s.as_str()).unwrap_or("?");
+                eprintln!(
+                    "[deadprobe] {:<16} pid={} block_entry_with_OSdata={} empty={} ({:.1}% had-data)",
+                    name,
+                    pid,
+                    c[1],
+                    c[0],
+                    (c[1] as f64) * 100.0 / (tot as f64)
+                );
+            }
+        }
+    }
+}
+
 fn wakeprof_dump(reg: &BTreeMap<usize, [u64; 7]>) {
     let pids = wakeprof_pidmap().lock().map(|m| m.clone()).unwrap_or_default();
     let names = wakeprof_namemap().lock().map(|m| m.clone()).unwrap_or_default();
@@ -1624,6 +1675,14 @@ pub(crate) struct InlineSock {
     pub(crate) events: Arc<Mutex<Receiver<JavascriptTcpSocketEvent>>>,
     pub(crate) event_sender: Sender<JavascriptTcpSocketEvent>,
     pub(crate) remote_path: Option<String>,
+    /// The socket's write half (shared `Arc<Mutex<UnixStream>>`), so the per-session bridge thread can
+    /// service `net.write` INLINE (F10-INLINE-WRITE) instead of queuing it on the single dispatch task —
+    /// removing the ~636µs per-hop pickup latency for the 4.7k net.writes/boot (X requests).
+    pub(crate) stream: Arc<Mutex<UnixStream>>,
+    /// The PEER's readiness (e.g. the X server) to `notify()` after an inline write lands its request, so
+    /// the peer's blocked `net.poll_wait` wakes immediately — the SAME object + notify the on-pump handler
+    /// uses (lever 1), so no lost wakeup. `None` when unpaired.
+    pub(crate) peer_readiness: Option<Arc<SocketReadiness>>,
 }
 
 /// Per-process registry of inline-drainable unix sockets, keyed by the
