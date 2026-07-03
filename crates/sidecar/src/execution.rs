@@ -1945,7 +1945,28 @@ impl ActiveUnixSocket {
             saw_remote_end,
             close_notified,
             readiness_key,
+            data_notifier_stop: Arc::new(AtomicBool::new(false)),
         })
+    }
+
+    /// Spawn a NON-CONSUMING data-notifier for this socket (T0-root fix, opt-in). The X server's accepted
+    /// client sockets are inline-registered: the inline drain reads incoming requests only when the guest
+    /// polls, so a blocked `net.poll_wait` is not woken and discovers the request up to 50ms late on the
+    /// next re-poll (measured: Xvfb 90.9% deadline-driven). This thread `nix::poll`s a private dup of the
+    /// socket fd for POLLIN and `notify()`s the owner's readiness on the readable edge — WITHOUT reading
+    /// the bytes (the inline drain still does the real read) — so the poll_wait wakes immediately. The fd
+    /// stays readable until the guest drains it, so a backoff throttle bounds the notify rate (mirrors the
+    /// accept-notifier). Exits when the socket drops (`data_notifier_stop`) or the peer hangs up.
+    fn spawn_data_notifier(&self, readiness: Arc<crate::state::SocketReadiness>) {
+        let fd = match self.stream.lock() {
+            Ok(stream) => match stream.try_clone() {
+                Ok(cloned) => cloned,
+                Err(_) => return,
+            },
+            Err(_) => return,
+        };
+        let stop = Arc::clone(&self.data_notifier_stop);
+        spawn_unix_socket_data_notifier(fd, readiness, stop);
     }
 
     fn poll(&mut self, wait: Duration) -> Result<Option<JavascriptTcpSocketEvent>, SidecarError> {
@@ -12993,6 +13014,60 @@ fn spawn_unix_listener_accept_notifier(
     });
 }
 
+/// Data-notifier (T0-root): wake the OWNER process's `net.poll_wait` the instant a peer writes data to
+/// `stream`, completing the readiness notify-graph on the DATA edge for inline-registered sockets (the X
+/// server's accepted client sockets). Without it the inline drain reads incoming requests only on the
+/// guest's next poll, so a blocked poll_wait discovers a request up to 50ms late on re-poll (measured:
+/// Xvfb 90.9% deadline-driven). This owns a private dup of the socket fd, `nix::poll`s it for POLLIN, and
+/// `notify()`s on the readable edge WITHOUT consuming the bytes (the inline drain still does the real
+/// read). The fd stays readable until the guest drains it, so a backoff throttle bounds the notify rate.
+/// Uses POSIX `poll` (compiles on every sidecar target). Exits on `stop` (socket drop) or peer hangup.
+fn spawn_unix_socket_data_notifier(
+    stream: UnixStream,
+    readiness: Arc<crate::state::SocketReadiness>,
+    stop: Arc<AtomicBool>,
+) {
+    use nix::poll::{poll, PollFd, PollFlags, PollTimeout};
+    use std::os::fd::AsFd;
+    thread::spawn(move || {
+        let err_flags = PollFlags::POLLNVAL | PollFlags::POLLERR | PollFlags::POLLHUP;
+        // 1s poll timeout so `stop` (set when the socket drops) is observed within a second.
+        let timeout = PollTimeout::try_from(1000i32).unwrap_or(PollTimeout::MAX);
+        let mut pending_ms: u64 = 0;
+        loop {
+            if stop.load(Ordering::Relaxed) {
+                break;
+            }
+            let mut fds = [PollFd::new(stream.as_fd(), PollFlags::POLLIN)];
+            match poll(&mut fds, timeout) {
+                Ok(0) => {
+                    pending_ms = 0; // timeout: nothing pending, re-check stop
+                    continue;
+                }
+                Ok(_) => {}
+                Err(nix::errno::Errno::EINTR) => continue,
+                Err(_) => break, // fd invalid / socket gone
+            }
+            let re = fds[0].revents().unwrap_or(PollFlags::empty());
+            if re.intersects(err_flags) {
+                readiness.notify(); // peer hangup/error: wake the owner so it observes EOF, then exit
+                break;
+            }
+            if re.contains(PollFlags::POLLIN) {
+                // A peer request is readable -> wake the owner's poll_wait NOW (non-consuming; the inline
+                // drain still does the real read). The fd stays readable until the guest drains it, so
+                // throttle with backoff (small initial, so the first wake is prompt) to bound the rate.
+                readiness.notify();
+                let sleep_ms = if pending_ms >= 400 { 500 } else { 5 };
+                pending_ms = pending_ms.saturating_add(sleep_ms);
+                thread::sleep(Duration::from_millis(sleep_ms));
+            } else {
+                pending_ms = 0;
+            }
+        }
+    });
+}
+
 fn terminate_child_process_tree(kernel: &mut SidecarKernel, process: &mut ActiveProcess) {
     let sqlite_database_ids = process.sqlite_databases.keys().copied().collect::<Vec<_>>();
     for database_id in sqlite_database_ids {
@@ -14223,6 +14298,14 @@ fn inline_dispatch_enabled() -> bool {
             .map(|v| !(v == "0" || v.eq_ignore_ascii_case("false")))
             .unwrap_or(true)
     })
+}
+
+/// T0-root data-notifier gate (default OFF while A/B-validating). When on, an accepted server-side unix
+/// socket gets a non-consuming POLLIN notifier thread so the owner (e.g. the X server) is woken the instant
+/// a client request lands, instead of discovering it up to 50ms late on re-poll. See DESKTOP-BOOT-PERF.md.
+fn data_notifier_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SECURE_EXEC_DATA_NOTIFIER").as_deref() == Ok("1"))
 }
 
 impl secure_exec_execution::InlineNetDrain for UnixInlineNetDrain {
@@ -21849,6 +21932,11 @@ where
                         listener.register_connection(&socket_id);
                     }
                     process.register_inline_unix_socket(&socket_id, &socket);
+                    // T0-root: proactively wake THIS process (the accepting server, e.g. Xvfb) the instant
+                    // this client writes a request, instead of discovering it up to 50ms late on re-poll.
+                    if data_notifier_enabled() {
+                        socket.spawn_data_notifier(Arc::clone(&process.socket_readiness));
+                    }
                     process.unix_sockets.insert(socket_id.clone(), socket);
                     javascript_net_json_string(
                         json!({

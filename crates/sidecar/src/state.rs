@@ -1591,6 +1591,18 @@ pub(crate) struct ActiveUnixSocket {
     /// `SocketReadiness::notify_key(readiness_key)` on data/EOF; the `net.poll_wait` handler maps the
     /// guest's awaited socket ids to these keys so a scoped wait only completes when THIS socket fires.
     pub(crate) readiness_key: u64,
+    /// Data-notifier stop flag (T0-root). When a data-notifier thread is spawned for this socket (an
+    /// accepted server-side socket, opt-in), it polls the fd for POLLIN and `notify()`s the owner's
+    /// readiness on the readable edge so a blocked `net.poll_wait` wakes the instant a request lands
+    /// (instead of discovering it up to 50ms late on the next re-poll). Set on Drop so the thread exits.
+    pub(crate) data_notifier_stop: Arc<AtomicBool>,
+}
+
+impl Drop for ActiveUnixSocket {
+    fn drop(&mut self) {
+        // Stop any data-notifier thread bound to this socket (no-op if none was spawned).
+        self.data_notifier_stop.store(true, std::sync::atomic::Ordering::Relaxed);
+    }
 }
 
 /// One entry in a process's inline-net-drain registry: just enough of an

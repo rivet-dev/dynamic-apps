@@ -63,6 +63,9 @@ for run in $(seq 1 "$RUNS"); do
     -e SX_BOOT_TIMEOUT="$SX_BOOT_TIMEOUT" -e APP_SETTLE_MS="${APP_SETTLE_MS:-6000}" \
     -e SECURE_EXEC_PERFCLOCK="$SECURE_EXEC_PERFCLOCK" \
     -e SECURE_EXEC_WASM_SKIP_PREWARM="${SECURE_EXEC_WASM_SKIP_PREWARM:-0}" \
+    -e SECURE_EXEC_WAKEPROF="${SECURE_EXEC_WAKEPROF:-0}" \
+    -e SECURE_EXEC_DATA_NOTIFIER="${SECURE_EXEC_DATA_NOTIFIER:-0}" \
+    -e SECURE_EXEC_KEEP_NAMES="${SECURE_EXEC_KEEP_NAMES:-0}" \
     -v "$REPO:/repo" \
     -v "$FONTS:/tmp/vmfonts:ro" -v "$LOCALE:/tmp/vmlocale:ro" -v "$XFT:/tmp/vmxft:ro" \
     -v "$THEMES:/tmp/vmthemes:ro" -v "$WMDATA:/tmp/vmxfwm4:ro" -v "$XKB:/tmp/vmxkb:ro" \

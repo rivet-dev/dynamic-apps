@@ -259,6 +259,73 @@ _(template)_
   notify the PEER process's `SocketReadiness` on a guest→guest socket write (a real kernel/socket-table
   change; would give BOTH determinism AND speed).
 
+### ★2026-07-02 — Part-B code trace: the "missing data-arrival notify" hypothesis was WRONG
+- Traced the guest↔guest AF_UNIX path in the merged tree. The X client↔server connection is a HOST-backed
+  `ActiveUnixSocket` (real host `UnixStream`), NOT the kernel socket table. `ActiveUnixSocket::from_stream`
+  (execution.rs:1912, used by BOTH `connect` and `accept`) spawns a per-socket READER THREAD
+  (`spawn_unix_socket_reader`, 12872) that, on data arrival, ALREADY calls `wake(readiness)` →
+  `readiness.notify()` (12895) for the READER's process. So the X server IS woken the instant a client
+  writes — the data-arrival edge is wired. (The un-notified `kernel.socket_write` at 1687 is the TCP /
+  kernel-socket path, which the X server does NOT use.)
+- ⇒ The flaky total-black is NOT a missing data-notify. Candidate real mechanisms (need WAKEPROF/data to
+  disambiguate): (a) the per-socket reader THREAD is starved under concurrent boot (host thread contention)
+  so the notify is delayed/lost; (b) a race between `readiness.snapshot()` in the inline poll and the
+  reader-thread `notify()`; (c) coalesced/lost notify across many fds (per-PROCESS readiness generation is
+  coarse); (d) something upstream (the X server itself stalls before serving). NEXT: run one boot with
+  SECURE_EXEC_WAKEPROF=1 to get the X server's poll_wait wake-cause breakdown in a black vs a rendered run.
+
+### ★★★2026-07-02 — WAKEPROF DATA: the X server is 90.9% DEADLINE-driven (root confirmed)
+- Ran a desktop boot with SECURE_EXEC_WAKEPROF=1 (per-process net.poll_wait wake-cause histogram). Result:
+  | guest | total wakes | deadline% | notify |
+  |--|--|--|--|
+  | **Xvfb.wasm (X SERVER)** | 782 | **90.9 %** | 65 |
+  | xfwm4 (WM client) | 2350 | 29.7 % | 1130 |
+  | xfdesktop | 1130 | 24.6 % | 673 |
+  | xfce4-panel | 1235 | 24.9 % | 749 |
+  | dbus-daemon | 1227 | 49.4 % | 621 |
+  | xfconfd | 3276 | 50.6 % | 1229 |
+- **★ROOT CONFIRMED:** the X SERVER is ~91% DEADLINE-driven (woken by the 50 ms re-poll, not by a notify)
+  while its CLIENTS are ~25% deadline (well notify-driven). So client REQUESTS do not wake the server —
+  it discovers each request up to 50 ms late via re-poll. Under concurrent boot (many requests) this 50 ms
+  per-request latency starves the single-threaded X server → it falls behind → flaky total-black.
+- **Code location:** the server's accepted client sockets (`net.server_accept` unix branch, execution.rs
+  ~21840) ARE created with `ActiveUnixSocket::from_stream(.., process.socket_readiness)` (a reader thread
+  that would notify) AND `register_inline_unix_socket` (the C-lite inline drain). The inline drain consumes
+  incoming data on-poll, so the reader thread rarely sees data to notify → the server is not proactively
+  woken. The asymmetry: CLIENTS (connect side) are notified of server replies by their reader thread;
+  the SERVER (accept side, inline-registered) is not notified of client requests.
+- **★FIX DESIGN (next: implement + validate):** a NON-CONSUMING data-notifier per accepted inline socket,
+  modelled EXACTLY on `spawn_unix_listener_accept_notifier` (execution.rs:12950): a thread that
+  `nix::poll`s the accepted socket fd for POLLIN and calls `readiness.notify()` on the readable edge
+  (throttled/backoff so a not-yet-drained socket can't storm), WITHOUT reading the bytes (the inline
+  drain still does the real read). This wakes the X server the instant a client request lands → its
+  deadline% should collapse like the clients' (~25%), removing the 50 ms-per-request latency → should fix
+  BOTH the flaky stall (determinism) AND the boot speed. Gate behind an env flag for A/B, measure Xvfb
+  deadline% + render reliability with it on vs off. Wire the notifier's stop into the socket's Drop (as
+  the accept-notifier does via ActiveUnixListener).
+
+### 2026-07-02 — data-notifier (non-consuming POLLIN wake per accepted socket) — ❌ REJECTED (thread-starved)
+- Implemented `spawn_unix_socket_data_notifier` (execution.rs, gated `SECURE_EXEC_DATA_NOTIFIER=1`, default
+  OFF): a per-accepted-socket thread that `nix::poll`s the fd for POLLIN and `notify()`s the server's
+  readiness on the readable edge, non-consuming (inline drain still reads). Modeled on the accept-notifier.
+  Kept gated-off as a documented negative result + Drop-based stop wiring.
+- A/B (DATA_NOTIFIER=1, WAKEPROF): Xvfb deadline% stayed **~90-94 %** (unchanged from the 90.9 % baseline);
+  run still total-black. Smoking gun: the Xvfb **notify count FROZE at 107** while total wakes grew
+  550→1863 — i.e. the notifier fires early then can't keep up: its notifies land AFTER the 50 ms deadline
+  already completed the poll, so each still counts as a deadline wake.
+- **★KEY LEARNING (reframes the root):** the wakeup bottleneck is **host-THREAD SCHEDULING**, not a missing
+  notify edge. Under concurrent boot there are already many host threads (per-guest isolate + bridge +
+  per-socket reader threads); the X server's notifier/reader threads are STARVED and cannot notify faster
+  than the 50 ms re-poll. Adding MORE notifier threads (this fix) makes contention worse, not better. So
+  neither the reader-thread notify nor a data-notifier can fix it while it is thread-based.
+- **New root-fix directions (next):** (a) SYNCHRONOUS/INLINE cross-process notify — when a client's net.write
+  runs, look up the paired server socket → server readiness and `notify()` INLINE (no thread), so the wake
+  is immediate and scheduling-independent (needs a client-socket↔server-socket peer registry, since the X
+  path is host-backed UnixStreams); (b) REDUCE host-thread count during boot (the per-socket reader threads
+  + isolate threads oversubscribe the cores) so the existing notifies aren't starved; (c) revisit whether
+  the single dispatch task + N isolates is simply oversubscribing CPU (native uses procs on cores, ~0
+  contention). (a) is the most principled and matches native's "writer wakes reader synchronously".
+
 ### ★2026-07-02 — TOTAL-BLACK FLAKINESS is the acceptance blocker (new top theory T0)
 - Forensics on a black run (skip-prewarm, cov 0.0 for 110 s, all 5 launched): every client emits only its
   2 launch lines then is SILENT; the WM (xclient0, launched +12 s) NEVER reaches its event loop / paints
