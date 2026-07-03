@@ -3174,6 +3174,7 @@ class NativeKernel implements Kernel {
 		try {
 			return await fn();
 		} finally {
+			console.error(`DBGBOOT ${phase} ${Math.round(performance.now() - start)}ms`);
 			this.options.onBootTiming?.({
 				phase,
 				durationMs: performance.now() - start,
@@ -3186,6 +3187,7 @@ class NativeKernel implements Kernel {
 		try {
 			return fn();
 		} finally {
+			console.error(`DBGBOOT ${phase} ${Math.round(performance.now() - start)}ms`);
 			this.options.onBootTiming?.({
 				phase,
 				durationMs: performance.now() - start,
