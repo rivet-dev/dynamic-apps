@@ -406,6 +406,33 @@ _(template)_
   by one guest in a black run? Instrument per-guest first-RPC / last-RPC timeline in a black vs rendered run
   to see WHICH guest stalls first, rather than assuming oversubscription.
 
+### ★2026-07-02 — per-guest wakeprof, BLACK vs RENDERED: a CASCADING GTK-app stall (not one culprit, not X)
+- Ran 3× with WAKEPROF (default 5-app), got 1 rendered + 2 black, compared per-guest deadline%:
+  | guest | RENDERED | BLACK |
+  |--|--|--|
+  | xfdesktop (paints the bg = coverage) | **19 %** | **52-57 %** |
+  | xfwm4 (WM) | 31 % | 53 % |
+  | xfconfd (settings daemon) | 54 % | 65 % |
+  | Xvfb (X server) | 88 % | 92 % (idle-polls the same either way) |
+- **The X server is NOT the discriminator** (idle-polls ~90 % in both) — reconfirms lever 1's disproof. The
+  discriminator is that the GTK apps + xfconfd **all stall together** in black runs (much higher deadline%),
+  and race ahead together in rendered runs. It is a CASCADING stall, not one stuck guest (thunar/mousepad
+  have low activity in BOTH — not the cause). xfdesktop stalling → no background paint → cov 0 → "black".
+- So the flaky black is a **systemic concurrent-boot convergence problem**: the GTK apps depend on each
+  other + xfconfd + the X server, and under contention the whole graph sometimes fails to converge to a
+  painted state. There is no single wakeup/thread fix; it is emergent from the concurrency.
+- **Pragmatic directions (need a steer / pick one):**
+  - **A. Serialize-to-ready (determinism over speed):** launch each app only after the previous is CONFIRMED
+    up (a real per-app ready signal — window mapped on X, or generous fixed dwell), never piling on. Trades
+    launch time for reliability. (Naive paint-gate + heavy-stagger already failed — need a BETTER ready
+    signal, e.g. query the X server for the app's mapped window, or gate xfdesktop specifically on the bg.)
+  - **B. Cap the concurrent wasm-COMPILE storm** (node_import_cache.rs "4 large guests compiling at once"):
+    serialize/limit concurrent `new WebAssembly.Module` so the CPU spike during co-boot doesn't starve the
+    convergence. Cheapest lever-2 test.
+  - **C. Reduce host-thread count** (fold per-socket reader threads into one shared poll loop per VM).
+- Lever 1 (wakeup) DONE/disproven. Oversubscription PARTIAL (3 apps 2/3 vs 5 apps 1/3). Boot ~59 s is
+  fixed-overhead-bound (dbus sleeps + settle-gate), independent of app count.
+
 ### ★2026-07-02 — TOTAL-BLACK FLAKINESS is the acceptance blocker (new top theory T0)
 - Forensics on a black run (skip-prewarm, cov 0.0 for 110 s, all 5 launched): every client emits only its
   2 launch lines then is SILENT; the WM (xclient0, launched +12 s) NEVER reaches its event loop / paints
