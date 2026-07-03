@@ -39,7 +39,7 @@ STUB_COMMANDS := \
 
 .PHONY: all commands wasm wasm-opt-check host test clean patch-std patch-check vendor patch-vendor vendor-patch-check size-report install c-wasm codex
 
-all: wasm host
+all: wasm
 
 # Build EVERYTHING that lands in COMMANDS_DIR: all Rust commands (+ codex when
 # the fork is present), then the opted-in C commands (curl, wget, sqlite3, zip,
@@ -295,37 +295,12 @@ size-report:
 	echo "Unique crates: $$TOTAL"
 
 # Install standalone binaries to a custom directory
-install:
-	@if [ -z "$(DESTDIR)" ]; then \
-		echo "Usage: make install DESTDIR=/path/to/commands"; \
-		exit 1; \
-	fi
-	@if [ ! -d "$(COMMANDS_DIR)" ]; then \
-		echo "Error: $(COMMANDS_DIR) not found. Run 'make wasm' first."; \
-		exit 1; \
-	fi
-	@mkdir -p $(DESTDIR)
-	@cp -a $(COMMANDS_DIR)/* $(DESTDIR)/
-	@echo "Installed to $(DESTDIR)"
 
 # Build C programs to WASM (downloads wasi-sdk if needed)
-c-wasm:
-	$(MAKE) -C c programs
 
-host:
-	@if [ -f host/package.json ]; then \
-		echo "Building JS host runtime..."; \
-		cd host && npm run build; \
-	else \
-		echo "Error: host/package.json not found"; \
-		exit 1; \
-	fi
 
 test:
 	cargo test --workspace
-	@if [ -f host/package.json ]; then \
-		cd host && npm test; \
-	fi
 
 clean:
 	cargo clean

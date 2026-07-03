@@ -117,8 +117,16 @@ for CRATE_DIR in $CRATE_DIRS; do
                     patch -p1 -d "$VENDOR_CRATE" < "$PATCH" > /dev/null 2>&1
                     echo "reapplied"
                 else
-                    echo "FAIL (does not apply)"
-                    FAILED=$((FAILED + 1))
+                    # Mixed state (e.g. an interrupted earlier run left some
+                    # hunks applied): apply the remaining hunks, tolerating
+                    # already-applied ones; fail only on genuine rejects.
+                    OUT=$(patch -p1 -N -r /dev/null -d "$VENDOR_CRATE" < "$PATCH" 2>&1); RC=$?
+                    if [ $RC -le 1 ] && ! echo "$OUT" | grep -q "FAILED"; then
+                        echo "converged (mixed state)"
+                    else
+                        echo "FAIL (does not apply)"
+                        FAILED=$((FAILED + 1))
+                    fi
                 fi
                 ;;
             reverse)
