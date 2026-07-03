@@ -68,6 +68,7 @@ for run in $(seq 1 "$RUNS"); do
     -e SECURE_EXEC_DATA_NOTIFIER="${SECURE_EXEC_DATA_NOTIFIER:-0}" \
     -e SECURE_EXEC_INLINE_PEER_NOTIFY="${SECURE_EXEC_INLINE_PEER_NOTIFY:-0}" \
     -e SECURE_EXEC_KEEP_NAMES="${SECURE_EXEC_KEEP_NAMES:-0}" \
+    -e SECURE_EXEC_PATHOPENPROF="${SECURE_EXEC_PATHOPENPROF:-0}" \
     -v "$REPO:/repo" \
     -v "$FONTS:/tmp/vmfonts:ro" -v "$LOCALE:/tmp/vmlocale:ro" -v "$XFT:/tmp/vmxft:ro" \
     -v "$THEMES:/tmp/vmthemes:ro" -v "$WMDATA:/tmp/vmxfwm4:ro" -v "$XKB:/tmp/vmxkb:ro" \

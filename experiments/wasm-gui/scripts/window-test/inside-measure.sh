@@ -45,6 +45,7 @@ APP_SETTLE_MS="${APP_SETTLE_MS:-6000}" SX_SERIAL_LAUNCH="${SX_SERIAL_LAUNCH:-0}"
   SECURE_EXEC_DATA_NOTIFIER="${SECURE_EXEC_DATA_NOTIFIER:-0}" \
   SECURE_EXEC_INLINE_PEER_NOTIFY="${SECURE_EXEC_INLINE_PEER_NOTIFY:-0}" \
   SECURE_EXEC_KEEP_NAMES="${SECURE_EXEC_KEEP_NAMES:-0}" \
+  SECURE_EXEC_PATHOPENPROF="${SECURE_EXEC_PATHOPENPROF:-0}" \
   "$HOST_BIN" --desktop \
   --server "$EXP/Xvfb.wasm" \
   --dbus "$EXP/dbus-daemon.wasm" \
@@ -140,6 +141,24 @@ print("BOOT_TIMEOUT", flush=True)
 sys.exit(1)
 PY
 RC=$?
+
+# ★ CPU accounting: of the boot wall-time, how much did the sidecar (= ALL wasm guests + dispatch) actually
+# spend ON-CPU (genuine wasm compute) vs BLOCKED (syscalls / poll-waits / cross-thread waiting)? Sampled at
+# settle/timeout. CPU-s << wall = wait-bound (runtime-fixable); CPU-s ≈ wall × busy-threads = compute-bound.
+SPID=""
+for p in /proc/[0-9]*; do
+  if tr '\0' ' ' < "$p/cmdline" 2>/dev/null | grep -qa "secure-exec-sidecar"; then
+    SPID="${p#/proc/}"; break
+  fi
+done
+if [ -n "$SPID" ] && [ -r "/proc/$SPID/stat" ]; then
+  SC_CPU=$(awk '{printf "%.1f", ($14+$15)/100}' "/proc/$SPID/stat" 2>/dev/null)
+  SC_THR=$(ls "/proc/$SPID/task" 2>/dev/null | wc -l)
+  NCPU=$(nproc 2>/dev/null)
+  echo "SIDECAR_CPU_SECONDS=${SC_CPU} SIDECAR_THREADS=${SC_THR} NCPU=${NCPU} (compare to boot wall BOOT_MS)"
+else
+  echo "SIDECAR_CPU_SECONDS=unknown (sidecar pid not found)"
+fi
 
 echo "=== select-block probes (dispatch-task holds >1s) ==="
 grep -aE "\[select-block\]|\[pump-gap\]" /out/host.log | head -40 || true
