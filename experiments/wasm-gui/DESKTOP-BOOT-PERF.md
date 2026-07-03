@@ -1,48 +1,59 @@
-# Desktop-boot performance loop — get full Xubuntu boot to ≤10× native
+# Full Xubuntu boot — reliable render first, reasonable launch times second
 
-**This file is the working database for the recursive perf loop.** Read it top-to-bottom each session.
-Keep it current: append every theory, every fix attempt (with before/after numbers + approve/reject), and
-every learning. The `/goal` points here.
+**This file is the working database.** Read it top-to-bottom each session. Keep it current: append every
+theory, every fix attempt (with before/after numbers + approve/reject), and every learning. The `/goal`
+points here.
+
+**★ REFRAMED 2026-07-02 (determinism-first).** The 2026-07-02 investigation proved the blocker is NOT
+incremental speed — it is **DETERMINISM**: the full desktop renders only ~1/3 of runs (2/3 total-black),
+and the cause is **host-thread scheduling contention during concurrent boot** (the X server's notify/reader
+threads are starved by the many per-isolate + per-bridge + per-socket threads oversubscribing the cores, so
+it re-polls every 50 ms per request and flakily stalls — measured: Xvfb 90.9 % deadline-driven). So this is
+ONE focused architectural fix, not a loop of small perf experiments.
 
 ---
 
-## Objective + acceptance
+## Objective + acceptance (PHASED)
 
-Get **full multi-app desktop boot** from its current ~100-300× (and often ∞/total-black) down to **≤ 10×
-the measured native baseline**, deterministically.
+**Goal: full Xubuntu (xfwm4 + xfce4-panel + xfdesktop + Thunar + apps) rendering RELIABLY, then at a
+reasonable launch time.**
 
-- **Metric — desktop-boot-time:** wall time from host start until **all launched desktop components have
-  painted** (framebuffer coverage stabilizes high), measured headless. Components: xfwm4 + xfce4-panel +
-  xfdesktop + Thunar + mousepad (the XU7 set).
-- **Native baseline (re-measure EACH session, never trust a stale number):** the `scripts/native-ir/`
-  desktop harness (Docker, identical app set). Measured 2026-07-02 = **0.54 s** (worst-under-load 1.05 s),
-  0.17 CPU-s of X work on 1 thread, no degradation adding clients.
-- **ACCEPTANCE:** desktop-boot-time **≤ 10× native** (≈ ≤ 5.4 s at the 0.54 s baseline) with **all 5
-  components painted**, **deterministic across ≥ 3 consecutive runs** (zero total-black stalls). Re-measure
-  native the same session so the multiple is honest.
-- **Stop only on a PROVEN hard floor:** if a specific, measured floor blocks ≤10× and it genuinely requires
-  out-of-CORE toolchain work (fpcast-emu elimination / typed-function-refs / LTO / SIMD), STOP and record it
-  here with the arithmetic. "Hard, large, multi-session" is NOT a floor — keep looping.
+- **★ PHASE 1 — DETERMINISM (top priority, the real blocker):** the full desktop renders every time.
+  ACCEPTANCE: a FULL render (fb coverage ≥ 40 %, all launched components painted) on **≥ 5 consecutive runs
+  with ZERO total-black**, at any reasonable time. Measured with `scripts/measure-boot.sh` (FULL_MIN=40).
+- **PHASE 2 — REASONABLE SPEED (only after Phase 1 holds):** drive launch time down. Target **~≤ 15 s**
+  deterministic (best-effort toward ≤ 10× native ≈ 5.4 s, which becomes reachable once concurrent boot
+  works: wall ≈ slowest single app ~2-4 s ≈ 4-7× native). Re-measure native (`scripts/native-ir`,
+  2026-07-02 = 0.54 s) the same session so any multiple is honest.
+- **Focus the work on the ONE root:** concurrent-boot thread contention / the X-server wakeup (below).
+  This is not a "try many small levers" loop — it is a specific engineering fix. Don't chase launch-timing
+  tuning or per-app parity until Phase 1 render is reliable (both were already rejected — see Known-nulls).
 
 **Constraints:** fix in CORE only (`crates/{sidecar,execution,v8-runtime,kernel,bridge}`) or the app
-*build*/fixtures. **Never modify the core X server (Xvfb) source or build.** No guest-binary edits
-(Constraint #5). Commit wins to the `wasm-gui-desktop` branch (PR #104).
+*build*/fixtures. **Never modify the core X server (Xvfb) source or build.** No guest-binary edits. Commit
+wins to the `wasm-gui-desktop` branch (PR #104).
 
 ---
 
-## The loop (run this every iteration)
+## ★ TOP PRIORITY (Phase 1 root fix) — kill the concurrent-boot thread-contention stall
 
-1. **Measure** desktop-boot-time (ours) + native, same session. Record in the Fix Log.
-2. **Pick the top theory** from the Theory Backlog (highest expected × / lowest risk first).
-3. **Implement** the smallest change that tests it. Keep it isolated + reversible.
-4. **Verify:** re-measure boot-time (≥3 runs for determinism) + confirm all components still paint + no
-   regression in single-app first-paint or ir. **Approve** (commit) or **Reject** (revert), with numbers.
-5. **Learn:** append what the result taught us; add/re-rank theories it implies. If a theory is disproven,
-   record it in Known-Nulls so it's never retried.
-6. **Loop** until ACCEPTANCE holds or a proven hard floor is recorded.
+The X server is ~91 % deadline-driven: client requests do not wake it (it re-polls every 50 ms), and under
+concurrent boot that latency compounds → flaky total-black. The reader-thread and a per-socket data-notifier
+BOTH fail because they are extra host threads that get starved (data-notifier A/B: notify count froze while
+deadline % stayed ~90 % — REJECTED). Two candidate fixes, in priority order:
 
-Bias to landing wins behind measurement, not by feel. A change without a before/after boot-time number
-doesn't count.
+1. **★ Inline/synchronous cross-process notify (most principled).** When a client's `net.write` runs, look
+   up the PAIRED server socket → the server process's `SocketReadiness` and `notify()` it INLINE (same
+   thread, no notifier thread), so the wake is immediate + scheduling-independent (this is how native
+   "writer wakes reader" works). Needs a client-socket↔server-socket peer registry — the X path is
+   host-backed `UnixStream`s (execution.rs `ActiveUnixSocket`), so the sidecar must record the pairing at
+   `connect`/`accept` time (it creates both ends) and reach the peer's readiness from the write handler.
+2. **Reduce host-thread count during boot.** The per-socket reader threads + per-isolate threads
+   oversubscribe the cores (native runs procs on cores with ~0 contention). Fewer threads → existing
+   notifies aren't starved. E.g. fold per-socket reader threads into a shared poll/epoll loop.
+
+Validate with `SECURE_EXEC_WAKEPROF=1`: success = Xvfb deadline % collapses toward the clients' ~25 %, AND
+render becomes reliable (≥5 runs zero-black). See the full diagnosis in the Fix Log below.
 
 ---
 
