@@ -35,7 +35,16 @@ wins to the `wasm-gui-desktop` branch (PR #104).
 
 ---
 
-## ★ TOP PRIORITY (Phase 1 root fix) — kill the concurrent-boot CPU/thread OVERSUBSCRIPTION stall
+## ★ STATUS — PHASE 1 (determinism) ACHIEVED ✓; now on PHASE 2 (speed)
+
+**★ 2026-07-02: PHASE 1 IS MET.** `SX_SERIAL_LAUNCH=1` = 5/5 zero-black FULL renders (95-99.9 %), ~61 s.
+Root CONFIRMED = concurrent-boot CPU/thread oversubscription (serial boot converges every time). See the
+top Fix-Log entry. **Now driving Phase 2 (reasonable launch time, ~≤15 s):** (1) binary-search the minimum
+reliable `SX_SERIAL_SETTLE_MS` (6 s black, 12 s reliable → find the floor); (2) trim fixed dbus 2+4 s sleeps
+→ readiness polls; (3) carefully re-introduce LIMITED concurrency (launch in pairs / cap concurrent
+wasm-compiles) to break the ~11 s/app serial floor toward wall ≈ slowest app.
+
+### (historical) TOP PRIORITY that led here — the OVERSUBSCRIPTION root
 
 **★ UPDATED 2026-07-02: the X-server-wakeup theory below (lever 1) is DISPROVEN — see the top Fix-Log
 entry.** Lever 1 was fully implemented + measured: the inline peer-notify fires 1500+ times/boot, all clients
@@ -432,6 +441,24 @@ _(template)_
   - **C. Reduce host-thread count** (fold per-socket reader threads into one shared poll loop per VM).
 - Lever 1 (wakeup) DONE/disproven. Oversubscription PARTIAL (3 apps 2/3 vs 5 apps 1/3). Boot ~59 s is
   fixed-overhead-bound (dbus sleeps + settle-gate), independent of app count.
+
+### 2026-07-02 — Phase 2: serial SETTLE is NOT the speed lever (8 s = 12 s = 61 s) — per-app init dominates
+- `SX_SERIAL_SETTLE_MS=8000`: 5/5 render (95-99.9 %) but **median 60.9 s — identical to 12 s (61 s)**. So
+  shortening the settle does NOT speed boot: each app stays CHATTY for ~11 s during its own init (resetting
+  `last_activity`), so the quiet-window barely starts before the app is genuinely done. The ~61 s = ~5 apps
+  × ~11 s serial init + ~6 s fixed dbus sleeps. The bottleneck is PER-APP INIT (wasm compute floor), not the
+  settle. ⇒ settle-tuning is a dead-end for speed.
+- **Real Phase-2 levers (reliability-vs-speed tension):** fully-serial is 5/5 but slow (61 s); ANY naive
+  concurrency re-introduces the flaky black (3 concurrent = 2/3). To go faster AND stay reliable we must fix
+  the OVERSUBSCRIPTION root itself, not serialize around it:
+  1. **Cap concurrent wasm-COMPILE** (the CPU-spike) while letting the rest of init run concurrently — a
+     cross-isolate compile semaphore (guests ask the sidecar before `new WebAssembly.Module`, one at a
+     time). Lets apps co-boot (fast) without the compile-storm (reliable). The principled speed+reliability
+     fix. CORE change.
+  2. **Launch in small batches** (2-3 at a time) instead of fully serial — cheap host-side test of how much
+     concurrency the graph tolerates. (Sweep showed 3 concurrent = 2/3, so pure batching may not be enough
+     without #1.)
+  3. **Trim the fixed dbus 2+4 s sleeps** → readiness polls (~6 s, cheap, orthogonal).
 
 ### ★★★2026-07-02 — SERIALIZE-TO-READY WORKS: Phase 1 (determinism) ACHIEVED + concurrency CONFIRMED as root
 - Definitive test — heavy serial boot (`APP_SETTLE_MS=12000`, honest FULL_MIN=40 metric): **5/5 FULL renders
