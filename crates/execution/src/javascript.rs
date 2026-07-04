@@ -144,24 +144,9 @@ fn record_js_phase_stats(
     let _ = fs::write(path, output);
 }
 
-// V8 heap cap migrated to the typed `JavascriptExecutionLimits.v8_heap_limit_mb`
-// request field; the `AGENTOS_V8_HEAP_LIMIT_MB` env const is no longer read.
-/// Opt-in TRUE CPU-time budget (ms) for guest JavaScript. Unset/`0` => no limit.
-///
-/// Guest inline code (e.g. `while (true) {}`) runs on the shared, slot-bounded V8
-/// runtime; with this set, a runaway burning CPU is terminated by the CPU-budget
-/// watchdog (which counts active JS CPU only, excluding idle/await). There is NO
-/// default: with this unset the guest runs CPU-uncapped by design — the
-/// platform/operator MUST set it to cap a guest. A wall-clock backstop is
-/// intentionally NOT part of this knob (deferred to a follow-up).
-const V8_CPU_TIME_LIMIT_MS_ENV: &str = "AGENTOS_V8_CPU_TIME_LIMIT_MS";
-/// Opt-in WALL-CLOCK execution backstop (ms). INDEPENDENT of the CPU-time budget:
-/// this counts elapsed real time INCLUDING idle/await, so it can cap a guest that
-/// blocks or awaits indefinitely. There is NO default — with this unset the guest
-/// has no wall-clock limit (long-lived ACP adapters must run indefinitely). When
-/// both this and `AGENTOS_V8_CPU_TIME_LIMIT_MS` are set, both guards are armed and
-/// whichever fires first terminates execution.
-const V8_WALL_CLOCK_LIMIT_MS_ENV: &str = "AGENTOS_V8_WALL_CLOCK_LIMIT_MS";
+const DEFAULT_V8_CPU_TIME_LIMIT_MS: u32 = 30_000;
+const DEFAULT_V8_WALL_CLOCK_LIMIT_MS: u32 = 0;
+const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS: u64 = 30_000;
 const NODE_SYNC_RPC_DEFAULT_DATA_BYTES: usize = 4 * 1024 * 1024;
 const NODE_SYNC_RPC_DEFAULT_WAIT_TIMEOUT_MS: u64 = 30_000;
 const NODE_SYNC_RPC_RESPONSE_QUEUE_CAPACITY: usize = 1;
@@ -453,6 +438,14 @@ pub struct JavascriptExecutionLimits {
     pub v8_heap_limit_mb: Option<u32>,
     /// Sync-RPC blocking-wait ceiling in ms. `None` keeps the engine default.
     pub sync_rpc_wait_timeout_ms: Option<u64>,
+    /// Active JavaScript CPU-time budget in ms. `None` keeps the engine default;
+    /// `Some(0)` disables the CPU watchdog.
+    pub cpu_time_limit_ms: Option<u32>,
+    /// JavaScript wall-clock backstop in ms. `None` keeps the engine default;
+    /// `Some(0)` disables the wall-clock watchdog.
+    pub wall_clock_limit_ms: Option<u32>,
+    /// Timeout for materializing the per-VM Node import cache.
+    pub import_cache_materialize_timeout_ms: Option<u64>,
 }
 
 /// Per-execution guest-runtime config carried as typed fields rather than
@@ -2222,7 +2215,7 @@ impl JavascriptExecutionEngine {
         // Ensure import cache is materialized (still needed for module resolution)
         let import_cache = self.import_caches.entry(context.vm_id.clone()).or_default();
         import_cache
-            .ensure_materialized()
+            .ensure_materialized_with_timeout(javascript_import_cache_materialize_timeout(&request))
             .map_err(JavascriptExecutionError::PrepareImportCache)?;
         let import_cache_guard = import_cache.cleanup_guard();
         record_js_start_phase("js_start_import_cache", phase_start.elapsed());
@@ -2498,35 +2491,44 @@ fn javascript_heap_limit_mb(request: &StartJavascriptExecutionRequest) -> u32 {
         .unwrap_or(0)
 }
 
+fn javascript_import_cache_materialize_timeout(
+    request: &StartJavascriptExecutionRequest,
+) -> Duration {
+    let timeout_ms = request
+        .limits
+        .import_cache_materialize_timeout_ms
+        .filter(|value| *value > 0)
+        .unwrap_or(DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS);
+    Duration::from_millis(timeout_ms)
+}
+
 /// Resolve the TRUE CPU-time budget (ms) for a JavaScript execution.
 ///
-/// Read from `AGENTOS_V8_CPU_TIME_LIMIT_MS`, falling back to a bounded default
-/// when unset/unparsable. `0` remains an explicit trusted opt-out and is
-/// normalized to `None` by the V8 session.
+/// Read from typed `limits.jsRuntime.cpuTimeLimitMs`, falling back to a bounded
+/// default when unset. `0` remains an explicit trusted opt-out and is normalized
+/// to `None` by the V8 session.
 fn javascript_cpu_time_limit_ms(request: &StartJavascriptExecutionRequest) -> u32 {
     request
-        .env
-        .get(V8_CPU_TIME_LIMIT_MS_ENV)
-        .and_then(|value| value.parse::<u32>().ok())
+        .limits
+        .cpu_time_limit_ms
         // Generous active-CPU budget: long-lived adapters are still not capped
         // on wall-clock, but CPU-bound runaways no longer pin a core forever by
         // default.
-        .unwrap_or(30_000)
+        .unwrap_or(DEFAULT_V8_CPU_TIME_LIMIT_MS)
 }
 
 /// Resolve the opt-in WALL-CLOCK backstop (ms) for a JavaScript execution.
 ///
-/// Opt-in with NO default: read from `AGENTOS_V8_WALL_CLOCK_LIMIT_MS`, falling
-/// back to `0` (no limit) when unset/unparsable. `0` is normalized to `None` by
-/// the V8 session, so the wall-clock `TimeoutGuard` is NOT armed and the guest
-/// runs without a wall-clock limit. This is INDEPENDENT of the CPU-time budget:
-/// setting only one arms only that guard.
+/// Read from typed `limits.jsRuntime.wallClockLimitMs`, falling back to `0` (no
+/// limit). `0` is normalized to `None` by the V8 session, so the wall-clock
+/// `TimeoutGuard` is NOT armed and the guest runs without a wall-clock limit.
+/// This is INDEPENDENT of the CPU-time budget: setting only one arms only that
+/// guard.
 fn javascript_wall_clock_limit_ms(request: &StartJavascriptExecutionRequest) -> u32 {
     request
-        .env
-        .get(V8_WALL_CLOCK_LIMIT_MS_ENV)
-        .and_then(|value| value.parse::<u32>().ok())
-        .unwrap_or(0)
+        .limits
+        .wall_clock_limit_ms
+        .unwrap_or(DEFAULT_V8_WALL_CLOCK_LIMIT_MS)
 }
 
 fn spawn_javascript_sync_rpc_timeout(
@@ -7183,6 +7185,18 @@ mod tests {
                 String::from("999999"),
             ),
             (
+                String::from("AGENTOS_V8_CPU_TIME_LIMIT_MS"),
+                String::from("999999"),
+            ),
+            (
+                String::from("AGENTOS_V8_WALL_CLOCK_LIMIT_MS"),
+                String::from("999999"),
+            ),
+            (
+                String::from("AGENTOS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS"),
+                String::from("999999"),
+            ),
+            (
                 String::from(NODE_SYNC_RPC_WAIT_TIMEOUT_MS_ENV),
                 String::from("999999"),
             ),
@@ -7197,6 +7211,9 @@ mod tests {
             limits: JavascriptExecutionLimits {
                 v8_heap_limit_mb: Some(64),
                 sync_rpc_wait_timeout_ms: Some(2_000),
+                cpu_time_limit_ms: Some(750),
+                wall_clock_limit_ms: Some(500),
+                import_cache_materialize_timeout_ms: Some(125),
             },
             wasm_module_bytes: None,
             inline_code: None,
@@ -7211,6 +7228,21 @@ mod tests {
             javascript_sync_rpc_timeout(&request),
             std::time::Duration::from_millis(2_000),
             "sync-rpc wait must come from the typed wire limit, not env"
+        );
+        assert_eq!(
+            javascript_cpu_time_limit_ms(&request),
+            750,
+            "CPU budget must come from the typed wire limit, not env"
+        );
+        assert_eq!(
+            javascript_wall_clock_limit_ms(&request),
+            500,
+            "wall-clock budget must come from the typed wire limit, not env"
+        );
+        assert_eq!(
+            javascript_import_cache_materialize_timeout(&request),
+            std::time::Duration::from_millis(125),
+            "import-cache timeout must come from the typed wire limit, not env"
         );
     }
 
@@ -7236,6 +7268,18 @@ mod tests {
         assert_eq!(
             javascript_sync_rpc_timeout(&request),
             std::time::Duration::from_millis(NODE_SYNC_RPC_DEFAULT_WAIT_TIMEOUT_MS),
+        );
+        assert_eq!(
+            javascript_cpu_time_limit_ms(&request),
+            DEFAULT_V8_CPU_TIME_LIMIT_MS
+        );
+        assert_eq!(
+            javascript_wall_clock_limit_ms(&request),
+            DEFAULT_V8_WALL_CLOCK_LIMIT_MS
+        );
+        assert_eq!(
+            javascript_import_cache_materialize_timeout(&request),
+            std::time::Duration::from_millis(DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS)
         );
     }
 

@@ -1062,6 +1062,7 @@ fn start_python_javascript_execution(
     let runner_limits = JavascriptExecutionLimits {
         v8_heap_limit_mb: (max_old_space_mb > 0).then_some(max_old_space_mb as u32),
         sync_rpc_wait_timeout_ms: Some(PYTHON_SYNC_RPC_WAIT_TIMEOUT_MS),
+        ..JavascriptExecutionLimits::default()
     };
 
     javascript_engine

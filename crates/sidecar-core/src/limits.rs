@@ -34,6 +34,9 @@ pub const DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES: usize = 16 * 1024 * 1024;
 pub const DEFAULT_JS_EVENT_PAYLOAD_LIMIT_BYTES: usize = 1024 * 1024;
 pub const DEFAULT_V8_IPC_MAX_FRAME_BYTES: u32 = 64 * 1024 * 1024;
 pub const DEFAULT_V8_HEAP_LIMIT_MB: u32 = 128;
+pub const DEFAULT_V8_CPU_TIME_LIMIT_MS: u32 = 30_000;
+pub const DEFAULT_V8_WALL_CLOCK_LIMIT_MS: u32 = 0;
+pub const DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS: u64 = 30_000;
 
 pub const DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES: usize = 1024 * 1024;
 pub const DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS: u64 = 5 * 60 * 1000;
@@ -44,6 +47,8 @@ pub const DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS: u64 = 30 * 1000;
 pub const DEFAULT_WASM_MAX_MODULE_FILE_BYTES: u64 = 256 * 1024 * 1024;
 pub const DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES: usize = 16 * 1024 * 1024;
 pub const DEFAULT_WASM_SYNC_READ_LIMIT_BYTES: usize = 16 * 1024 * 1024;
+pub const DEFAULT_WASM_PREWARM_TIMEOUT_MS: u64 = 30_000;
+pub const DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB: u32 = 2048;
 
 /// All operator-tunable VM-scoped limits. Fields are concrete values; the `Default` impls own the
 /// numbers and equal today's hardcoded constants, so unset operator config leaves behavior
@@ -117,6 +122,12 @@ pub struct JsRuntimeLimits {
     pub v8_heap_limit_mb: Option<u32>,
     /// Sync-RPC blocking-wait ceiling in ms. `None` keeps the engine default.
     pub sync_rpc_wait_timeout_ms: Option<u64>,
+    /// Active JavaScript CPU-time budget in ms. `0` disables the CPU watchdog.
+    pub cpu_time_limit_ms: u32,
+    /// JavaScript wall-clock backstop in ms. `0` disables the wall-clock watchdog.
+    pub wall_clock_limit_ms: u32,
+    /// Timeout for materializing the per-VM Node import cache.
+    pub import_cache_materialize_timeout_ms: u64,
     pub captured_output_limit_bytes: usize,
     pub stdin_buffer_limit_bytes: usize,
     pub event_payload_limit_bytes: usize,
@@ -140,6 +151,10 @@ pub struct WasmLimits {
     pub captured_output_limit_bytes: usize,
     /// WASM sync read cap. Also templated into the JS runner shim, so it must flow from one field.
     pub sync_read_limit_bytes: usize,
+    /// Best-effort warmup/compile-cache timeout.
+    pub prewarm_timeout_ms: u64,
+    /// V8 heap cap for the trusted JS runner isolate that hosts WASI/WASM.
+    pub runner_heap_limit_mb: u32,
 }
 
 impl Default for HttpLimits {
@@ -190,6 +205,9 @@ impl Default for JsRuntimeLimits {
             // clear this through trusted VM config when a VM needs more room.
             v8_heap_limit_mb: Some(DEFAULT_V8_HEAP_LIMIT_MB),
             sync_rpc_wait_timeout_ms: None,
+            cpu_time_limit_ms: DEFAULT_V8_CPU_TIME_LIMIT_MS,
+            wall_clock_limit_ms: DEFAULT_V8_WALL_CLOCK_LIMIT_MS,
+            import_cache_materialize_timeout_ms: DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS,
             captured_output_limit_bytes: DEFAULT_JS_CAPTURED_OUTPUT_LIMIT_BYTES,
             stdin_buffer_limit_bytes: DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES,
             event_payload_limit_bytes: DEFAULT_JS_EVENT_PAYLOAD_LIMIT_BYTES,
@@ -215,6 +233,8 @@ impl Default for WasmLimits {
             max_module_file_bytes: DEFAULT_WASM_MAX_MODULE_FILE_BYTES,
             captured_output_limit_bytes: DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES,
             sync_read_limit_bytes: DEFAULT_WASM_SYNC_READ_LIMIT_BYTES,
+            prewarm_timeout_ms: DEFAULT_WASM_PREWARM_TIMEOUT_MS,
+            runner_heap_limit_mb: DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB,
         }
     }
 }
@@ -312,6 +332,19 @@ pub fn vm_limits_from_config(
                     .map_err(|_| integer_too_large("limits.jsRuntime.v8HeapLimitMb", value))?,
             );
         }
+        if let Some(value) = js_runtime.cpu_time_limit_ms {
+            limits.js_runtime.cpu_time_limit_ms = u32::try_from(value)
+                .map_err(|_| integer_too_large("limits.jsRuntime.cpuTimeLimitMs", value))?;
+        }
+        if let Some(value) = js_runtime.wall_clock_limit_ms {
+            limits.js_runtime.wall_clock_limit_ms = u32::try_from(value)
+                .map_err(|_| integer_too_large("limits.jsRuntime.wallClockLimitMs", value))?;
+        }
+        set_u64(
+            &mut limits.js_runtime.import_cache_materialize_timeout_ms,
+            js_runtime.import_cache_materialize_timeout_ms,
+            "limits.jsRuntime.importCacheMaterializeTimeoutMs",
+        )?;
         set_usize(
             &mut limits.js_runtime.captured_output_limit_bytes,
             js_runtime.captured_output_limit_bytes,
@@ -373,6 +406,15 @@ pub fn vm_limits_from_config(
             wasm.sync_read_limit_bytes,
             "limits.wasm.syncReadLimitBytes",
         )?;
+        set_u64(
+            &mut limits.wasm.prewarm_timeout_ms,
+            wasm.prewarm_timeout_ms,
+            "limits.wasm.prewarmTimeoutMs",
+        )?;
+        if let Some(value) = wasm.runner_heap_limit_mb {
+            limits.wasm.runner_heap_limit_mb = u32::try_from(value)
+                .map_err(|_| integer_too_large("limits.wasm.runnerHeapLimitMb", value))?;
+        }
     }
 
     validate_vm_limits(&limits, sidecar_max_frame_bytes)?;
@@ -606,6 +648,16 @@ pub fn validate_vm_limits(
             "limits.wasm.sync_read_limit_bytes must be greater than zero".to_string(),
         ));
     }
+    if limits.wasm.prewarm_timeout_ms == 0 {
+        return Err(SidecarCoreError::new(
+            "limits.wasm.prewarm_timeout_ms must be greater than zero".to_string(),
+        ));
+    }
+    if limits.wasm.runner_heap_limit_mb == 0 {
+        return Err(SidecarCoreError::new(
+            "limits.wasm.runner_heap_limit_mb must be greater than zero".to_string(),
+        ));
+    }
     if limits.wasm.max_module_file_bytes == 0 {
         return Err(SidecarCoreError::new(
             "limits.wasm.max_module_file_bytes must be greater than zero".to_string(),
@@ -629,6 +681,12 @@ pub fn validate_vm_limits(
     if let Some(0) = limits.js_runtime.v8_heap_limit_mb {
         return Err(SidecarCoreError::new(
             "limits.js_runtime.v8_heap_limit_mb must be greater than zero".to_string(),
+        ));
+    }
+    if limits.js_runtime.import_cache_materialize_timeout_ms == 0 {
+        return Err(SidecarCoreError::new(
+            "limits.js_runtime.import_cache_materialize_timeout_ms must be greater than zero"
+                .to_string(),
         ));
     }
 

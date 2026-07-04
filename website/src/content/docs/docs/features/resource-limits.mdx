@@ -6,7 +6,7 @@ description: Secure Exec resource limits, defaults, backpressure constants, and 
 Secure Exec bounds each VM with per-VM resource caps so untrusted guest code can never exhaust the host. At a glance:
 
 - **Per-VM caps**: Each VM gets its own ceilings on concurrent processes, open file descriptors, sockets, total filesystem bytes, and WASM stack depth.
-- **Kernel-enforced**: The kernel mediates and accounts for every allocation. There is no path for the guest to reach host resources around these limits.
+- **Sidecar/runtime-enforced**: The kernel mediates VM resources while the runtimes enforce JavaScript, Python, and WASM execution caps. There is no path for the guest to reach host resources around these limits.
 - **Guest-local failure**: A guest that exceeds a cap fails inside its own VM with a normal POSIX errno, exactly as it would on real Linux.
 - **Host is unaffected**: Hitting a limit terminates or fails the guest operation only; the sidecar and host process stay intact and the VM keeps running.
 - **Operator-raisable**: The caller configures the limits per VM and can raise or lower them to fit the workload.
@@ -36,7 +36,7 @@ These constants are the default caps behind the `limits.*` VM config fields.
 | `limits.resources.maxProcessEnvBytes` | `DEFAULT_MAX_PROCESS_ENV_BYTES` | `1 MiB` |
 | `limits.resources.maxReaddirEntries` | `DEFAULT_MAX_READDIR_ENTRIES` | `4096` |
 | `limits.resources.maxWasmMemoryBytes` | `DEFAULT_MAX_WASM_MEMORY_BYTES` | `128 MiB` |
-| `limits.resources.maxWasmFuel` | none | unset, runtime default applies |
+| `limits.resources.maxWasmFuel` | none | unset, no explicit fuel budget; WASM runaways are still bounded by the runner CPU watchdog |
 | `limits.resources.maxWasmStackBytes` | none | unset, engine default applies |
 | `limits.http.maxFetchResponseBytes` | `DEFAULT_MAX_FETCH_RESPONSE_BYTES` | `1 MiB` |
 | `limits.tools.defaultToolTimeoutMs` | `DEFAULT_TOOL_TIMEOUT_MS` | `30000 ms` |
@@ -52,6 +52,9 @@ These constants are the default caps behind the `limits.*` VM config fields.
 | `limits.acp.maxReadLineBytes` | `DEFAULT_ACP_MAX_READ_LINE_BYTES` | `16 MiB` |
 | `limits.acp.stdoutBufferByteLimit` | `DEFAULT_ACP_STDOUT_BUFFER_BYTE_LIMIT` | `1 MiB` |
 | `limits.jsRuntime.v8HeapLimitMb` | `DEFAULT_V8_HEAP_LIMIT_MB` | `128 MiB` |
+| `limits.jsRuntime.cpuTimeLimitMs` | `DEFAULT_V8_CPU_TIME_LIMIT_MS` | `30000 ms` |
+| `limits.jsRuntime.wallClockLimitMs` | `DEFAULT_V8_WALL_CLOCK_LIMIT_MS` | `0`, disabled |
+| `limits.jsRuntime.importCacheMaterializeTimeoutMs` | `DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS` | `30000 ms` |
 | `limits.jsRuntime.capturedOutputLimitBytes` | `DEFAULT_JS_CAPTURED_OUTPUT_LIMIT_BYTES` | `16 MiB` |
 | `limits.jsRuntime.stdinBufferLimitBytes` | `DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES` | `16 MiB` |
 | `limits.jsRuntime.eventPayloadLimitBytes` | `DEFAULT_JS_EVENT_PAYLOAD_LIMIT_BYTES` | `1 MiB` |
@@ -64,6 +67,8 @@ These constants are the default caps behind the `limits.*` VM config fields.
 | `limits.wasm.maxModuleFileBytes` | `DEFAULT_WASM_MAX_MODULE_FILE_BYTES` | `256 MiB` |
 | `limits.wasm.capturedOutputLimitBytes` | `DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES` | `16 MiB` |
 | `limits.wasm.syncReadLimitBytes` | `DEFAULT_WASM_SYNC_READ_LIMIT_BYTES` | `16 MiB` |
+| `limits.wasm.prewarmTimeoutMs` | `DEFAULT_WASM_PREWARM_TIMEOUT_MS` | `30000 ms` |
+| `limits.wasm.runnerHeapLimitMb` | `DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB` | `2048 MiB` |
 
 ## Backpressure constants
 
@@ -98,8 +103,8 @@ The limits audit classifies every limit-shaped constant as `policy`, `policy-def
 | `DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS` | `policy` | `crates/execution/src/python.rs` |
 | `V8_SESSION_FRAME_CHANNEL_CAPACITY` | `invariant` | `crates/execution/src/v8_host.rs` |
 | `MAX_FRAME_SIZE` | `policy` | `crates/execution/src/v8_ipc.rs` |
-| `DEFAULT_WASM_EXECUTION_TIMEOUT_MS` | `policy-deferred` | `crates/execution/src/wasm.rs` |
-| `DEFAULT_WASM_PREWARM_TIMEOUT_MS` | `invariant` | `crates/execution/src/wasm.rs` |
+| `DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB` | `policy` | `crates/execution/src/wasm.rs` |
+| `DEFAULT_WASM_PREWARM_TIMEOUT_MS` | `policy` | `crates/execution/src/wasm.rs` |
 | `MAX_SYNC_WASM_PREWARM_MODULE_BYTES` | `invariant` | `crates/execution/src/wasm.rs` |
 | `MAX_WASM_IMPORT_SECTION_ENTRIES` | `invariant` | `crates/execution/src/wasm.rs` |
 | `MAX_WASM_MEMORY_SECTION_ENTRIES` | `invariant` | `crates/execution/src/wasm.rs` |
@@ -151,31 +156,36 @@ The limits audit classifies every limit-shaped constant as `policy`, `policy-def
 | `MAX_PER_PROCESS_STATE_HANDLES` | `policy-deferred` | `crates/sidecar/src/execution.rs` |
 | `SQLITE_JS_SAFE_INTEGER_MAX` | `invariant` | `crates/sidecar/src/execution.rs` |
 | `VM_FETCH_BUFFER_LIMIT_BYTES` | `policy` | `crates/sidecar/src/execution.rs` |
-| `DEFAULT_ACP_MAX_READ_LINE_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_ACP_STDOUT_BUFFER_BYTE_LIMIT` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_JS_CAPTURED_OUTPUT_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_JS_EVENT_PAYLOAD_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_MAX_FETCH_RESPONSE_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_PYTHON_MAX_OLD_SPACE_MB` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_TOOL_TIMEOUT_MS` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_V8_IPC_MAX_FRAME_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_V8_HEAP_LIMIT_MB` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_WASM_MAX_MODULE_FILE_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `DEFAULT_WASM_SYNC_READ_LIMIT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `MAX_PERSISTED_MANIFEST_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `MAX_PERSISTED_MANIFEST_FILE_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `MAX_REGISTERED_TOOLKITS` | `policy` | `crates/sidecar/src/limits.rs` |
-| `MAX_REGISTERED_TOOLS_PER_VM` | `policy` | `crates/sidecar/src/limits.rs` |
-| `MAX_TOOL_EXAMPLE_INPUT_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `MAX_TOOL_EXAMPLES_PER_TOOL` | `policy` | `crates/sidecar/src/limits.rs` |
-| `MAX_TOOL_SCHEMA_BYTES` | `policy` | `crates/sidecar/src/limits.rs` |
-| `MAX_TOOL_TIMEOUT_MS` | `policy` | `crates/sidecar/src/limits.rs` |
-| `MAX_TOOLS_PER_TOOLKIT` | `policy` | `crates/sidecar/src/limits.rs` |
+| `DEFAULT_ACP_MAX_READ_LINE_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_ACP_STDOUT_BUFFER_BYTE_LIMIT` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_JS_CAPTURED_OUTPUT_LIMIT_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_JS_EVENT_PAYLOAD_LIMIT_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_JS_STDIN_BUFFER_LIMIT_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_MAX_FETCH_RESPONSE_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_PYTHON_MAX_OLD_SPACE_MB` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_PYTHON_OUTPUT_BUFFER_MAX_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_PYTHON_VFS_RPC_TIMEOUT_MS` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_TOOL_TIMEOUT_MS` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_V8_IPC_MAX_FRAME_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_V8_HEAP_LIMIT_MB` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_V8_CPU_TIME_LIMIT_MS` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_V8_WALL_CLOCK_LIMIT_MS` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_WASM_CAPTURED_OUTPUT_LIMIT_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_WASM_MAX_MODULE_FILE_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_WASM_PREWARM_TIMEOUT_MS` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `DEFAULT_WASM_SYNC_READ_LIMIT_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `MAX_PERSISTED_MANIFEST_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `MAX_PERSISTED_MANIFEST_FILE_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `MAX_REGISTERED_TOOLKITS` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `MAX_REGISTERED_TOOLS_PER_VM` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `MAX_TOOL_EXAMPLE_INPUT_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `MAX_TOOL_EXAMPLES_PER_TOOL` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `MAX_TOOL_SCHEMA_BYTES` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `MAX_TOOL_TIMEOUT_MS` | `policy` | `crates/sidecar-core/src/limits.rs` |
+| `MAX_TOOLS_PER_TOOLKIT` | `policy` | `crates/sidecar-core/src/limits.rs` |
 | `MAX_PERSISTED_MANIFEST_BYTES` | `policy` | `crates/sidecar/src/plugins/google_drive.rs` |
 | `MAX_PERSISTED_MANIFEST_FILE_BYTES` | `policy` | `crates/sidecar/src/plugins/google_drive.rs` |
 | `MAX_HOST_DIR_READ_BYTES` | `policy` | `crates/sidecar/src/plugins/host_dir.rs` |

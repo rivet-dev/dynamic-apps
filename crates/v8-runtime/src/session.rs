@@ -460,8 +460,10 @@ fn lock_idle_slots(slot_control: &SlotControl) -> std::sync::MutexGuard<'_, usiz
 }
 
 /// Normalize an opt-in CPU-time budget: `Some(0)` means "disabled" and folds to
-/// `None` so the CPU-budget watchdog is NOT armed. There is no default — when the
-/// caller passes `None`/`0`, the guest runs with no CPU limit (opt-in by design).
+/// `None` so the CPU-budget watchdog is NOT armed. The runtime layer does not
+/// invent a default here: secure-exec sidecar VM executions pass the typed
+/// `limits.jsRuntime.cpuTimeLimitMs` default, while lower-level callers can pass
+/// `None`/`0` deliberately.
 fn normalize_cpu_time_limit_ms(cpu_time_limit_ms: Option<u32>) -> Option<u32> {
     cpu_time_limit_ms.filter(|budget_ms| *budget_ms > 0)
 }
@@ -527,7 +529,7 @@ pub(crate) enum ExecutionAbortReason {
     Terminated,
     /// The opt-in WALL-CLOCK backstop (`TimeoutGuard`) elapsed. Counts elapsed
     /// real time INCLUDING idle/await, so it can cap a guest that blocks/awaits
-    /// indefinitely. Armed only when `AGENTOS_V8_WALL_CLOCK_LIMIT_MS` is set;
+    /// indefinitely. Armed only when `limits.jsRuntime.wallClockLimitMs` is set;
     /// independent of the CPU-time budget.
     #[cfg_attr(test, allow(dead_code))]
     WallClockTimedOut,
@@ -1666,9 +1668,10 @@ fn session_thread(
                         }
 
                         // Arm the TRUE CPU-TIME budget watchdog before running
-                        // guest code, only when the operator opts in via
-                        // `AGENTOS_V8_CPU_TIME_LIMIT_MS` (normalized: `0`/unset =>
-                        // `None` => not armed => NO CPU limit).
+                        // guest code when the caller passes a nonzero
+                        // `limits.jsRuntime.cpuTimeLimitMs` (normalized: `0`/unset =>
+                        // `None` => not armed at this runtime layer). The sidecar
+                        // supplies the bounded default for VM executions.
                         //
                         // The watchdog counts ACTIVE JS CPU only (idle/await
                         // excluded) by polling the execution thread's CPU clock, so
@@ -1692,7 +1695,7 @@ fn session_thread(
                                             error: Some(ExecutionErrorBin {
                                                 error_type: "Error".into(),
                                                 message: format!(
-                                                    "{}: per-thread CPU clock unavailable; cannot enforce AGENTOS_V8_CPU_TIME_LIMIT_MS",
+                                                    "{}: per-thread CPU clock unavailable; cannot enforce limits.jsRuntime.cpuTimeLimitMs",
                                                     crate::timeout::CPU_BUDGET_GUARD_START_ERROR_CODE
                                                 ),
                                                 stack: String::new(),
@@ -1746,7 +1749,7 @@ fn session_thread(
                         // the CPU budget. Unlike the CPU budget, this counts elapsed
                         // real time INCLUDING idle/await, so it can cap a guest that
                         // blocks or awaits indefinitely. Armed only when the operator
-                        // opts in via `AGENTOS_V8_WALL_CLOCK_LIMIT_MS` (normalized:
+                        // opts in via `limits.jsRuntime.wallClockLimitMs` (normalized:
                         // `0`/unset => `None` => not armed => NO wall-clock limit, so
                         // long-lived ACP adapters are never killed by a default).
                         // Whichever guard fires first calls `terminate_execution` and
@@ -2025,7 +2028,7 @@ fn session_thread(
                                 error: Some(ExecutionErrorBin {
                                     error_type: "Error".into(),
                                     message: "Script execution exceeded the CPU-time budget \
-                                         (AGENTOS_V8_CPU_TIME_LIMIT_MS)"
+                                         (limits.jsRuntime.cpuTimeLimitMs)"
                                         .into(),
                                     stack: String::new(),
                                     code: "ERR_SCRIPT_CPU_BUDGET_EXCEEDED".into(),
@@ -2047,7 +2050,7 @@ fn session_thread(
                                 error: Some(ExecutionErrorBin {
                                     error_type: "Error".into(),
                                     message: "Script execution exceeded the wall-clock limit \
-                                         (AGENTOS_V8_WALL_CLOCK_LIMIT_MS)"
+                                         (limits.jsRuntime.wallClockLimitMs)"
                                         .into(),
                                     stack: String::new(),
                                     code: "ERR_SCRIPT_WALL_CLOCK_EXCEEDED".into(),

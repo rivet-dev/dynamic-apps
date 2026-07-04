@@ -10762,6 +10762,11 @@ fn javascript_execution_limits(vm: &VmState) -> JavascriptExecutionLimits {
     JavascriptExecutionLimits {
         v8_heap_limit_mb: vm.limits.js_runtime.v8_heap_limit_mb,
         sync_rpc_wait_timeout_ms: vm.limits.js_runtime.sync_rpc_wait_timeout_ms,
+        cpu_time_limit_ms: Some(vm.limits.js_runtime.cpu_time_limit_ms),
+        wall_clock_limit_ms: Some(vm.limits.js_runtime.wall_clock_limit_ms),
+        import_cache_materialize_timeout_ms: Some(
+            vm.limits.js_runtime.import_cache_materialize_timeout_ms,
+        ),
     }
 }
 
@@ -10848,6 +10853,8 @@ fn wasm_execution_limits(vm: &VmState) -> WasmExecutionLimits {
         max_stack_bytes: resource_limits
             .max_wasm_stack_bytes
             .map(|value| value as u64),
+        prewarm_timeout_ms: Some(vm.limits.wasm.prewarm_timeout_ms),
+        runner_heap_limit_mb: Some(vm.limits.wasm.runner_heap_limit_mb),
     }
 }
 

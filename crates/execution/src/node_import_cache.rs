@@ -13,8 +13,6 @@ pub(crate) const NODE_IMPORT_CACHE_ASSET_ROOT_ENV: &str = "AGENTOS_NODE_IMPORT_C
 
 const NODE_IMPORT_CACHE_PATH_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_PATH";
 const NODE_IMPORT_CACHE_LOADER_PATH_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_LOADER_PATH";
-const NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV: &str =
-    "AGENTOS_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS";
 const NODE_IMPORT_CACHE_SCHEMA_VERSION: &str = "1";
 const NODE_IMPORT_CACHE_LOADER_VERSION: &str = "8";
 const NODE_IMPORT_CACHE_ASSET_VERSION: &str = "85";
@@ -55,22 +53,6 @@ const NODE_PYTHON_RUNNER_SOURCE: &str = include_str!("../assets/runners/python-r
 static CLEANED_NODE_IMPORT_CACHE_ROOTS: OnceLock<Mutex<BTreeSet<PathBuf>>> = OnceLock::new();
 #[cfg(test)]
 static NODE_IMPORT_CACHE_TEST_MATERIALIZE_DELAY_MS: AtomicU64 = AtomicU64::new(0);
-
-fn node_import_cache_materialize_timeout() -> Duration {
-    node_import_cache_materialize_timeout_from_env_value(
-        env::var(NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS_ENV)
-            .ok()
-            .as_deref(),
-    )
-}
-
-fn node_import_cache_materialize_timeout_from_env_value(value: Option<&str>) -> Duration {
-    value
-        .and_then(|raw| raw.trim().parse::<u64>().ok())
-        .filter(|timeout_ms| *timeout_ms > 0)
-        .map(Duration::from_millis)
-        .unwrap_or(DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT)
-}
 
 #[derive(Clone, Copy)]
 struct BundledPyodidePackageAsset {
@@ -9049,7 +9031,7 @@ impl NodeImportCache {
     }
 
     pub(crate) fn ensure_materialized(&self) -> Result<(), io::Error> {
-        self.ensure_materialized_with_timeout(node_import_cache_materialize_timeout())
+        self.ensure_materialized_with_timeout(DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT)
     }
 
     pub(crate) fn ensure_materialized_with_timeout(
@@ -10158,9 +10140,7 @@ fn write_file_if_changed(path: &Path, contents: &str) -> Result<(), io::Error> {
 #[cfg(test)]
 mod tests {
     use super::{
-        node_import_cache_materialize_timeout_from_env_value, NodeImportCache,
-        DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT, NODE_IMPORT_CACHE_TEST_MATERIALIZE_DELAY_MS,
-        NODE_WASM_RUNNER_SOURCE,
+        NodeImportCache, NODE_IMPORT_CACHE_TEST_MATERIALIZE_DELAY_MS, NODE_WASM_RUNNER_SOURCE,
     };
     use crate::host_node::node_binary;
     use serde_json::Value;
@@ -10930,30 +10910,6 @@ export async function loadPyodide(options) {
         let result = import_cache.ensure_materialized_with_timeout(Duration::from_millis(5));
         NODE_IMPORT_CACHE_TEST_MATERIALIZE_DELAY_MS.store(0, Ordering::Relaxed);
         result.expect("second materialization should use memoized success");
-    }
-
-    #[test]
-    fn node_import_cache_materialize_timeout_from_env_value_parses_positive_millis() {
-        assert_eq!(
-            node_import_cache_materialize_timeout_from_env_value(Some("120000")),
-            Duration::from_secs(120)
-        );
-        assert_eq!(
-            node_import_cache_materialize_timeout_from_env_value(Some(" 2500 ")),
-            Duration::from_millis(2500)
-        );
-        assert_eq!(
-            node_import_cache_materialize_timeout_from_env_value(Some("0")),
-            DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT
-        );
-        assert_eq!(
-            node_import_cache_materialize_timeout_from_env_value(Some("nope")),
-            DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT
-        );
-        assert_eq!(
-            node_import_cache_materialize_timeout_from_env_value(None),
-            DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT
-        );
     }
 
     #[test]

@@ -5211,8 +5211,8 @@ fn js_runtime_browser_fetch_is_callable() {
 // peers. The watchdog samples the execution thread's per-thread CPU clock, so a
 // tight busy loop burns its budget quickly and is killed.
 //
-// This is the BOUNDED variant: it sets a small explicit CPU budget via
-// `AGENTOS_V8_CPU_TIME_LIMIT_MS` so the watchdog fires fast. The guest run is
+// This is the BOUNDED variant: it sets a small explicit CPU budget via typed
+// `limits.jsRuntime.cpuTimeLimitMs` so the watchdog fires fast. The guest run is
 // fenced behind a worker thread + recv timeout so a regression surfaces as a
 // clear failure instead of a CI hang.
 fn javascript_infinite_loop_is_terminated_by_cpu_watchdog() {
@@ -5237,14 +5237,14 @@ fn javascript_infinite_loop_is_terminated_by_cpu_watchdog() {
             context_id: context.context_id,
             argv: vec![String::from("./entry.mjs")],
             // Small bounded budget so the watchdog terminates the runaway fast.
-            env: BTreeMap::from([(
-                String::from("AGENTOS_V8_CPU_TIME_LIMIT_MS"),
-                String::from("750"),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             wasm_module_bytes: None,
             inline_code: Some(String::from("while (true) {}\n")),
-            limits: Default::default(),
+            limits: JavascriptExecutionLimits {
+                cpu_time_limit_ms: Some(750),
+                ..Default::default()
+            },
             guest_runtime: Default::default(),
         });
 
@@ -5321,17 +5321,17 @@ fn javascript_awaiting_guest_is_not_killed_by_cpu_budget() {
             argv: vec![String::from("./entry.mjs")],
             // CPU budget (300ms) much SMALLER than the wall time the guest spends
             // awaiting (~1.5s). A correct CPU-time budget excludes the idle wait.
-            env: BTreeMap::from([(
-                String::from("AGENTOS_V8_CPU_TIME_LIMIT_MS"),
-                String::from("300"),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             wasm_module_bytes: None,
             inline_code: Some(String::from(
                 "await new Promise((resolve) => setTimeout(resolve, 1500));\n\
                  console.log('awaited-ok');\n",
             )),
-            limits: Default::default(),
+            limits: JavascriptExecutionLimits {
+                cpu_time_limit_ms: Some(300),
+                ..Default::default()
+            },
             guest_runtime: Default::default(),
         });
 
@@ -5379,7 +5379,7 @@ fn javascript_awaiting_guest_is_not_killed_by_cpu_budget() {
     }
 }
 
-// SE-EXEC-04 (F-001): with NO `AGENTOS_V8_CPU_TIME_LIMIT_MS` set, the
+// SE-EXEC-04 (F-001): with no explicit `limits.jsRuntime.cpuTimeLimitMs`, the
 // CPU-budget watchdog uses the bounded default. A short CPU-bound guest still
 // runs to completion because it stays below that generous active-CPU budget. We
 // deliberately use a SHORT, self-terminating busy loop (not an infinite one) so
@@ -5468,7 +5468,7 @@ fn javascript_default_cpu_budget_allows_short_cpu_work() {
 }
 
 // WALL-CLOCK BACKSTOP (opt-in, complements the CPU-time budget): with
-// `AGENTOS_V8_WALL_CLOCK_LIMIT_MS` set, a guest that exceeds the wall-clock limit
+// typed `limits.jsRuntime.wallClockLimitMs` set, a guest that exceeds the wall-clock limit
 // must be terminated and the result attributed to the WALL-CLOCK reason. Crucially,
 // the wall-clock limit counts elapsed REAL time INCLUDING idle/await, so a guest
 // that merely AWAITS past the limit (burning almost no CPU) is still killed — this
@@ -5504,17 +5504,17 @@ fn javascript_awaiting_guest_is_terminated_by_wall_clock_backstop() {
             // spends awaiting (~1.5s). The wall-clock backstop counts idle/await, so
             // it must terminate the guest even though it burns almost no CPU. No CPU
             // budget is set, proving the two knobs are independent.
-            env: BTreeMap::from([(
-                String::from("AGENTOS_V8_WALL_CLOCK_LIMIT_MS"),
-                String::from("300"),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             wasm_module_bytes: None,
             inline_code: Some(String::from(
                 "await new Promise((resolve) => setTimeout(resolve, 1500));\n\
                  console.log('awaited-ok');\n",
             )),
-            limits: Default::default(),
+            limits: JavascriptExecutionLimits {
+                wall_clock_limit_ms: Some(300),
+                ..Default::default()
+            },
             guest_runtime: Default::default(),
         });
 
@@ -5573,7 +5573,7 @@ fn javascript_awaiting_guest_is_terminated_by_wall_clock_backstop() {
 // WALL-CLOCK / CPU-BUDGET INDEPENDENCE: setting ONLY the CPU budget must NOT impose
 // any wall-clock limit. A guest that awaits past a window which the wall-clock limit
 // (if it were armed) would have killed, but burns almost no CPU, must run to
-// completion when only `AGENTOS_V8_CPU_TIME_LIMIT_MS` is set. This confirms the CPU
+// completion when only `limits.jsRuntime.cpuTimeLimitMs` is set. This confirms the CPU
 // budget does not secretly behave like a wall-clock timer and that the knobs are
 // independent.
 fn javascript_cpu_budget_only_does_not_impose_wall_clock_limit() {
@@ -5600,17 +5600,17 @@ fn javascript_cpu_budget_only_does_not_impose_wall_clock_limit() {
             // Only the CPU budget is set (300ms). The guest awaits ~1.2s of wall
             // time but burns no CPU, so neither guard should fire — proving the CPU
             // budget alone does NOT arm a wall-clock limit.
-            env: BTreeMap::from([(
-                String::from("AGENTOS_V8_CPU_TIME_LIMIT_MS"),
-                String::from("300"),
-            )]),
+            env: BTreeMap::new(),
             cwd: temp.path().to_path_buf(),
             wasm_module_bytes: None,
             inline_code: Some(String::from(
                 "await new Promise((resolve) => setTimeout(resolve, 1200));\n\
                  console.log('cpu-only-ok');\n",
             )),
-            limits: Default::default(),
+            limits: JavascriptExecutionLimits {
+                cpu_time_limit_ms: Some(300),
+                ..Default::default()
+            },
             guest_runtime: Default::default(),
         });
 
@@ -5659,7 +5659,7 @@ fn javascript_cpu_budget_only_does_not_impose_wall_clock_limit() {
     }
 }
 
-// WALL-CLOCK OPT-IN: with no `AGENTOS_V8_WALL_CLOCK_LIMIT_MS` set, there is no
+// WALL-CLOCK OPT-IN: with no explicit `limits.jsRuntime.wallClockLimitMs`, there is no
 // wall-clock limit. A guest that awaits well past any default a former
 // wall-clock timer might have imposed must run to completion. This guards the
 // requirement that long-lived ACP adapters (which run indefinitely on

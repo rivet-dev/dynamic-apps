@@ -1,7 +1,6 @@
 use base64::Engine;
 use secure_exec_execution::wasm::{
     NativeBinaryFormat, WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV, WASM_MAX_STACK_BYTES_ENV,
-    WASM_PREWARM_TIMEOUT_MS_ENV,
 };
 use secure_exec_execution::{
     CreateWasmContextRequest, StartWasmExecutionRequest, WasmExecutionEngine, WasmExecutionError,
@@ -213,6 +212,8 @@ fn wasm_limits_from_env(env: &BTreeMap<String, String>) -> WasmExecutionLimits {
         max_fuel: parse(WASM_MAX_FUEL_ENV),
         max_memory_bytes: parse(WASM_MAX_MEMORY_BYTES_ENV),
         max_stack_bytes: parse(WASM_MAX_STACK_BYTES_ENV),
+        prewarm_timeout_ms: None,
+        runner_heap_limit_mb: None,
     }
 }
 
@@ -2175,13 +2176,7 @@ fn wasm_execution_allows_prewarm_timeout_to_differ_from_execution_timeout() {
         context.context_id,
         temp.path(),
         Vec::new(),
-        BTreeMap::from([
-            (String::from(WASM_MAX_FUEL_ENV), String::from("25")),
-            (
-                String::from(WASM_PREWARM_TIMEOUT_MS_ENV),
-                String::from("1000"),
-            ),
-        ]),
+        BTreeMap::from([(String::from(WASM_MAX_FUEL_ENV), String::from("25"))]),
         WasmPermissionTier::Full,
     );
 

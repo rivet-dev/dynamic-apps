@@ -650,6 +650,9 @@ limits_struct!(AcpLimitsConfig {
 limits_struct!(JsRuntimeLimitsConfig {
     v8_heap_limit_mb,
     sync_rpc_wait_timeout_ms,
+    cpu_time_limit_ms,
+    wall_clock_limit_ms,
+    import_cache_materialize_timeout_ms,
     captured_output_limit_bytes,
     stdin_buffer_limit_bytes,
     event_payload_limit_bytes,
@@ -667,6 +670,8 @@ limits_struct!(WasmLimitsConfig {
     max_module_file_bytes,
     captured_output_limit_bytes,
     sync_read_limit_bytes,
+    prewarm_timeout_ms,
+    runner_heap_limit_mb,
 });
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, TS)]

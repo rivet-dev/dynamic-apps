@@ -483,6 +483,12 @@ fn legacy_limits_config(
             metadata,
             "limits.js_runtime.sync_rpc_wait_timeout_ms",
         ),
+        cpu_time_limit_ms: legacy_u64(metadata, "limits.js_runtime.cpu_time_limit_ms"),
+        wall_clock_limit_ms: legacy_u64(metadata, "limits.js_runtime.wall_clock_limit_ms"),
+        import_cache_materialize_timeout_ms: legacy_u64(
+            metadata,
+            "limits.js_runtime.import_cache_materialize_timeout_ms",
+        ),
         captured_output_limit_bytes: legacy_u64(
             metadata,
             "limits.js_runtime.captured_output_limit_bytes",
@@ -510,6 +516,8 @@ fn legacy_limits_config(
             "limits.wasm.captured_output_limit_bytes",
         ),
         sync_read_limit_bytes: legacy_u64(metadata, "limits.wasm.sync_read_limit_bytes"),
+        prewarm_timeout_ms: legacy_u64(metadata, "limits.wasm.prewarm_timeout_ms"),
+        runner_heap_limit_mb: legacy_u64(metadata, "limits.wasm.runner_heap_limit_mb"),
     };
 
     let config = secure_exec_vm_config::VmLimitsConfig {
@@ -592,6 +600,9 @@ fn legacy_has_acp_limits(config: &secure_exec_vm_config::AcpLimitsConfig) -> boo
 fn legacy_has_js_runtime_limits(config: &secure_exec_vm_config::JsRuntimeLimitsConfig) -> bool {
     config.v8_heap_limit_mb.is_some()
         || config.sync_rpc_wait_timeout_ms.is_some()
+        || config.cpu_time_limit_ms.is_some()
+        || config.wall_clock_limit_ms.is_some()
+        || config.import_cache_materialize_timeout_ms.is_some()
         || config.captured_output_limit_bytes.is_some()
         || config.stdin_buffer_limit_bytes.is_some()
         || config.event_payload_limit_bytes.is_some()
@@ -609,6 +620,8 @@ fn legacy_has_wasm_limits(config: &secure_exec_vm_config::WasmLimitsConfig) -> b
     config.max_module_file_bytes.is_some()
         || config.captured_output_limit_bytes.is_some()
         || config.sync_read_limit_bytes.is_some()
+        || config.prewarm_timeout_ms.is_some()
+        || config.runner_heap_limit_mb.is_some()
 }
 
 // Ownership-scope constructor ergonomics. The generated BARE union exposes only the
@@ -1165,6 +1178,46 @@ mod tests {
     use crate::generated_protocol::v1::{
         FsPermissionScope, PatternPermissionScope, PermissionMode,
     };
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn legacy_metadata_preserves_js_runtime_limits_with_only_new_fields() {
+        let metadata = BTreeMap::from([(
+            String::from("limits.js_runtime.cpu_time_limit_ms"),
+            String::from("123"),
+        )]);
+
+        let config = legacy_limits_config(&metadata).expect("limits config");
+        let js_runtime = config.js_runtime.expect("js runtime limits");
+
+        assert_eq!(js_runtime.cpu_time_limit_ms, Some(123));
+    }
+
+    #[test]
+    fn legacy_metadata_preserves_wasm_limits_with_only_new_fields() {
+        let metadata = BTreeMap::from([(
+            String::from("limits.wasm.prewarm_timeout_ms"),
+            String::from("456"),
+        )]);
+
+        let config = legacy_limits_config(&metadata).expect("limits config");
+        let wasm = config.wasm.expect("wasm limits");
+
+        assert_eq!(wasm.prewarm_timeout_ms, Some(456));
+    }
+
+    #[test]
+    fn legacy_metadata_preserves_wasm_runner_heap_limit_as_only_new_field() {
+        let metadata = BTreeMap::from([(
+            String::from("limits.wasm.runner_heap_limit_mb"),
+            String::from("789"),
+        )]);
+
+        let config = legacy_limits_config(&metadata).expect("limits config");
+        let wasm = config.wasm.expect("wasm limits");
+
+        assert_eq!(wasm.runner_heap_limit_mb, Some(789));
+    }
 
     #[test]
     fn permissions_policy_default_matches_no_policy_deny_all() {

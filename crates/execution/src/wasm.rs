@@ -34,14 +34,9 @@ const WASM_PREWARM_ONLY_ENV: &str = "AGENTOS_WASM_PREWARM_ONLY";
 const WASM_HOST_CWD_ENV: &str = "AGENTOS_WASM_HOST_CWD";
 const WASM_SANDBOX_ROOT_ENV: &str = "AGENTOS_SANDBOX_ROOT";
 const WASM_WARMUP_DEBUG_ENV: &str = "AGENTOS_WASM_WARMUP_DEBUG";
-pub const WASM_PREWARM_TIMEOUT_MS_ENV: &str = "AGENTOS_WASM_PREWARM_TIMEOUT_MS";
 pub const WASM_MAX_FUEL_ENV: &str = "AGENTOS_WASM_MAX_FUEL";
 pub const WASM_MAX_MEMORY_BYTES_ENV: &str = "AGENTOS_WASM_MAX_MEMORY_BYTES";
 pub const WASM_MAX_STACK_BYTES_ENV: &str = "AGENTOS_WASM_MAX_STACK_BYTES";
-/// Operator override for the wasm *runner* isolate's V8 heap cap (MB). This sizes
-/// the heap the runner needs to COMPILE and host the WASI module, not the guest
-/// module's own memory (that stays capped by `AGENTOS_WASM_MAX_MEMORY_BYTES`).
-pub const WASM_RUNNER_HEAP_LIMIT_MB_ENV: &str = "AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB";
 const WASM_WARMUP_METRICS_PREFIX: &str = "__AGENTOS_WASM_WARMUP_METRICS__:";
 const WASM_SIGNAL_STATE_PREFIX: &str = "__AGENTOS_WASM_SIGNAL_STATE__:";
 const WASM_WARMUP_MARKER_VERSION: &str = "1";
@@ -59,12 +54,6 @@ const DEFAULT_WASM_GUEST_PATH: &str =
 // Warmup is a best-effort compile-cache optimization; fall back to a cold start
 // instead of burning minutes on a stalled prewarm session.
 const DEFAULT_WASM_PREWARM_TIMEOUT_MS: u64 = 30_000;
-/// Wall-clock execution budget applied when no explicit fuel budget
-/// (`AGENTOS_WASM_MAX_FUEL`) is configured. Without this default a guest module
-/// that never returns (e.g. an infinite loop) would gate termination behind
-/// `Some(limit)` in [`WasmExecution::wait`] and pin a host CPU core forever,
-/// starving every other tenant on the shared process. Operators that need a
-/// tighter (or looser) bound can still set `AGENTOS_WASM_MAX_FUEL` explicitly.
 /// Default V8 heap cap (MB) for the wasm *runner* isolate.
 ///
 /// The runner is trusted sidecar infrastructure: it compiles the WASI runtime +
@@ -77,7 +66,7 @@ const DEFAULT_WASM_PREWARM_TIMEOUT_MS: u64 = 30_000;
 /// heap does NOT weaken guest isolation — the guest module's memory/fuel/stack are
 /// bounded separately, Rust-side, from `request.limits`. The value is a ceiling
 /// (`heap_limits(0, cap)`), committed only as used, and operators may tune it via
-/// `AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB`.
+/// typed `limits.wasm.runnerHeapLimitMb`.
 ///
 /// Note the ceiling is reachable by guest-driven work: the runner compiles the
 /// guest's wasm module, so a large/hostile module can push the runner heap toward
@@ -181,11 +170,14 @@ pub struct WasmExecutionLimits {
     /// Linear-memory cap in bytes, validated against the module's declared
     /// initial/maximum memory before execution.
     pub max_memory_bytes: Option<u64>,
-    /// Stack cap in bytes. Validated and read from the wire here (previously a
-    /// dead `AGENTOS_WASM_MAX_STACK_BYTES` env var that was set but never
-    /// read); runtime V8 stack-limit enforcement is a follow-up — see
+    /// Stack cap in bytes. Validated from the typed wire value so bad config
+    /// fails closed; runtime V8 stack-limit enforcement is a follow-up — see
     /// [`resolve_wasm_stack_limit_bytes`].
     pub max_stack_bytes: Option<u64>,
+    /// Best-effort warmup/compile-cache timeout in ms.
+    pub prewarm_timeout_ms: Option<u64>,
+    /// V8 heap cap for the trusted JS runner isolate that hosts WASI/WASM.
+    pub runner_heap_limit_mb: Option<u32>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -910,9 +902,8 @@ impl WasmExecutionEngine {
         let frozen_time_ms = frozen_time_ms();
         validate_module_limits(&resolved_module, &request)?;
         // Surfaces a typed error for a malformed stack byte budget instead of
-        // silently dropping it; the parsed value is consumed by the runner's
-        // stack-overflow guard (see `AGENTOS_WASM_MAX_STACK_BYTES` handling in
-        // the WASM runner) so the operator-configured cap is no longer dead.
+        // silently dropping it. Runtime V8 stack-limit enforcement is tracked
+        // separately; for now this validation prevents accepting an invalid cap.
         wasm_stack_limit_bytes(&request)?;
         let execution_timeout = resolve_wasm_execution_timeout(&request)?;
         let import_cache = self
@@ -2214,7 +2205,7 @@ fn start_wasm_javascript_execution(
         options.prewarm_only,
     )?;
     let snapshot_mode = wasm_snapshot_runner_mode();
-    let mut env = request.env.clone();
+    let mut env = wasm_runner_base_env(request);
     let mut guest_runtime = request.guest_runtime.clone();
 
     let inline_code = match snapshot_mode {
@@ -2259,12 +2250,7 @@ fn start_wasm_javascript_execution(
             };
 
             if use_snapshot {
-                env = request
-                    .env
-                    .iter()
-                    .filter(|(key, _)| !is_internal_wasm_guest_env_key(key))
-                    .map(|(key, value)| (key.clone(), value.clone()))
-                    .collect();
+                env = wasm_snapshot_runner_base_env(request);
                 env.extend(
                     internal_env
                         .iter()
@@ -2294,11 +2280,12 @@ fn start_wasm_javascript_execution(
             argv: vec![String::from(WASM_INLINE_RUNNER_ENTRYPOINT)],
             env,
             cwd: request.cwd.clone(),
-            // The guest WASM fuel/memory/stack caps are enforced Rust-side from
-            // `request.limits`, NOT via the runner's V8 heap. But the runner isolate
-            // still has to compile the WASI runtime + the guest module into its own
-            // heap, which overflows the 128 MiB per-guest default and OOMs warmup, so
-            // size the runner heap explicitly (operator-tunable).
+            // Guest WASM fuel/memory caps are enforced from `request.limits`,
+            // and stack caps are validated there until runtime stack enforcement
+            // lands. These are separate from the runner's V8 heap: the trusted
+            // runner still has to compile the WASI runtime + guest module into
+            // its own isolate, which can overflow the 128 MiB per-guest default,
+            // so size the runner heap explicitly (operator-tunable).
             limits: JavascriptExecutionLimits {
                 v8_heap_limit_mb: Some(wasm_runner_heap_limit_mb(request)),
                 ..JavascriptExecutionLimits::default()
@@ -2382,6 +2369,12 @@ fn build_wasm_internal_env(
     if let Some(value) = request.env.get("SECURE_EXEC_KEEP_STDIN_OPEN") {
         internal_env.insert(String::from("SECURE_EXEC_KEEP_STDIN_OPEN"), value.clone());
     }
+    scrub_migrated_wasm_limit_env(&mut internal_env);
+    insert_optional_u64_env(
+        &mut internal_env,
+        WASM_MAX_MEMORY_BYTES_ENV,
+        request.limits.max_memory_bytes,
+    );
     internal_env.insert(
         WASM_MODULE_PATH_ENV.to_string(),
         resolved_module.specifier.clone(),
@@ -2422,6 +2415,35 @@ fn build_wasm_internal_env(
         internal_env.remove(WASM_PREWARM_ONLY_ENV);
     }
     Ok(internal_env)
+}
+
+fn wasm_runner_base_env(request: &StartWasmExecutionRequest) -> BTreeMap<String, String> {
+    let mut env = request.env.clone();
+    scrub_migrated_wasm_limit_env(&mut env);
+    env
+}
+
+fn wasm_snapshot_runner_base_env(request: &StartWasmExecutionRequest) -> BTreeMap<String, String> {
+    let mut env = request
+        .env
+        .iter()
+        .filter(|(key, _)| !is_internal_wasm_guest_env_key(key))
+        .map(|(key, value)| (key.clone(), value.clone()))
+        .collect::<BTreeMap<_, _>>();
+    scrub_migrated_wasm_limit_env(&mut env);
+    env
+}
+
+fn scrub_migrated_wasm_limit_env(env: &mut BTreeMap<String, String>) {
+    for key in [
+        WASM_MAX_FUEL_ENV,
+        WASM_MAX_MEMORY_BYTES_ENV,
+        WASM_MAX_STACK_BYTES_ENV,
+        "AGENTOS_WASM_PREWARM_TIMEOUT_MS",
+        "AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB",
+    ] {
+        env.remove(key);
+    }
 }
 
 fn insert_optional_u64_env(env: &mut BTreeMap<String, String>, key: &str, value: Option<u64>) {
@@ -3322,11 +3344,10 @@ fn resolve_wasm_execution_timeout(
 }
 
 /// Resolve and validate the per-execution WASM stack cap from the typed wire
-/// limit. Reading and validating it here is what retires the historical
-/// `AGENTOS_WASM_MAX_STACK_BYTES` dead cap (set into env, never read). Runtime
-/// V8 stack-limit enforcement still needs a stack lever on the V8 session and
-/// is tracked as a follow-up; for now an out-of-range value is rejected up
-/// front so a misconfiguration surfaces instead of being silently dropped.
+/// limit. Runtime V8 stack-limit enforcement still needs a stack lever on the
+/// V8 session and is tracked as a follow-up; for now an out-of-range value is
+/// rejected up front so a misconfiguration surfaces instead of being silently
+/// dropped.
 fn resolve_wasm_stack_limit_bytes(
     request: &StartWasmExecutionRequest,
 ) -> Result<Option<u64>, WasmExecutionError> {
@@ -3342,7 +3363,10 @@ fn resolve_wasm_prewarm_timeout(
     request: &StartWasmExecutionRequest,
 ) -> Result<Duration, WasmExecutionError> {
     Ok(Duration::from_millis(
-        wasm_limit_u64(&request.env, WASM_PREWARM_TIMEOUT_MS_ENV)?
+        request
+            .limits
+            .prewarm_timeout_ms
+            .filter(|value| *value > 0)
             .unwrap_or(DEFAULT_WASM_PREWARM_TIMEOUT_MS),
     ))
 }
@@ -3473,7 +3497,7 @@ fn wasm_memory_limit_bytes(
 fn wasm_stack_limit_bytes(
     request: &StartWasmExecutionRequest,
 ) -> Result<Option<u64>, WasmExecutionError> {
-    wasm_limit_u64(&request.env, WASM_MAX_STACK_BYTES_ENV)
+    resolve_wasm_stack_limit_bytes(request)
 }
 
 #[cfg(test)]
@@ -3486,16 +3510,12 @@ fn wasm_memory_limit_pages(memory_limit_bytes: u64) -> Result<u32, WasmExecution
     })
 }
 
-/// Resolve the wasm runner isolate's V8 heap cap (MB): the operator override
-/// `AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB` if set to a positive value, else the bounded
-/// default. A non-numeric or zero value falls back to the default rather than
-/// failing the execution (the runner heap is a tuning knob, not guest-supplied
-/// policy).
+/// Resolve the wasm runner isolate's V8 heap cap (MB): the typed per-VM limit if
+/// set to a positive value, else the bounded default.
 fn wasm_runner_heap_limit_mb(request: &StartWasmExecutionRequest) -> u32 {
     request
-        .env
-        .get(WASM_RUNNER_HEAP_LIMIT_MB_ENV)
-        .and_then(|value| value.parse::<u32>().ok())
+        .limits
+        .runner_heap_limit_mb
         .filter(|value| *value > 0)
         .unwrap_or(DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB)
 }
@@ -3507,27 +3527,13 @@ fn v8_warm_worker_count() -> usize {
         .unwrap_or(2)
 }
 
-fn wasm_limit_u64(
-    env: &BTreeMap<String, String>,
-    key: &str,
-) -> Result<Option<u64>, WasmExecutionError> {
-    let Some(value) = env.get(key) else {
-        return Ok(None);
-    };
-    value
-        .parse::<u64>()
-        .map(Some)
-        .map_err(|error| WasmExecutionError::InvalidLimit(format!("{key}={value}: {error}")))
-}
-
 fn validate_module_limits(
     resolved_module: &ResolvedWasmModule,
     request: &StartWasmExecutionRequest,
 ) -> Result<(), WasmExecutionError> {
-    // Read and validate the wire stack cap on every execution. This is what
-    // retires the old `AGENTOS_WASM_MAX_STACK_BYTES` dead cap: the value now
-    // comes off the typed wire limit and a bad value fails closed instead of
-    // being written to an env var nobody reads.
+    // Read and validate the wire stack cap on every execution. Runtime stack
+    // enforcement is a follow-up, but a bad value still fails closed instead of
+    // being written to an env var.
     let _stack_limit = resolve_wasm_stack_limit_bytes(request)?;
 
     let Some(memory_limit) = wasm_memory_limit_bytes(request)? else {
@@ -3822,18 +3828,21 @@ fn resolve_path_like_specifier(cwd: &Path, specifier: &str) -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::{
-        build_wasm_runner_bootstrap, open_wasm_guest_file, resolve_wasm_execution_timeout,
-        resolve_wasm_prewarm_timeout, resolve_wasm_stack_limit_bytes, resolved_module_path,
-        translate_wasm_guest_path, translate_wasm_host_symlink_target, wasm_guest_module_paths,
-        wasm_host_path_is_read_only, wasm_memory_limit_bytes, wasm_memory_limit_pages,
-        wasm_mutation_touches_read_only_mapping, wasm_read_only_filesystem_error,
-        wasm_sandbox_root, wasm_sync_read_length, wasm_sync_rpc_error_code,
-        wasm_sync_rpc_method_routes_through_sidecar_kernel, GuestRuntimeConfig,
-        JavascriptSyncRpcRequest, StartWasmExecutionRequest, Value, WasmExecutionError,
-        WasmExecutionLimits, WasmInternalSyncRpc, WasmPermissionTier, NODE_WASI_MODULE_SOURCE,
+        build_wasm_internal_env, build_wasm_runner_bootstrap, open_wasm_guest_file,
+        resolve_wasm_execution_timeout, resolve_wasm_prewarm_timeout,
+        resolve_wasm_stack_limit_bytes, resolved_module_path, translate_wasm_guest_path,
+        translate_wasm_host_symlink_target, wasm_guest_module_paths, wasm_host_path_is_read_only,
+        wasm_memory_limit_bytes, wasm_memory_limit_pages, wasm_mutation_touches_read_only_mapping,
+        wasm_read_only_filesystem_error, wasm_runner_base_env, wasm_runner_heap_limit_mb,
+        wasm_sandbox_root, wasm_snapshot_runner_base_env, wasm_sync_read_length,
+        wasm_sync_rpc_error_code, wasm_sync_rpc_method_routes_through_sidecar_kernel,
+        GuestRuntimeConfig, JavascriptSyncRpcRequest, ResolvedWasmModule,
+        StartWasmExecutionRequest, Value, WasmExecutionError, WasmExecutionLimits,
+        WasmInternalSyncRpc, WasmPermissionTier, DEFAULT_WASM_PREWARM_TIMEOUT_MS,
+        DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB, NODE_WASI_MODULE_SOURCE,
         WASM_CAPTURED_OUTPUT_LIMIT_BYTES, WASM_MAX_FUEL_ENV, WASM_MAX_MEMORY_BYTES_ENV,
-        WASM_MAX_STACK_BYTES_ENV, WASM_PAGE_BYTES, WASM_PREWARM_TIMEOUT_MS_ENV,
-        WASM_SANDBOX_ROOT_ENV, WASM_SIDECAR_ROUTED_FS_SYNC_METHODS, WASM_SYNC_READ_LIMIT_BYTES,
+        WASM_MAX_STACK_BYTES_ENV, WASM_PAGE_BYTES, WASM_SANDBOX_ROOT_ENV,
+        WASM_SIDECAR_ROUTED_FS_SYNC_METHODS, WASM_SYNC_READ_LIMIT_BYTES,
     };
     use std::collections::{BTreeMap, BTreeSet, VecDeque};
     use std::fs;
@@ -3851,6 +3860,8 @@ mod tests {
             max_fuel: parse(WASM_MAX_FUEL_ENV),
             max_memory_bytes: parse(WASM_MAX_MEMORY_BYTES_ENV),
             max_stack_bytes: parse(WASM_MAX_STACK_BYTES_ENV),
+            prewarm_timeout_ms: None,
+            runner_heap_limit_mb: None,
         };
         StartWasmExecutionRequest {
             limits,
@@ -3916,6 +3927,14 @@ mod tests {
                     String::from(WASM_MAX_STACK_BYTES_ENV),
                     String::from("999999"),
                 ),
+                (
+                    String::from("AGENTOS_WASM_PREWARM_TIMEOUT_MS"),
+                    String::from("999999"),
+                ),
+                (
+                    String::from("AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB"),
+                    String::from("999999"),
+                ),
             ]),
             cwd: PathBuf::from("/tmp"),
             permission_tier: WasmPermissionTier::Full,
@@ -3928,6 +3947,8 @@ mod tests {
             max_fuel: Some(25),
             max_memory_bytes: Some(65_536),
             max_stack_bytes: Some(131_072),
+            prewarm_timeout_ms: Some(750),
+            runner_heap_limit_mb: Some(512),
         });
 
         assert_eq!(
@@ -3944,6 +3965,16 @@ mod tests {
             resolve_wasm_stack_limit_bytes(&request).expect("stack limit"),
             Some(131_072),
             "stack must come from the typed wire limit (retiring the dead AGENTOS_WASM_MAX_STACK_BYTES knob)"
+        );
+        assert_eq!(
+            resolve_wasm_prewarm_timeout(&request).expect("prewarm timeout"),
+            Duration::from_millis(750),
+            "prewarm timeout must come from the typed wire limit, not AGENTOS_WASM_PREWARM_TIMEOUT_MS"
+        );
+        assert_eq!(
+            wasm_runner_heap_limit_mb(&request),
+            512,
+            "runner heap must come from the typed wire limit, not AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB"
         );
     }
 
@@ -3963,6 +3994,96 @@ mod tests {
             resolve_wasm_stack_limit_bytes(&request).expect("stack"),
             None
         );
+        assert_eq!(
+            resolve_wasm_prewarm_timeout(&request).expect("prewarm"),
+            Duration::from_millis(DEFAULT_WASM_PREWARM_TIMEOUT_MS)
+        );
+        assert_eq!(
+            wasm_runner_heap_limit_mb(&request),
+            DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB
+        );
+    }
+
+    #[test]
+    fn wasm_internal_env_scrubs_migrated_limit_env_keys() {
+        let request = request_with_typed_limits_and_misleading_env(WasmExecutionLimits {
+            max_fuel: Some(25),
+            max_memory_bytes: Some(65_536),
+            max_stack_bytes: Some(131_072),
+            prewarm_timeout_ms: Some(750),
+            runner_heap_limit_mb: Some(512),
+        });
+        let resolved_module = ResolvedWasmModule {
+            specifier: String::from("./guest.wasm"),
+            resolved_path: PathBuf::from("/tmp/guest.wasm"),
+        };
+
+        let internal_env =
+            build_wasm_internal_env(&resolved_module, &request, 1_234, false).expect("env");
+
+        assert_eq!(
+            internal_env.get(WASM_MAX_MEMORY_BYTES_ENV),
+            Some(&String::from("65536"))
+        );
+        assert!(!internal_env.contains_key(WASM_MAX_STACK_BYTES_ENV));
+        assert!(!internal_env.contains_key(WASM_MAX_FUEL_ENV));
+        assert!(!internal_env.contains_key("AGENTOS_WASM_PREWARM_TIMEOUT_MS"));
+        assert!(!internal_env.contains_key("AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB"));
+    }
+
+    #[test]
+    fn wasm_runner_base_env_scrubs_migrated_limit_env_keys() {
+        let mut request = request_with_typed_limits_and_misleading_env(WasmExecutionLimits {
+            max_fuel: Some(25),
+            max_memory_bytes: Some(65_536),
+            max_stack_bytes: Some(131_072),
+            prewarm_timeout_ms: Some(750),
+            runner_heap_limit_mb: Some(512),
+        });
+        request
+            .env
+            .insert(String::from("USER_VISIBLE"), String::from("kept"));
+        request
+            .env
+            .insert(String::from("AGENTOS_TRACE_ID"), String::from("kept"));
+
+        let env = wasm_runner_base_env(&request);
+
+        assert_eq!(env.get("USER_VISIBLE"), Some(&String::from("kept")));
+        assert_eq!(env.get("AGENTOS_TRACE_ID"), Some(&String::from("kept")));
+        assert!(!env.contains_key(WASM_MAX_FUEL_ENV));
+        assert!(!env.contains_key(WASM_MAX_MEMORY_BYTES_ENV));
+        assert!(!env.contains_key(WASM_MAX_STACK_BYTES_ENV));
+        assert!(!env.contains_key("AGENTOS_WASM_PREWARM_TIMEOUT_MS"));
+        assert!(!env.contains_key("AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB"));
+    }
+
+    #[test]
+    fn wasm_snapshot_runner_base_env_scrubs_internal_and_migrated_limit_env_keys() {
+        let mut request = request_with_typed_limits_and_misleading_env(WasmExecutionLimits {
+            max_fuel: Some(25),
+            max_memory_bytes: Some(65_536),
+            max_stack_bytes: Some(131_072),
+            prewarm_timeout_ms: Some(750),
+            runner_heap_limit_mb: Some(512),
+        });
+        request
+            .env
+            .insert(String::from("USER_VISIBLE"), String::from("kept"));
+        request.env.insert(
+            String::from("NODE_SYNC_RPC_WAIT_TIMEOUT_MS"),
+            String::from("999"),
+        );
+
+        let env = wasm_snapshot_runner_base_env(&request);
+
+        assert_eq!(env.get("USER_VISIBLE"), Some(&String::from("kept")));
+        assert!(!env.contains_key("NODE_SYNC_RPC_WAIT_TIMEOUT_MS"));
+        assert!(!env.contains_key(WASM_MAX_FUEL_ENV));
+        assert!(!env.contains_key(WASM_MAX_MEMORY_BYTES_ENV));
+        assert!(!env.contains_key(WASM_MAX_STACK_BYTES_ENV));
+        assert!(!env.contains_key("AGENTOS_WASM_PREWARM_TIMEOUT_MS"));
+        assert!(!env.contains_key("AGENTOS_WASM_RUNNER_HEAP_LIMIT_MB"));
     }
 
     #[test]
@@ -3997,16 +4118,11 @@ mod tests {
     #[test]
     fn wasm_prewarm_timeout_is_separate_from_execution_timeout() {
         let temp = tempdir().expect("create temp dir");
-        let request = request_with_env(
+        let mut request = request_with_env(
             temp.path(),
-            BTreeMap::from([
-                (String::from(WASM_MAX_FUEL_ENV), String::from("25")),
-                (
-                    String::from(WASM_PREWARM_TIMEOUT_MS_ENV),
-                    String::from("750"),
-                ),
-            ]),
+            BTreeMap::from([(String::from(WASM_MAX_FUEL_ENV), String::from("25"))]),
         );
+        request.limits.prewarm_timeout_ms = Some(750);
 
         assert_eq!(
             resolve_wasm_execution_timeout(&request).expect("execution timeout"),
@@ -4018,14 +4134,11 @@ mod tests {
         );
     }
 
-    // F-004 (SE-EXEC-08) SAFEGUARD: a guest module supplied with NO fuel env must
-    // still be bound by a default wall-clock execution timeout. Before the fix
-    // `resolve_wasm_execution_timeout` returned `None` here, so `wait()` gated
-    // termination behind `Some(limit)` and a never-returning guest pinned a host
-    // CPU core forever. This bounded unit assertion runs by default and is fast;
-    // the unbounded CPU-saturation variant stays env-gated in tests/wasm.rs.
+    // No explicit fuel budget means no wasm-specific wall-clock timeout. Runaway
+    // wasm stays bounded by the runner isolate's active-CPU watchdog, so idle
+    // interactive guests are not killed on wall time.
     #[test]
-    fn wasm_execution_timeout_defaults_to_bounded_value_without_fuel_env() {
+    fn wasm_execution_timeout_is_unset_without_fuel_budget() {
         let temp = tempdir().expect("create temp dir");
         let request = request_with_env(temp.path(), BTreeMap::new());
 

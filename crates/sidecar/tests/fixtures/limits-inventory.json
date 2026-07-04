@@ -63,10 +63,31 @@
 		"rationale": "Channel shape required by the sync-RPC protocol; flow control, not policy."
 	},
 	{
+		"name": "DEFAULT_V8_CPU_TIME_LIMIT_MS",
+		"path": "crates/execution/src/javascript.rs",
+		"class": "policy",
+		"rationale": "Execution-layer active JavaScript CPU-time fallback; normal VM executions receive the wired sidecar value.",
+		"wired": "VmLimits.js_runtime.cpu_time_limit_ms"
+	},
+	{
+		"name": "DEFAULT_V8_WALL_CLOCK_LIMIT_MS",
+		"path": "crates/execution/src/javascript.rs",
+		"class": "policy",
+		"rationale": "Execution-layer JavaScript wall-clock fallback; zero keeps it disabled unless the wired VM limit overrides it.",
+		"wired": "VmLimits.js_runtime.wall_clock_limit_ms"
+	},
+	{
+		"name": "DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS",
+		"path": "crates/execution/src/javascript.rs",
+		"class": "policy",
+		"rationale": "Execution-layer Node import-cache materialization fallback; normal VM executions receive the wired sidecar value.",
+		"wired": "VmLimits.js_runtime.import_cache_materialize_timeout_ms"
+	},
+	{
 		"name": "DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT",
 		"path": "crates/execution/src/node_import_cache.rs",
 		"class": "invariant",
-		"rationale": "Import-cache materialize best-effort timeout; cache hygiene, not operator surface."
+		"rationale": "Standalone import-cache materialization fallback; normal VM executions use VmLimits.js_runtime.import_cache_materialize_timeout_ms."
 	},
 	{
 		"name": "DEFAULT_PYTHON_EXECUTION_TIMEOUT_MS",
@@ -118,14 +139,16 @@
 	{
 		"name": "DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB",
 		"path": "crates/execution/src/wasm.rs",
-		"class": "policy-deferred",
-		"rationale": "Wasm runner V8 heap default (2 GiB, intentionally above the 128 MiB per-guest budget so warmup stops OOMing); per-isolate near-heap guard contains it, operator-tunable via the WASM_RUNNER_HEAP_LIMIT_MB env override rather than VmLimits."
+		"class": "policy",
+		"rationale": "Wasm runner V8 heap default (2 GiB, intentionally above the 128 MiB per-guest budget so warmup stops OOMing); normal VM executions use VmLimits.wasm.runner_heap_limit_mb.",
+		"wired": "VmLimits.wasm.runner_heap_limit_mb"
 	},
 	{
 		"name": "DEFAULT_WASM_PREWARM_TIMEOUT_MS",
 		"path": "crates/execution/src/wasm.rs",
-		"class": "invariant",
-		"rationale": "Prewarm is best-effort compile-cache heuristic; has an env escape hatch."
+		"class": "policy",
+		"rationale": "WASM prewarm compile-cache timeout.",
+		"wired": "VmLimits.wasm.prewarm_timeout_ms"
 	},
 	{
 		"name": "MAX_SYNC_WASM_PREWARM_MODULE_BYTES",
@@ -490,6 +513,13 @@
 		"wired": "VmLimits.js_runtime.stdin_buffer_limit_bytes"
 	},
 	{
+		"name": "DEFAULT_NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS",
+		"path": "crates/sidecar-core/src/limits.rs",
+		"class": "policy",
+		"rationale": "Node import-cache materialization timeout.",
+		"wired": "VmLimits.js_runtime.import_cache_materialize_timeout_ms"
+	},
+	{
 		"name": "DEFAULT_MAX_FETCH_RESPONSE_BYTES",
 		"path": "crates/sidecar-core/src/limits.rs",
 		"class": "policy",
@@ -539,6 +569,20 @@
 		"wired": "VmLimits.js_runtime.v8_heap_limit_mb"
 	},
 	{
+		"name": "DEFAULT_V8_CPU_TIME_LIMIT_MS",
+		"path": "crates/sidecar-core/src/limits.rs",
+		"class": "policy",
+		"rationale": "Default active JavaScript CPU-time budget.",
+		"wired": "VmLimits.js_runtime.cpu_time_limit_ms"
+	},
+	{
+		"name": "DEFAULT_V8_WALL_CLOCK_LIMIT_MS",
+		"path": "crates/sidecar-core/src/limits.rs",
+		"class": "policy",
+		"rationale": "Default JavaScript wall-clock backstop; zero keeps it disabled.",
+		"wired": "VmLimits.js_runtime.wall_clock_limit_ms"
+	},
+	{
 		"name": "DEFAULT_V8_IPC_MAX_FRAME_BYTES",
 		"path": "crates/sidecar-core/src/limits.rs",
 		"class": "policy",
@@ -558,6 +602,20 @@
 		"class": "policy",
 		"rationale": "WASM module load size.",
 		"wired": "VmLimits.wasm.max_module_file_bytes"
+	},
+	{
+		"name": "DEFAULT_WASM_PREWARM_TIMEOUT_MS",
+		"path": "crates/sidecar-core/src/limits.rs",
+		"class": "policy",
+		"rationale": "WASM compile-cache warmup timeout.",
+		"wired": "VmLimits.wasm.prewarm_timeout_ms"
+	},
+	{
+		"name": "DEFAULT_WASM_RUNNER_HEAP_LIMIT_MB",
+		"path": "crates/sidecar-core/src/limits.rs",
+		"class": "policy",
+		"rationale": "WASM runner V8 heap cap.",
+		"wired": "VmLimits.wasm.runner_heap_limit_mb"
 	},
 	{
 		"name": "DEFAULT_WASM_SYNC_READ_LIMIT_BYTES",

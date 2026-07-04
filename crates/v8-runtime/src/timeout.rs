@@ -5,7 +5,7 @@
 //   * `TimeoutGuard` — a WALL-CLOCK timer. It counts elapsed real time
 //     INCLUDING idle/await, so it can cap a guest that blocks or awaits
 //     indefinitely. It is an INDEPENDENT, opt-in backstop armed only when the
-//     operator sets `AGENTOS_V8_WALL_CLOCK_LIMIT_MS` (off by default so
+//     operator sets `limits.jsRuntime.wallClockLimitMs` (off by default so
 //     long-lived ACP adapters are never killed by a default).
 //
 //   * `CpuBudgetGuard` — a TRUE CPU-TIME budget. It samples the EXECUTION
@@ -14,9 +14,11 @@
 //     thread is parked/awaiting I/O, this counts ONLY active JS CPU time and
 //     EXCLUDES idle/await. V8 has no native budget primitive, so this poll +
 //     `terminate_execution()` approach is the standard embedder pattern. Armed
-//     only when the operator opts in via `AGENTOS_V8_CPU_TIME_LIMIT_MS`.
+//     when the caller passes a nonzero `limits.jsRuntime.cpuTimeLimitMs`.
+//     secure-exec sidecar VM executions supply a bounded default; lower-level
+//     embedders may pass `None`/`0` to leave the guard disabled.
 //
-// The two guards are independent: setting one env knob arms only that guard,
+// The two guards are independent: setting one typed limit arms only that guard,
 // and when both are set whichever fires first terminates execution.
 
 use secure_exec_bridge::queue_tracker::{register_limit, TrackedLimit};
@@ -327,7 +329,7 @@ impl TimeoutGuard {
     /// [`crate::session::ExecutionAbortReason::WallClockTimedOut`] when the limit
     /// elapses. Unlike the CPU budget, this counts elapsed real time INCLUDING
     /// idle/await. Armed only when the operator opts in via
-    /// `AGENTOS_V8_WALL_CLOCK_LIMIT_MS`.
+    /// `limits.jsRuntime.wallClockLimitMs`.
     #[cfg_attr(test, allow(dead_code))]
     pub(crate) fn with_execution_abort(
         timeout_ms: u32,
