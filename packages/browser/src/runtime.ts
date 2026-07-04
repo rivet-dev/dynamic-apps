@@ -3247,7 +3247,10 @@ export const POLYFILL_CODE_MAP: Record<string, string> = {
 							}
 							return 0o100644;
 						},
-						path_mode(pathPtr, pathLen, followSymlinks) {
+						// Signature must match the node runner's host_fs.path_mode
+						// (fd, pathPtr, pathLen, followSymlinks). The guest passes the
+						// directory fd first (3 = cwd preopen); the path is at args 2/3.
+						path_mode(_fd, pathPtr, pathLen, followSymlinks) {
 							try {
 								const guestPath = resolveGuestPath(readString(pathPtr, pathLen));
 								const stat = Number(followSymlinks) === 0
@@ -3256,6 +3259,17 @@ export const POLYFILL_CODE_MAP: Record<string, string> = {
 								return modeFromStat(stat, 0o100644);
 							} catch {
 								return 0;
+							}
+						},
+						// Matches node runner host_fs.chmod(fd, pathPtr, pathLen, mode):
+						// 0 on success, 1 on failure.
+						chmod(_fd, pathPtr, pathLen, mode) {
+							try {
+								const guestPath = resolveGuestPath(readString(pathPtr, pathLen));
+								fs().chmodSync(guestPath, Number(mode) >>> 0);
+								return 0;
+							} catch {
+								return 1;
 							}
 						},
 					},

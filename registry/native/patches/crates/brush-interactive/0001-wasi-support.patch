@@ -139,19 +139,3 @@ diff -ruN '--exclude=*.orig' a/src/reedline/validator.rs b/src/reedline/validato
          let shell = tokio::task::block_in_place(|| {
              tokio::runtime::Handle::current().block_on(self.shell.lock())
          });
---- a/Cargo.toml
-+++ b/Cargo.toml
-@@ -91,6 +91,13 @@
-     "signal",
- ]
- 
-+[target."cfg(target_arch = \"wasm32\")".dependencies.tokio]
-+version = "1.48.0"
-+features = [
-+    "macros",
-+    "sync",
-+]
-+
- [target."cfg(unix)".dependencies.nix]
- version = "0.30.1"
- features = ["term"]

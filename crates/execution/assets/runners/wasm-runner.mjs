@@ -2204,6 +2204,17 @@ function resolveSyntheticHostMapping(value, fromGuestDir = '/') {
   return resolveModuleGuestPathToHostMapping(guestPath);
 }
 
+function chmodMappedGuestPath(guestPath, hostPath, mode) {
+  fsModule.chmodSync(hostPath, mode);
+  try {
+    if (typeof guestPath === 'string' && guestPath.length > 0) {
+      fsModule.chmodSync(guestPath, mode);
+    }
+  } catch {
+    // Best effort: host-mapped paths may not also exist as direct kernel paths.
+  }
+}
+
 function maybeCreateSyntheticCommandResult(command, args, cwd) {
   const basename = path.posix.basename(String(command || ''));
 
@@ -2218,6 +2229,7 @@ function maybeCreateSyntheticCommandResult(command, args, cwd) {
     const mode = Number.parseInt(modeArg, 8) >>> 0;
     try {
       for (const targetArg of args.slice(1)) {
+        const guestPath = resolveSyntheticGuestPath(targetArg, cwd || '/');
         const mapping = resolveSyntheticHostMapping(targetArg, cwd || '/');
         if (!mapping || typeof mapping.hostPath !== 'string') {
           throw new Error(`No such file or directory: ${targetArg}`);
@@ -2227,7 +2239,7 @@ function maybeCreateSyntheticCommandResult(command, args, cwd) {
           error.code = 'EROFS';
           throw error;
         }
-        fsModule.chmodSync(mapping.hostPath, mode);
+        chmodMappedGuestPath(guestPath, mapping.hostPath, mode);
       }
       return { exitCode: 0, stdout: '', stderr: '' };
     } catch (error) {
@@ -4407,7 +4419,7 @@ const hostFsImport = {
         hostPath: mapping.hostPath,
         mode: Number(mode) >>> 0,
       });
-      fsModule.chmodSync(mapping.hostPath, Number(mode) >>> 0);
+      chmodMappedGuestPath(target, mapping.hostPath, Number(mode) >>> 0);
       return 0;
     } catch {
       traceHostProcess('host-fs-chmod-fault', {});
@@ -4426,7 +4438,7 @@ const hostFsImport = {
         if (!mapping || typeof mapping.hostPath !== 'string' || mapping.readOnly) {
           return 1;
         }
-        fsModule.chmodSync(mapping.hostPath, Number(mode) >>> 0);
+        chmodMappedGuestPath(handle.guestPath, mapping.hostPath, Number(mode) >>> 0);
         return 0;
       }
       const targetFd =

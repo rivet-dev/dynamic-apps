@@ -15,7 +15,14 @@ use std::os::unix::fs::MetadataExt;
 mod host_fs {
     #[link(wasm_import_module = "host_fs")]
     unsafe extern "C" {
-        pub fn path_mode(path_ptr: *const u8, path_len: u32, follow_symlinks: u32) -> u32;
+        // Signature must match the sidecar host_fs.path_mode
+        // (dir_fd, path_ptr, path_len, follow_symlinks).
+        pub fn path_mode(
+            dir_fd: u32,
+            path_ptr: *const u8,
+            path_len: u32,
+            follow_symlinks: u32,
+        ) -> u32;
     }
 }
 
@@ -380,7 +387,8 @@ fn permission_allows(_path: &str, metadata: &Metadata, requested_bit: u32) -> bo
 #[cfg(target_os = "wasi")]
 fn wasi_path_mode(path: &str) -> Option<u32> {
     let bytes = path.as_bytes();
-    let mode = unsafe { host_fs::path_mode(bytes.as_ptr(), bytes.len() as u32, 1) };
+    // dir_fd 3 = cwd preopen; absolute paths ignore it.
+    let mode = unsafe { host_fs::path_mode(3, bytes.as_ptr(), bytes.len() as u32, 1) };
     if mode == 0 {
         None
     } else {
