@@ -505,6 +505,7 @@ pub(crate) struct ActiveProcess {
 pub(crate) struct ActiveMappedHostFd {
     pub(crate) file: File,
     pub(crate) path: PathBuf,
+    pub(crate) guest_path: Option<String>,
 }
 
 pub(crate) struct ActiveCipherSession {
