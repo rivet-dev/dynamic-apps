@@ -11,9 +11,9 @@ const USAGE = `agentos-toolchain — build, stage, and publish agentOS packages
 Usage:
   agentos-toolchain pack <npm-pkg | ./local-dir> [options]
       Pack an npm package or local script dir into a self-contained agentOS
-      package (JS agents / node closures).
+      package tar (JS agents / node closures).
         --agent <command>   mark a bin command as the package's ACP entrypoint
-        --out <dir>         output dir (FLAT; default: ./<input-name>-package)
+        --out <tar>         output tar (default: ./<input-name>-package.tar)
         --prune-native      delete unreachable native .node addons
 
   agentos-toolchain stage [<packageDir>] --commands-dir <dir> [--if-missing skip|error]
@@ -22,8 +22,8 @@ Usage:
       leaves a valid empty placeholder when binaries are absent (default: error).
 
   agentos-toolchain build [<packageDir>]
-      Assemble the clean runtime dir dist/package/ (package.json bin map +
-      bin/ + share/ + agentos-package.json) from <packageDir> (default: cwd).
+      Assemble the clean runtime tar dist/package.tar (bin/ + share/ +
+      agentos-package.json) from <packageDir> (default: cwd).
 
   agentos-toolchain publish [<packageDir>] [--tag <t> | --latest] [--dry-run] [--set-version <v>]
       Publish the built package to npm. Default dist-tag is "dev"; the latest
@@ -32,15 +32,15 @@ Usage:
   -h, --help          show this help
 `;
 
-/** Default flat output dir: ./<input-name>-package in cwd. */
+/** Default output tar: ./<input-name>-package.tar in cwd. */
 function defaultOutName(source: string): string {
 	if (existsSync(source) && statSync(source).isDirectory()) {
-		return `./${basename(resolve(source))}-package`;
+		return `./${basename(resolve(source))}-package.tar`;
 	}
 	// npm spec: strip a trailing @version, then the @scope/ prefix.
 	const at = source.lastIndexOf("@");
 	const name = at > 0 ? source.slice(0, at) : source;
-	return `./${name.replace(/^@[^/]+\//, "")}-package`;
+	return `./${name.replace(/^@[^/]+\//, "")}-package.tar`;
 }
 
 interface ParsedArgs {
@@ -114,7 +114,7 @@ function main(): void {
 				pruneNative: args.flags.get("--prune-native") === true,
 			});
 			process.stdout.write(
-				`packed ${result.name}@${result.version} → ${result.packageDir}\n` +
+				`packed ${result.name}@${result.version} → ${result.packageTar}\n` +
 					`  commands: ${result.commands.join(", ")}\n`,
 			);
 			return;

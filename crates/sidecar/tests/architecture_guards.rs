@@ -258,10 +258,11 @@ const FS_ALLOW: &[&str] = &[
     // sanctioned boundary as host_dir.rs/filesystem.rs, macOS-only.
     "crates/sidecar/src/macos_fs.rs",
     "crates/sidecar/src/plugins/module_access.rs",
-    // agentOS package projection: the sidecar is the host-side TCB that stages a
-    // trusted, client-configured package `dir` into the `/opt/agentos` host_dir
-    // mount (init/read manifest/link bin farm). Same sanctioned host-staging
-    // boundary as filesystem.rs/host_dir.rs; the staged tree is mounted read-only.
+    // agentOS package projection: the sidecar is the host-side TCB that reads a
+    // trusted, client-configured package's tar + `agentos-package.json` from the
+    // host to build the read-only `/opt/agentos` granular mounts (no extraction,
+    // no on-disk symlink farm). Same sanctioned read-only host-source boundary as
+    // filesystem.rs/host_dir.rs.
     "crates/sidecar/src/package_projection.rs",
     "crates/sidecar/src/stdio.rs",
     "crates/sidecar/src/state.rs",
@@ -271,6 +272,11 @@ const FS_ALLOW: &[&str] = &[
     "crates/sidecar/src/plugins/chunked_local.rs",
     "crates/secure-exec-vfs/src/local/file_block_store.rs",
     "crates/secure-exec-vfs/src/local/sqlite_metadata_store.rs",
+    // Tar-backed read-only VFS: mmaps the trusted, client-configured package
+    // tar from the host and serves member byte ranges without extracting.
+    // Same sanctioned read-only host-source boundary as host_dir.rs (the tar is
+    // an immutable, content-addressed mount source); reads are SIGBUS-guarded.
+    "crates/vfs/src/posix/tar_fs.rs",
     // language-runtime asset / module loaders (read host runtime assets)
     "crates/execution/src/python.rs",
     "crates/execution/src/wasm.rs",

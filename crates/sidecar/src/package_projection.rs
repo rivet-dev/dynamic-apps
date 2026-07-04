@@ -1,44 +1,73 @@
-//! agentOS package projection (moved into the sidecar from the agent-os clients).
+//! agentOS package projection.
 //!
-//! A package is a self-contained directory produced by `@rivet-dev/agentos-toolchain
-//! pack`; the sidecar projects it read-only under `/opt/agentos/<name>/<version>` and
-//! links its `bin/` commands into `/opt/agentos/bin` (which is on `$PATH`). A `current`
-//! symlink gives an atomic version switch. The whole tree lives in ONE host staging dir
-//! mounted at `/opt/agentos` — the VFS rejects cross-mount symlinks and confines host-dir
-//! mounts with `RESOLVE_BENEATH`, so package content + `current` + the `bin/`/`man` farms
-//! must share a single mount with only relative, in-tree symlinks. Because the host-dir
-//! mount reflects host writes, appending to the staging dir adds commands to a running VM
-//! live (the mechanism behind runtime `LinkPackage`).
+//! Packages are mounted directly from their uncompressed `package.tar` files.
+//! The tar already contains every member's bytes at known offsets, so the VFS
+//! indexes headers once and returns mmap-backed byte ranges instead of
+//! extracting a duplicate host tree. The projection also serves `bin/*`,
+//! `current`, manpage aliases, and `provides.files` as virtual mounts; it never
+//! writes a physical symlink farm.
 //!
-//! Package metadata lives in `agentos-package.json`: the package `name`, optional
-//! `agent.acpEntrypoint`, and optional `provides` block come from that manifest. The
-//! `version` still comes from the package's own root `package.json`, and commands are
-//! derived from `bin/` (or `package.json` "bin").
+//! The projection is deliberately granular. Each package version is a tar leaf
+//! at `/opt/agentos/pkgs/<pkg>/<version>`, and each managed command/current
+//! alias is its own root-symlink leaf. The containing dirs stay writable overlay
+//! dirs so user-installed commands can coexist beside managed package entries.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
-use std::os::unix::fs::{symlink, PermissionsExt};
 use std::path::{Path, PathBuf};
-use std::sync::{Mutex, OnceLock};
 
 use crate::state::SidecarError;
 use serde::Deserialize;
+use vfs::posix::{normalize_path, TarFileSystem, VirtualFileSystem};
 
 /// Root of the agentOS package tree inside the VM.
 pub const OPT_AGENTOS_ROOT: &str = "/opt/agentos";
 /// The symlink farm on `$PATH`.
 pub const OPT_AGENTOS_BIN: &str = "/opt/agentos/bin";
 const AGENT_SNAPSHOT_BUNDLE: &str = "dist/sdk-snapshot.js";
+pub const DEFAULT_PACKAGE_TAR_NAME: &str = "package.tar";
+pub const MAX_AGENTOS_PACKAGE_MOUNTS: usize = 4096;
 
-/// A package to project, derived from `<dir>/agentos-package.json`.
+/// A package to project, derived from `agentos-package.json` in a package dir or tar.
 #[derive(Debug, Clone)]
 pub struct PackageDescriptor {
     pub name: String,
+    pub version: String,
     pub dir: String,
+    pub tar_path: Option<String>,
+    pub tar_digest: Option<String>,
     /// `bin/` command that speaks ACP, if this is an agent package.
     pub acp_entrypoint: Option<String>,
     pub snapshot: bool,
     pub provides: Option<PackageProvidesDescriptor>,
+    pub commands: Vec<PackageCommandTarget>,
+    pub man_pages: Vec<PackageManPageTarget>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PackageCommandTarget {
+    pub command: String,
+    pub entry: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PackageManPageTarget {
+    pub section: String,
+    pub page: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum PackageLeafMount {
+    Tar {
+        guest_path: String,
+        tar_path: String,
+        digest: String,
+        root: String,
+    },
+    SingleSymlink {
+        guest_path: String,
+        target: String,
+    },
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -58,6 +87,7 @@ pub struct PackageProvidesFileDescriptor {
 #[derive(Debug, Deserialize)]
 struct AgentosPackageManifest {
     name: String,
+    version: String,
     #[serde(default)]
     agent: Option<PackageAgentDescriptor>,
     #[serde(default)]
@@ -73,10 +103,22 @@ struct PackageAgentDescriptor {
 }
 
 impl PackageDescriptor {
-    fn from_manifest(dir: &str, manifest: AgentosPackageManifest) -> Result<Self, SidecarError> {
+    fn from_parts(
+        dir: String,
+        tar_path: Option<String>,
+        tar_digest: Option<String>,
+        manifest: AgentosPackageManifest,
+        commands: Vec<PackageCommandTarget>,
+        man_pages: Vec<PackageManPageTarget>,
+    ) -> Result<Self, SidecarError> {
         if manifest.name.is_empty() {
             return Err(SidecarError::InvalidState(format!(
                 "agentos-package.json in {dir} is missing a valid \"name\""
+            )));
+        }
+        if manifest.version.is_empty() {
+            return Err(SidecarError::InvalidState(format!(
+                "agentos-package.json in {dir} is missing a valid \"version\""
             )));
         }
         let (acp_entrypoint, snapshot) = match manifest.agent {
@@ -93,11 +135,29 @@ impl PackageDescriptor {
         }
         Ok(Self {
             name: manifest.name,
-            dir: dir.to_owned(),
+            version: manifest.version,
+            dir,
+            tar_path,
+            tar_digest,
             acp_entrypoint,
             snapshot,
             provides: manifest.provides,
+            commands,
+            man_pages,
         })
+    }
+
+    pub fn tar_ref(&self) -> Result<(&str, &str), SidecarError> {
+        let tar_path = self.tar_path.as_deref().ok_or_else(|| {
+            SidecarError::InvalidState(format!(
+                "package `{}` must include {DEFAULT_PACKAGE_TAR_NAME}; directory projection is no longer supported",
+                self.name
+            ))
+        })?;
+        let digest = self.tar_digest.as_deref().ok_or_else(|| {
+            SidecarError::InvalidState(format!("package `{}` is missing tar digest", self.name))
+        })?;
+        Ok((tar_path, digest))
     }
 }
 
@@ -105,8 +165,7 @@ fn io_err(context: &str, error: std::io::Error) -> SidecarError {
     SidecarError::Io(format!("{context}: {error}"))
 }
 
-/// Read the sidecar-owned package manifest from `<dir>/agentos-package.json`.
-pub fn read_package_manifest(dir: &str) -> Result<PackageDescriptor, SidecarError> {
+fn read_agentos_package_manifest(dir: &str) -> Result<AgentosPackageManifest, SidecarError> {
     let path = Path::new(dir).join("agentos-package.json");
     if !path.exists() {
         return Err(SidecarError::InvalidState(format!(
@@ -114,10 +173,27 @@ pub fn read_package_manifest(dir: &str) -> Result<PackageDescriptor, SidecarErro
         )));
     }
     let text = fs::read_to_string(&path).map_err(|e| io_err("read agentos-package.json", e))?;
-    let manifest: AgentosPackageManifest = serde_json::from_str(&text).map_err(|e| {
+    serde_json::from_str(&text).map_err(|e| {
         SidecarError::InvalidState(format!("invalid agentos-package.json in {dir}: {e}"))
-    })?;
-    PackageDescriptor::from_manifest(dir, manifest)
+    })
+}
+
+/// Read the sidecar-owned package manifest from `<dir>/agentos-package.json`.
+pub fn read_package_manifest(dir: &str) -> Result<PackageDescriptor, SidecarError> {
+    let manifest = read_agentos_package_manifest(dir)?;
+    let tar_path = package_tar_for_dir(dir);
+    let tar_digest = tar_path
+        .as_ref()
+        .map(|path| digest_file(path))
+        .transpose()?;
+    PackageDescriptor::from_parts(
+        dir.to_owned(),
+        tar_path.map(|path| path.to_string_lossy().into_owned()),
+        tar_digest,
+        manifest,
+        command_targets_from_dir(dir)?,
+        man_pages_from_dir(dir)?,
+    )
 }
 
 /// Read the first snapshot-enabled agent package's bundled SDK snapshot source.
@@ -136,85 +212,116 @@ pub fn read_agent_snapshot_bundle(
         .map_err(|e| io_err("read agent snapshot bundle", e))
 }
 
-/// Read the package's `version` from its root `package.json`. A toolchain-produced
-/// package (flat or `--bundle`) always has a root `package.json {name,version,bin}`.
+/// Read the package's `version` from `agentos-package.json`.
 pub fn read_package_version(dir: &str) -> Result<String, SidecarError> {
-    let path = Path::new(dir).join("package.json");
-    if !path.exists() {
-        return Err(SidecarError::InvalidState(format!(
-            "missing required package.json in {dir} \
-             (produce packages with '@rivet-dev/agentos-toolchain pack')"
-        )));
-    }
-    let text = fs::read_to_string(&path).map_err(|e| io_err("read package.json", e))?;
-    let value: serde_json::Value = serde_json::from_str(&text)
-        .map_err(|e| SidecarError::InvalidState(format!("invalid package.json in {dir}: {e}")))?;
-    match value.get("version").and_then(|v| v.as_str()) {
-        Some(version) if !version.is_empty() => Ok(version.to_owned()),
-        _ => Err(SidecarError::InvalidState(format!(
-            "package.json in {dir} is missing a valid \"version\""
-        ))),
-    }
+    Ok(read_agentos_package_manifest(dir)?.version)
 }
 
-/// Map each command name to its entry path RELATIVE to the package root.
-///
-/// A shipped package is an npm dependency, so it must not rely on `bin/` symlinks
-/// (npm publish + cross-platform tooling strip/break them). Commands are therefore
-/// declared in the root `package.json` "bin" map (command → real entry file). The
-/// `/opt/agentos/bin/<cmd>` symlink farm lives ONLY in the sidecar's host staging
-/// dir and points at that entry. WASM packages instead ship a real `bin/` of
-/// `.wasm` files, so fall back to the `bin/` directory when there is no
-/// `package.json` "bin".
-fn command_targets(dir: &str) -> Result<Vec<(String, String)>, SidecarError> {
+pub fn read_package_name(dir: &str) -> Result<String, SidecarError> {
+    Ok(read_agentos_package_manifest(dir)?.name)
+}
+
+fn package_tar_for_dir(dir: &str) -> Option<PathBuf> {
+    let tar = Path::new(dir).join(DEFAULT_PACKAGE_TAR_NAME);
+    tar.is_file().then_some(tar)
+}
+
+/// Map each command name to its entry path relative to the package root.
+fn command_targets_from_dir(dir: &str) -> Result<Vec<PackageCommandTarget>, SidecarError> {
     let pkg_json = Path::new(dir).join("package.json");
     if pkg_json.exists() {
         if let Ok(text) = fs::read_to_string(&pkg_json) {
             if let Ok(value) = serde_json::from_str::<serde_json::Value>(&text) {
-                match value.get("bin") {
-                    Some(serde_json::Value::String(path)) => {
-                        if let Some(name) = value.get("name").and_then(|v| v.as_str()) {
-                            let unscoped = name.rsplit('/').next().unwrap_or(name).to_owned();
-                            return Ok(is_projectable_command_name(&unscoped)
-                                .then(|| (unscoped, normalize_rel(path)))
-                                .into_iter()
-                                .collect());
-                        }
-                    }
-                    Some(serde_json::Value::Object(map)) => {
-                        let mut targets: Vec<(String, String)> = map
-                            .iter()
-                            .filter_map(|(name, path)| {
-                                is_projectable_command_name(name)
-                                    .then(|| path.as_str())
-                                    .flatten()
-                                    .map(|path| (name.clone(), normalize_rel(path)))
-                            })
-                            .collect();
-                        targets.sort_by(|a, b| a.0.cmp(&b.0));
-                        return Ok(targets);
-                    }
-                    _ => {}
+                if let Some(targets) = command_targets_from_package_json(&value) {
+                    return Ok(targets);
                 }
             }
         }
     }
 
     let bin = Path::new(dir).join("bin");
-    if bin.is_dir() {
-        let mut targets = Vec::new();
-        for entry in fs::read_dir(&bin).map_err(|e| io_err("read bin/", e))? {
-            let entry = entry.map_err(|e| io_err("read bin/ entry", e))?;
-            if let Some(name) = entry.file_name().to_str() {
-                if is_projectable_command_name(name) {
-                    targets.push((name.to_owned(), format!("bin/{name}")));
-                }
+    if !bin.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut targets = Vec::new();
+    for entry in fs::read_dir(&bin).map_err(|e| io_err("read bin/", e))? {
+        let entry = entry.map_err(|e| io_err("read bin/ entry", e))?;
+        if let Some(name) = entry.file_name().to_str() {
+            if is_projectable_command_name(name) {
+                targets.push(PackageCommandTarget {
+                    command: name.to_owned(),
+                    entry: format!("bin/{name}"),
+                });
             }
         }
-        targets.sort_by(|a, b| a.0.cmp(&b.0));
-        return Ok(targets);
     }
-    Ok(Vec::new())
+    targets.sort_by(|a, b| a.command.cmp(&b.command));
+    Ok(targets)
+}
+
+fn man_pages_from_dir(dir: &str) -> Result<Vec<PackageManPageTarget>, SidecarError> {
+    let man = Path::new(dir).join("share").join("man");
+    if !man.is_dir() {
+        return Ok(Vec::new());
+    }
+    let mut pages = Vec::new();
+    for section in fs::read_dir(&man).map_err(|e| io_err("read man/", e))? {
+        let section = section.map_err(|e| io_err("man section", e))?;
+        if !section.path().is_dir() {
+            continue;
+        }
+        let Some(section_name) = section.file_name().to_str().map(str::to_owned) else {
+            continue;
+        };
+        for page in fs::read_dir(section.path()).map_err(|e| io_err("man pages", e))? {
+            let page = page.map_err(|e| io_err("man page", e))?;
+            if let Some(page_name) = page.file_name().to_str() {
+                pages.push(PackageManPageTarget {
+                    section: section_name.clone(),
+                    page: page_name.to_owned(),
+                });
+            }
+        }
+    }
+    pages.sort_by(|a, b| (&a.section, &a.page).cmp(&(&b.section, &b.page)));
+    Ok(pages)
+}
+
+fn command_targets_from_package_json(
+    value: &serde_json::Value,
+) -> Option<Vec<PackageCommandTarget>> {
+    match value.get("bin") {
+        Some(serde_json::Value::String(path)) => {
+            let name = value.get("name").and_then(|v| v.as_str())?;
+            let unscoped = name.rsplit('/').next().unwrap_or(name).to_owned();
+            Some(
+                is_projectable_command_name(&unscoped)
+                    .then(|| PackageCommandTarget {
+                        command: unscoped,
+                        entry: normalize_rel(path),
+                    })
+                    .into_iter()
+                    .collect(),
+            )
+        }
+        Some(serde_json::Value::Object(map)) => {
+            let mut targets: Vec<PackageCommandTarget> = map
+                .iter()
+                .filter_map(|(name, path)| {
+                    is_projectable_command_name(name)
+                        .then(|| path.as_str())
+                        .flatten()
+                        .map(|path| PackageCommandTarget {
+                            command: name.clone(),
+                            entry: normalize_rel(path),
+                        })
+                })
+                .collect();
+            targets.sort_by(|a, b| a.command.cmp(&b.command));
+            Some(targets)
+        }
+        _ => None,
+    }
 }
 
 fn is_projectable_command_name(name: &str) -> bool {
@@ -226,210 +333,281 @@ fn normalize_rel(path: &str) -> String {
     path.strip_prefix("./").unwrap_or(path).to_owned()
 }
 
-/// Derive command names for the package (sorted). See [`command_targets`].
+/// Derive command names for the package (sorted).
 pub fn derive_commands(dir: &str) -> Result<Vec<String>, SidecarError> {
-    Ok(command_targets(dir)?
+    Ok(command_targets_from_dir(dir)?
         .into_iter()
-        .map(|(name, _)| name)
+        .map(|target| target.command)
         .collect())
 }
 
-/// Process-global shared-projection cache (Phase 5). Maps `<name>@<version>` to a host dir
-/// holding ONE copy of that package's content; every VM's projection hardlinks from it
-/// instead of re-copying. Keyed by name+version, so a version bump produces a fresh cache
-/// entry (invalidation on version change).
-fn projection_cache() -> &'static Mutex<HashMap<String, PathBuf>> {
-    static CACHE: OnceLock<Mutex<HashMap<String, PathBuf>>> = OnceLock::new();
-    CACHE.get_or_init(|| Mutex::new(HashMap::new()))
+pub fn read_package_manifest_from_ref(
+    dir: Option<&str>,
+    tar: Option<&str>,
+) -> Result<PackageDescriptor, SidecarError> {
+    if let Some(tar) = tar.filter(|value| !value.is_empty()) {
+        return read_package_manifest_from_tar(tar);
+    }
+    if let Some(dir) = dir.filter(|value| !value.is_empty()) {
+        let path = Path::new(dir);
+        if path.is_file() {
+            return read_package_manifest_from_tar(dir);
+        }
+        if let Some(package_tar) = package_tar_for_dir(dir) {
+            return read_package_manifest_from_tar_with_dir(&package_tar, dir.to_owned());
+        }
+        return read_package_manifest(dir);
+    }
+    Err(SidecarError::InvalidState(String::from(
+        "package descriptor must include a package tar or dir",
+    )))
 }
 
-/// Copy a package's content to the shared cache once; return the cache dir.
-fn cached_package_content(
-    desc_dir: &str,
-    name: &str,
-    version: &str,
-) -> Result<PathBuf, SidecarError> {
-    let key = format!("{name}@{version}");
-    {
-        let cache = projection_cache()
-            .lock()
-            .expect("projection cache poisoned");
-        if let Some(existing) = cache.get(&key) {
-            if existing.exists() {
-                return Ok(existing.clone());
+fn read_package_manifest_from_tar(tar: &str) -> Result<PackageDescriptor, SidecarError> {
+    read_package_manifest_from_tar_with_dir(Path::new(tar), tar.to_owned())
+}
+
+fn read_package_manifest_from_tar_with_dir(
+    tar: &Path,
+    dir: String,
+) -> Result<PackageDescriptor, SidecarError> {
+    let digest = digest_file(tar)?;
+    let mut fs = TarFileSystem::open(tar, digest.clone())
+        .map_err(|error| SidecarError::InvalidState(error.to_string()))?;
+    let manifest_bytes = fs
+        .read_file("/agentos-package.json")
+        .map_err(|error| SidecarError::InvalidState(error.to_string()))?;
+    let manifest =
+        serde_json::from_slice::<AgentosPackageManifest>(&manifest_bytes).map_err(|error| {
+            SidecarError::InvalidState(format!(
+                "invalid agentos-package.json in {}: {error}",
+                tar.display()
+            ))
+        })?;
+    let commands = command_targets_from_tar(&mut fs)?;
+    let man_pages = man_pages_from_tar(&mut fs)?;
+    PackageDescriptor::from_parts(
+        dir,
+        Some(tar.to_string_lossy().into_owned()),
+        Some(digest),
+        manifest,
+        commands,
+        man_pages,
+    )
+}
+
+fn command_targets_from_tar(
+    fs: &mut TarFileSystem,
+) -> Result<Vec<PackageCommandTarget>, SidecarError> {
+    match fs.read_file("/package.json") {
+        Ok(bytes) => {
+            if let Ok(value) = serde_json::from_slice::<serde_json::Value>(&bytes) {
+                if let Some(targets) = command_targets_from_package_json(&value) {
+                    return Ok(targets);
+                }
             }
         }
+        Err(error) if error.code() == "ENOENT" => {}
+        Err(error) => return Err(SidecarError::InvalidState(error.to_string())),
     }
-    let dir = std::env::temp_dir().join(format!(
-        "agentos-pkgcache-{}-{}",
-        sanitize(name),
-        sanitize(version)
-    ));
-    let content = dir.join("content");
-    if content.exists() {
-        let _ = fs::remove_dir_all(&content);
-    }
-    copy_tree_verbatim(Path::new(desc_dir), &content)?;
-    projection_cache()
-        .lock()
-        .expect("projection cache poisoned")
-        .insert(key, content.clone());
-    Ok(content)
+
+    let entries = match fs.read_dir("/bin") {
+        Ok(entries) => entries,
+        Err(error) if error.code() == "ENOENT" => return Ok(Vec::new()),
+        Err(error) => return Err(SidecarError::InvalidState(error.to_string())),
+    };
+    let mut targets = entries
+        .into_iter()
+        .filter_map(|command| {
+            is_projectable_command_name(&command).then(|| PackageCommandTarget {
+                entry: format!("bin/{command}"),
+                command,
+            })
+        })
+        .collect::<Vec<_>>();
+    targets.sort_by(|a, b| a.command.cmp(&b.command));
+    Ok(targets)
 }
 
-fn sanitize(s: &str) -> String {
-    s.chars()
-        .map(|c| if c.is_ascii_alphanumeric() { c } else { '_' })
-        .collect()
-}
-
-/// Recursively materialize `src` into `dst`, HARDLINKING regular files (shared inodes — no
-/// data copy) and recreating symlinks/dirs. Falls back to a byte copy if hardlinking fails
-/// (e.g. a cross-filesystem `EXDEV`).
-fn hardlink_tree_from(src: &Path, dst: &Path) -> Result<(), SidecarError> {
-    let meta = fs::symlink_metadata(src).map_err(|e| io_err("stat cache source", e))?;
-    if meta.file_type().is_symlink() {
-        let target = fs::read_link(src).map_err(|e| io_err("read_link", e))?;
-        symlink(&target, dst).map_err(|e| io_err("symlink copy", e))?;
-        return Ok(());
-    }
-    if meta.is_dir() {
-        fs::create_dir_all(dst).map_err(|e| io_err("create_dir", e))?;
-        for entry in fs::read_dir(src).map_err(|e| io_err("read_dir", e))? {
-            let entry = entry.map_err(|e| io_err("read_dir entry", e))?;
-            hardlink_tree_from(&entry.path(), &dst.join(entry.file_name()))?;
+fn man_pages_from_tar(fs: &mut TarFileSystem) -> Result<Vec<PackageManPageTarget>, SidecarError> {
+    let sections = match fs.read_dir("/share/man") {
+        Ok(entries) => entries,
+        Err(error) if error.code() == "ENOENT" => return Ok(Vec::new()),
+        Err(error) => return Err(SidecarError::InvalidState(error.to_string())),
+    };
+    let mut pages = Vec::new();
+    for section in sections {
+        let section_path = format!("/share/man/{section}");
+        let Ok(stat) = fs.stat(&section_path) else {
+            continue;
+        };
+        if !stat.is_directory {
+            continue;
         }
-        return Ok(());
+        for page in fs
+            .read_dir(&section_path)
+            .map_err(|error| SidecarError::InvalidState(error.to_string()))?
+        {
+            pages.push(PackageManPageTarget {
+                section: section.clone(),
+                page,
+            });
+        }
     }
-    if fs::hard_link(src, dst).is_err() {
-        fs::copy(src, dst).map_err(|e| io_err("copy file", e))?;
+    pages.sort_by(|a, b| (&a.section, &a.page).cmp(&(&b.section, &b.page)));
+    Ok(pages)
+}
+
+pub fn build_package_leaf_mounts(
+    packages: &[PackageDescriptor],
+    mount_at: &str,
+) -> Result<Vec<PackageLeafMount>, SidecarError> {
+    let mount_at = normalize_mount_root(mount_at);
+    let mut mounts = Vec::new();
+    let mut command_paths = HashSet::new();
+
+    for package in packages {
+        let commands = package
+            .commands
+            .iter()
+            .map(|target| target.command.clone())
+            .collect::<Vec<_>>();
+        if let Some(acp) = &package.acp_entrypoint {
+            if !commands.contains(acp) {
+                return Err(SidecarError::InvalidState(format!(
+                    "agent acpEntrypoint {acp:?} is not one of {}'s commands",
+                    package.name
+                )));
+            }
+        }
+
+        let (tar_path, digest) = package.tar_ref()?;
+        let package_root = package_guest_root(&mount_at, &package.name);
+        let version_path = normalize_path(&format!("{package_root}/{}", package.version));
+        push_mount(
+            &mut mounts,
+            PackageLeafMount::Tar {
+                guest_path: version_path,
+                tar_path: tar_path.to_owned(),
+                digest: digest.to_owned(),
+                root: String::from("/"),
+            },
+        )?;
+        push_mount(
+            &mut mounts,
+            PackageLeafMount::SingleSymlink {
+                guest_path: normalize_path(&format!("{package_root}/current")),
+                target: package.version.clone(),
+            },
+        )?;
+
+        for target in &package.commands {
+            let guest_path = normalize_path(&format!("{mount_at}/bin/{}", target.command));
+            if !command_paths.insert(guest_path.clone()) {
+                return Err(SidecarError::InvalidState(format!(
+                    "command {:?} is already provided by another package",
+                    target.command
+                )));
+            }
+            push_mount(
+                &mut mounts,
+                PackageLeafMount::SingleSymlink {
+                    guest_path,
+                    target: format!("../pkgs/{}/current/{}", package.name, target.entry),
+                },
+            )?;
+        }
+
+        for page in &package.man_pages {
+            push_mount(
+                &mut mounts,
+                PackageLeafMount::SingleSymlink {
+                    guest_path: normalize_path(&format!(
+                        "{mount_at}/share/man/{}/{}",
+                        page.section, page.page
+                    )),
+                    target: format!(
+                        "../../../pkgs/{}/current/share/man/{}/{}",
+                        package.name, page.section, page.page
+                    ),
+                },
+            )?;
+        }
     }
+
+    Ok(mounts)
+}
+
+pub fn package_provides_file_mount(
+    package: &PackageDescriptor,
+    source: &str,
+    target: &str,
+) -> Result<Option<PackageLeafMount>, SidecarError> {
+    let (tar_path, digest) = package.tar_ref()?;
+    let root = normalize_package_source(source);
+    let mut fs = TarFileSystem::open_at(tar_path, digest, &root)
+        .map_err(|error| SidecarError::InvalidState(error.to_string()))?;
+    match fs.stat("/") {
+        Ok(stat) if stat.is_directory => Ok(Some(PackageLeafMount::Tar {
+            guest_path: normalize_path(target),
+            tar_path: tar_path.to_owned(),
+            digest: digest.to_owned(),
+            root,
+        })),
+        Ok(_) => Ok(None),
+        Err(error) if error.code() == "ENOENT" => Err(SidecarError::InvalidState(format!(
+            "package provides file source is missing: package `{}` source `{source}` target `{target}`",
+            package.name
+        ))),
+        Err(error) => Err(SidecarError::InvalidState(error.to_string())),
+    }
+}
+
+fn push_mount(
+    mounts: &mut Vec<PackageLeafMount>,
+    mount: PackageLeafMount,
+) -> Result<(), SidecarError> {
+    let observed = mounts.len() + 1;
+    if observed > MAX_AGENTOS_PACKAGE_MOUNTS {
+        return Err(SidecarError::InvalidState(format!(
+            "agentos package mount count exceeded: {observed} mounts > {MAX_AGENTOS_PACKAGE_MOUNTS} mounts (raise via limits.agentosPackages.maxMounts)"
+        )));
+    }
+    if observed * 100 / MAX_AGENTOS_PACKAGE_MOUNTS >= 80 {
+        tracing::warn!(
+            limit = "agentos_package_mounts",
+            observed,
+            capacity = MAX_AGENTOS_PACKAGE_MOUNTS,
+            fill_percent = observed * 100 / MAX_AGENTOS_PACKAGE_MOUNTS,
+            wired = "limits.agentosPackages.maxMounts",
+            "agentos package mount count approaching configured limit"
+        );
+    }
+    mounts.push(mount);
     Ok(())
 }
 
-/// Recursively copy `src` into `dst`, preserving symlinks verbatim (so relative in-package
-/// links stay in-tree). Mirrors TS `cpSync({verbatimSymlinks:true})`.
-fn copy_tree_verbatim(src: &Path, dst: &Path) -> Result<(), SidecarError> {
-    let meta = fs::symlink_metadata(src).map_err(|e| io_err("stat source", e))?;
-    if meta.file_type().is_symlink() {
-        let target = fs::read_link(src).map_err(|e| io_err("read_link", e))?;
-        symlink(&target, dst).map_err(|e| io_err("symlink copy", e))?;
-        return Ok(());
+fn normalize_mount_root(mount_at: &str) -> String {
+    if mount_at.is_empty() {
+        String::from(OPT_AGENTOS_ROOT)
+    } else {
+        normalize_path(mount_at)
     }
-    if meta.is_dir() {
-        fs::create_dir_all(dst).map_err(|e| io_err("create_dir", e))?;
-        for entry in fs::read_dir(src).map_err(|e| io_err("read_dir", e))? {
-            let entry = entry.map_err(|e| io_err("read_dir entry", e))?;
-            copy_tree_verbatim(&entry.path(), &dst.join(entry.file_name()))?;
-        }
-        return Ok(());
-    }
-    fs::copy(src, dst).map_err(|e| io_err("copy file", e))?;
-    Ok(())
 }
 
-/// Ensure the staging dir has a `bin/` so `/opt/agentos/bin` is a real (possibly empty)
-/// directory on `$PATH`. Call once before any `link_package`.
-pub fn init_projection(staging_root: &Path) -> Result<(), SidecarError> {
-    fs::create_dir_all(staging_root.join("bin")).map_err(|e| io_err("init projection bin/", e))
+fn package_guest_root(mount_at: &str, name: &str) -> String {
+    normalize_path(&format!("{mount_at}/pkgs/{name}"))
 }
 
-/// Add one package to the `/opt/agentos` staging dir. Returns the command names it linked.
-/// Idempotent per command name (errors on a duplicate).
-pub fn link_package(
-    desc: &PackageDescriptor,
-    staging_root: &Path,
-) -> Result<Vec<String>, SidecarError> {
-    let name = desc.name.clone();
-    let version = read_package_version(&desc.dir)?;
-    let targets = command_targets(&desc.dir)?;
-    let commands: Vec<String> = targets.iter().map(|(name, _)| name.clone()).collect();
-    if let Some(acp) = &desc.acp_entrypoint {
-        if !commands.contains(acp) {
-            return Err(SidecarError::InvalidState(format!(
-                "agent acpEntrypoint {acp:?} is not one of {name}'s commands"
-            )));
-        }
+fn normalize_package_source(source: &str) -> String {
+    if source.trim().is_empty() {
+        String::from("/")
+    } else {
+        normalize_path(source)
     }
+}
 
-    let bin_dir = staging_root.join("bin");
-    fs::create_dir_all(&bin_dir).map_err(|e| io_err("create bin/", e))?;
-    let name_dir = staging_root.join(&name);
-    let version_dir = name_dir.join(&version);
-    // Two meta-packages can both pull in the same sub-package (e.g. `build-essential` and
-    // `common` both include `coreutils`). Projecting an already-projected `<name>/<version>`
-    // is an idempotent no-op, not a conflict — its content + `bin/`/`man` links are already in
-    // the staging dir. (A *different* package re-providing a command still errors at the
-    // bin-link step below, which is the real duplicate-command case.)
-    if version_dir.exists() {
-        return Ok(commands);
-    }
-    // Hardlink content from a process-global cache (Phase 5: shared cross-VM projection) so
-    // a package is copied to disk ONCE and shared (same inodes) across every VM's read-only
-    // projection. Falls back to a copy across filesystems.
-    let cached = cached_package_content(&desc.dir, &name, &version)?;
-    hardlink_tree_from(&cached, &version_dir)?;
-
-    // Toolchain-packed command files (npm `bin` scripts AND WASM `bin/*.wasm`) ship as
-    // plain `0644` data inside the npm tarball — npm never preserves an execute bit. The
-    // kernel's `$PATH` walk and exec(2) both require the execute bits (`0o111`), so a
-    // `0644` command would resolve to ENOENT (bare name skipped as non-executable) or
-    // EACCES (absolute path). Mark every projected command entry executable so the
-    // `/opt/agentos/bin` symlink farm points at runnable files. The entries are hardlinks
-    // into the shared cache, so this is idempotent across VMs (and a no-op on re-projection
-    // because `version_dir.exists()` short-circuits above).
-    for (_, entry) in &targets {
-        let entry_path = version_dir.join(entry);
-        if let Ok(meta) = fs::metadata(&entry_path) {
-            let mut perms = meta.permissions();
-            let mode = perms.mode();
-            perms.set_mode(mode | 0o111);
-            fs::set_permissions(&entry_path, perms)
-                .map_err(|e| io_err("chmod +x command entry", e))?;
-        }
-    }
-
-    // <name>/current -> <version>
-    let current = name_dir.join("current");
-    let _ = fs::remove_file(&current);
-    symlink(&version, &current).map_err(|e| io_err("current symlink", e))?;
-
-    // bin/<cmd> -> ../<name>/current/<entry> (the entry from package.json "bin", or
-    // bin/<cmd> for WASM packages). The symlink farm exists only in the staging dir.
-    for (cmd, entry) in &targets {
-        let dest = bin_dir.join(cmd);
-        if dest.exists() {
-            return Err(SidecarError::InvalidState(format!(
-                "command {cmd:?} is already provided by another package"
-            )));
-        }
-        symlink(format!("../{name}/current/{entry}"), &dest)
-            .map_err(|e| io_err("bin symlink", e))?;
-    }
-
-    // share/man/<section>/* -> ../../../<name>/current/share/man/<section>/*
-    let man = version_dir.join("share").join("man");
-    if man.is_dir() {
-        for section in fs::read_dir(&man).map_err(|e| io_err("read man/", e))? {
-            let section = section.map_err(|e| io_err("man section", e))?;
-            if !section.path().is_dir() {
-                continue;
-            }
-            let sec_name = section.file_name();
-            let farm = staging_root.join("share").join("man").join(&sec_name);
-            fs::create_dir_all(&farm).map_err(|e| io_err("man farm dir", e))?;
-            for page in fs::read_dir(section.path()).map_err(|e| io_err("man pages", e))? {
-                let page = page.map_err(|e| io_err("man page", e))?;
-                let page_name = page.file_name();
-                let target = format!(
-                    "../../../{name}/current/share/man/{}/{}",
-                    sec_name.to_string_lossy(),
-                    page_name.to_string_lossy()
-                );
-                symlink(target, farm.join(&page_name)).map_err(|e| io_err("man symlink", e))?;
-            }
-        }
-    }
-
-    Ok(commands)
+fn digest_file(path: impl AsRef<Path>) -> Result<String, SidecarError> {
+    let bytes = fs::read(path.as_ref()).map_err(|error| io_err("read package tar", error))?;
+    Ok(blake3::hash(&bytes).to_hex().to_string())
 }

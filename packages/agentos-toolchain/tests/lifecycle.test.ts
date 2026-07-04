@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process";
 import {
 	existsSync,
 	lstatSync,
@@ -112,7 +113,7 @@ describe("stage", () => {
 });
 
 describe("build", () => {
-	test("assembles dist/package with bin map and runtime manifest", () => {
+	test("assembles dist/package tar with bin/ and runtime manifest", () => {
 		const commandsDir = makeCommandsDir();
 		const pkg = makePackageDir({
 			name: "fake",
@@ -122,14 +123,16 @@ describe("build", () => {
 		stage({ packageDir: pkg, commandsDir });
 		const result = build(pkg);
 		expect(result.commands.sort()).toEqual(["bash", "cat", "sh"]);
-		const runtimePkg = JSON.parse(
-			readFileSync(join(pkg, "dist", "package", "package.json"), "utf8"),
-		);
-		expect(runtimePkg).toEqual({
-			name: "@agentos-software/fake",
-			version: "1.2.3",
-			bin: { bash: "bin/bash", cat: "bin/cat", sh: "bin/sh" },
-		});
+		expect(result.outTar).toBe(join(pkg, "dist", "package.tar"));
+		const tarEntries = execFileSync("tar", ["-tf", result.outTar], {
+			encoding: "utf8",
+		})
+			.trim()
+			.split("\n")
+			.map((entry) => entry.replace(/^\.\//, ""));
+		expect(tarEntries).toContain("agentos-package.json");
+		expect(tarEntries).toContain("bin/bash");
+		expect(tarEntries).not.toContain("package.json");
 		const runtimeManifest = JSON.parse(
 			readFileSync(
 				join(pkg, "dist", "package", "agentos-package.json"),
@@ -137,7 +140,7 @@ describe("build", () => {
 			),
 		);
 		// Staging fields are build-time only — they must not ship at runtime.
-		expect(runtimeManifest).toEqual({ name: "fake" });
+		expect(runtimeManifest).toEqual({ name: "fake", version: "1.2.3" });
 		expect(readFileSync(join(pkg, "dist", "package", "bin", "bash"), "utf8")).toBe(
 			"\0asm-sh",
 		);
@@ -147,10 +150,7 @@ describe("build", () => {
 		const pkg = makePackageDir({ name: "fake" });
 		const result = build(pkg);
 		expect(result.commands).toEqual([]);
-		const runtimePkg = JSON.parse(
-			readFileSync(join(pkg, "dist", "package", "package.json"), "utf8"),
-		);
-		expect(runtimePkg.bin).toEqual({});
+		expect(existsSync(result.outTar)).toBe(true);
 		expect(existsSync(join(pkg, "dist", "package", "bin"))).toBe(false);
 	});
 });

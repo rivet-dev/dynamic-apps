@@ -4,6 +4,7 @@ use secure_exec_kernel::mount_plugin::{
     FileSystemPluginFactory, FileSystemPluginRegistry, PluginError,
 };
 
+pub(crate) mod agentos_packages;
 pub(crate) mod chunked_local;
 pub(crate) mod chunked_s3;
 pub(crate) mod google_drive;
@@ -14,6 +15,7 @@ pub(crate) mod object_s3;
 pub(crate) mod s3_common;
 pub(crate) mod sandbox_agent;
 
+use agentos_packages::AgentosPackagesMountPlugin;
 use chunked_local::ChunkedLocalMountPlugin;
 use chunked_s3::ChunkedS3MountPlugin;
 use google_drive::GoogleDriveMountPlugin;
@@ -40,6 +42,7 @@ fn register_plugin<Context>(
 pub(crate) fn register_native_mount_plugins<B>(
     registry: &mut FileSystemPluginRegistry<MountPluginContext<B>>,
 ) -> Result<(), PluginError> {
+    register_plugin(registry, AgentosPackagesMountPlugin)?;
     register_plugin(registry, HostDirMountPlugin)?;
     register_plugin(registry, ModuleAccessMountPlugin)?;
     register_plugin(registry, JsBridgeMountPlugin)?;

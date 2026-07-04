@@ -348,9 +348,9 @@ pub(crate) struct VmState {
     pub(crate) exited_process_snapshots: VecDeque<ExitedProcessSnapshot>,
     pub(crate) detached_child_processes: BTreeSet<String>,
     pub(crate) signal_states: BTreeMap<String, BTreeMap<u32, SignalHandlerRegistration>>,
-    /// Sidecar-owned host staging dir backing the `/opt/agentos` package
-    /// projection (a read-only host_dir mount). `None` until `configure_vm`
-    /// builds the projection; removed on dispose.
+    /// Legacy staging root slot retained for same-version internal state shape.
+    /// The current `/opt/agentos` projection mounts package tars and synthetic
+    /// symlink leaves directly, so this remains `None`.
     pub(crate) packages_staging_root: Option<PathBuf>,
 }
 

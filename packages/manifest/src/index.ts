@@ -2,7 +2,7 @@
  * Agent metadata for an agent package descriptor.
  */
 export interface PackageAgentDescriptor {
-	/** package.json `bin` command that speaks ACP over stdio. */
+	/** `bin/` command that speaks ACP over stdio. */
 	acpEntrypoint: string;
 	/** Static environment variables for the agent process. */
 	env?: Record<string, string>;
@@ -36,11 +36,13 @@ export interface PackageProvidesDescriptor {
 /**
  * Pure JSON manifest read by the sidecar from `<package dir>/agentos-package.json`.
  *
- * Commands and version still come from the package's root `package.json`.
+ * Commands come from `bin/`; version lives in this manifest.
  */
 export interface AgentosPackageManifest {
 	/** Short package name (e.g., "jq", "git", "claude"). */
 	name: string;
+	/** Package version. */
+	version: string;
 	/** Present only for agent packages. */
 	agent?: PackageAgentDescriptor;
 	/** Optional VM environment defaults and read-only file layers. */
@@ -50,12 +52,13 @@ export interface AgentosPackageManifest {
 /** Runtime package reference passed by registry packages during the JSON manifest migration. */
 export type PackageRef = string;
 
-/** Client-facing software reference: points at a self-contained package dir.
+/** Client-facing software reference: points at a self-contained package tar.
  *  Extensible — future fields can be added without breaking callers. */
 export interface SoftwarePackageRef {
-	/** Absolute path to the self-contained package directory (holds package.json,
-	 *  bin/, agentos-package.json). */
-	packageDir: string;
+	/** Absolute path to the self-contained package tar. */
+	packageTar: string;
+	/** @deprecated Directory refs are accepted only for local transition fixtures. */
+	packageDir?: string;
 }
 
 /**
@@ -63,8 +66,7 @@ export interface SoftwarePackageRef {
  *
  * Each @agentos-software/* package default-exports a plain object literal
  * satisfying this type. Commands are derived by the sidecar from the package's
- * package.json `bin` map (or a `bin/` directory of wasm binaries), so no
- * per-command metadata lives here.
+ * package's `bin/` directory, so no per-command metadata lives here.
  */
 export interface PackageDescriptor {
 	/** Short package name (e.g., "jq", "git", "claude"). */

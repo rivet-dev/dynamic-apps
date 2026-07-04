@@ -2,7 +2,8 @@ use std::any::Any;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use vfs::posix::{
-    MemoryFileSystem, VfsResult, VirtualDirEntry, VirtualFileSystem, VirtualStat, VirtualUtimeSpec,
+    MemoryFileSystem, SingleSymlinkFileSystem, VfsResult, VirtualDirEntry, VirtualFileSystem,
+    VirtualStat, VirtualUtimeSpec,
 };
 use vfs::posix::{MountOptions, MountTable, MountedFileSystem};
 
@@ -227,6 +228,152 @@ fn mount_table_rejects_hardlinks_that_cross_mount_boundaries() {
         .link("/root.txt", "/mounted/root-link")
         .expect_err("cross-mount hardlink should fail");
     assert_eq!(error.code(), "EXDEV");
+}
+
+#[test]
+fn mount_table_realpath_follows_symlinks_across_leaf_mounts() {
+    let mut table = MountTable::new(MemoryFileSystem::new());
+
+    table
+        .mount_boxed(
+            "/opt/agentos/bin/pi",
+            Box::new(vfs::posix::MountedVirtualFileSystem::new(
+                SingleSymlinkFileSystem::new("../pkgs/pi/current/bin/pi"),
+            )),
+            MountOptions::new("single-symlink").read_only(true),
+        )
+        .expect("mount command symlink leaf");
+
+    table
+        .mount_boxed(
+            "/opt/agentos/pkgs/pi/current",
+            Box::new(vfs::posix::MountedVirtualFileSystem::new(
+                SingleSymlinkFileSystem::new("1.2.3"),
+            )),
+            MountOptions::new("single-symlink").read_only(true),
+        )
+        .expect("mount current symlink leaf");
+
+    let mut content = MemoryFileSystem::new();
+    content
+        .mkdir("/bin", true)
+        .expect("seed package bin directory");
+    content
+        .write_file("/bin/pi", b"#!/bin/sh\n".to_vec())
+        .expect("seed package command");
+    table
+        .mount(
+            "/opt/agentos/pkgs/pi/1.2.3",
+            content,
+            MountOptions::new("tar").read_only(true),
+        )
+        .expect("mount package content leaf");
+
+    assert_eq!(
+        table
+            .realpath("/opt/agentos/bin/pi")
+            .expect("realpath across command/current/content mounts"),
+        "/opt/agentos/pkgs/pi/1.2.3/bin/pi"
+    );
+}
+
+#[test]
+fn mount_table_realpath_keeps_mount_local_absolute_symlinks_inside_mount() {
+    let mut table = MountTable::new(MemoryFileSystem::new());
+    let mut mounted = MemoryFileSystem::new();
+    mounted
+        .write_file("/target.txt", b"target".to_vec())
+        .expect("seed mount target");
+    mounted
+        .symlink("/target.txt", "/link.txt")
+        .expect("seed mount-local absolute symlink");
+
+    table
+        .mount("/mnt", mounted, MountOptions::new("memory"))
+        .expect("mount memory filesystem");
+
+    assert_eq!(
+        table
+            .realpath("/mnt/link.txt")
+            .expect("realpath through mount-local absolute symlink"),
+        "/mnt/target.txt"
+    );
+}
+
+#[test]
+fn leaf_mounts_coexist_with_user_files_in_writable_parent_directory() {
+    let mut table = MountTable::new(MemoryFileSystem::new());
+
+    table
+        .mount_boxed(
+            "/opt/agentos/bin/pi",
+            Box::new(vfs::posix::MountedVirtualFileSystem::new(
+                SingleSymlinkFileSystem::new("../pkgs/pi/current/bin/pi"),
+            )),
+            MountOptions::new("single-symlink").read_only(true),
+        )
+        .expect("mount managed command leaf");
+
+    let mut content = MemoryFileSystem::new();
+    content
+        .mkdir("/bin", true)
+        .expect("seed package bin directory");
+    content
+        .write_file("/bin/pi", b"#!/bin/sh\n".to_vec())
+        .expect("seed executable package command");
+    content
+        .chmod("/bin/pi", 0o755)
+        .expect("chmod package command executable");
+    table
+        .mount(
+            "/opt/agentos/pkgs/pi/1.2.3",
+            content,
+            MountOptions::new("tar").read_only(true),
+        )
+        .expect("mount package content leaf");
+    table
+        .mount_boxed(
+            "/opt/agentos/pkgs/pi/current",
+            Box::new(vfs::posix::MountedVirtualFileSystem::new(
+                SingleSymlinkFileSystem::new("1.2.3"),
+            )),
+            MountOptions::new("single-symlink").read_only(true),
+        )
+        .expect("mount current symlink leaf");
+
+    table
+        .write_file("/opt/agentos/bin/user-tool", b"#!/bin/sh\n".to_vec())
+        .expect("user install writes into writable parent dir");
+    table
+        .chmod("/opt/agentos/bin/user-tool", 0o755)
+        .expect("chmod user command executable");
+
+    let entries = table
+        .read_dir("/opt/agentos/bin")
+        .expect("list merged managed/user bin dir");
+    assert!(entries.contains(&String::from("pi")));
+    assert!(entries.contains(&String::from("user-tool")));
+
+    let managed_realpath = table
+        .realpath("/opt/agentos/bin/pi")
+        .expect("managed command realpath");
+    assert_eq!(managed_realpath, "/opt/agentos/pkgs/pi/1.2.3/bin/pi");
+    assert_eq!(
+        table
+            .stat(&managed_realpath)
+            .expect("managed command stat")
+            .mode
+            & 0o111,
+        0o111
+    );
+    assert_eq!(
+        table
+            .stat("/opt/agentos/bin/user-tool")
+            .expect("user command stat")
+            .mode
+            & 0o111,
+        0o111
+    );
 }
 
 #[test]

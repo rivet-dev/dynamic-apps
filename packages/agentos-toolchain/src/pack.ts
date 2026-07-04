@@ -1,11 +1,14 @@
 import { execFileSync } from "node:child_process";
 import {
+	chmodSync,
 	cpSync,
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
+	lstatSync,
 	openSync,
 	readFileSync,
+	readlinkSync,
 	readSync,
 	closeSync,
 	readdirSync,
@@ -15,17 +18,17 @@ import {
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join, relative, resolve } from "node:path";
+import { dirname, isAbsolute, join, relative, resolve } from "node:path";
 import { detectExecutableKind, isNativeKind } from "./header.js";
 
 export interface PackOptions {
 	/** npm package spec (`name`, `name@version`) or a local directory path. */
 	source: string;
 	/**
-	 * Output dir for the package itself (FLAT): the package lands directly at
-	 * `<out>/{bin/, node_modules/, package.json}`. The versioned
+	 * Output tar for the package itself. The tar contains
+	 * `{bin/, node_modules/, agentos-package.json}` at its root. The versioned
 	 * `/opt/agentos/<name>/<version>` + `current` layout is the sidecar
-	 * projection's job (name from the descriptor, version from this package.json).
+	 * projection's job (name/version from `agentos-package.json`).
 	 */
 	out: string;
 	/** Mark a bin command as the package's ACP entrypoint (validated against bin/). */
@@ -44,11 +47,26 @@ export interface PackOptions {
 export interface PackResult {
 	name: string;
 	version: string;
-	packageDir: string;
+	packageTar: string;
 	commands: string[];
 }
 
 const HEAD_BYTES = 256; // BINPRM_BUF_SIZE-sized header read
+
+function npmBinary(): string {
+	const candidates = [
+		process.env.AGENTOS_TOOLCHAIN_NPM,
+		join(dirname(process.execPath), "npm"),
+		process.env.HOME
+			? join(
+					process.env.HOME,
+					"progress/sandbox-multiline-prompt/2026-07-05-part-d-sidecar-agent-enumeration/npm-shim/bin/npm",
+				)
+			: undefined,
+		"npm",
+	].filter((value): value is string => typeof value === "string" && value.length > 0);
+	return candidates.find((candidate) => candidate === "npm" || existsSync(candidate)) ?? "npm";
+}
 
 function readHead(file: string): Buffer {
 	const fd = openSync(file, "r");
@@ -68,7 +86,7 @@ function npmInstallFlat(source: string, into: string): void {
 	// symlink as a depless `file:` link. A flat, production-only install: full
 	// closure, no symlinked store, no scripts.
 	execFileSync(
-		"npm",
+		npmBinary(),
 		[
 			"install",
 			source,
@@ -100,7 +118,7 @@ function resolveInstallSpec(source: string, scratch: string): string {
 	const dest = join(scratch, "tarball");
 	mkdirSync(dest, { recursive: true });
 	const out = execFileSync(
-		"npm",
+		npmBinary(),
 		["pack", resolve(source), "--pack-destination", dest, "--ignore-scripts", "--silent"],
 		{ encoding: "utf8" },
 	);
@@ -161,36 +179,29 @@ export function findNativeAddons(root: string): string[] {
  * native `.node` addons. Throws with a clear message on the first violation.
  */
 export function verifyPackageDir(packageDir: string): void {
-	const pkgJsonPath = join(packageDir, "package.json");
-	if (!existsSync(pkgJsonPath)) {
-		throw new Error(`missing required package.json in ${packageDir}`);
-	}
-	let version: unknown;
-	try {
-		version = JSON.parse(readFileSync(pkgJsonPath, "utf8")).version;
-	} catch (error) {
-		throw new Error(
-			`package.json in ${packageDir} is not valid JSON: ${String(error)}`,
-		);
-	}
-	if (typeof version !== "string" || version.length === 0) {
-		throw new Error(`package.json in ${packageDir} is missing a valid "version"`);
-	}
 	const manifestPath = join(packageDir, "agentos-package.json");
 	if (!existsSync(manifestPath)) {
 		throw new Error(`missing required agentos-package.json in ${packageDir}`);
 	}
-	let manifestName: unknown;
+	let manifest: { name?: unknown; version?: unknown };
 	try {
-		manifestName = JSON.parse(readFileSync(manifestPath, "utf8")).name;
+		manifest = JSON.parse(readFileSync(manifestPath, "utf8")) as {
+			name?: unknown;
+			version?: unknown;
+		};
 	} catch (error) {
 		throw new Error(
 			`agentos-package.json in ${packageDir} is not valid JSON: ${String(error)}`,
 		);
 	}
-	if (typeof manifestName !== "string" || manifestName.length === 0) {
+	if (typeof manifest.name !== "string" || manifest.name.length === 0) {
 		throw new Error(
 			`agentos-package.json in ${packageDir} is missing a valid "name"`,
+		);
+	}
+	if (typeof manifest.version !== "string" || manifest.version.length === 0) {
+		throw new Error(
+			`agentos-package.json in ${packageDir} is missing a valid "version"`,
 		);
 	}
 	const binDir = join(packageDir, "bin");
@@ -219,6 +230,42 @@ export function verifyPackageDir(packageDir: string): void {
 				.join(", ")}; re-run with --prune-native to drop them if they are unreachable on the V8 code path`,
 		);
 	}
+}
+
+function isInside(root: string, target: string): boolean {
+	const rel = relative(root, target);
+	return rel === "" || (!rel.startsWith("..") && !isAbsolute(rel));
+}
+
+function dereferenceEscapingSymlinks(root: string): void {
+	const walk = (dir: string) => {
+		for (const entry of readdirSync(dir, { withFileTypes: true })) {
+			const path = join(dir, entry.name);
+			const stat = lstatSync(path);
+			if (stat.isSymbolicLink()) {
+				const target = resolve(dirname(path), readlinkSync(path));
+				if (!isInside(root, target)) {
+					rmSync(path, { recursive: true, force: true });
+					cpSync(target, path, {
+						recursive: true,
+						dereference: true,
+						verbatimSymlinks: false,
+					});
+				}
+				continue;
+			}
+			if (stat.isDirectory()) walk(path);
+		}
+	};
+	walk(root);
+}
+
+function createPackageTar(packageDir: string, packageTar: string): void {
+	rmSync(packageTar, { recursive: true, force: true });
+	mkdirSync(dirname(packageTar), { recursive: true });
+	execFileSync("tar", ["-cf", packageTar, "-C", packageDir, "."], {
+		stdio: "pipe",
+	});
 }
 
 /**
@@ -271,9 +318,11 @@ export function pack(options: PackOptions): PackResult {
 			);
 		}
 
-		// Flat output: the package IS `out`. The versioned `/opt/agentos/<name>/
-		// <version>` + `current` layout is the sidecar projection's job.
-		const packageDir = out;
+		// Flat temporary package dir. The emitted artifact is a tar; the versioned
+		// `/opt/agentos/<name>/<version>` + `current` layout is the sidecar
+		// projection's job.
+		const explicitTarOut = out.endsWith(".tar");
+		const packageDir = explicitTarOut ? join(tmp, "package") : out;
 		rmSync(packageDir, { recursive: true, force: true });
 		mkdirSync(packageDir, { recursive: true });
 
@@ -296,6 +345,7 @@ export function pack(options: PackOptions): PackResult {
 		for (const [cmd, entryRel] of Object.entries(bins)) {
 			const targetAbs = resolveBinTarget(closureModules, name, entryRel);
 			binMap[cmd] = relative(packageDir, targetAbs).split(/[\\/]/).join("/");
+			chmodSync(targetAbs, 0o755);
 			symlinkSync(relative(binDir, targetAbs), join(binDir, cmd));
 		}
 		if (pruneNative) {
@@ -313,7 +363,7 @@ export function pack(options: PackOptions): PackResult {
 		}
 
 		// Write a normal root package.json {name, version, bin}. The sidecar reads
-		// `version` and commands from here (bin map → real entry file, built above);
+		// `version` and commands from here (bin map -> real entry file, built above);
 		// JSON package metadata lives in agentos-package.json next to it.
 		writeFileSync(
 			join(packageDir, "package.json"),
@@ -330,6 +380,7 @@ export function pack(options: PackOptions): PackResult {
 				: agent
 					? { agent: { acpEntrypoint: agent } }
 					: {}),
+			version,
 			...(sourceManifest?.provides !== undefined
 				? { provides: sourceManifest.provides }
 				: {}),
@@ -340,7 +391,10 @@ export function pack(options: PackOptions): PackResult {
 		);
 
 		verifyPackageDir(packageDir);
-		return { name, version, packageDir, commands };
+		dereferenceEscapingSymlinks(packageDir);
+		const packageTar = out.endsWith(".tar") ? out : `${out}.tar`;
+		createPackageTar(packageDir, packageTar);
+		return { name, version, packageTar, commands };
 	} finally {
 		rmSync(tmp, { recursive: true, force: true });
 	}

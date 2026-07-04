@@ -5,8 +5,11 @@ use super::vfs::{
 };
 use std::any::Any;
 use std::collections::BTreeSet;
+use std::collections::VecDeque;
 use std::path::{Component, Path};
 use web_time::{SystemTime, UNIX_EPOCH};
+
+const MAX_REALPATH_SYMLINKS: usize = 40;
 
 pub trait MountedFileSystem: Any {
     fn as_any(&self) -> &dyn Any;
@@ -850,6 +853,22 @@ impl MountTable {
         }
         basenames.into_iter().collect()
     }
+
+    fn realpath_in_mount(&self, index: usize, relative_path: &str) -> VfsResult<String> {
+        let mount = &self.mounts[index];
+        let resolved = mount.filesystem.realpath(relative_path)?;
+        if mount.path == "/" {
+            return Ok(normalize_path(&resolved));
+        }
+        if resolved == "/" {
+            return Ok(mount.path.clone());
+        }
+        Ok(normalize_path(&format!(
+            "{}/{}",
+            mount.path,
+            resolved.trim_start_matches('/')
+        )))
+    }
 }
 
 fn measure_mounted_filesystem_usage(
@@ -1079,20 +1098,55 @@ impl VirtualFileSystem for MountTable {
     }
 
     fn realpath(&self, path: &str) -> VfsResult<String> {
-        let (index, relative_path) = self.resolve_index(path)?;
-        let mount = &self.mounts[index];
-        let resolved = mount.filesystem.realpath(&relative_path)?;
-        if mount.path == "/" {
-            return Ok(resolved);
+        let normalized = normalize_path(path);
+        let (index, relative_path) = self.resolve_index(&normalized)?;
+        match self.realpath_in_mount(index, &relative_path) {
+            Ok(resolved) => return Ok(resolved),
+            Err(error) if error.code() == "ELOOP" => {}
+            Err(error) => return Err(error),
         }
-        if resolved == "/" {
-            return Ok(mount.path.clone());
+
+        let mut pending = path_components(&normalized);
+        let mut current = String::from("/");
+        let mut followed_symlinks = 0usize;
+
+        while let Some(component) = pending.pop_front() {
+            let candidate = join_path(&current, &component);
+            let stat = self.lstat(&candidate)?;
+
+            if stat.is_symbolic_link {
+                followed_symlinks += 1;
+                if followed_symlinks > MAX_REALPATH_SYMLINKS {
+                    return Err(VfsError::new(
+                        "ELOOP",
+                        format!("too many levels of symbolic links, '{path}'"),
+                    ));
+                }
+
+                let target = self.read_link(&candidate)?;
+                let target_path = if target.starts_with('/') {
+                    normalize_path(&target)
+                } else {
+                    normalize_path(&format!("{}/{}", parent_path(&candidate), target))
+                };
+                let mut resolved_target = path_components(&target_path);
+                resolved_target.extend(pending);
+                pending = resolved_target;
+                current = String::from("/");
+                continue;
+            }
+
+            if !pending.is_empty() && !stat.is_directory {
+                return Err(VfsError::new(
+                    "ENOTDIR",
+                    format!("not a directory, realpath '{candidate}'"),
+                ));
+            }
+
+            current = candidate;
         }
-        Ok(format!(
-            "{}/{}",
-            mount.path.trim_end_matches('/'),
-            resolved.trim_start_matches('/')
-        ))
+
+        Ok(current)
     }
 
     fn symlink(&mut self, target: &str, link_path: &str) -> VfsResult<()> {
@@ -1210,6 +1264,22 @@ fn normalize_path(path: &str) -> String {
         String::from("/")
     } else {
         format!("/{}", segments.join("/"))
+    }
+}
+
+fn path_components(path: &str) -> VecDeque<String> {
+    normalize_path(path)
+        .split('/')
+        .filter(|part| !part.is_empty())
+        .map(String::from)
+        .collect()
+}
+
+fn join_path(parent: &str, child: &str) -> String {
+    if parent == "/" {
+        format!("/{child}")
+    } else {
+        format!("{parent}/{child}")
     }
 }
 

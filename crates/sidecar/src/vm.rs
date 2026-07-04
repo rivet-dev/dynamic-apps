@@ -9,12 +9,12 @@ use crate::bootstrap::{
 };
 use crate::bridge::{bridge_permissions, MountPluginContext};
 use crate::protocol::{
-    ConfigureVmRequest, CreateLayerRequest, CreateOverlayRequest, DisposeReason, EventFrame,
-    ExportSnapshotRequest, ImportSnapshotRequest, LinkPackageRequest, MountDescriptor,
-    MountPluginDescriptor, PackageCommands, ProjectedCommand, ProvidedCommandsRequest,
-    RootFilesystemDescriptor, RootFilesystemEntry, RootFilesystemEntryEncoding,
-    RootFilesystemLowerDescriptor, SealLayerRequest, SnapshotRootFilesystemRequest,
-    VmLifecycleState,
+    AgentosProjectedAgent, ConfigureVmRequest, CreateLayerRequest, CreateOverlayRequest,
+    DisposeReason, EventFrame, ExportSnapshotRequest, ImportSnapshotRequest, LinkPackageRequest,
+    MountDescriptor, MountPluginDescriptor, PackageCommands, ProjectedCommand,
+    ProvidedCommandsRequest, RootFilesystemDescriptor, RootFilesystemEntry,
+    RootFilesystemEntryEncoding, RootFilesystemLowerDescriptor, SealLayerRequest,
+    SnapshotRootFilesystemRequest, VmLifecycleState,
 };
 use crate::service::{
     audit_fields, dirname, emit_security_audit_event, emit_structured_event, kernel_error,
@@ -438,27 +438,22 @@ where
         bridge.set_vm_permissions(&vm_id, &allow_all_policy())?;
         let mut effective_mounts = payload.mounts.clone();
         append_module_access_mount(&mut effective_mounts, payload.module_access_cwd.as_ref())?;
-        // Build the `/opt/agentos` package projection in a sidecar-owned staging dir
-        // and register its read-only host_dir mount ourselves (the client forwards the
-        // package descriptors over the wire instead of staging them host-side). The
-        // mount is always created — even with no boot packages — so runtime
-        // `LinkPackage` can append to the live, host-backed staging dir.
-        if let Some(old) = vm.packages_staging_root.take() {
-            let _ = fs::remove_dir_all(&old);
-        }
         let package_descriptors = package_descriptors_from_wire(&payload.packages)?;
-        let mut provided_commands = BTreeMap::new();
+        let mut provided_commands: BTreeMap<String, Vec<String>> = BTreeMap::new();
         for descriptor in &package_descriptors {
             provided_commands.insert(
                 descriptor.name.clone(),
-                crate::package_projection::derive_commands(&descriptor.dir)?,
+                descriptor
+                    .commands
+                    .iter()
+                    .map(|target| target.command.clone())
+                    .collect(),
             );
         }
         let snapshot_userland_code = resolve_agent_snapshot_bundle(&package_descriptors)?;
-        let (packages_staging_root, packages_mount) =
+        let package_mounts =
             build_packages_projection(&vm_id, &package_descriptors, &payload.packages_mount_at)?;
-        vm.packages_staging_root = Some(packages_staging_root);
-        effective_mounts.push(packages_mount);
+        effective_mounts.extend(package_mounts);
         apply_package_provides_env(&mut vm.guest_env, &package_descriptors);
         append_package_provides_mounts(&mut effective_mounts, &package_descriptors)?;
         let reconfigure_result = reconcile_mounts(
@@ -553,6 +548,7 @@ where
         let applied_mounts = effective_mounts.len() as u32;
         let configured_software = payload.software.len() as u32;
         let projected_commands = projected_commands_from_guest_paths(&vm.command_guest_paths);
+        let agents = projected_agents_from_descriptors(&package_descriptors);
         let _ = vm;
         // Pre-warm the agent-SDK snapshot when a configured package opts in with
         // `agent.snapshot`. The sidecar reads the bundle from the host package dir
@@ -576,14 +572,14 @@ where
                 applied_mounts,
                 configured_software,
                 projected_commands,
+                agents,
             ),
             events: Vec::new(),
         })
     }
 
-    /// Runtime dynamic `linkSoftware`: project one package into the live
-    /// `/opt/agentos` staging dir. The host-dir mount reflects host writes, so the
-    /// package's `bin/` commands appear under `/opt/agentos/bin` (on `$PATH`)
+    /// Runtime dynamic `linkSoftware`: add one package's tar/current/bin leaf
+    /// mounts to the live VM so commands appear under `/opt/agentos/bin`
     /// immediately, with no reboot. Returns the linked command names.
     pub(crate) async fn link_package(
         &mut self,
@@ -594,19 +590,49 @@ where
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
         let vm = self.vms.get_mut(&vm_id).expect("owned VM should exist");
-        let staging_root = vm.packages_staging_root.clone().ok_or_else(|| {
-            SidecarError::InvalidState(String::from(
-                "link_package: VM has no /opt/agentos projection (configure_vm was not called)",
-            ))
-        })?;
-        let descriptor = crate::package_projection::read_package_manifest(&payload.package.dir)?;
-        let commands = crate::package_projection::link_package(&descriptor, &staging_root)?;
-        let package_commands = crate::package_projection::derive_commands(&descriptor.dir)?;
+        let descriptor = crate::package_projection::read_package_manifest_from_ref(
+            payload.package.dir.as_deref(),
+            payload.package.tar.as_deref(),
+        )?;
+        let new_mounts = build_packages_projection(
+            &vm_id,
+            std::slice::from_ref(&descriptor),
+            crate::package_projection::OPT_AGENTOS_ROOT,
+        )?;
+        for mount in &new_mounts {
+            if vm
+                .configuration
+                .mounts
+                .iter()
+                .any(|existing| existing.guest_path == mount.guest_path)
+            {
+                return Err(SidecarError::InvalidState(format!(
+                    "agentos package mount already exists at {}",
+                    mount.guest_path
+                )));
+            }
+        }
+        let mount_context = MountPluginContext {
+            bridge: self.bridge.clone(),
+            connection_id: connection_id.clone(),
+            session_id: session_id.clone(),
+            vm_id: vm_id.clone(),
+            sidecar_requests: self.sidecar_requests.clone(),
+            max_pread_bytes: vm.kernel.resource_limits().max_pread_bytes,
+        };
+        mount_leaf_descriptors(&self.mount_plugins, vm, &new_mounts, mount_context)?;
+        vm.configuration.mounts.extend(new_mounts);
+
+        let commands = descriptor
+            .commands
+            .iter()
+            .map(|target| target.command.clone())
+            .collect::<Vec<_>>();
         vm.provided_commands
-            .insert(descriptor.name.clone(), package_commands.clone());
+            .insert(descriptor.name.clone(), commands.clone());
         vm.configuration
             .provided_commands
-            .insert(descriptor.name.clone(), package_commands);
+            .insert(descriptor.name.clone(), commands.clone());
         for command in &commands {
             let entrypoint = projected_command_guest_path(command);
             vm.command_guest_paths
@@ -630,9 +656,10 @@ where
                 guest_path: projected_command_guest_path(command),
             })
             .collect();
+        let agents = projected_agents_from_descriptors(std::slice::from_ref(&descriptor));
 
         Ok(DispatchResult {
-            response: package_linked_response(request, projected_commands),
+            response: package_linked_response(request, projected_commands, agents),
             events: Vec::new(),
         })
     }
@@ -1195,7 +1222,21 @@ where
     BridgeError<B>: fmt::Debug + Send + Sync + 'static,
 {
     shutdown_configured_mounts(vm, &context, "configure_vm", false)?;
+    mount_leaf_descriptors(mount_plugins, vm, mounts, context)
+}
 
+fn mount_leaf_descriptors<B>(
+    mount_plugins: &secure_exec_kernel::mount_plugin::FileSystemPluginRegistry<
+        MountPluginContext<B>,
+    >,
+    vm: &mut VmState,
+    mounts: &[crate::protocol::MountDescriptor],
+    context: MountPluginContext<B>,
+) -> Result<(), SidecarError>
+where
+    B: NativeSidecarBridge + Send + 'static,
+    BridgeError<B>: fmt::Debug + Send + Sync + 'static,
+{
     for mount in mounts {
         let config_value: serde_json::Value =
             serde_json::from_str(&mount.plugin.config).map_err(|error| {
@@ -1287,45 +1328,67 @@ where
     Ok(())
 }
 
-/// Build the `/opt/agentos` package projection for `configure_vm`: create a
-/// sidecar-owned staging dir, project each parsed package descriptor into it, and
-/// return the staging path plus the read-only `host_dir` mount that exposes it in
-/// the guest. Always returns a (possibly empty) projection so runtime `LinkPackage`
-/// has a live host-backed dir to append to.
+/// Build the `/opt/agentos` package projection for `configure_vm`.
+///
+/// The projection mounts the package tar directly and serves derived aliases as
+/// synthetic symlink leaves. This eliminates extraction and the old host-disk
+/// symlink farm: the tar VFS indexes member offsets once and reads mmap-backed
+/// byte ranges. Each managed entry is a granular leaf mount, while parent dirs
+/// such as `/opt/agentos/bin` and `/opt/agentos/pkgs/<pkg>` remain writable
+/// overlay dirs so guest-installed commands can coexist beside managed entries.
 fn build_packages_projection(
-    vm_id: &str,
+    _vm_id: &str,
     packages: &[crate::package_projection::PackageDescriptor],
     mount_at: &str,
-) -> Result<(PathBuf, MountDescriptor), SidecarError> {
-    let mount_at = if mount_at.is_empty() {
-        crate::package_projection::OPT_AGENTOS_ROOT
-    } else {
-        mount_at
-    };
-    let nonce = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_err(|error| {
-            SidecarError::Io(format!("failed to compute packages-staging nonce: {error}"))
-        })?
-        .as_nanos();
-    let staging = std::env::temp_dir().join(format!("agentos-opt-{vm_id}-{nonce}"));
-    crate::package_projection::init_projection(&staging)?;
-    for pkg in packages {
-        crate::package_projection::link_package(pkg, &staging)?;
-    }
-    let mount = MountDescriptor {
-        guest_path: mount_at.to_string(),
-        read_only: true,
-        plugin: MountPluginDescriptor {
-            id: String::from("host_dir"),
-            config: serde_json::json!({
-                "hostPath": staging,
-                "readOnly": true,
-            })
-            .to_string(),
+) -> Result<Vec<MountDescriptor>, SidecarError> {
+    Ok(
+        crate::package_projection::build_package_leaf_mounts(packages, mount_at)?
+            .into_iter()
+            .map(package_leaf_mount_to_descriptor)
+            .collect(),
+    )
+}
+
+fn package_leaf_mount_to_descriptor(
+    mount: crate::package_projection::PackageLeafMount,
+) -> MountDescriptor {
+    match mount {
+        crate::package_projection::PackageLeafMount::Tar {
+            guest_path,
+            tar_path,
+            digest,
+            root,
+        } => MountDescriptor {
+            guest_path,
+            read_only: true,
+            plugin: MountPluginDescriptor {
+                id: String::from("agentos_packages"),
+                config: serde_json::json!({
+                    "kind": "tar",
+                    "tarPath": tar_path,
+                    "digest": digest,
+                    "root": root,
+                    "readOnly": true,
+                })
+                .to_string(),
+            },
         },
-    };
-    Ok((staging, mount))
+        crate::package_projection::PackageLeafMount::SingleSymlink { guest_path, target } => {
+            MountDescriptor {
+                guest_path,
+                read_only: true,
+                plugin: MountPluginDescriptor {
+                    id: String::from("agentos_packages"),
+                    config: serde_json::json!({
+                        "kind": "singleSymlink",
+                        "target": target,
+                        "readOnly": true,
+                    })
+                    .to_string(),
+                },
+            }
+        }
+    }
 }
 
 fn package_descriptors_from_wire(
@@ -1333,7 +1396,44 @@ fn package_descriptors_from_wire(
 ) -> Result<Vec<crate::package_projection::PackageDescriptor>, SidecarError> {
     packages
         .iter()
-        .map(|package| crate::package_projection::read_package_manifest(&package.dir))
+        .map(|package| {
+            crate::package_projection::read_package_manifest_from_ref(
+                package.dir.as_deref(),
+                package.tar.as_deref(),
+            )
+        })
+        .collect()
+}
+
+fn projected_agents_from_descriptors(
+    packages: &[crate::package_projection::PackageDescriptor],
+) -> Vec<AgentosProjectedAgent> {
+    packages
+        .iter()
+        .flat_map(|package| {
+            let Some(acp_entrypoint) = package.acp_entrypoint.as_ref() else {
+                return Vec::new();
+            };
+            let mut ids = vec![package.name.clone()];
+            if let Ok(package_json_name) =
+                crate::package_projection::read_package_name(&package.dir)
+            {
+                if package_json_name != package.name {
+                    ids.push(package_json_name);
+                }
+            }
+            ids.into_iter()
+                .map(|id| AgentosProjectedAgent {
+                    id,
+                    acp_entrypoint: acp_entrypoint.clone(),
+                    adapter_entrypoint: format!(
+                        "{}/{}",
+                        crate::package_projection::OPT_AGENTOS_BIN,
+                        acp_entrypoint
+                    ),
+                })
+                .collect::<Vec<_>>()
+        })
         .collect()
 }
 
@@ -1373,58 +1473,24 @@ fn append_package_provides_mounts(
             continue;
         };
         for file in &provides.files {
-            let source = package_provides_source_path(&package.dir, &file.source);
-            match fs::metadata(&source) {
-                Ok(metadata) if metadata.is_dir() => {
-                    mounts.push(MountDescriptor {
-                        guest_path: file.target.clone(),
-                        read_only: true,
-                        plugin: MountPluginDescriptor {
-                            id: String::from("host_dir"),
-                            config: serde_json::json!({
-                                "hostPath": source,
-                                "readOnly": true,
-                            })
-                            .to_string(),
-                        },
-                    });
-                }
-                Ok(_) => {
+            match crate::package_projection::package_provides_file_mount(
+                package,
+                &file.source,
+                &file.target,
+            )? {
+                Some(mount) => mounts.push(package_leaf_mount_to_descriptor(mount)),
+                None => {
                     tracing::warn!(
                         package = %package.name,
-                        source = %source.display(),
+                        source = %file.source,
                         target = %file.target,
                         "package provides file source is not a directory; skipping"
-                    );
-                }
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                    return Err(SidecarError::InvalidState(format!(
-                        "package provides file source is missing: package `{}` source `{}` target `{}`",
-                        package.name, file.source, file.target
-                    )));
-                }
-                Err(error) => {
-                    tracing::warn!(
-                        package = %package.name,
-                        source = %source.display(),
-                        target = %file.target,
-                        error = %error,
-                        "package provides file source could not be inspected; skipping"
                     );
                 }
             }
         }
     }
     Ok(())
-}
-
-fn package_provides_source_path(package_dir: &str, source: &str) -> PathBuf {
-    let source = Path::new(source);
-    if source.is_absolute() {
-        source.to_path_buf()
-    } else {
-        Path::new(package_dir).join(source)
-    }
 }
 
 fn append_module_access_mount(

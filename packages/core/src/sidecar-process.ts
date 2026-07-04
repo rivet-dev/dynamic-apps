@@ -291,7 +291,19 @@ export interface SidecarProjectedModuleDescriptor {
 }
 
 export interface SidecarPackageDescriptor {
-	dir: string;
+	dir?: string;
+	tar?: string;
+}
+
+export interface SidecarProjectedAgent {
+	id: string;
+	acpEntrypoint: string;
+	adapterEntrypoint: string;
+}
+
+export interface SidecarLinkPackageResult {
+	projectedCommands: SidecarProjectedCommand[];
+	agents: SidecarProjectedAgent[];
 }
 
 export interface SidecarProjectedCommand {
@@ -308,6 +320,7 @@ export interface SidecarVmConfiguredResponse {
 	appliedMounts: number;
 	appliedSoftware: number;
 	projectedCommands: SidecarProjectedCommand[];
+	agents: SidecarProjectedAgent[];
 }
 
 export interface SidecarFilesystemResult {
@@ -527,20 +540,19 @@ export class SidecarProcess {
 				name: command.name,
 				guestPath: command.guest_path,
 			})),
+			agents: response.payload.agents.map(fromWireProjectedAgent),
 		};
 	}
 
 	/**
 	 * Runtime dynamic `linkSoftware`: project one package into the live
-	 * `/opt/agentos` staging dir owned by the sidecar. Returns the linked command
-	 * names. The host-dir mount reflects host writes, so the commands appear under
-	 * `/opt/agentos/bin` immediately with no reboot.
+	 * `/opt/agentos` tree. Returns projected command entrypoints and agents.
 	 */
 	async linkPackage(
 		session: AuthenticatedSession,
 		vm: CreatedVm,
 		descriptor: SidecarPackageDescriptor,
-	): Promise<SidecarProjectedCommand[]> {
+	): Promise<SidecarLinkPackageResult> {
 		const response = await this.sendRequest({
 			ownership: {
 				scope: "vm",
@@ -558,10 +570,13 @@ export class SidecarProcess {
 				`unexpected link_package response: ${response.payload.type}`,
 			);
 		}
-		return response.payload.projected_commands.map((command) => ({
-			name: command.name,
-			guestPath: command.guest_path,
-		}));
+		return {
+			projectedCommands: response.payload.projected_commands.map((command) => ({
+				name: command.name,
+				guestPath: command.guest_path,
+			})),
+			agents: response.payload.agents.map(fromWireProjectedAgent),
+		};
 	}
 
 	async providedCommands(
@@ -1771,9 +1786,23 @@ function toWireProjectedModuleDescriptor(
 }
 
 function toWirePackageDescriptor(descriptor: SidecarPackageDescriptor): {
-	dir: string;
+	dir?: string;
+	tar?: string;
 } {
 	return {
 		dir: descriptor.dir,
+		tar: descriptor.tar,
+	};
+}
+
+function fromWireProjectedAgent(agent: {
+	id: string;
+	acp_entrypoint: string;
+	adapter_entrypoint: string;
+}): SidecarProjectedAgent {
+	return {
+		id: agent.id,
+		acpEntrypoint: agent.acp_entrypoint,
+		adapterEntrypoint: agent.adapter_entrypoint,
 	};
 }

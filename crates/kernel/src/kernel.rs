@@ -3433,6 +3433,12 @@ impl<F: VirtualFileSystem + 'static> KernelVm<F> {
         } else {
             normalize_path(&format!("{cwd}/{command}"))
         };
+        // exec(2) follows symlinks, and a symlink target may live in a different
+        // mount (e.g. `/opt/agentos/bin/<cmd>` is its own single-symlink mount
+        // pointing into a package tar mount). Resolve the real path before
+        // stat-ing / reading the executable so cross-mount symlinked commands
+        // exec their real target instead of failing to read the symlink node.
+        let path = self.filesystem.realpath(&path).unwrap_or(path);
         let stat = self.filesystem.stat(&path)?;
         if stat.is_directory {
             return Err(KernelError::new(

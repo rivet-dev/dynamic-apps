@@ -3829,7 +3829,13 @@ where
         } else if resolved.runtime == GuestRuntimeKind::WebAssembly {
             env.insert(String::from(WASM_STDIO_SYNC_RPC_ENV), String::from("1"));
         }
-        let argv = std::iter::once(resolved.entrypoint.clone())
+        let launch_entrypoint = if resolved.runtime == GuestRuntimeKind::JavaScript {
+            resolve_agentos_package_javascript_launch_entrypoint(vm, &mut env)
+                .unwrap_or_else(|| resolved.entrypoint.clone())
+        } else {
+            resolved.entrypoint.clone()
+        };
+        let argv = std::iter::once(launch_entrypoint.clone())
             .chain(resolved.execution_args.iter().cloned())
             .collect::<Vec<_>>();
         record_execute_phase("env_argv_setup", phase_start.elapsed());
@@ -3881,12 +3887,12 @@ where
                 let inline_code = load_javascript_entrypoint_source(
                     vm,
                     &resolved.host_cwd,
-                    &resolved.entrypoint,
+                    &launch_entrypoint,
                     &env,
                 );
                 record_execute_phase("js_load_entrypoint_source", phase_start.elapsed());
                 let phase_start = Instant::now();
-                prepare_javascript_shadow(vm, &resolved)?;
+                prepare_javascript_shadow(vm, &resolved, &env)?;
                 record_execute_phase("js_prepare_shadow", phase_start.elapsed());
 
                 let phase_start = Instant::now();
@@ -3915,7 +3921,7 @@ where
                             guest_runtime: guest_runtime_identity(vm, None, None),
                             vm_id: vm_id.clone(),
                             context_id: context.context_id,
-                            argv: std::iter::once(resolved.entrypoint.clone())
+                            argv: std::iter::once(launch_entrypoint.clone())
                                 .chain(resolved.execution_args.iter().cloned())
                                 .collect(),
                             env: env.clone(),
@@ -6703,6 +6709,11 @@ where
                         String::from("SECURE_EXEC_KEEP_STDIN_OPEN"),
                         String::from("1"),
                     );
+                    let launch_entrypoint = resolve_agentos_package_javascript_launch_entrypoint(
+                        vm,
+                        &mut execution_env,
+                    )
+                    .unwrap_or_else(|| resolved.entrypoint.clone());
                     let context =
                         self.javascript_engine
                             .create_context(CreateJavascriptContextRequest {
@@ -6715,10 +6726,10 @@ where
                     let inline_code = load_javascript_entrypoint_source(
                         vm,
                         &resolved.host_cwd,
-                        &resolved.entrypoint,
+                        &launch_entrypoint,
                         &execution_env,
                     );
-                    prepare_javascript_shadow(vm, &resolved)?;
+                    prepare_javascript_shadow(vm, &resolved, &execution_env)?;
 
                     let built_reader = build_module_reader(vm, &resolved);
                     let guest_reader = built_reader.clone().map(|reader| {
@@ -6738,7 +6749,7 @@ where
                                 ),
                                 vm_id: vm_id.to_owned(),
                                 context_id: context.context_id,
-                                argv: std::iter::once(resolved.entrypoint.clone())
+                                argv: std::iter::once(launch_entrypoint)
                                     .chain(resolved.execution_args.clone())
                                     .collect(),
                                 env: execution_env,
@@ -7199,6 +7210,11 @@ where
                         String::from("SECURE_EXEC_KEEP_STDIN_OPEN"),
                         String::from("1"),
                     );
+                    let launch_entrypoint = resolve_agentos_package_javascript_launch_entrypoint(
+                        vm,
+                        &mut execution_env,
+                    )
+                    .unwrap_or_else(|| resolved.entrypoint.clone());
                     let context =
                         self.javascript_engine
                             .create_context(CreateJavascriptContextRequest {
@@ -7211,10 +7227,10 @@ where
                     let inline_code = load_javascript_entrypoint_source(
                         vm,
                         &resolved.host_cwd,
-                        &resolved.entrypoint,
+                        &launch_entrypoint,
                         &execution_env,
                     );
-                    prepare_javascript_shadow(vm, &resolved)?;
+                    prepare_javascript_shadow(vm, &resolved, &execution_env)?;
 
                     let built_reader = build_module_reader(vm, &resolved);
                     let guest_reader = built_reader.clone().map(|reader| {
@@ -7234,7 +7250,7 @@ where
                                 ),
                                 vm_id: vm_id.to_owned(),
                                 context_id: context.context_id,
-                                argv: std::iter::once(resolved.entrypoint.clone())
+                                argv: std::iter::once(launch_entrypoint)
                                     .chain(resolved.execution_args.clone())
                                     .collect(),
                                 env: execution_env,
@@ -9497,6 +9513,23 @@ fn resolve_javascript_command_entrypoint(
     guest_entrypoint: &str,
     host_entrypoint: &Path,
 ) -> Option<(String, PathBuf)> {
+    // agentOS package content is served guest-native (tar + single-symlink
+    // mounts) and is never materialized on the host, so the shebang-reading
+    // fallback below (which reads the host path) cannot classify these
+    // entrypoints. Within the package mount the only runtimes are WebAssembly
+    // (`*.wasm`) and JavaScript, and `bin/<cmd>` launchers are frequently
+    // extensionless — so classify by extension here: `.wasm` is WASM (fall
+    // through), everything else in the mount is JavaScript.
+    if guest_path_is_within_agentos_package_mount(vm, guest_entrypoint) {
+        let extension = Path::new(guest_entrypoint)
+            .extension()
+            .and_then(|extension| extension.to_str());
+        if extension != Some("wasm") {
+            return Some((guest_entrypoint.to_owned(), host_entrypoint.to_path_buf()));
+        }
+        return None;
+    }
+
     resolve_javascript_command_entrypoint_inner(
         vm,
         guest_entrypoint,
@@ -10209,6 +10242,10 @@ pub(crate) fn is_protected_agentos_shadow_sync_path(path: &str) -> bool {
 fn should_skip_shadow_sync_path(vm: &VmState, guest_path: &str) -> bool {
     is_kernel_owned_shadow_sync_path(guest_path)
         || is_protected_agentos_shadow_sync_path(guest_path)
+        // agentOS package content is served guest-native from read-only tar
+        // mounts; it is already present in the guest and cannot be written, so a
+        // host->guest shadow sync would fail with EROFS. Skip it.
+        || guest_path_is_within_agentos_package_mount(vm, guest_path)
         || host_mount_path_for_guest_path_from_mounts(&vm.configuration.mounts, guest_path)
             .is_some()
 }
@@ -10563,9 +10600,16 @@ fn guest_command_search_dirs(vm: &VmState, guest_cwd: &str, path_env: Option<&st
 }
 
 fn resolve_guest_command_path_candidate(vm: &VmState, candidate: &str) -> Option<String> {
+    if candidate.starts_with(&format!("{}/", crate::package_projection::OPT_AGENTOS_BIN)) {
+        if let Ok(realpath) = vm.kernel.realpath(candidate) {
+            return Some(normalize_path(&realpath));
+        }
+    }
+
     if candidate.starts_with("/bin/")
         || candidate.starts_with("/usr/bin/")
         || candidate.starts_with("/usr/local/bin/")
+        || candidate.starts_with(&format!("{}/", crate::package_projection::OPT_AGENTOS_BIN))
         || candidate.starts_with("/__secure_exec/commands/")
     {
         if let Some(file_name) = Path::new(candidate)
@@ -10944,6 +10988,17 @@ fn configured_loopback_exempt_ports(vm: &VmState) -> Vec<String> {
 fn mount_config_host_path(config: &str) -> Option<String> {
     serde_json::from_str::<Value>(config)
         .ok()?
+        .get("hostPath")
+        .and_then(Value::as_str)
+        .map(str::to_owned)
+}
+
+/// Host path backing a mount for HOST-SIDE resolution (entrypoint launch, import
+/// cache location). `agentos_packages` is deliberately excluded by callers:
+/// package tar mounts are guest-native and resolve through the kernel VFS.
+fn mount_config_host_backing_path(config: &str) -> Option<String> {
+    let value = serde_json::from_str::<Value>(config).ok()?;
+    value
         .get("hostPath")
         .and_then(Value::as_str)
         .map(str::to_owned)
@@ -11348,9 +11403,9 @@ fn expand_host_access_paths(paths: &[PathBuf]) -> Vec<PathBuf> {
 fn prepare_javascript_shadow(
     vm: &mut VmState,
     resolved: &ResolvedChildProcessExecution,
+    env: &BTreeMap<String, String>,
 ) -> Result<(), SidecarError> {
-    let guest_entrypoint = resolved
-        .env
+    let guest_entrypoint = env
         .get("AGENTOS_GUEST_ENTRYPOINT")
         .cloned()
         // An absolute `entrypoint` may be a host path that lives inside the VM's
@@ -11395,6 +11450,81 @@ fn prepare_javascript_shadow(
         }
     }
     materialize_guest_path_to_shadow(vm, &guest_entrypoint)
+}
+
+fn resolve_agentos_package_javascript_launch_entrypoint(
+    vm: &mut VmState,
+    env: &mut BTreeMap<String, String>,
+) -> Option<String> {
+    let guest_entrypoint = env
+        .get("AGENTOS_GUEST_ENTRYPOINT")
+        .filter(|path| path.starts_with('/'))
+        .map(|path| normalize_path(path))?;
+    if !guest_path_is_within_agentos_package_mount(vm, &guest_entrypoint) {
+        return None;
+    }
+
+    let real_entrypoint = normalize_path(&vm.kernel.realpath(&guest_entrypoint).ok()?);
+    if !guest_path_is_within_agentos_package_mount(vm, &real_entrypoint) {
+        return None;
+    }
+
+    env.insert(
+        String::from("AGENTOS_GUEST_ENTRYPOINT"),
+        real_entrypoint.clone(),
+    );
+    if guest_javascript_entrypoint_uses_module_mode(vm, &real_entrypoint) {
+        env.insert(
+            String::from("AGENTOS_GUEST_ENTRYPOINT_MODULE_MODE"),
+            String::from("1"),
+        );
+    } else {
+        env.remove("AGENTOS_GUEST_ENTRYPOINT_MODULE_MODE");
+    }
+    Some(real_entrypoint)
+}
+
+fn guest_path_is_within_agentos_package_mount(vm: &VmState, guest_path: &str) -> bool {
+    let normalized = normalize_path(guest_path);
+    vm.configuration.mounts.iter().any(|mount| {
+        mount.plugin.id == "agentos_packages" && {
+            let guest_root = normalize_path(&mount.guest_path);
+            normalized == guest_root || normalized.starts_with(&format!("{guest_root}/"))
+        }
+    })
+}
+
+fn guest_javascript_entrypoint_uses_module_mode(vm: &mut VmState, guest_path: &str) -> bool {
+    match Path::new(guest_path)
+        .extension()
+        .and_then(|ext| ext.to_str())
+    {
+        Some("mjs" | "mts") => true,
+        Some("js") => nearest_guest_package_json_type(vm, guest_path).as_deref() == Some("module"),
+        _ => false,
+    }
+}
+
+fn nearest_guest_package_json_type(vm: &mut VmState, guest_path: &str) -> Option<String> {
+    let mut dir = dirname(guest_path);
+    loop {
+        let package_json_path = if dir == "/" {
+            String::from("/package.json")
+        } else {
+            normalize_path(&format!("{dir}/package.json"))
+        };
+        if let Ok(bytes) = vm.kernel.read_file(&package_json_path) {
+            if let Ok(value) = serde_json::from_slice::<Value>(&bytes) {
+                if let Some(package_type) = value.get("type").and_then(Value::as_str) {
+                    return Some(package_type.to_owned());
+                }
+            }
+        }
+        if dir == "/" {
+            return None;
+        }
+        dir = dirname(&dir);
+    }
 }
 
 /// Sync a freshly-staged shadow entrypoint into the kernel VFS so the runtime's
@@ -13104,7 +13234,7 @@ fn host_mount_path_for_guest_path(vm: &VmState, guest_path: &str) -> Option<Path
         .filter_map(|mount| {
             ((mount.plugin.id == "host_dir") || (mount.plugin.id == "module_access"))
                 .then(|| {
-                    mount_config_host_path(&mount.plugin.config)
+                    mount_config_host_backing_path(&mount.plugin.config)
                         .map(|host_path| (mount.guest_path.as_str(), host_path))
                 })
                 .flatten()
@@ -13330,7 +13460,7 @@ fn host_mount_path_for_guest_path_from_mounts(
         .filter_map(|mount| {
             ((mount.plugin.id == "host_dir") || (mount.plugin.id == "module_access"))
                 .then(|| {
-                    mount_config_host_path(&mount.plugin.config)
+                    mount_config_host_backing_path(&mount.plugin.config)
                         .map(|host_path| (mount.guest_path.as_str(), host_path))
                 })
                 .flatten()
@@ -13385,6 +13515,26 @@ mod host_mount_path_for_guest_path_from_mounts_tests {
         assert_eq!(
             resolved,
             PathBuf::from("/tmp/workspace/node_modules/pkg/index.js")
+        );
+    }
+
+    #[test]
+    fn does_not_resolve_agentos_packages_as_host_paths() {
+        let mounts = vec![MountDescriptor {
+            guest_path: String::from("/opt/agentos/bin/pi"),
+            read_only: true,
+            plugin: MountPluginDescriptor {
+                id: String::from("agentos_packages"),
+                config: json!({
+                    "kind": "singleSymlink",
+                    "target": "../pkgs/pi/current/bin/pi",
+                })
+                .to_string(),
+            },
+        }];
+
+        assert!(
+            host_mount_path_for_guest_path_from_mounts(&mounts, "/opt/agentos/bin/pi").is_none()
         );
     }
 }

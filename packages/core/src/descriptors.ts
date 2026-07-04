@@ -113,7 +113,8 @@ export interface LiveProjectedModuleDescriptor {
 }
 
 export interface LivePackageDescriptor {
-	dir: string;
+	dir?: string;
+	tar?: string;
 }
 
 export function toGeneratedSidecarPlacement(
@@ -171,6 +172,7 @@ export function toGeneratedPackageDescriptor(
 	descriptor: LivePackageDescriptor,
 ): protocol.PackageDescriptor {
 	return {
-		dir: descriptor.dir,
+		dir: descriptor.dir ?? null,
+		tar: descriptor.tar ?? null,
 	};
 }

@@ -2136,6 +2136,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8ca58f447f06ed17d5fc4043ce1b10dd205e060fb3ce5b979b8ed8e59ff3f79"
 
 [[package]]
+name = "memmap2"
+version = "0.9.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d1219ed1b7f229ee7104d281dd01d6802fe28bb6e95d292942c4daacdeb798c0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "minimal-lexical"
 version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2190,7 +2199,7 @@ dependencies = [
 
 [[package]]
 name = "native-baseline"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 
 [[package]]
 name = "ndk-context"
@@ -2971,7 +2980,7 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-bridge"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -2980,11 +2989,11 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-build-support"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 
 [[package]]
 name = "secure-exec-client"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "futures",
  "parking_lot",
@@ -2997,7 +3006,7 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-execution"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "base64 0.22.1",
  "ciborium",
@@ -3016,7 +3025,7 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-kernel"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "base64 0.22.1",
  "getrandom 0.2.17",
@@ -3032,7 +3041,7 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-sidecar"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -3041,6 +3050,7 @@ dependencies = [
  "aws-credential-types",
  "aws-sdk-s3",
  "base64 0.22.1",
+ "blake3",
  "bytes",
  "cap-std",
  "ctr",
@@ -3074,6 +3084,7 @@ dependencies = [
  "sha1",
  "sha2",
  "socket2 0.6.3",
+ "tar",
  "tokio",
  "tokio-rustls 0.26.4",
  "tracing",
@@ -3086,7 +3097,7 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-sidecar-browser"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "base64 0.22.1",
  "getrandom 0.2.17",
@@ -3102,7 +3113,7 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-sidecar-core"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "base64 0.22.1",
  "secure-exec-bridge",
@@ -3115,7 +3126,7 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-sidecar-protocol"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "rivet-vbare-compiler",
  "secure-exec-vm-config",
@@ -3127,7 +3138,7 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-v8-runtime"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "ciborium",
  "crossbeam-channel",
@@ -3142,7 +3153,7 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-vfs"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "async-trait",
  "aws-config",
@@ -3158,20 +3169,23 @@ dependencies = [
 
 [[package]]
 name = "secure-exec-vfs-core"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
  "blake3",
+ "memmap2",
  "serde",
  "serde_json",
+ "tar",
  "tokio",
+ "tracing",
  "web-time",
 ]
 
 [[package]]
 name = "secure-exec-vm-config"
-version = "0.3.4-rc.1"
+version = "0.0.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -3474,6 +3488,17 @@ name = "tagptr"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b2093cf4c8eb1e67749a6762251bc9cd836b6fc171623bd0a9d324d37af2417"
+
+[[package]]
+name = "tar"
+version = "0.4.46"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3f6221d9a6003c78398e3b239969f352578258df48c8eb051caadae0015bc840"
+dependencies = [
+ "filetime",
+ "libc",
+ "xattr",
+]
 
 [[package]]
 name = "tempfile"
@@ -4383,6 +4408,16 @@ name = "writeable"
 version = "0.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ffae5123b2d3fc086436f8834ae3ab053a283cfac8fe0a0b8eaae044768a4c4"
+
+[[package]]
+name = "xattr"
+version = "1.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32e45ad4206f6d2479085147f02bc2ef834ac85886624a23575ae137c8aa8156"
+dependencies = [
+ "libc",
+ "rustix 1.1.4",
+]
 
 [[package]]
 name = "xmlparser"

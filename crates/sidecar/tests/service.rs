@@ -1405,6 +1405,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure registry command mount");
@@ -1485,7 +1487,16 @@ ykAheWCsAteSEWVc0w==\n\
             serde_json::from_str(line).expect("parse stdout JSON")
         }
 
+        fn isolated_service_test_spawn_lock() -> std::sync::MutexGuard<'static, ()> {
+            static ISOLATED_SERVICE_TEST_SPAWN_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+            ISOLATED_SERVICE_TEST_SPAWN_LOCK
+                .get_or_init(|| Mutex::new(()))
+                .lock()
+                .expect("isolated service test spawn lock")
+        }
+
         fn run_isolated_service_test(test_name: &str) {
+            let _guard = isolated_service_test_spawn_lock();
             let current_exe = std::env::current_exe().expect("current service test binary path");
             let status = Command::new(&current_exe)
                 .arg("--exact")
@@ -6057,6 +6068,7 @@ ykAheWCsAteSEWVc0w==\n\
                             content: Some(String::from("stale")),
                             encoding: Some(RootFilesystemEntryEncoding::Utf8),
                             recursive: false,
+            max_depth: None,
                             mode: None,
                             uid: None,
                             gid: None,
@@ -6188,6 +6200,7 @@ ykAheWCsAteSEWVc0w==\n\
                             content: Some(String::from("hello from live vm")),
                             encoding: Some(RootFilesystemEntryEncoding::Utf8),
                             recursive: false,
+            max_depth: None,
                             mode: None,
                             uid: None,
                             gid: None,
@@ -6218,6 +6231,7 @@ ykAheWCsAteSEWVc0w==\n\
                             content: None,
                             encoding: None,
                             recursive: false,
+            max_depth: None,
                             mode: None,
                             uid: None,
                             gid: None,
@@ -6479,6 +6493,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure mounts");
@@ -6504,12 +6520,9 @@ ykAheWCsAteSEWVc0w==\n\
             );
             assert_eq!(
                 vm.kernel.mounted_filesystems(),
+                // No packages configured, so there are no granular /opt/agentos
+                // leaf mounts (one tar/bin/current mount is added per package).
                 vec![
-                    MountEntry {
-                        path: String::from("/opt/agentos"),
-                        plugin_id: String::from("host_dir"),
-                        read_only: true,
-                    },
                     MountEntry {
                         path: String::from("/workspace"),
                         plugin_id: String::from("memory"),
@@ -6557,6 +6570,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure readonly mount");
@@ -6632,6 +6647,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure host_dir mount");
@@ -6705,6 +6722,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure host_dir mount");
@@ -6762,6 +6781,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure module_access mount");
@@ -6813,6 +6834,7 @@ ykAheWCsAteSEWVc0w==\n\
                     content,
                     encoding: Some(RootFilesystemEntryEncoding::Utf8),
                     recursive: true,
+            max_depth: None,
                     mode: None,
                     uid: None,
                     gid: None,
@@ -6987,6 +7009,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure module_access mount");
@@ -7054,6 +7078,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure js_bridge mount");
@@ -7189,6 +7215,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure js_bridge mount");
@@ -7277,6 +7305,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure js_bridge mount");
@@ -7394,6 +7424,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure js_bridge mount");
@@ -7490,6 +7522,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure sandbox_agent mount");
@@ -7595,6 +7629,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure s3 mount");
@@ -7692,6 +7728,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure object_s3 mount");
@@ -7773,6 +7811,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure chunked_local mount");
@@ -8234,6 +8274,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("dispatch configure_vm failure");
@@ -8462,6 +8504,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("dispatch fs configure vm");
@@ -8510,6 +8554,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("dispatch network configure vm");
@@ -8571,14 +8617,17 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("dispatch configure vm");
 
             match result.response.payload {
                 ResponsePayload::VmConfigured(response) => {
-                    // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
-                    assert_eq!(response.applied_mounts, 2);
+                    // 1 = just the client mount. No packages configured, so there
+                    // are no granular /opt/agentos leaf mounts (added per package).
+                    assert_eq!(response.applied_mounts, 1);
                 }
                 other => panic!("expected configured response, got {other:?}"),
             }
@@ -8606,6 +8655,7 @@ ykAheWCsAteSEWVc0w==\n\
                         content: None,
                         encoding: None,
                         recursive: true,
+            max_depth: None,
                         mode: None,
                         uid: None,
                         gid: None,
@@ -8625,6 +8675,7 @@ ykAheWCsAteSEWVc0w==\n\
                         content: Some(String::from("stdio-sidecar-fs")),
                         encoding: None,
                         recursive: false,
+            max_depth: None,
                         mode: None,
                         uid: None,
                         gid: None,
@@ -8644,6 +8695,7 @@ ykAheWCsAteSEWVc0w==\n\
                         content: None,
                         encoding: None,
                         recursive: false,
+            max_depth: None,
                         mode: None,
                         uid: None,
                         gid: None,
@@ -8663,6 +8715,7 @@ ykAheWCsAteSEWVc0w==\n\
                         content: None,
                         encoding: None,
                         recursive: false,
+            max_depth: None,
                         mode: None,
                         uid: None,
                         gid: None,
@@ -8682,6 +8735,7 @@ ykAheWCsAteSEWVc0w==\n\
                         content: None,
                         encoding: None,
                         recursive: false,
+            max_depth: None,
                         mode: None,
                         uid: None,
                         gid: None,
@@ -8773,14 +8827,17 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("dispatch configure vm");
 
             match result.response.payload {
                 ResponsePayload::VmConfigured(response) => {
-                    // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
-                    assert_eq!(response.applied_mounts, 2);
+                    // 1 = just the client mount. No packages configured, so there
+                    // are no granular /opt/agentos leaf mounts (added per package).
+                    assert_eq!(response.applied_mounts, 1);
                 }
                 other => panic!("expected configured response, got {other:?}"),
             }
@@ -8839,14 +8896,17 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure operator mount");
 
             match configure_response.response.payload {
                 ResponsePayload::VmConfigured(configured) => {
-                    // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
-                    assert_eq!(configured.applied_mounts, 2);
+                    // 1 = just the client mount. No packages configured, so there
+                    // are no granular /opt/agentos leaf mounts (added per package).
+                    assert_eq!(configured.applied_mounts, 1);
                 }
                 other => panic!("expected configured response, got {other:?}"),
             }
@@ -8859,8 +8919,8 @@ ykAheWCsAteSEWVc0w==\n\
                 .mounted_filesystems();
             assert_eq!(
                 operator_mounts.len(),
-                3,
-                "root + operator-applied mount + package projection mount"
+                2,
+                "root + operator-applied mount (no packages configured, so no /opt/agentos leaf mounts)"
             );
 
             let mount_error = sidecar
@@ -8997,6 +9057,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure host_dir mount");
@@ -9142,6 +9204,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure command mount");
@@ -9240,6 +9304,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure command mount");
@@ -9634,6 +9700,8 @@ ykAheWCsAteSEWVc0w==\n\
                         loopback_exempt_ports: Vec::new(),
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure command-path mounts");
@@ -10673,6 +10741,8 @@ process.stdout.write(`${JSON.stringify({
                         loopback_exempt_ports: vec![4312],
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure workspace mount");
@@ -10712,6 +10782,263 @@ process.stdout.write(`${JSON.stringify({
                 Value::String(String::from("resolved-from-mounted-workspace"))
             );
         }
+
+        fn write_agentos_package_launch_fixture() -> PathBuf {
+            let package = temp_dir("secure-exec-sidecar-agentos-package-launch");
+            fs::create_dir_all(package.join("node_modules/t1-dep"))
+                .expect("create bundled dependency");
+
+            write_fixture(
+                &package.join("agentos-package.json"),
+                r#"{"name":"t1-agent","version":"1.0.0","agent":{"acpEntrypoint":"x"}}"#,
+            );
+            fs::create_dir_all(package.join("bin")).expect("create bin");
+            std::os::unix::fs::symlink("../adapter.mjs", package.join("bin/x"))
+                .expect("symlink bin/x");
+            write_fixture(
+                &package.join("node_modules/t1-dep/package.json"),
+                r#"{"name":"t1-dep","version":"1.0.0","type":"module","exports":"./index.mjs"}"#,
+            );
+            write_fixture(
+                &package.join("node_modules/t1-dep/index.mjs"),
+                r#"export const marker = "dep-ok";"#,
+            );
+            write_fixture(
+                &package.join("child.mjs"),
+                r#"
+import { marker } from "t1-dep";
+
+console.log(`child-ok:${marker}`);
+"#,
+            );
+            write_fixture(
+                &package.join("adapter.mjs"),
+                r#"#!/usr/bin/env node
+import childProcess from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { marker } from "t1-dep";
+
+const entrypoint = fileURLToPath(import.meta.url);
+console.log(`entrypoint:${entrypoint}`);
+console.log(`adapter-ok:${marker}`);
+
+const child = childProcess.spawnSync("node", [
+  fileURLToPath(new URL("./child.mjs", import.meta.url)),
+], {
+  encoding: "utf8",
+});
+
+if (child.stdout) {
+  process.stdout.write(child.stdout);
+}
+if (child.stderr) {
+  process.stderr.write(child.stderr);
+}
+if (child.error) {
+  throw child.error;
+}
+if (child.status !== 0) {
+  process.exit(child.status ?? 1);
+}
+"#,
+            );
+            // The command entry must be executable in the tar, exactly as the
+            // toolchain's pack step emits `bin/*` at 0755 (npm ships 0644). The
+            // tar builder follows `bin/x -> ../adapter.mjs`, so the launcher's
+            // mode is adapter.mjs's mode.
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let mut perms = fs::metadata(package.join("adapter.mjs"))
+                    .expect("stat adapter.mjs")
+                    .permissions();
+                perms.set_mode(0o755);
+                fs::set_permissions(package.join("adapter.mjs"), perms).expect("chmod adapter.mjs");
+            }
+
+            write_agentos_package_tar(&package);
+            package
+        }
+
+        fn write_agentos_package_tar(package: &Path) {
+            let tar_path = package.join("package.tar");
+            let _ = fs::remove_file(&tar_path);
+            let file = fs::File::create(&tar_path).expect("create package tar");
+            let mut builder = tar::Builder::new(file);
+            // Match the toolchain's `tar -cf`, which stores symlinks as symlinks
+            // (e.g. `bin/x -> ../adapter.mjs`). Following them would flatten the
+            // launcher into a regular file and break `import.meta.url`-relative
+            // resolution inside the package.
+            builder.follow_symlinks(false);
+            append_agentos_package_tree(&mut builder, package, package)
+                .expect("append package tree");
+            builder.finish().expect("finish package tar");
+            builder
+                .into_inner()
+                .expect("finish package tar file")
+                .flush()
+                .expect("flush package tar");
+        }
+
+        fn append_agentos_package_tree(
+            builder: &mut tar::Builder<fs::File>,
+            root: &Path,
+            path: &Path,
+        ) -> std::io::Result<()> {
+            for entry in fs::read_dir(path)? {
+                let entry = entry?;
+                let entry_path = entry.path();
+                if entry_path.file_name().and_then(|name| name.to_str()) == Some("package.tar") {
+                    continue;
+                }
+                let name = entry_path
+                    .strip_prefix(root)
+                    .expect("package-relative path");
+                if entry_path.is_dir() {
+                    builder.append_dir(name, &entry_path)?;
+                    append_agentos_package_tree(builder, root, &entry_path)?;
+                } else {
+                    builder.append_path_with_name(&entry_path, name)?;
+                }
+            }
+            Ok(())
+        }
+
+        fn clean_legacy_agentos_projection_temps() {
+            let temp = std::env::temp_dir();
+            if let Ok(entries) = fs::read_dir(&temp) {
+                for entry in entries.flatten() {
+                    let name = entry.file_name();
+                    let name = name.to_string_lossy();
+                    if name.starts_with("agentos-pkgsrc-") || name.starts_with("agentos-opt-") {
+                        let _ = fs::remove_dir_all(entry.path());
+                    }
+                }
+            }
+        }
+
+        fn assert_no_legacy_agentos_projection_temps() {
+            let temp = std::env::temp_dir();
+            let mut leftovers = Vec::new();
+            if let Ok(entries) = fs::read_dir(&temp) {
+                for entry in entries.flatten() {
+                    let name = entry.file_name();
+                    let name = name.to_string_lossy();
+                    if name.starts_with("agentos-pkgsrc-") || name.starts_with("agentos-opt-") {
+                        leftovers.push(entry.path());
+                    }
+                }
+            }
+            assert!(
+                leftovers.is_empty(),
+                "legacy extraction/staging dirs should not be created: {leftovers:?}"
+            );
+        }
+
+        #[test]
+        fn agentos_packages_launch_keeps_adapter_and_child_entrypoints_guest_native() {
+            clean_legacy_agentos_projection_temps();
+            let package = write_agentos_package_launch_fixture();
+            let mut sidecar = create_test_sidecar();
+            let (connection_id, session_id) =
+                authenticate_and_open_session(&mut sidecar).expect("authenticate and open session");
+            let vm_id = create_vm(
+                &mut sidecar,
+                &connection_id,
+                &session_id,
+                PermissionsPolicy::allow_all(),
+            )
+            .expect("create vm");
+
+            let applied_mounts = match sidecar
+                .dispatch_blocking(request(
+                    4,
+                    OwnershipScope::vm(&connection_id, &session_id, &vm_id),
+                    RequestPayload::ConfigureVm(ConfigureVmRequest {
+                        mounts: Vec::new(),
+                        software: Vec::new(),
+                        permissions: None,
+                        module_access_cwd: None,
+                        instructions: Vec::new(),
+                        projected_modules: Vec::new(),
+                        command_permissions: std::collections::HashMap::new(),
+                        loopback_exempt_ports: Vec::new(),
+                        packages: vec![crate::protocol::PackageDescriptor {
+                            dir: Some(package.to_string_lossy().into_owned()),
+                            tar: None,
+                        }],
+                        packages_mount_at: String::from("/opt/agentos"),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
+                    }),
+                ))
+                .expect("configure agentos package mount")
+                .response
+                .payload
+            {
+                ResponsePayload::VmConfigured(response) => response.applied_mounts,
+                other => panic!("unexpected configure response: {other:?}"),
+            };
+            assert!(
+                applied_mounts >= 3,
+                "expected package tar/current/bin leaf mounts, got {applied_mounts}"
+            );
+            assert_no_legacy_agentos_projection_temps();
+
+            let response = sidecar
+                .dispatch_blocking(request(
+                    5,
+                    OwnershipScope::vm(&connection_id, &session_id, &vm_id),
+                    RequestPayload::Execute(crate::protocol::ExecuteRequest {
+                        process_id: String::from("proc-agentos-package-launch"),
+                        command: Some(String::from("/opt/agentos/bin/x")),
+                        runtime: None,
+                        entrypoint: None,
+                        args: Vec::new(),
+                        env: std::collections::HashMap::new(),
+                        cwd: Some(String::from("/")),
+                        wasm_permission_tier: None,
+                    }),
+                ))
+                .expect("dispatch agentos package execute");
+
+            match response.response.payload {
+                ResponsePayload::ProcessStarted(response) => {
+                    assert_eq!(response.process_id, "proc-agentos-package-launch");
+                }
+                other => panic!("unexpected execute response: {other:?}"),
+            }
+
+            let (stdout, stderr, exit_code) =
+                drain_process_output(&mut sidecar, &vm_id, "proc-agentos-package-launch");
+            let combined_output = format!("{stdout}\n{stderr}");
+
+            assert_eq!(exit_code, Some(0), "stdout: {stdout}\nstderr: {stderr}");
+            assert!(
+                stdout.contains("entrypoint:/opt/agentos/"),
+                "stdout should report a guest-native /opt/agentos entrypoint: {stdout}"
+            );
+            assert!(
+                stdout.contains("adapter-ok:dep-ok"),
+                "adapter did not import its bundled bare dependency: {stdout}"
+            );
+            assert!(
+                stdout.contains("child-ok:dep-ok"),
+                "child process did not import the bundled bare dependency: {stdout}"
+            );
+            assert!(
+                !combined_output.contains("/unknown"),
+                "launch should not translate to /unknown\nstdout: {stdout}\nstderr: {stderr}"
+            );
+            assert!(
+                !stderr.contains("Cannot use import statement"),
+                "adapter should execute as ESM\nstderr: {stderr}"
+            );
+            assert!(
+                !stderr.contains("escape the mount root"),
+                "package launch should stay confined within /opt/agentos\nstderr: {stderr}"
+            );
+        }
+
         fn command_resolution_executes_node_eval_command() {
             let mut sidecar = create_test_sidecar();
             let (connection_id, session_id) =
@@ -17374,6 +17701,8 @@ console.log(JSON.stringify(summary));
                         loopback_exempt_ports: vec![port],
                         packages: Vec::new(),
                         packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
                     }),
                 ))
                 .expect("configure loopback-exempt host listener port");

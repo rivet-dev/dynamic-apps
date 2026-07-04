@@ -497,6 +497,8 @@ fn execute_rejects_host_only_absolute_command_path() {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("configure host-only command permissions");

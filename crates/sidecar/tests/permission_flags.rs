@@ -79,6 +79,7 @@ fn mkdir_request(path: &str, recursive: bool) -> GuestFilesystemCallRequest {
         content: None,
         encoding: None,
         recursive,
+        max_depth: None,
         mode: None,
         uid: None,
         gid: None,
@@ -220,6 +221,8 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("dispatch configure vm with empty fs paths");
@@ -260,6 +263,8 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("dispatch configure vm with empty network patterns");
@@ -300,6 +305,8 @@ fn permission_flags_reject_empty_paths_and_patterns_on_configure() {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("dispatch configure vm with empty network operations");

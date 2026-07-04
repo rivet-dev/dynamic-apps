@@ -46,6 +46,7 @@ const NODE_IMPORT_CACHE_LOADER_PATH_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_LOADE
 const NODE_IMPORT_CACHE_PATH_ENV: &str = "AGENTOS_NODE_IMPORT_CACHE_PATH";
 const NODE_KEEP_STDIN_OPEN_ENV: &str = "SECURE_EXEC_KEEP_STDIN_OPEN";
 const NODE_GUEST_ENTRYPOINT_ENV: &str = "AGENTOS_GUEST_ENTRYPOINT";
+const NODE_GUEST_ENTRYPOINT_MODULE_MODE_ENV: &str = "AGENTOS_GUEST_ENTRYPOINT_MODULE_MODE";
 const NODE_GUEST_PATH_MAPPINGS_ENV: &str = "AGENTOS_GUEST_PATH_MAPPINGS";
 const NODE_VIRTUAL_PROCESS_EXEC_PATH_ENV: &str = "AGENTOS_VIRTUAL_PROCESS_EXEC_PATH";
 const NODE_VIRTUAL_PROCESS_PID_ENV: &str = "AGENTOS_VIRTUAL_PROCESS_PID";
@@ -259,6 +260,7 @@ const RESERVED_NODE_ENV_KEYS: &[&str] = &[
     NODE_SANDBOX_ROOT_ENV,
     NODE_FROZEN_TIME_ENV,
     NODE_GUEST_ENTRYPOINT_ENV,
+    NODE_GUEST_ENTRYPOINT_MODULE_MODE_ENV,
     NODE_GUEST_ARGV_ENV,
     NODE_GUEST_PATH_MAPPINGS_ENV,
     NODE_VIRTUAL_PROCESS_EXEC_PATH_ENV,
@@ -2271,6 +2273,22 @@ impl JavascriptExecutionEngine {
         let host_entrypoint = translator.resolve_host_entrypoint(&request.cwd, &request.argv[0]);
         let guest_entrypoint = if request.argv[0] == "-e" || request.argv[0] == "--eval" {
             request.argv[0].clone()
+        } else if let Some(explicit_guest_entrypoint) = request
+            .env
+            .get(NODE_GUEST_ENTRYPOINT_ENV)
+            .filter(|value| value.starts_with('/'))
+        {
+            // Part B (guest-VFS adapter launch): the sidecar already resolved the
+            // GUEST entrypoint path (AGENTOS_GUEST_ENTRYPOINT). Use it directly as
+            // the sourceURL / module-resolution base instead of translating the
+            // host entrypoint — `host_to_guest_string` misses for guest-native
+            // mounts (`agentos_packages`, whose host staging dir is not in the
+            // translation map) and falls back to `/unknown/<cmd>`, which then
+            // poisons the adapter's own relative/bare imports. For host-backed
+            // mounts the two values are equal, so this is a no-op there. Applies
+            // to child launches too (they set AGENTOS_GUEST_ENTRYPOINT as well),
+            // which is the child-process `/unknown` case.
+            explicit_guest_entrypoint.clone()
         } else {
             translator.host_to_guest_string(&host_entrypoint)
         };
@@ -2288,7 +2306,11 @@ impl JavascriptExecutionEngine {
             .inline_code
             .clone()
             .map(|inline_code| strip_javascript_hashbang(&inline_code));
-        let use_module_mode = host_entrypoint_uses_module_mode(&host_entrypoint)
+        let use_module_mode = request
+            .env
+            .get(NODE_GUEST_ENTRYPOINT_MODULE_MODE_ENV)
+            .is_some_and(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+            || host_entrypoint_uses_module_mode(&host_entrypoint)
             || inline_code
                 .as_deref()
                 .is_some_and(inline_code_uses_module_mode);

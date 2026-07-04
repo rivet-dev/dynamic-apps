@@ -598,6 +598,7 @@ fn guest_write_file_utf8(
             content: Some(content.to_owned()),
             encoding: Some(RootFilesystemEntryEncoding::Utf8),
             recursive: false,
+            max_depth: None,
             mode: None,
             uid: None,
             gid: None,
@@ -634,6 +635,7 @@ fn guest_read_file_utf8(
             content: None,
             encoding: None,
             recursive: false,
+            max_depth: None,
             mode: None,
             uid: None,
             gid: None,
@@ -672,6 +674,7 @@ fn guest_exists(
             content: None,
             encoding: None,
             recursive: false,
+            max_depth: None,
             mode: None,
             uid: None,
             gid: None,
@@ -708,6 +711,7 @@ fn guest_readlink(
             content: None,
             encoding: None,
             recursive: false,
+            max_depth: None,
             mode: None,
             uid: None,
             gid: None,
@@ -745,6 +749,7 @@ fn guest_symlink(
             content: None,
             encoding: None,
             recursive: false,
+            max_depth: None,
             mode: None,
             uid: None,
             gid: None,
@@ -780,6 +785,7 @@ fn guest_stat_mode(
             content: None,
             encoding: None,
             recursive: false,
+            max_depth: None,
             mode: None,
             uid: None,
             gid: None,
@@ -1794,13 +1800,17 @@ if (mode === 'write') {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("configure host_dir workspace mount through wire");
     match configure.response.payload {
         ResponsePayload::VmConfiguredResponse(response) => {
-            // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
-            assert_eq!(response.applied_mounts, 2);
+            // 1 = just the client mount. With no packages configured there are no
+            // granular /opt/agentos leaf mounts (one tar/bin/current mount is added
+            // per package, not a single always-present staging mount).
+            assert_eq!(response.applied_mounts, 1);
         }
         other => panic!("unexpected wire configure-vm response: {other:?}"),
     }
@@ -3663,13 +3673,17 @@ process.stdout.write('status=' + result.status + ';out=' + (result.stdout || '')
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("configure host_dir workspace mount through wire");
     match configure.response.payload {
         ResponsePayload::VmConfiguredResponse(response) => {
-            // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
-            assert_eq!(response.applied_mounts, 2);
+            // 1 = just the client mount. With no packages configured there are no
+            // granular /opt/agentos leaf mounts (one tar/bin/current mount is added
+            // per package, not a single always-present staging mount).
+            assert_eq!(response.applied_mounts, 1);
         }
         other => panic!("unexpected wire configure-vm response: {other:?}"),
     }

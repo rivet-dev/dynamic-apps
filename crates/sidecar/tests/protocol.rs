@@ -249,6 +249,7 @@ fn json_codec_round_trips_guest_filesystem_requests_with_optional_fields() {
             content: Some(String::from("stdio-sidecar-fs")),
             encoding: None,
             recursive: true,
+            max_depth: None,
             mode: Some(0o644),
             uid: Some(1000),
             gid: Some(1000),
@@ -283,6 +284,7 @@ fn bare_codec_round_trips_guest_filesystem_requests_with_optional_fields() {
             content: Some(String::from("stdio-sidecar-fs")),
             encoding: None,
             recursive: true,
+            max_depth: None,
             mode: Some(0o644),
             uid: Some(1000),
             gid: Some(1000),
@@ -880,6 +882,8 @@ fn schema_supports_configuration_and_structured_events() {
             loopback_exempt_ports: Vec::new(),
             packages: Vec::new(),
             packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
         }),
     ));
 

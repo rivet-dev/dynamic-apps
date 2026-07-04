@@ -680,12 +680,19 @@ function encodeVarUint(value) {
   return encoded;
 }
 
+function appendBytes(out, bytes) {
+  for (let i = 0; i < bytes.length; i += 1) {
+    out.push(bytes[i]);
+  }
+}
+
 function rewriteMemorySection(sectionBytes, limitPages) {
   let offset = 0;
   const countResult = readVarUint(sectionBytes, offset, 'memory count');
   const count = countResult.value;
   offset = countResult.offset;
-  const rewritten = [...encodeVarUint(count)];
+  const rewritten = [];
+  appendBytes(rewritten, encodeVarUint(count));
 
   for (let index = 0; index < count; index += 1) {
     const flagsResult = readVarUint(sectionBytes, offset, 'memory flags');
@@ -717,9 +724,9 @@ function rewriteMemorySection(sectionBytes, limitPages) {
 
     const cappedMaximumPages =
       maximumPages == null ? limitPages : Math.min(maximumPages, limitPages);
-    rewritten.push(...encodeVarUint(1));
-    rewritten.push(...encodeVarUint(initialPages));
-    rewritten.push(...encodeVarUint(cappedMaximumPages));
+    appendBytes(rewritten, encodeVarUint(1));
+    appendBytes(rewritten, encodeVarUint(initialPages));
+    appendBytes(rewritten, encodeVarUint(cappedMaximumPages));
   }
 
   if (offset !== sectionBytes.length) {
@@ -755,15 +762,15 @@ function enforceMemoryLimit(moduleBytes, limitPages) {
     }
 
     if (sectionId !== 5) {
-      rewritten.push(...bytes.slice(sectionStart, sectionEnd));
+      appendBytes(rewritten, bytes.slice(sectionStart, sectionEnd));
       offset = sectionEnd;
       continue;
     }
 
     const rewrittenSection = rewriteMemorySection(bytes.slice(offset, sectionEnd), limitPages);
     rewritten.push(sectionId);
-    rewritten.push(...encodeVarUint(rewrittenSection.length));
-    rewritten.push(...rewrittenSection);
+    appendBytes(rewritten, encodeVarUint(rewrittenSection.length));
+    appendBytes(rewritten, rewrittenSection);
     offset = sectionEnd;
   }
 
@@ -5961,6 +5968,9 @@ const hostTtyImport = {
   // Toggle terminal raw mode on the guest's PTY. crossterm/pty_probe/vim call this
   // instead of tcsetattr; route it to the kernel so the guest gets raw keystrokes.
   set_raw_mode(enabled) {
+    if (!stdioFdIsKernelTty(0)) {
+      return 25; // ENOTTY
+    }
     callSyncRpc('__pty_set_raw_mode', [(enabled >>> 0) !== 0]);
     return 0;
   },

@@ -1,12 +1,14 @@
 import { execFileSync } from "node:child_process";
 import {
 	chmodSync,
+	existsSync,
 	lstatSync,
 	mkdirSync,
 	mkdtempSync,
 	readFileSync,
 	readlinkSync,
 	rmSync,
+	statSync,
 	writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -60,20 +62,16 @@ describe("header detection", () => {
 	});
 });
 
-/** Build a FLAT package dir by hand (no npm) to exercise verifyPackageDir. */
+/** Build a flat package dir by hand (no npm) to exercise verifyPackageDir. */
 function handBuiltPackage(name = "pkg", version = "1.0.0"): string {
 	const pkgDir = mkTmp("agentos-pkg-");
 	mkdirSync(join(pkgDir, "bin"), { recursive: true });
 	mkdirSync(join(pkgDir, "node_modules"), { recursive: true });
-	writeFileSync(
-		join(pkgDir, "package.json"),
-		`${JSON.stringify({ name, version, bin: { tool: "bin/tool" } }, null, 2)}\n`,
-	);
 	writeFileSync(join(pkgDir, "bin", "tool"), "#!/usr/bin/env node\nconsole.log('ok');\n");
 	chmodSync(join(pkgDir, "bin", "tool"), 0o755);
 	writeFileSync(
 		join(pkgDir, "agentos-package.json"),
-		`${JSON.stringify({ name }, null, 2)}\n`,
+		`${JSON.stringify({ name, version }, null, 2)}\n`,
 	);
 	return pkgDir;
 }
@@ -83,10 +81,13 @@ describe("verifyPackageDir", () => {
 		expect(() => verifyPackageDir(handBuiltPackage())).not.toThrow();
 	});
 
-	test("rejects a missing package.json", () => {
+	test("rejects a manifest missing version", () => {
 		const pkgDir = handBuiltPackage();
-		rmSync(join(pkgDir, "package.json"));
-		expect(() => verifyPackageDir(pkgDir)).toThrow(/package\.json/);
+		writeFileSync(
+			join(pkgDir, "agentos-package.json"),
+			`${JSON.stringify({ name: "pkg" }, null, 2)}\n`,
+		);
+		expect(() => verifyPackageDir(pkgDir)).toThrow(/valid "version"/);
 	});
 
 	test("rejects native .node addons", () => {
@@ -132,45 +133,58 @@ function makeFixture(name = "hello", version = "1.2.3"): string {
 	);
 	mkdirSync(join(src, "bin"), { recursive: true });
 	writeFileSync(join(src, "bin", "hello.js"), "#!/usr/bin/env node\nconsole.log('hi');\n");
-	chmodSync(join(src, "bin", "hello.js"), 0o755);
+	chmodSync(join(src, "bin", "hello.js"), 0o644);
 	return src;
 }
 
 // These exercise the real `npm install` flow; gated on a working npm (present in
 // any npx/CI environment, absent in this minimal pnpm-only sandbox).
 describe.skipIf(!npmOk)("pack (offline, local fixture, needs npm)", () => {
-	test("packs a zero-dep local package into a flat valid agentOS package", () => {
+	test("packs a zero-dep local package into a valid agentOS package tar", () => {
 		const src = makeFixture();
-		const out = mkTmp("agentos-out-");
+		const out = join(mkTmp("agentos-out-"), "hello.tar");
 		const result = pack({ source: src, out });
 
 		expect(result.name).toBe("hello");
 		expect(result.version).toBe("1.2.3");
 		expect(result.commands).toEqual(["hello"]);
-		expect(result.packageDir).toBe(out);
+		expect(result.packageTar).toBe(out);
+		expect(existsSync(out)).toBe(true);
 
-		// Flat output: the package lands directly in `out` (no <name>/<version>/).
-		expect(JSON.parse(readFileSync(join(out, "package.json"), "utf8"))).toEqual({
+		const list = execFileSync("tar", ["-tf", out], { encoding: "utf8" })
+			.trim()
+			.split("\n")
+			.map((entry) => entry.replace(/^\.\//, ""))
+			.sort();
+		expect(list).toContain("agentos-package.json");
+		expect(list).toContain("bin/hello");
+		expect(list).toContain("node_modules/hello/bin/hello.js");
+		expect(list).not.toContain("package.json");
+
+		const extractDir = mkTmp("agentos-extract-");
+		execFileSync("tar", ["-xf", out, "-C", extractDir]);
+		expect(JSON.parse(readFileSync(join(extractDir, "agentos-package.json"), "utf8"))).toMatchObject({
 			name: "hello",
 			version: "1.2.3",
-			bin: { hello: "bin/hello" },
 		});
-		const binLink = join(out, "bin", "hello");
+		const binLink = join(extractDir, "bin", "hello");
 		expect(lstatSync(binLink).isSymbolicLink()).toBe(true);
 		expect(readlinkSync(binLink)).toContain("node_modules/hello/bin/hello.js");
-		expect(() => verifyPackageDir(out)).not.toThrow();
+		expect(statSync(join(extractDir, "node_modules", "hello", "bin", "hello.js")).mode & 0o777).toBe(0o755);
+		expect(() => verifyPackageDir(extractDir)).not.toThrow();
 	});
 
 	test("--agent validates the entrypoint against the package commands", () => {
 		const src = makeFixture("agentpkg", "0.1.0");
-		const out = mkTmp("agentos-out-");
+		const out = join(mkTmp("agentos-out-"), "agentpkg.tar");
 		pack({ source: src, out, agent: "hello" });
-		// No agentos-package.json; the entrypoint is a real bin command + in package.json bin.
-		const pkg = JSON.parse(readFileSync(join(out, "package.json"), "utf8"));
-		expect(pkg.bin).toHaveProperty("hello");
-		expect(lstatSync(join(out, "bin", "hello")).isSymbolicLink()).toBe(true);
+		const extractDir = mkTmp("agentos-extract-");
+		execFileSync("tar", ["-xf", out, "-C", extractDir]);
+		const manifest = JSON.parse(readFileSync(join(extractDir, "agentos-package.json"), "utf8"));
+		expect(manifest.agent.acpEntrypoint).toBe("hello");
+		expect(lstatSync(join(extractDir, "bin", "hello")).isSymbolicLink()).toBe(true);
 		// An entrypoint that is not a command is rejected.
-		expect(() => pack({ source: src, out: mkTmp("agentos-out-"), agent: "nope" })).toThrow(
+		expect(() => pack({ source: src, out: join(mkTmp("agentos-out-"), "bad.tar"), agent: "nope" })).toThrow(
 			/--agent "nope" is not one of/,
 		);
 	});

@@ -388,6 +388,7 @@ fn native_sidecar_binary_runs_the_framed_protocol_over_stdio() {
                 content: None,
                 encoding: None,
                 recursive: true,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -421,6 +422,7 @@ fn native_sidecar_binary_runs_the_framed_protocol_over_stdio() {
                 content: Some(String::from("stdio-sidecar-fs")),
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -454,6 +456,7 @@ fn native_sidecar_binary_runs_the_framed_protocol_over_stdio() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -486,6 +489,7 @@ fn native_sidecar_binary_runs_the_framed_protocol_over_stdio() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -519,6 +523,7 @@ fn native_sidecar_binary_runs_the_framed_protocol_over_stdio() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -552,6 +557,7 @@ fn native_sidecar_binary_runs_the_framed_protocol_over_stdio() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -585,6 +591,7 @@ fn native_sidecar_binary_runs_the_framed_protocol_over_stdio() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -618,6 +625,7 @@ fn native_sidecar_binary_runs_the_framed_protocol_over_stdio() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -651,6 +659,7 @@ fn native_sidecar_binary_runs_the_framed_protocol_over_stdio() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -848,14 +857,18 @@ fn native_sidecar_binary_supports_js_bridge_host_filesystem_access() {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ),
     );
     let configured = recv_response(&mut stdout, &codec, 4, &mut buffered_events);
     match configured.payload {
         ResponsePayload::VmConfiguredResponse(response) => {
-            // 2 = the client `/workspace` (or `/etc`) mount + the always-present /opt/agentos package projection mount.
-            assert_eq!(response.applied_mounts, 2);
+            // 1 = just the client mount. With no packages configured there are no
+            // granular /opt/agentos leaf mounts (one tar/bin/current mount is added
+            // per package, not a single always-present staging mount).
+            assert_eq!(response.applied_mounts, 1);
             assert_eq!(response.applied_software, 0);
         }
         other => panic!("unexpected configure response: {other:?}"),
@@ -875,6 +888,7 @@ fn native_sidecar_binary_supports_js_bridge_host_filesystem_access() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -948,6 +962,7 @@ fn native_sidecar_binary_supports_js_bridge_host_filesystem_access() {
                 content: Some(String::from("from-js-bridge")),
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,

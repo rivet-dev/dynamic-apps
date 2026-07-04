@@ -101,6 +101,8 @@ fn configure_mounts(
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("configure registry command mount");

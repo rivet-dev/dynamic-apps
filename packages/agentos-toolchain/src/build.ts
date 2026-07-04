@@ -1,4 +1,7 @@
 import {
+	execFileSync,
+} from "node:child_process";
+import {
 	cpSync,
 	existsSync,
 	mkdirSync,
@@ -8,7 +11,7 @@ import {
 	statSync,
 	writeFileSync,
 } from "node:fs";
-import { basename, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { readManifest, unscopedName } from "./manifest.js";
 
 export interface BuildResult {
@@ -16,6 +19,7 @@ export interface BuildResult {
 	version: string;
 	commands: string[];
 	outDir: string;
+	outTar: string;
 }
 
 /**
@@ -29,8 +33,7 @@ export interface BuildResult {
  * holds ONLY what the package ships at runtime:
  *
  *   dist/package/
- *     package.json           { name, version, bin: { <cmd>: "bin/<cmd>" } }
- *     agentos-package.json   runtime manifest (name, agent, provides)
+ *     agentos-package.json   runtime manifest (name, version, agent, provides)
  *     bin/<cmd>              the compiled command binaries (copied verbatim)
  *     share/...              (optional) man pages, if the source package ships them
  *
@@ -78,6 +81,7 @@ export function build(packageDirInput?: string): BuildResult {
 			typeof srcManifest?.name === "string" && srcManifest.name.length > 0
 				? srcManifest.name
 				: unscopedName(name),
+		version,
 		...(srcManifest?.agent !== undefined ? { agent: srcManifest.agent } : {}),
 		...(srcManifest?.provides !== undefined
 			? { provides: srcManifest.provides }
@@ -117,27 +121,21 @@ export function build(packageDirInput?: string): BuildResult {
 		});
 	}
 
-	// The bin map names every command explicitly (cmd -> bin/cmd); the sidecar
-	// reads `version` here and links each command into /opt/agentos/bin.
-	const bin: Record<string, string> = {};
-	for (const cmd of commands) {
-		bin[cmd] = `bin/${basename(cmd)}`;
-	}
-	writeFileSync(
-		join(outDir, "package.json"),
-		`${JSON.stringify({ name, version, bin }, null, 2)}\n`,
-	);
 	writeFileSync(
 		join(outDir, "agentos-package.json"),
 		`${JSON.stringify(manifest, null, 2)}\n`,
 	);
 
+	const outTar = join(packageDir, "dist", "package.tar");
+	rmSync(outTar, { force: true });
+	execFileSync("tar", ["-cf", outTar, "-C", outDir, "."], { stdio: "pipe" });
+
 	process.stdout.write(
 		commands.length > 0
-			? `assembled ${name}@${version} -> ${outDir}\n` +
+			? `assembled ${name}@${version} -> ${outTar}\n` +
 					`  commands (${commands.length}): ${commands.join(", ")}\n`
-			: `assembled ${name}@${version} -> ${outDir} (PLANNED: empty placeholder, ` +
+			: `assembled ${name}@${version} -> ${outTar} (PLANNED: empty placeholder, ` +
 					`no bin/ yet — run stage with a commands dir to populate)\n`,
 	);
-	return { name, version, commands, outDir };
+	return { name, version, commands, outDir, outTar };
 }

@@ -76,6 +76,12 @@ export interface LivePackageCommands {
 	commands: string[];
 }
 
+export interface LiveAgentosProjectedAgent {
+	id: string;
+	acp_entrypoint: string;
+	adapter_entrypoint: string;
+}
+
 export type LiveResponsePayload =
 	| {
 			type: "authenticated";
@@ -97,10 +103,12 @@ export type LiveResponsePayload =
 			applied_mounts: number;
 			applied_software: number;
 			projected_commands: LiveProjectedCommand[];
+			agents: LiveAgentosProjectedAgent[];
 	  }
 	| {
 			type: "package_linked";
 			projected_commands: LiveProjectedCommand[];
+			agents: LiveAgentosProjectedAgent[];
 	  }
 	| {
 			type: "provided_commands_response";
@@ -275,6 +283,7 @@ export function fromGeneratedResponsePayload(
 						guest_path: command.guestPath,
 					}),
 				),
+				agents: payload.val.agents.map(fromGeneratedAgentosProjectedAgent),
 			};
 		case "PackageLinkedResponse":
 			return {
@@ -285,6 +294,7 @@ export function fromGeneratedResponsePayload(
 						guest_path: command.guestPath,
 					}),
 				),
+				agents: payload.val.agents.map(fromGeneratedAgentosProjectedAgent),
 			};
 		case "ProvidedCommandsResponse":
 			return {
@@ -545,4 +555,14 @@ export function fromGeneratedResponsePayload(
 				envelope: fromGeneratedExtEnvelope(payload.val),
 			};
 	}
+}
+
+function fromGeneratedAgentosProjectedAgent(
+	agent: protocol.AgentosProjectedAgent,
+): LiveAgentosProjectedAgent {
+	return {
+		id: agent.id,
+		acp_entrypoint: agent.acpEntrypoint,
+		adapter_entrypoint: agent.adapterEntrypoint,
+	};
 }

@@ -461,6 +461,7 @@ fn create_vm_root_filesystem_composes_multiple_lowers_with_bootstrap_upper() {
                     content: None,
                     encoding: None,
                     recursive: false,
+            max_depth: None,
                     mode: None,
                     uid: None,
                     gid: None,
@@ -520,14 +521,18 @@ fn vm_layer_rpcs_and_module_access_mounts_are_scoped_per_vm() {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("configure vm");
     match configure.response.payload {
         ResponsePayload::VmConfiguredResponse(response) => {
-            // 2 = the module_access node_modules mount + the always-present
-            // `/opt/agentos` package projection mount added by configure_vm.
-            assert_eq!(response.applied_mounts, 2);
+            // 1 = just the module_access node_modules mount. With no packages
+            // configured there are no granular `/opt/agentos` leaf mounts (the
+            // projection adds a tar/bin/current mount per package, not a single
+            // always-present staging mount).
+            assert_eq!(response.applied_mounts, 1);
         }
         other => panic!("unexpected configure response: {other:?}"),
     }
@@ -544,6 +549,7 @@ fn vm_layer_rpcs_and_module_access_mounts_are_scoped_per_vm() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,

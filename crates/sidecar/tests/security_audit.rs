@@ -126,6 +126,8 @@ fn filesystem_permission_denials_emit_security_audit_events() {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("configure vm permissions");
@@ -142,6 +144,7 @@ fn filesystem_permission_denials_emit_security_audit_events() {
                 content: Some(String::from("blocked")),
                 encoding: Some(RootFilesystemEntryEncoding::Utf8),
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -169,6 +172,7 @@ fn filesystem_permission_denials_emit_security_audit_events() {
                 content: None,
                 encoding: None,
                 recursive: false,
+            max_depth: None,
                 mode: None,
                 uid: None,
                 gid: None,
@@ -263,6 +267,8 @@ fn mount_operations_emit_security_audit_events() {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("mount workspace");
@@ -282,6 +288,8 @@ fn mount_operations_emit_security_audit_events() {
                 loopback_exempt_ports: Vec::new(),
                 packages: Vec::new(),
                 packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
             }),
         ))
         .expect("unmount workspace");

@@ -111,6 +111,8 @@ fn live_bare_codec_matches_generated_request_bytes() {
             loopback_exempt_ports: vec![3000],
             packages: Vec::new(),
             packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
         }),
     ));
     let live_configure_payload =
@@ -146,6 +148,8 @@ fn live_bare_codec_decodes_generated_response_bytes() {
         payload: ResponsePayload::VmConfiguredResponse(VmConfiguredResponse {
             applied_mounts: 2,
             applied_software: 0,
+                projected_commands: Vec::new(),
+            agents: Vec::new(),
         }),
     });
     let payload = serde_bare::to_vec(&generated).expect("encode generated response");
@@ -161,6 +165,8 @@ fn live_bare_codec_decodes_generated_response_bytes() {
             live_protocol::ResponsePayload::VmConfigured(live_protocol::VmConfiguredResponse {
                 applied_mounts: 2,
                 applied_software: 0,
+                projected_commands: Vec::new(),
+                agents: Vec::new(),
             }),
         )),
     );
@@ -190,6 +196,7 @@ fn generated_protocol_preserves_guest_filesystem_call_offsets() {
         content: None,
         encoding: None,
         recursive: false,
+            max_depth: None,
         mode: None,
         uid: None,
         gid: None,
@@ -273,6 +280,8 @@ fn generated_configure_frame() -> ProtocolFrame {
             loopback_exempt_ports: vec![3000],
             packages: Vec::new(),
             packages_mount_at: String::new(),
+            bootstrap_commands: Vec::new(),
+            tool_shim_commands: Vec::new(),
         }),
     })
 }

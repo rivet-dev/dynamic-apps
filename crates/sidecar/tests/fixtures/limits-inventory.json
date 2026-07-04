@@ -6,6 +6,36 @@
 		"rationale": "Linux ELOOP mirror of the kernel invariant."
 	},
 	{
+		"name": "MAX_REALPATH_SYMLINKS",
+		"path": "crates/vfs/src/posix/mount_table.rs",
+		"class": "invariant",
+		"rationale": "ELOOP bound for cross-mount symlink resolution in realpath."
+	},
+	{
+		"name": "MAX_TAR_INDEX_ENTRIES",
+		"path": "crates/vfs/src/posix/tar_fs.rs",
+		"class": "invariant",
+		"rationale": "Caps a malformed tar's member count so the in-memory index cannot exhaust host memory."
+	},
+	{
+		"name": "MAX_TAR_CACHE_ARCHIVES",
+		"path": "crates/vfs/src/posix/tar_fs.rs",
+		"class": "invariant",
+		"rationale": "Bounded, refcounted digest-keyed archive mmap cache; evicts with a warning."
+	},
+	{
+		"name": "MAX_TAR_SYMLINKS",
+		"path": "crates/vfs/src/posix/tar_fs.rs",
+		"class": "invariant",
+		"rationale": "ELOOP bound for symlink resolution within a single tar archive."
+	},
+	{
+		"name": "MAX_AGENTOS_PACKAGE_MOUNTS",
+		"path": "crates/sidecar/src/package_projection.rs",
+		"class": "policy-deferred",
+		"rationale": "Per-VM cap on granular /opt/agentos leaf mounts; not yet wired to VmLimits."
+	},
+	{
 		"name": "MAX_BENCHMARK_ITERATIONS",
 		"path": "crates/execution/src/benchmark.rs",
 		"class": "invariant",
