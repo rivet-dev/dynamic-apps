@@ -113,14 +113,15 @@ for CRATE_DIR in $CRATE_DIRS; do
                     patch -p1 -d "$VENDOR_CRATE" < "$PATCH" > /dev/null 2>&1
                     echo "applied"
                 elif patch --dry-run -R -p1 -d "$VENDOR_CRATE" < "$PATCH" > /dev/null 2>&1; then
-                    patch -R -p1 -d "$VENDOR_CRATE" < "$PATCH" > /dev/null 2>&1
-                    patch -p1 -d "$VENDOR_CRATE" < "$PATCH" > /dev/null 2>&1
-                    echo "reapplied"
+                    echo "already applied"
                 else
                     # Mixed state (e.g. an interrupted earlier run left some
                     # hunks applied): apply the remaining hunks, tolerating
                     # already-applied ones; fail only on genuine rejects.
-                    OUT=$(patch -p1 -N -r /dev/null -d "$VENDOR_CRATE" < "$PATCH" 2>&1); RC=$?
+                    set +e
+                    OUT=$(patch -p1 -N -r /dev/null -d "$VENDOR_CRATE" < "$PATCH" 2>&1)
+                    RC=$?
+                    set -e
                     if [ $RC -le 1 ] && ! echo "$OUT" | grep -q "FAILED"; then
                         echo "converged (mixed state)"
                     else

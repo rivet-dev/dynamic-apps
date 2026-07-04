@@ -234,8 +234,17 @@ fn embed_static_utility_locales(
     )?;
 
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap_or_default();
-    let Some(registry_dir) = Path::new(&manifest_dir).parent() else {
+    let Some(native_dir) = Path::new(&manifest_dir)
+        .parent()
+        .and_then(Path::parent)
+    else {
         return Ok(()); // nothing to scan
+    };
+    let vendor_dir = native_dir.join("vendor");
+    let registry_dir = if vendor_dir.exists() {
+        vendor_dir.as_path()
+    } else {
+        native_dir
     };
 
     // First, try to embed uucore locales - critical for common translations like "Usage:"
@@ -252,16 +261,15 @@ fn embed_static_utility_locales(
     for entry in entries {
         let file_name = entry.file_name();
         if let Some(dir_name) = file_name.to_str() {
-            // Match uu_<util>-<version>
-            if let Some((util_part, _)) = dir_name.split_once('-') {
-                if let Some(util_name) = util_part.strip_prefix("uu_") {
-                    embed_component_locales(
-                        embedded_file,
-                        locales_to_embed,
-                        util_name,
-                        |locale| entry.path().join(format!("locales/{locale}.ftl")),
-                    )?;
-                }
+            // Match cargo-vendor's uu_<util> directories and registry uu_<util>-<version> names.
+            let util_part = dir_name.split_once('-').map_or(dir_name, |(name, _)| name);
+            if let Some(util_name) = util_part.strip_prefix("uu_") {
+                embed_component_locales(
+                    embedded_file,
+                    locales_to_embed,
+                    util_name,
+                    |locale| entry.path().join(format!("locales/{locale}.ftl")),
+                )?;
             }
         }
     }

@@ -9,7 +9,7 @@
      fsext::{MetadataTimeField, metadata_get_time},
      line_ending::LineEnding,
      os_str_as_bytes_lossy,
-@@ -77,6 +77,38 @@
+@@ -77,6 +77,60 @@
      translate,
      version_cmp::version_cmp,
  };
@@ -18,37 +18,59 @@
 +
 +#[cfg(target_os = "wasi")]
 +mod wasi_host_fs {
++    use std::env;
++
 +    use super::{Metadata, Path};
 +
 +    mod host_fs {
 +        #[link(wasm_import_module = "host_fs")]
 +        unsafe extern "C" {
-+            pub fn path_mode(path_ptr: *const u8, path_len: u32, follow_symlinks: u32) -> u32;
++            pub fn path_mode(
++                fd: u32,
++                path_ptr: *const u8,
++                path_len: u32,
++                follow_symlinks: u32,
++            ) -> u32;
 +        }
 +    }
 +
-+    pub fn mode_for_path(path: &Path, metadata: &Metadata, follow_symlinks: bool) -> u32 {
++    fn fallback_mode(metadata: &Metadata) -> u32 {
++        if metadata.is_dir() { 0o040755 } else { 0o100644 }
++    }
++
++    fn raw_mode_for_path(path: &Path, follow_symlinks: bool) -> u32 {
 +        let Some(path_str) = path.to_str() else {
-+            return if metadata.is_dir() { 0o040755 } else { 0o100644 };
++            return 0;
 +        };
-+        let mode = unsafe {
++        unsafe {
 +            host_fs::path_mode(
++                3,
 +                path_str.as_ptr(),
 +                path_str.len() as u32,
 +                if follow_symlinks { 1 } else { 0 },
 +            )
-+        };
-+        if mode == 0 {
-+            if metadata.is_dir() { 0o040755 } else { 0o100644 }
-+        } else {
++        }
++    }
++
++    pub fn mode_for_path(path: &Path, metadata: &Metadata, follow_symlinks: bool) -> u32 {
++        let mode = raw_mode_for_path(path, follow_symlinks);
++        if mode != 0 {
 +            mode
++        } else if path.is_relative() {
++            env::current_dir()
++                .ok()
++                .map(|cwd| raw_mode_for_path(&cwd.join(path), follow_symlinks))
++                .filter(|mode| *mode != 0)
++                .unwrap_or_else(|| fallback_mode(metadata))
++        } else {
++            fallback_mode(metadata)
 +        }
 +    }
 +}
  
  mod dired;
  use dired::{DiredOutput, is_dired_arg_present};
-@@ -2982,7 +3014,15 @@
+@@ -2982,7 +3036,15 @@
          let is_acl_set = false;
          #[cfg(all(unix, not(any(target_os = "android", target_os = "macos"))))]
          let is_acl_set = has_acl(item.path());

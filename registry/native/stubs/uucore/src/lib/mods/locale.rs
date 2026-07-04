@@ -288,10 +288,36 @@ fn create_english_bundle_from_embedded(
 }
 
 fn get_message_internal(id: &str, args: Option<FluentArgs>) -> String {
+    ensure_localization_from_argv();
     LOCALIZER.with(|lock| {
         lock.get()
             .map_or_else(|| id.to_string(), |loc| loc.format(id, args.as_ref())) // Return the key ID if localizer not initialized
     })
+}
+
+fn ensure_localization_from_argv() {
+    if LOCALIZER.with(|lock| lock.get().is_some()) {
+        return;
+    }
+
+    thread_local! {
+        static LOCALIZATION_AUTO_INIT_ATTEMPTED: Cell<bool> = const { Cell::new(false) };
+    }
+    if LOCALIZATION_AUTO_INIT_ATTEMPTED.with(|flag| flag.replace(true)) {
+        return;
+    }
+
+    let Some(program) = std::env::args_os().next() else {
+        return;
+    };
+    let Some(util_name) = Path::new(&program)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(crate::get_canonical_util_name)
+    else {
+        return;
+    };
+    let _ = setup_localization(util_name);
 }
 
 /// Retrieves a localized message by its identifier.
