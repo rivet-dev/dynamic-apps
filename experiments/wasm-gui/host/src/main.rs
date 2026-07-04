@@ -2372,7 +2372,13 @@ mod window {
                         )
                         .await;
                     eprintln!("secure-exec: started dbus-daemon {dbusd_abs}");
-                    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+                    // Increment 3: infra bring-up waits are env-tunable so the boot can be compressed while
+                    // keeping the daemon-bound-before-dependents ordering. Defaults preserve the prior 2s/4s.
+                    let dbus_wait_ms: u64 = std::env::var("SX_INFRA_DBUS_MS")
+                        .ok().and_then(|v| v.parse().ok()).unwrap_or(2000);
+                    let svc_wait_ms: u64 = std::env::var("SX_INFRA_SVC_MS")
+                        .ok().and_then(|v| v.parse().ok()).unwrap_or(4000);
+                    tokio::time::sleep(std::time::Duration::from_millis(dbus_wait_ms)).await;
                     for (i, svc) in dbus_services.iter().enumerate() {
                         if let Ok(svc_abs) = abs_path(svc) {
                             let mut senv = HashMap::new();
@@ -2386,7 +2392,7 @@ mod window {
                                 .execute_env(&format!("dbussvc{i}"), &svc_abs, &[], senv)
                                 .await;
                             eprintln!("secure-exec: started dbus service {svc_abs}");
-                            tokio::time::sleep(std::time::Duration::from_secs(4)).await;
+                            tokio::time::sleep(std::time::Duration::from_millis(svc_wait_ms)).await;
                         }
                     }
                 }
@@ -2445,6 +2451,8 @@ mod window {
             // unrendered (panel-only ~4.8 % vs the silence-gate's full 95 %). Kept behind the flag for
             // future refinement (a per-app readiness signal, not raw coverage).
             let paint_gate = std::env::var("PAINT_GATE").ok().as_deref() == Some("1");
+            // SX_BURST_LAUNCH=1: launch all apps concurrently once the WM is managing (Xvfb fb-write stress test).
+            let burst_launch = std::env::var("SX_BURST_LAUNCH").ok().as_deref() == Some("1");
             let paint_fallback = std::time::Duration::from_millis(
                 std::env::var("PAINT_FALLBACK_MS")
                     .ok()
@@ -2460,6 +2468,15 @@ mod window {
                 .clone()
                 .map(|d| d.join("data/Xvfb_screen0"));
             let mut cov_at_last_launch = 0.0f64;
+            // Increment 3: min gap between consecutive concurrent-burst launches (a gentle stagger so the
+            // burst spreads over a few hundred ms rather than one thundering-herd tick). Tunable to dial
+            // concurrency vs the render ceiling during measurement.
+            let launch_stagger = std::time::Duration::from_millis(
+                std::env::var("SX_LAUNCH_STAGGER_MS")
+                    .ok()
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(800),
+            );
             loop {
                 let timed = tokio::time::timeout(std::time::Duration::from_millis(300), events.recv());
                 match timed.await {
@@ -2486,9 +2503,15 @@ mod window {
                     Ok(Ok(_)) | Err(_) => {}
                     Ok(Err(_)) => break,
                 }
-                // Gate first app on the WM; fall back after 12s like the headless path.
+                // Gate first app on the WM managing. xfwm4 emits NO stdout marker, and its EWMH
+                // `_NET_SUPPORTING_WM_CHECK` property is set only after full init (~49s under contention, LATER
+                // than this fallback — measured 2026-07-05), so there is no usable earlier real signal. The
+                // env-tunable timer (SX_WM_FALLBACK_MS, default 12s) is the effective early-launch heuristic; the
+                // apps' own init overlaps the WM catching up, so launching here still reaches full coverage.
+                let wm_fallback_ms: u64 = std::env::var("SX_WM_FALLBACK_MS")
+                    .ok().and_then(|v| v.parse().ok()).unwrap_or(12000);
                 if server_ready && launched > 0 && !wm_ready
-                    && last_launch.elapsed() >= std::time::Duration::from_secs(12)
+                    && last_launch.elapsed() >= std::time::Duration::from_millis(wm_fallback_ms)
                 {
                     wm_ready = true;
                 }
@@ -2511,12 +2534,26 @@ mod window {
                     launched == 0
                         || cov_now >= cov_at_last_launch + paint_delta
                         || last_launch.elapsed() >= paint_fallback
+                } else if burst_launch {
+                    // Xvfb-throughput test (SX_BURST_LAUNCH=1): once the WM is managing, launch EVERY remaining
+                    // app back-to-back (stagger-limited only), so their init draws overlap and stress the single
+                    // Xvfb's framebuffer-write path. This collapsed all-black on the base64 fb-write transport
+                    // (31s pump-starve); it is the direct test of whether the SAB bulk fb-write (SECURE_EXEC_
+                    // T1_RING) clears that starvation and opens the sub-settle concurrent-boot path.
+                    launched == 0 || wm_ready
                 } else {
+                    // Increment 3 (PARALLEL-SERVICING-PLAN.md) — quiet-gated launch. ALL rendering funnels
+                    // through ONE single-threaded Xvfb guest, so a true concurrent burst saturates its
+                    // framebuffer-write path and starves the main pump's framebuffer reads (measured: 4-app
+                    // burst → 31s pump-starve → all-black on base64). The reliable signal is app QUIESCENCE:
+                    // launch the next only once the previous has finished its heavy init draw (gone quiet for
+                    // `settle`). The residual floor is the Xvfb serial render ceiling; SX_BURST_LAUNCH + the SAB
+                    // bulk fb-write transport is the lever to push past it.
                     let can = launched == 0 || wm_ready;
                     can && last_activity.elapsed() >= settle
                 };
                 if server_ready && launched < clients_owned.len() && ready_next
-                    && last_launch.elapsed() >= std::time::Duration::from_millis(800)
+                    && last_launch.elapsed() >= launch_stagger
                 {
                     let spec = &clients_owned[launched];
                     let mut parts = spec.split_whitespace();

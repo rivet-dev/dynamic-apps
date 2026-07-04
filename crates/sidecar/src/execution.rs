@@ -14537,6 +14537,58 @@ fn lookup_unix_listener_readiness(
     paired
 }
 
+/// ★ Lever 1, REVERSE direction. Only `client -> server` writes were paired (via the listener registry above),
+/// so the SERVER's reply (`server -> client`) still woke the client up to a poll-clamp (~8ms) late — the
+/// dominant X round-trip hop. This per-guest-path FIFO lets `net.connect` stash the CLIENT's readiness and the
+/// server's `net.accept` pop it, so the accepted socket's `peer_readiness` is the client and the server's write
+/// wakes the client inline too. Accept order matches connect order for a listener, so a FIFO pairs them; a
+/// spurious mismatch only misdirects one inline notify (harmless — the poll clamp still covers it). Keyed by the
+/// GUEST socket path (both connect and the accepted socket's local_path carry it), so no host-path resolution is
+/// needed at accept. No-op unless lever 1 is enabled.
+#[allow(clippy::type_complexity)]
+fn unix_pending_client_readiness_registry(
+) -> &'static std::sync::Mutex<
+    std::collections::HashMap<String, std::collections::VecDeque<std::sync::Weak<crate::state::SocketReadiness>>>,
+> {
+    static REG: std::sync::OnceLock<
+        std::sync::Mutex<
+            std::collections::HashMap<
+                String,
+                std::collections::VecDeque<std::sync::Weak<crate::state::SocketReadiness>>,
+            >,
+        >,
+    > = std::sync::OnceLock::new();
+    REG.get_or_init(|| std::sync::Mutex::new(std::collections::HashMap::new()))
+}
+
+fn push_pending_client_readiness(
+    guest_path: &str,
+    readiness: &Arc<crate::state::SocketReadiness>,
+) {
+    if !inline_peer_notify_enabled() {
+        return;
+    }
+    if let Ok(mut map) = unix_pending_client_readiness_registry().lock() {
+        map.entry(guest_path.to_string())
+            .or_default()
+            .push_back(Arc::downgrade(readiness));
+    }
+}
+
+fn pop_pending_client_readiness(guest_path: &str) -> Option<Arc<crate::state::SocketReadiness>> {
+    if !inline_peer_notify_enabled() {
+        return None;
+    }
+    let mut map = unix_pending_client_readiness_registry().lock().ok()?;
+    let q = map.get_mut(guest_path)?;
+    while let Some(weak) = q.pop_front() {
+        if let Some(readiness) = weak.upgrade() {
+            return Some(readiness);
+        }
+    }
+    None
+}
+
 impl secure_exec_execution::InlineNetDrain for UnixInlineNetDrain {
     fn try_poll(&self, socket_ids: &[String], single: bool) -> Option<Value> {
         // No registry (e.g. a worker-thread drain) => net.poll always routes to
@@ -21211,6 +21263,9 @@ where
                 // ★ Lever 1: pair this client socket with the server listening at host_path, so our writes
                 // wake the server inline (no-op unless the feature is enabled / no server found).
                 socket.peer_readiness = lookup_unix_listener_readiness(&host_path);
+                // ★ Lever 1 reverse: stash OUR readiness so the server's net.accept can pair its accepted
+                // socket back to us — so the server's REPLY wakes us inline too (the dominant hop).
+                push_pending_client_readiness(&guest_path, &process.socket_readiness);
                 let socket_id = process.allocate_unix_socket_id();
                 process.register_inline_unix_socket(&socket_id, &socket);
                 process.unix_sockets.insert(socket_id.clone(), socket);
@@ -22095,13 +22150,19 @@ where
                             "message": error.to_string(),
                         }));
                     }
-                    let socket = ActiveUnixSocket::from_stream(
+                    let mut socket = ActiveUnixSocket::from_stream(
                         pending.stream,
                         Some(listener_id.to_string()),
                         pending.local_path.clone(),
                         pending.remote_path.clone(),
                         Arc::clone(&process.socket_readiness),
                     )?;
+                    // ★ Lever 1 reverse: pair this accepted (server-side) socket back to the client that
+                    // connected, so the server's writes wake the client inline (keyed by the guest listen path,
+                    // which is the client's connect path). No-op unless lever 1 is enabled.
+                    if let Some(ref local_path) = pending.local_path {
+                        socket.peer_readiness = pop_pending_client_readiness(&normalize_path(local_path));
+                    }
                     let socket_id = process.allocate_unix_socket_id();
                     if let Some(listener) = process.unix_listeners.get_mut(listener_id) {
                         listener.register_connection(&socket_id);
@@ -22220,13 +22281,24 @@ where
                         "localPath": pending.local_path.clone(),
                         "remotePath": pending.remote_path.clone(),
                     });
-                    let socket = ActiveUnixSocket::from_stream(
+                    // ★ Lever 1 reverse: the guest accepts via net.server_accept (NOT net.accept), so this is
+                    // the arm that must pair the accepted (server-side) socket back to the connecting client.
+                    // Without it every server→client REPLY write is on an UNPAIRED socket (peer_readiness=None)
+                    // and wakes the client only up to a poll-clamp late — the dominant X round-trip hop (Xvfb's
+                    // replies). Keyed by the guest listen path (= the client's connect path), same as net.accept.
+                    // No-op unless lever 1 is enabled (pop returns None).
+                    let accept_local_path = pending.local_path.clone();
+                    let mut socket = ActiveUnixSocket::from_stream(
                         pending.stream,
                         Some(listener_id.to_string()),
                         pending.local_path,
                         pending.remote_path,
                         Arc::clone(&process.socket_readiness),
                     )?;
+                    if let Some(ref local_path) = accept_local_path {
+                        socket.peer_readiness =
+                            pop_pending_client_readiness(&normalize_path(local_path));
+                    }
                     let socket_id = process.allocate_unix_socket_id();
                     if let Some(listener) = process.unix_listeners.get_mut(listener_id) {
                         listener.register_connection(&socket_id);

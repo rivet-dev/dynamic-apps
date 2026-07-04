@@ -221,3 +221,91 @@ threads with NO `sx-vmsvc-*` threads; only after the plumbing fix do 20+ `sx-vms
 - **Open decision (needs owner input):** keep `SX_PARALLEL_VMS` OFF and pivot the ≤15s effort to the real
   bottleneck — Xvfb render / framebuffer-write throughput (the SAB dataBuffer lever, see the M8.6 futex-storm
   memory) — OR run a clean-machine A/B first to be certain per-VM servicing is a net regression before shelving it.
+
+### 2026-07-05 — RESOLVED: controlled A/B confirms per-VM = regression; per-VM stays OFF; Increment 3 shipped as tunables
+- **Interleaved A/B (PV=1 vs PV=0 alternating, same load window, RUNS=1 ×5 pairs):** PV=1 = **0/5 FULL, 5/5
+  identical panel-only (4.8%)**; PV=0 = **4/5 FULL @~52s** (1 load-induced black). The perfectly-systematic
+  panel-only under PV=1 vs the control's random variance is conclusive: **per-VM servicing is a net regression
+  for the desktop boot.** The Xvfb single-threaded render is the binding constraint, not dispatch pickup latency.
+  → `SX_PARALLEL_VMS` stays **OFF by default** (code default already false; the feature is preserved for
+  many-independent-VM workloads, just not the shared-Xvfb desktop).
+- **Increment 3 disposition:** the boot is inherently fragile to external scheduling jitter (single-threaded host
+  broker) — every compressed launch config (C1, WM-only, "modest") collapsed to all-black under the concurrent
+  external load (other sessions: agentos-sidecars + rustc) that the *generous* defaults survived. A validated
+  faster DEFAULT needs a quiet machine. So Increment 3 ships the **mechanism** (env-tunable infra/WM/stagger/
+  settle + the harness plumbing fix) with **robust defaults**; the aggressive compression toward ≤15s is left to
+  the tunables + a quiet-machine window. **≤15s is not achievable via launch orchestration alone** — it is gated
+  on the Xvfb render/framebuffer-write throughput lever (the real remaining work).
+- **Deadlock fix verified:** the `configure_vm` reentrant re-lock is gone (net_poll_suite no longer panics
+  `[REENTRANT-VM-LOCK]`; it now reaches a pre-existing fake-wasm-fixture `start_execution` failure, unrelated to
+  this work). 85 lib + all kernel + 87/88 service integration tests pass.
+- **Landed on `wasm-gui-desktop` (PR #104):** `rumlrwpk` (2c-2: per-VM servicing gated OFF + VFS Send refactor +
+  deadlock fix + test-binary repair) and `yptupqtv` (Increment 3: tunable launch orchestration + plumbing fix).
+
+### 2026-07-05 — Xvfb-throughput lever (T1 SAB fb-write) INVESTIGATED: a modest reliability win, NOT the ≤15s unlock
+Pursued the framebuffer-write throughput lever. The SAB bulk fb-write path (guest `maybeBulkEncodeFsPayload` →
+kernel `read_bulk_arg`, gated `SECURE_EXEC_T1_RING=1`, 8 MiB bulk buffer) is already **fully built** by a prior
+session (`#[allow(dead_code)]`); a `[fb-delta]` diff also already keeps most Xvfb writes as small changed-block
+runs on the cheap base64 path, so T1 only replaces the occasional **full-frame** (≥64 KiB) write. Plumbed
+`SECURE_EXEC_T1_RING` (+ a new `SX_BURST_LAUNCH=1` fb-write stress option) through the harness (both were missing,
+like `SX_PARALLEL_VMS`). Interleaved A/Bs under external load:
+- **Settle-gated PV=0, T1 on vs off (4 pairs):** T1 ON **3/4 FULL**, T1 OFF **1/4 FULL** — in the same load
+  moment T1 ON rendered while T1 OFF went all-black. → T1 is a **modest reliability win** (fewer fb-write-
+  starvation blacks). No speedup (53s is launch-serialization bound).
+- **Burst (all apps concurrent), T1 on vs off:** 8/8 all-black regardless of T1 → the burst's bottleneck is the
+  **single dispatch thread (PV=0) overwhelmed by 5 concurrently-initializing guests**, not fb-write encoding.
+- **PV=1, T1 on vs off (4 pairs):** 8/8 identical panel-only regardless of T1 → **T1 does NOT fix the per-VM
+  regression** (that stall is CPU oversubscription from 20+ always-polling threads, not the fb-write lock-hold).
+  The "PV=1 (parallel dispatch) + T1 (cheap fb-write)" combination also fails.
+**Conclusion:** T1 is worth shipping as an opt-in reliability lever (validate on a quiet machine before flipping
+the default), but it is **NOT the ≤15s unlock.** The real remaining blocker is **concurrent guest init**: 5 heavy
+wasm guests cannot initialize at once (single dispatch overwhelmed under PV=0; CPU-oversubscribed under PV=1) —
+a deeper concurrency-management problem than framebuffer-write throughput. `SECURE_EXEC_T1_RING` + `SX_BURST_LAUNCH`
+stay OFF by default. Full artifacts: `~/progress/secure-exec/2026-07-05-xvfb-throughput-sab/`.
+
+### 2026-07-05 — Cheaper-init + orchestration-waits INVESTIGATED: ≤15s is architecturally out of reach; ~53s is a load-bearing equilibrium
+Profiled the boot end-to-end (RPCPROF per-guest syscall table + PATHOPENPROF paths + milestone timeline).
+- **WASM compile is NOT the cost:** `new WebAssembly.Module` for a 13.8MB GTK app = **11ms** (V8 lazy compile);
+  instantiate 1-4ms. So compile-cache / isolate-snapshot buy ~nothing. (The bridge-JS snapshot is already shared.)
+- **Per-guest init = a FS SCAN STORM, but its DIRECT cost is cheap (~700ms total, 60k calls @ ~30µs).** The
+  dominant consumer is **xfwm4** re-reading `/usr/share/themes/Greybird/xfwm4/*` — 113 assets × 13 reopens = 1469
+  opens + ~7000 stats (NOT fontconfig: 18 font opens). Redundant immutable re-reads.
+- **The ~53s is ORCHESTRATION WAITS, not work:** ~12s infra (dbus 2s + xfconfd 4s + Xvfb ~6s) + ~12s WM gate +
+  ~27s per-app settle gaps. The fs storm matters only INDIRECTLY (keeps apps chatty → longer settles; overlapping
+  storms overwhelm the single dispatch under concurrency).
+- **WM-ready EWMH signal: dead end.** Replacing the 12s silent-xfwm4 fallback with a `_NET_SUPPORTING_WM_CHECK`
+  probe: the property is set only ~49s in (after render, LATER than the 12s fallback) because xfwm4's full init
+  under single-dispatch contention takes ~37s. No usable earlier signal; the 12s fallback is load-bearing. Reverted.
+- **Every compressed launch / trimmed-wait config collapses under external CPU load** that the generous defaults
+  survive — the boot is jitter-fragile (single-dispatch ceiling), so aggressive orchestration trims need a quiet host.
+
+**Overall conclusion (6 levers taken to ground):** per-VM servicing (regression), launch orchestration (tunable
+but load-fragile), Xvfb SAB throughput (modest reliability win), compile-cache (refuted, 11ms), fs-scan reduction
+(cheap to service), WM-ready signal (EWMH too late) — NONE is the ≤15s unlock. The ~53s settle-gated boot is a
+deeply-constrained equilibrium bound by the **single-owner `&mut sidecar` dispatch pump** serializing all guests'
+syscalls (ROOT-2-MULTIPLEX-DESIGN.md) + load-fragility. ≤15s needs a fundamental dispatch re-architecture (a
+BOUNDED servicing thread-pool — NOT per-VM-thread, which oversubscribed) — a major separate project, not a lever.
+Shipped this session (all OFF/opt-in by default): tunable launch orchestration, T1/burst plumbing, RPCPROF/path
+profiling plumbing, the `configure_vm` deadlock fix, the VFS Send refactor, test-binary repair.
+
+### 2026-07-06 — ROOT CAUSE FOUND: the boot is NOTIFY-GAP bound, not dispatch-bound. Fix mechanism PROVEN.
+Phase 1 (de-risk) OVERTURNED the whole premise:
+- **The single dispatch pump is 99.7% IDLE** (DISPATCH BUSY 0.3-0.36%) in BOTH successful and collapsed boots
+  (SECURE_EXEC_RPC_WATCHDOG_DUMP_MS). A dispatch thread-pool is REFUTED — it parallelizes an idle resource.
+- **The boot = (thousands of X round-trips) × (peerWait ~8.3ms/hop).** HOPPROF: wakeLag notify→resume = 8µs,
+  respond = 8µs (wake+delivery INSTANT), so the ~8.3ms is peerWait.
+- **peerWait is a NOTIFY GAP, not compute:** 80-96% of poll_wait completions are DEADLINE (Xvfb = 96%),
+  DEADLINE_PROBE 0% data-at-block-entry. The peer wakes on its ~8ms POLL CLAMP instead of on incoming data,
+  because the writer does not notify the peer's readiness — so every hop pays the clamp.
+- **Fix mechanism PROVEN:** `SECURE_EXEC_INLINE_PEER_NOTIFY` (lever 1) wakes the peer inline on write. It was
+  wired ONE direction only (client→server, via the listener-host-path registry). Added the REVERSE direction
+  (server→client): a per-guest-path FIFO where net.connect stashes the client's readiness and net.accept pops it
+  to pair the accepted socket's peer_readiness. Result: **xfdesktop deadline 78%→34%, xfwm4 79%→51%** — the
+  mechanism demonstrably cuts the deadline waits where it applies.
+- **REMAINING (the dominant path):** Xvfb stays 90% deadline + peerWait unchanged, because the inline peer-notify
+  is wired only into host-unix `net.write` (`process.unix_sockets`), but the X protocol's hot writes go through
+  the KERNEL-fd socket path (`__kernel_fd_write` → `kernel.fd_write`) which does NOT notify the peer's readiness.
+  NEXT: extend inline peer-notify to the kernel-socket write path (both directions) so client requests wake Xvfb
+  and Xvfb's replies wake the clients — that should collapse peerWait from 8.3ms toward the 8µs wakeLag floor.
+- Plumbed for this work: SECURE_EXEC_RPC_WATCHDOG_MS/_DUMP_MS, SECURE_EXEC_RPCPROF. All fixes gated OFF by default
+  (INLINE_PEER_NOTIFY). Artifacts: ~/progress/secure-exec/2026-07-05-xvfb-throughput-sab/dispatch-decomposition.md.
