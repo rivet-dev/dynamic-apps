@@ -74,6 +74,34 @@ guest init stops serializing. Everything else has been shipped or refuted (see `
   own events. Preserve the F1 event-driven notify (`stdio.rs:283`) + the timer safety net (`stdio.rs:302`).
 - **DoD: serial 5/5 zero-black held; CONCURRENT boot (SX_SERIAL_LAUNCH=0) converges (was 0/3) and BOOT_MS drops.**
 
+#### Increment 2 — CONCRETE DESIGN (mapped 2026-07-04)
+The pickup latency is in the RPC SERVICING (`service_javascript_sync_rpc`), serialized because the whole
+dispatch runs `&mut NativeSidecar` on one task. Parallelizing only event-POLLING would not help — the servicing
+(the expensive part) must run per-VM. Good news: the hot RPCs (net.*, fs.*, __kernel_fd_*) only touch the VM's
+`kernel` (now `Arc<Mutex<VmState>>`) + the Arc-shared `bridge` + `poll_waiter`. So the surgical shape:
+1. **Route the HOT per-VM RPCs to per-session tasks.** Extract the hot-RPC servicing into a path callable with
+   `&self` + Arc handles (VM `Arc<Mutex>`, `bridge`, `poll_waiter`). Spawn one `tokio::spawn` task per session
+   that drains that session's guest sync-RPCs and services them locking ONLY its own VM. Keep the RARE RPCs that
+   touch shared engines/connections/sessions (`wasm.thread_spawn`, `child_process.spawn`, vm lifecycle) routed
+   back to the main dispatch task (they are infrequent, not on the pickup-latency hot path).
+2. **Interior-mutability scope (the refactor cost):** the fields a servicing task or the main dispatch both
+   touch must become interior-mutable/Arc: `pending_process_events` (VecDeque → `Arc<Mutex>` or per-VM queue),
+   the sidecar-response tracker, and the event queue. Most other NativeSidecar fields (engines, connections,
+   sessions, next_* counters) are touched only by the MAIN dispatch (frame handling, vm lifecycle), so they can
+   stay `&mut self` on the main task — do NOT convert them; keep the per-session tasks to the VM + Arc handles.
+3. **Per-VM event routing:** split `pending_process_events`/`process_event` so a session task drains only its
+   own VM's events; the main dispatch still assembles outbound frames. Preserve F1 notify + the timer net.
+4. **lock_vm under multi-thread:** each VM is serviced by ONE task, so its lock is normally uncontended — BUT
+   the main dispatch may also touch a VM (lifecycle). So change `lock_vm` from try_lock+panic to a BLOCKING
+   `lock()` for genuine cross-thread contention PLUS a thread-local held-set that panics only on SAME-thread
+   reentry (the reentrant bug we actually hunt). Do this as the first Increment-2 step.
+5. **Gate everything behind `SX_PARALLEL_VMS`** (default = single-thread, current behavior byte-identical), so
+   the determinism baseline is one env-flip away and the concurrency is A/B-testable + instantly revertible.
+This is a LARGE refactor (dispatch restructure + interior mutability of the event path + per-session task
+spawning). Land it in sub-revisions: (2a) lock_vm multi-thread-safe + `SX_PARALLEL_VMS` multi_thread flag;
+(2b) `pending_process_events` interior-mutable + hot-RPC servicing extracted to an Arc-handle path; (2c) spawn
+per-session servicing tasks + per-VM event routing. Determinism-gate after each.
+
 ### Increment 3 — Delete the serial-settle scaffold; flip defaults ON.
 - Once concurrent boot is 5/5 FULL, remove `SX_SERIAL_LAUNCH`/settle (`host/src/main.rs:1305`, `:2404`), and
   flip `SX_READY_GATE`, `SECURE_EXEC_RECV_OFFBROKER`, `SX_PARALLEL_VMS` defaults ON.
@@ -129,3 +157,12 @@ guest init stops serializing. Everything else has been shipped or refuted (see `
   ~90% reliability sampled unluckily. TODO before Increment 2: confirm vs a baseline re-gate; if real, tighten
   the remaining value-guard lifetimes (drop at last-use like the original NLL borrows) to cut lock-hold time.
 - lock_vm() detector kept (free on the happy path; panics-with-backtrace on any future reentrant regression).
+
+### 2026-07-04 — Step 0 RESOLVED: Increment 1 is clean (baseline is ALSO 4/5)
+Re-gated the pre-Increment-1 parent (ef9f96cf) serial ×5: 4/5 FULL, 55.8s median, 1/5 app-overlap panel-only
+timeout — IDENTICAL to Increment 1's 4/5/55.1s. ∴ Increment 1 did NOT regress determinism; it is behavior-
+identical (single-thread, uncontended). The ~20% app-overlap flakiness is INHERENT to the serial-settle boot
+(the earlier 5/5 gates were lucky samples of an ~80%-reliable process). The fragile settle-gate is the
+flakiness source → removed in Increment 3 (concurrent launch). No guard-tightening needed. Proceed to Increment 2.
+NOTE: the "5/5 determinism gate" is really ~80% inherent reliability today; treat "matches baseline (~4/5, ~55s,
+zero HARD deadlock/black-on-all-runs)" as the pass bar per increment, with true 5/5 the Increment-3 outcome.

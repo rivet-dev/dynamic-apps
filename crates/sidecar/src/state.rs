@@ -1870,22 +1870,57 @@ pub(crate) struct ProcNetEntry {
     pub(crate) inode: u64,
 }
 
-/// Increment 1 diagnostic (TEMPORARY): lock a per-VM mutex, detecting same-thread REENTRANT locks. On the
-/// single-threaded dispatch runtime, `try_lock` fails ONLY when this thread already holds the guard (no other
-/// thread locks the vms map), so a WouldBlock here IS a reentrant double-lock — the deadlock we are hunting.
-/// Panic with a backtrace to pinpoint the exact call chain instead of hanging. Remove once Increment 1 is green.
-pub(crate) fn lock_vm(
-    arc: &std::sync::Arc<std::sync::Mutex<VmState>>,
-) -> std::sync::MutexGuard<'_, VmState> {
-    match arc.try_lock() {
-        Ok(g) => g,
-        Err(std::sync::TryLockError::WouldBlock) => {
-            panic!(
-                "[REENTRANT-VM-LOCK] same-thread double lock of vm@{:p}:\n{}",
-                std::sync::Arc::as_ptr(arc),
-                std::backtrace::Backtrace::force_capture()
-            );
-        }
-        Err(std::sync::TryLockError::Poisoned(e)) => e.into_inner(),
+thread_local! {
+    /// Increment 2: per-thread set of VM-mutex pointers this thread currently holds, so `lock_vm` can detect
+    /// SAME-thread reentrant double-locks (a real deadlock bug) while allowing genuine CROSS-thread contention
+    /// (a servicing task on another thread) to block normally. Single-thread (default) still catches every
+    /// reentrant bug; multi-thread (SX_PARALLEL_VMS) no longer false-panics on legitimate contention.
+    static HELD_VMS: std::cell::RefCell<Vec<usize>> = const { std::cell::RefCell::new(Vec::new()) };
+}
+
+/// RAII guard from [`lock_vm`]. Derefs to `VmState` (drop-in for `MutexGuard`), and on drop removes this VM
+/// from the thread's held-set so the reentrancy detector stays accurate.
+pub(crate) struct VmGuard<'a> {
+    guard: std::sync::MutexGuard<'a, VmState>,
+    ptr: usize,
+}
+
+impl Drop for VmGuard<'_> {
+    fn drop(&mut self) {
+        HELD_VMS.with(|h| {
+            let mut v = h.borrow_mut();
+            if let Some(pos) = v.iter().rposition(|&p| p == self.ptr) {
+                v.remove(pos);
+            }
+        });
     }
+}
+
+impl std::ops::Deref for VmGuard<'_> {
+    type Target = VmState;
+    fn deref(&self) -> &VmState {
+        &self.guard
+    }
+}
+
+impl std::ops::DerefMut for VmGuard<'_> {
+    fn deref_mut(&mut self) -> &mut VmState {
+        &mut self.guard
+    }
+}
+
+/// Lock a per-VM mutex. BLOCKS on genuine cross-thread contention (safe under multi-thread SX_PARALLEL_VMS,
+/// where each VM is serviced by one task but the main dispatch may also touch it), and PANICS with a backtrace
+/// only on a SAME-thread reentrant double-lock (the deadlock class we hunt — std::Mutex is not re-entrant).
+pub(crate) fn lock_vm(arc: &std::sync::Arc<std::sync::Mutex<VmState>>) -> VmGuard<'_> {
+    let ptr = std::sync::Arc::as_ptr(arc) as usize;
+    if HELD_VMS.with(|h| h.borrow().contains(&ptr)) {
+        panic!(
+            "[REENTRANT-VM-LOCK] same-thread double lock of vm@{ptr:x}:\n{}",
+            std::backtrace::Backtrace::force_capture()
+        );
+    }
+    let guard = arc.lock().unwrap_or_else(|poison| poison.into_inner());
+    HELD_VMS.with(|h| h.borrow_mut().push(ptr));
+    VmGuard { guard, ptr }
 }
