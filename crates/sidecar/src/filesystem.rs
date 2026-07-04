@@ -81,6 +81,29 @@ fn kernel_path_error(
         other => other,
     }
 }
+
+fn filesystem_access_denied(path: &str, mode: u32) -> SidecarError {
+    SidecarError::Execution(format!(
+        "EACCES: filesystem access denied for {path} with mode {mode:o}"
+    ))
+}
+
+fn filesystem_access_mode_is_allowed(file_mode: u32, requested: u32) -> bool {
+    const ACCESS_MASK: u32 = libc::R_OK as u32 | libc::W_OK as u32 | libc::X_OK as u32;
+    if requested & ACCESS_MASK == 0 {
+        return true;
+    }
+    if requested & libc::R_OK as u32 != 0 && file_mode & 0o444 == 0 {
+        return false;
+    }
+    if requested & libc::W_OK as u32 != 0 && file_mode & 0o222 == 0 {
+        return false;
+    }
+    if requested & libc::X_OK as u32 != 0 && file_mode & 0o111 == 0 {
+        return false;
+    }
+    true
+}
 const PYTHON_PYODIDE_CACHE_GUEST_ROOT: &str = "/__agentos_pyodide_cache";
 const UTIME_NOW_NSEC: i64 = libc::UTIME_NOW;
 const UTIME_OMIT_NSEC: i64 = libc::UTIME_OMIT;
@@ -1177,6 +1200,7 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                     return open_mapped_host_fd(
                         process,
                         host_path,
+                        Some(path.to_string()),
                         opened.handle.proc_path(),
                         flags,
                     )
@@ -1389,16 +1413,36 @@ pub(crate) fn service_javascript_fs_sync_rpc(
             )?
             .unwrap_or(0);
             if let Some(mapped) = process.mapped_host_fd_mut(fd) {
-                return mapped
+                let guest_path = mapped.guest_path.clone();
+                let host_path = mapped.path.clone();
+                let metadata = mapped
                     .file
                     .set_len(length)
-                    .map(|()| Value::Null)
                     .map_err(|error| {
                         SidecarError::Io(format!(
                             "failed to truncate mapped guest fd {fd} -> {}: {error}",
                             mapped.path.display()
                         ))
-                    });
+                    })
+                    .and_then(|()| {
+                        mapped.file.metadata().map_err(|error| {
+                            SidecarError::Io(format!(
+                                "failed to stat truncated mapped guest fd {fd} -> {}: {error}",
+                                mapped.path.display()
+                            ))
+                        })
+                    })?;
+                if let Some(guest_path) = guest_path {
+                    mirror_mapped_host_file_to_kernel(
+                        kernel,
+                        process,
+                        kernel_pid,
+                        &guest_path,
+                        &host_path,
+                        &metadata,
+                    )?;
+                }
+                return Ok(Value::Null);
             }
             let fd_stat = kernel
                 .fd_stat(EXECUTION_DRIVER_NAME, kernel_pid, fd)
@@ -1597,6 +1641,15 @@ pub(crate) fn service_javascript_fs_sync_rpc(
             let path =
                 javascript_sync_rpc_path_arg(process, &request.args, 0, "filesystem access path")?;
             let path = path.as_str();
+            let mode =
+                javascript_sync_rpc_arg_u32_optional(&request.args, 1, "filesystem access mode")?
+                    .unwrap_or(0);
+            let valid_mask = libc::R_OK as u32 | libc::W_OK as u32 | libc::X_OK as u32;
+            if mode & !valid_mask != 0 {
+                return Err(SidecarError::Execution(format!(
+                    "EINVAL: invalid filesystem access mode {mode:o}"
+                )));
+            }
             if let Some(mapped_host) = mapped_runtime_host_path_for_read(process, path) {
                 materialize_mapped_host_path_from_kernel(kernel, kernel_pid, path, &mapped_host)?;
                 let opened = open_mapped_runtime_beneath(
@@ -1605,19 +1658,25 @@ pub(crate) fn service_javascript_fs_sync_rpc(
                     O_PATH_ANCHOR,
                     Mode::empty(),
                 )?;
-                fs::metadata(opened.handle.proc_path()).map_err(|error| {
+                let metadata = fs::metadata(opened.handle.proc_path()).map_err(|error| {
                     SidecarError::Io(format!(
                         "failed to access mapped guest path {} -> {}: {error}",
                         path,
                         opened.host_path.display()
                     ))
                 })?;
+                if !filesystem_access_mode_is_allowed(metadata.permissions().mode(), mode) {
+                    return Err(filesystem_access_denied(path, mode));
+                }
                 return Ok(Value::Null);
             }
-            kernel
+            let stat = kernel
                 .stat_for_process(EXECUTION_DRIVER_NAME, kernel_pid, path)
-                .map(|_| Value::Null)
-                .map_err(kernel_error)
+                .map_err(kernel_error)?;
+            if !filesystem_access_mode_is_allowed(stat.mode, mode) {
+                return Err(filesystem_access_denied(path, mode));
+            }
+            Ok(Value::Null)
         }
         "fs.copyFileSync" | "fs.promises.copyFile" => {
             let source = javascript_sync_rpc_path_arg(
@@ -2226,6 +2285,32 @@ fn mirror_kernel_path_to_process_shadow(
         .read_file_for_process(EXECUTION_DRIVER_NAME, kernel_pid, guest_path)
         .map_err(kernel_error)?;
     write_process_shadow_file(&shadow_path, guest_path, &bytes)
+}
+
+fn mirror_mapped_host_file_to_kernel(
+    kernel: &mut SidecarKernel,
+    process: &ActiveProcess,
+    kernel_pid: u32,
+    guest_path: &str,
+    host_path: &Path,
+    metadata: &fs::Metadata,
+) -> Result<(), SidecarError> {
+    let bytes = fs::read(host_path).map_err(|error| {
+        SidecarError::Io(format!(
+            "failed to read mapped host file {}: {error}",
+            host_path.display()
+        ))
+    })?;
+    kernel
+        .write_file_for_process(
+            EXECUTION_DRIVER_NAME,
+            kernel_pid,
+            guest_path,
+            bytes,
+            Some(metadata.permissions().mode() & 0o7777),
+        )
+        .map_err(|error| kernel_path_error("fs.ftruncate", guest_path, error))?;
+    mirror_kernel_path_to_process_shadow(kernel, process, kernel_pid, guest_path)
 }
 
 fn write_process_shadow_file(
@@ -3349,6 +3434,7 @@ fn materialize_mapped_host_path_from_kernel(
 fn open_mapped_host_fd(
     process: &mut ActiveProcess,
     host_path: PathBuf,
+    guest_path: Option<String>,
     proc_path: PathBuf,
     flags: u32,
 ) -> Result<Value, SidecarError> {
@@ -3386,6 +3472,7 @@ fn open_mapped_host_fd(
     let fd = process.allocate_mapped_host_fd(crate::state::ActiveMappedHostFd {
         file,
         path: host_path,
+        guest_path,
     });
     Ok(json!(fd))
 }

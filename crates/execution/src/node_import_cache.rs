@@ -3539,6 +3539,13 @@ function createRpcBackedFsSync(fromGuestDir = '/') {
       }
       return createGuestFsStats(callSync('fs.fstatSync', [normalizedFd]));
     },
+    ftruncateSync: (fd, len) => {
+      const normalizedFd = normalizeFsFd(fd);
+      if (isStdioFd(normalizedFd)) {
+        return hostFs.ftruncateSync(normalizedFd, len);
+      }
+      return callSync('fs.ftruncateSync', [normalizedFd, normalizeFsInteger(len ?? 0, 'length')]);
+    },
     linkSync: (existingPath, newPath) =>
       callSync('fs.linkSync', [
         resolveGuestFsPath(existingPath, fromGuestDir),
@@ -3615,6 +3622,11 @@ function createRpcBackedFsSync(fromGuestDir = '/') {
         resolveGuestSymlinkTarget(target, fromGuestDir),
         resolveGuestFsPath(linkPath, fromGuestDir),
         type,
+      ]),
+    truncateSync: (target, len) =>
+      callSync('fs.truncateSync', [
+        resolveGuestFsPath(target, fromGuestDir),
+        normalizeFsInteger(len ?? 0, 'length'),
       ]),
     unlinkSync: (target) =>
       callSync('fs.unlinkSync', [resolveGuestFsPath(target, fromGuestDir)]),

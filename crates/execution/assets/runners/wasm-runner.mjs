@@ -1198,7 +1198,32 @@ function openGuestFileForPathOpen(fd, pathPtr, pathLen, oflags, rightsBase, fdfl
   return writeGuestUint32(openedFdPtr, openedFd);
 }
 
-function retainPathOpenDelegateFd(openedFdPtr, guestPath, fdflags) {
+function fsOpenNumericFlagsForManagedPath(rightsBase, fdflags) {
+  const wantsRead = hasReadRights(rightsBase);
+  const wantsWrite = hasWriteRights(rightsBase);
+  let flags = wantsWrite ? (wantsRead ? 0o2 : 0o1) : 0;
+  if ((Number(fdflags) & WASI_FDFLAGS_APPEND) !== 0) {
+    flags |= 0o2000;
+  }
+  return flags;
+}
+
+function openManagedPathIoFd(guestPath, rightsBase, fdflags) {
+  if (typeof guestPath !== 'string' || guestPath === '/dev/null') {
+    return null;
+  }
+  try {
+    return fsModule.openSync(
+      guestPath,
+      fsOpenNumericFlagsForManagedPath(rightsBase, fdflags),
+      0o666,
+    );
+  } catch {
+    return null;
+  }
+}
+
+function retainPathOpenDelegateFd(openedFdPtr, guestPath, fdflags, rightsBase) {
   if (!(instanceMemory instanceof WebAssembly.Memory)) {
     return WASI_ERRNO_SUCCESS;
   }
@@ -1208,10 +1233,12 @@ function retainPathOpenDelegateFd(openedFdPtr, guestPath, fdflags) {
     const append = (Number(fdflags) & WASI_FDFLAGS_APPEND) !== 0;
     retainDelegateFd(openedFd);
     if (openedFd > 2 && !passthroughHandles.has(openedFd)) {
+      const ioFd = openManagedPathIoFd(guestPath, rightsBase, fdflags);
       closedPassthroughFds.delete(openedFd);
       passthroughHandles.set(openedFd, {
         kind: 'passthrough',
         targetFd: openedFd,
+        ioFd,
         displayFd: openedFd,
         refCount: 0,
         open: true,
@@ -1219,6 +1246,9 @@ function retainPathOpenDelegateFd(openedFdPtr, guestPath, fdflags) {
           typeof guestPath === 'string' &&
           resolveModuleGuestPathToHostMapping(guestPath)?.readOnly === true,
         append,
+        position: append && typeof ioFd === 'number'
+          ? Number(fsModule.fstatSync(ioFd).size ?? 0)
+          : 0,
         ...(typeof guestPath === 'string' ? { guestPath } : {}),
       });
     }
@@ -1467,6 +1497,12 @@ function releaseFdHandle(handle) {
     ) {
       delegateManagedFdClose(handle.targetFd);
     }
+    if (handle.refCount === 0 && handle.open && typeof handle.ioFd === 'number') {
+      try {
+        fsModule.closeSync(handle.ioFd);
+      } catch {}
+      handle.ioFd = null;
+    }
     return;
   }
 
@@ -1688,11 +1724,11 @@ function collectGuestIovBytes(iovs, iovsLen) {
     throw new Error('WebAssembly memory is not available');
   }
 
-  const view = new DataView(instanceMemory.buffer);
   const chunks = [];
   let totalLength = 0;
 
   for (let index = 0; index < (Number(iovsLen) >>> 0); index += 1) {
+    const view = new DataView(instanceMemory.buffer);
     const entryOffset = (Number(iovs) >>> 0) + index * 8;
     const ptr = view.getUint32(entryOffset, true);
     const len = view.getUint32(entryOffset + 4, true);
@@ -1710,11 +1746,11 @@ function writeBytesToGuestIovs(iovs, iovsLen, bytes) {
   }
 
   const source = Buffer.from(bytes ?? []);
-  const view = new DataView(instanceMemory.buffer);
-  const memory = new Uint8Array(instanceMemory.buffer);
   let written = 0;
 
   for (let index = 0; index < (Number(iovsLen) >>> 0) && written < source.length; index += 1) {
+    const view = new DataView(instanceMemory.buffer);
+    const memory = new Uint8Array(instanceMemory.buffer);
     const entryOffset = (Number(iovs) >>> 0) + index * 8;
     const ptr = view.getUint32(entryOffset, true);
     const len = view.getUint32(entryOffset + 4, true);
@@ -4188,6 +4224,27 @@ function hostFsModeFromStat(stat) {
   return Number.isInteger(mode) && mode > 0 ? mode >>> 0 : 0;
 }
 
+const hostFsSizeByGuestPath = new Map();
+
+function rememberHostFsSize(guestPath, size) {
+  if (typeof guestPath !== 'string') {
+    return;
+  }
+  const normalized = path.posix.normalize(guestPath);
+  if (!Number.isFinite(size) || size < 0) {
+    hostFsSizeByGuestPath.delete(normalized);
+    return;
+  }
+  hostFsSizeByGuestPath.set(normalized, BigInt(Math.trunc(size)));
+}
+
+function rememberedHostFsSize(guestPath) {
+  if (typeof guestPath !== 'string') {
+    return null;
+  }
+  return hostFsSizeByGuestPath.get(path.posix.normalize(guestPath)) ?? null;
+}
+
 function resolveHostFsPath(value, fromGuestDir = HOST_FS_GUEST_CWD) {
   return resolveHostFsMapping(value, fromGuestDir)?.hostPath ?? null;
 }
@@ -4214,15 +4271,48 @@ const hostFsImport = {
 
     try {
       const targetFd =
-        typeof handle?.targetFd === 'number' ? Number(handle.targetFd) >>> 0 : descriptor;
+        typeof handle?.ioFd === 'number'
+          ? Number(handle.ioFd) >>> 0
+          : typeof handle?.targetFd === 'number'
+            ? Number(handle.targetFd) >>> 0
+            : descriptor;
       return hostFsModeFromStat(fsModule.fstatSync(targetFd)) || HOST_FS_MODE_REGULAR;
     } catch {
       return HOST_FS_MODE_REGULAR;
     }
   },
-  path_mode(pathPtr, pathLen, followSymlinks) {
+  fd_size(fd) {
+    const descriptor = Number(fd) >>> 0;
     try {
-      const target = readGuestString(pathPtr, pathLen);
+      const handle = lookupFdHandle(descriptor);
+      const rememberedSize = rememberedHostFsSize(handle?.guestPath);
+      if (rememberedSize != null) {
+        return rememberedSize;
+      }
+      if (typeof handle?.ioFd === 'number') {
+        return BigInt(fsModule.fstatSync(Number(handle.ioFd) >>> 0).size ?? -1);
+      }
+      if (typeof handle?.guestPath === 'string') {
+        const hostPath = resolveHostFsPath(handle.guestPath);
+        if (typeof hostPath === 'string') {
+          return BigInt(fsModule.statSync(hostPath).size ?? -1);
+        }
+        return BigInt(fsModule.statSync(handle.guestPath).size ?? -1);
+      }
+      const targetFd = typeof handle?.targetFd === 'number'
+        ? Number(handle.targetFd) >>> 0
+        : descriptor;
+      return BigInt(fsModule.fstatSync(targetFd).size ?? -1);
+    } catch {
+      return (1n << 64n) - 1n;
+    }
+  },
+  path_mode(fd, pathPtr, pathLen, followSymlinks) {
+    try {
+      const target = resolvePathOpenGuestPath(fd, pathPtr, pathLen);
+      if (typeof target !== 'string') {
+        return 0;
+      }
       const hostPath = resolveHostFsPath(target);
       if (typeof hostPath !== 'string') {
         return 0;
@@ -4244,9 +4334,40 @@ const hostFsImport = {
       return 0;
     }
   },
-  chmod(pathPtr, pathLen, mode) {
+  path_size(fd, pathPtr, pathLen, followSymlinks) {
+    const target = resolvePathOpenGuestPath(fd, pathPtr, pathLen);
+    if (typeof target !== 'string') {
+      return (1n << 64n) - 1n;
+    }
+    const rememberedSize = rememberedHostFsSize(target);
+    if (rememberedSize != null) {
+      return rememberedSize;
+    }
+
     try {
-      const target = readGuestString(pathPtr, pathLen);
+      const hostPath = resolveHostFsPath(target);
+      if (typeof hostPath === 'string') {
+        const stat =
+          Number(followSymlinks) === 0
+            ? fsModule.lstatSync(hostPath)
+            : fsModule.statSync(hostPath);
+        return BigInt(stat?.size ?? -1);
+      }
+      const guestStat =
+        Number(followSymlinks) === 0
+          ? fsModule.lstatSync(target)
+          : fsModule.statSync(target);
+      return BigInt(guestStat?.size ?? -1);
+    } catch {
+      return (1n << 64n) - 1n;
+    }
+  },
+  chmod(fd, pathPtr, pathLen, mode) {
+    try {
+      const target = resolvePathOpenGuestPath(fd, pathPtr, pathLen);
+      if (typeof target !== 'string') {
+        return 1;
+      }
       const mapping = resolveHostFsMapping(target);
       if (!mapping || typeof mapping.hostPath !== 'string') {
         return 1;
@@ -4263,6 +4384,67 @@ const hostFsImport = {
       return 0;
     } catch {
       traceHostProcess('host-fs-chmod-fault', {});
+      return 1;
+    }
+  },
+  fchmod(fd, mode) {
+    try {
+      const descriptor = Number(fd) >>> 0;
+      const handle = lookupFdHandle(descriptor);
+      if (handle?.readOnly === true) {
+        return 1;
+      }
+      if (typeof handle?.guestPath === 'string') {
+        const mapping = resolveHostFsMapping(handle.guestPath);
+        if (!mapping || typeof mapping.hostPath !== 'string' || mapping.readOnly) {
+          return 1;
+        }
+        fsModule.chmodSync(mapping.hostPath, Number(mode) >>> 0);
+        return 0;
+      }
+      const targetFd =
+        typeof handle?.targetFd === 'number' ? Number(handle.targetFd) >>> 0 : descriptor;
+      fsModule.fchmodSync(targetFd, Number(mode) >>> 0);
+      return 0;
+    } catch {
+      traceHostProcess('host-fs-fchmod-fault', {});
+      return 1;
+    }
+  },
+  ftruncate(fd, length) {
+    try {
+      const descriptor = Number(fd) >>> 0;
+      const nextSize = Number(length);
+      if (!Number.isFinite(nextSize) || nextSize < 0) {
+        return 1;
+      }
+      const handle = lookupFdHandle(descriptor);
+      if (handle?.readOnly === true) {
+        return 1;
+      }
+      if (typeof handle?.ioFd === 'number') {
+        fsModule.ftruncateSync(handle.ioFd, nextSize);
+        if ((handle.position ?? 0) > nextSize) {
+          handle.position = nextSize;
+        }
+        rememberHostFsSize(handle.guestPath, nextSize);
+        return 0;
+      }
+      if (typeof handle?.guestPath === 'string') {
+        const pathFd = fsModule.openSync(handle.guestPath, 0o1, 0o666);
+        try {
+          fsModule.ftruncateSync(pathFd, nextSize);
+          if ((handle.position ?? 0) > nextSize) {
+            handle.position = nextSize;
+          }
+          rememberHostFsSize(handle.guestPath, nextSize);
+        } finally {
+          fsModule.closeSync(pathFd);
+        }
+        return 0;
+      }
+      return 1;
+    } catch {
       return 1;
     }
   },
@@ -4444,7 +4626,7 @@ if (delegatePathOpen) {
 
     if (result === WASI_ERRNO_SUCCESS) {
       return __agentOSWasiMeasurePhase('path_open', 'fd_bookkeeping', () =>
-        retainPathOpenDelegateFd(openedFdPtr, guestPath, fdflags)
+        retainPathOpenDelegateFd(openedFdPtr, guestPath, fdflags, rightsBase)
       );
     }
     return result;
@@ -4676,6 +4858,42 @@ wasiImport.fd_read = (fd, iovs, iovsLen, nreadPtr) => {
     }
   }
 
+  if (handle?.kind === 'passthrough' && typeof handle.ioFd === 'number') {
+    try {
+      const requestedLength = __agentOSWasiMeasurePhase('fd_read', 'iov_scan', () => {
+        if (!(instanceMemory instanceof WebAssembly.Memory)) {
+          return 0;
+        }
+        const view = new DataView(instanceMemory.buffer);
+        let total = 0;
+        for (let index = 0; index < (Number(iovsLen) >>> 0); index += 1) {
+          const entryOffset = (Number(iovs) >>> 0) + index * 8;
+          total += view.getUint32(entryOffset + 4, true);
+        }
+        return total >>> 0;
+      });
+      const buffer = Buffer.alloc(requestedLength);
+      const bytesRead = __agentOSWasiMeasurePhase('fd_read', 'host_io', () =>
+        fsModule.readSync(
+          handle.ioFd,
+          buffer,
+          0,
+          requestedLength,
+          handle.position ?? 0,
+        )
+      );
+      handle.position = (handle.position ?? 0) + bytesRead;
+      const written = __agentOSWasiMeasurePhase('fd_read', 'guest_iov_write', () =>
+        writeBytesToGuestIovs(iovs, iovsLen, buffer.subarray(0, bytesRead))
+      );
+      return __agentOSWasiMeasurePhase('fd_read', 'result_marshal', () =>
+        writeGuestUint32(nreadPtr, written)
+      );
+    } catch (error) {
+      return mapSyntheticFsError(error);
+    }
+  }
+
   if (
     numericFd === 0 &&
     handle?.kind === 'passthrough' &&
@@ -4774,6 +4992,34 @@ wasiImport.fd_pread = (fd, iovs, iovsLen, offset, nreadPtr) => {
   }
 
   if (handle?.kind === 'passthrough') {
+    if (typeof handle.ioFd === 'number') {
+      try {
+        const requestedLength = (() => {
+          if (!(instanceMemory instanceof WebAssembly.Memory)) {
+            return 0;
+          }
+          const view = new DataView(instanceMemory.buffer);
+          let total = 0;
+          for (let index = 0; index < (Number(iovsLen) >>> 0); index += 1) {
+            const entryOffset = (Number(iovs) >>> 0) + index * 8;
+            total += view.getUint32(entryOffset + 4, true);
+          }
+          return total >>> 0;
+        })();
+        const buffer = Buffer.alloc(requestedLength);
+        const bytesRead = fsModule.readSync(
+          handle.ioFd,
+          buffer,
+          0,
+          requestedLength,
+          Number(offset),
+        );
+        const written = writeBytesToGuestIovs(iovs, iovsLen, buffer.subarray(0, bytesRead));
+        return writeGuestUint32(nreadPtr, written);
+      } catch (error) {
+        return mapSyntheticFsError(error);
+      }
+    }
     return delegateFdPread
       ? delegateFdPread(handle.targetFd, iovs, iovsLen, offset, nreadPtr)
       : WASI_ERRNO_BADF;
@@ -4809,6 +5055,21 @@ wasiImport.fd_pwrite = (fd, iovs, iovsLen, offset, nwrittenPtr) => {
   if (handle?.kind === 'passthrough') {
     if (handle.readOnly === true) {
       return WASI_ERRNO_ROFS;
+    }
+    if (typeof handle.ioFd === 'number') {
+      try {
+        const bytes = collectGuestIovBytes(iovs, iovsLen);
+        const written = fsModule.writeSync(
+          handle.ioFd,
+          bytes,
+          0,
+          bytes.length,
+          Number(offset),
+        );
+        return writeGuestUint32(nwrittenPtr, written);
+      } catch (error) {
+        return mapSyntheticFsError(error);
+      }
     }
     return delegateManagedFdPwrite
       ? delegateManagedFdPwrite(handle.targetFd, iovs, iovsLen, offset, nwrittenPtr)
@@ -4860,6 +5121,17 @@ wasiImport.fd_seek = (fd, offset, whence, newOffsetPtr) => {
   }
 
   if (handle?.kind === 'passthrough') {
+    if (typeof handle.ioFd === 'number') {
+      try {
+        const next = seekGuestFileHandle(handle, offset, whence);
+        if (next == null) {
+          return WASI_ERRNO_INVAL;
+        }
+        return writeGuestUint64(newOffsetPtr, next);
+      } catch {
+        return WASI_ERRNO_FAULT;
+      }
+    }
     return delegateManagedFdSeek
       ? delegateManagedFdSeek(handle.targetFd, offset, whence, newOffsetPtr)
       : WASI_ERRNO_BADF;
@@ -4885,6 +5157,9 @@ wasiImport.fd_tell = (fd, offsetPtr) => {
   }
 
   if (handle?.kind === 'passthrough') {
+    if (typeof handle.ioFd === 'number') {
+      return writeGuestUint64(offsetPtr, BigInt(handle.position ?? 0));
+    }
     return delegateManagedFdTell
       ? delegateManagedFdTell(handle.targetFd, offsetPtr)
       : WASI_ERRNO_BADF;
@@ -5017,6 +5292,13 @@ wasiImport.fd_filestat_get = (fd, statPtr) => {
   }
 
   if (handle?.kind === 'passthrough') {
+    if (typeof handle.ioFd === 'number') {
+      try {
+        return writeGuestFilestat(statPtr, fsModule.fstatSync(handle.ioFd));
+      } catch (error) {
+        return mapSyntheticFsError(error);
+      }
+    }
     return delegateManagedFdFilestatGet
       ? delegateManagedFdFilestatGet(handle.targetFd, statPtr)
       : WASI_ERRNO_BADF;
@@ -5040,6 +5322,7 @@ wasiImport.fd_filestat_set_size = (fd, size) => {
       if ((handle.position ?? 0) > nextSize) {
         handle.position = nextSize;
       }
+      rememberHostFsSize(handle.guestPath, nextSize);
       return WASI_ERRNO_SUCCESS;
     } catch (error) {
       return mapSyntheticFsError(error);
@@ -5049,6 +5332,37 @@ wasiImport.fd_filestat_set_size = (fd, size) => {
   if (handle?.kind === 'passthrough') {
     if (handle.readOnly === true) {
       return WASI_ERRNO_ROFS;
+    }
+    if (typeof handle.ioFd === 'number') {
+      try {
+        const nextSize = Number(size);
+        fsModule.ftruncateSync(handle.ioFd, nextSize);
+        if ((handle.position ?? 0) > nextSize) {
+          handle.position = nextSize;
+        }
+        rememberHostFsSize(handle.guestPath, nextSize);
+        return WASI_ERRNO_SUCCESS;
+      } catch (error) {
+        return mapSyntheticFsError(error);
+      }
+    }
+    if (typeof handle.guestPath === 'string') {
+      try {
+        const nextSize = Number(size);
+        const pathFd = fsModule.openSync(handle.guestPath, 0o1, 0o666);
+        try {
+          fsModule.ftruncateSync(pathFd, nextSize);
+          if ((handle.position ?? 0) > nextSize) {
+            handle.position = nextSize;
+          }
+          rememberHostFsSize(handle.guestPath, nextSize);
+        } finally {
+          fsModule.closeSync(pathFd);
+        }
+        return WASI_ERRNO_SUCCESS;
+      } catch (error) {
+        return mapSyntheticFsError(error);
+      }
     }
     return delegateManagedFdFilestatSetSize
       ? delegateManagedFdFilestatSetSize(handle.targetFd, size)
@@ -5177,6 +5491,26 @@ wasiImport.fd_write = (fd, iovs, iovsLen, nwrittenPtr) => {
   if (handle?.kind === 'passthrough') {
     if (handle.readOnly === true) {
       return WASI_ERRNO_ROFS;
+    }
+    if (typeof handle.ioFd === 'number') {
+      try {
+        const bytes = __agentOSWasiMeasurePhase('fd_write', 'guest_iov_collect', () =>
+          collectGuestIovBytes(iovs, iovsLen)
+        );
+        const written = __agentOSWasiMeasurePhase('fd_write', 'host_io', () =>
+          writeBytesToGuestFileHandle({ ...handle, targetFd: handle.ioFd }, bytes)
+        );
+        if (handle.append) {
+          handle.position = Number(fsModule.fstatSync(handle.ioFd).size ?? 0);
+        } else {
+          handle.position = (handle.position ?? 0) + written;
+        }
+        return __agentOSWasiMeasurePhase('fd_write', 'result_marshal', () =>
+          writeGuestUint32(nwrittenPtr, written)
+        );
+      } catch (error) {
+        return mapSyntheticFsError(error);
+      }
     }
     return delegateManagedFdWrite
       ? __agentOSWasiMeasurePhase('fd_write', 'delegate_call', () =>
