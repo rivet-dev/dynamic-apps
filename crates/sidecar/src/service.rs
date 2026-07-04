@@ -2219,6 +2219,10 @@ where
                 }
             }
             _ => {
+                // HOT PATH: services against a SINGLE per-VM lock (held for both servicing and
+                // response delivery — no re-lock) and delivers the response itself, so it can also
+                // be driven by a per-session task with only Arc handles. Early-return: it bypasses
+                // the shared delivery block below (it already delivered).
                 let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                     log_stale_process_event(
                         &self.bridge,
@@ -2228,55 +2232,14 @@ where
                     );
                     return Ok(());
                 };
-                let vm = &mut *vm;
-                let resource_limits = vm.kernel.resource_limits().clone();
-                let network_counts = vm_network_resource_counts(vm);
-                let socket_paths = build_javascript_socket_path_context(vm)?;
-
-                // Route a worker thread's host_net socket ops to its owning (root) process, where the
-                // socket actually lives. Inline data ops (net.write/read/etc.) run AGAINST the owner
-                // process; net.poll_wait keeps the worker process (its execution owns the deferred
-                // response channel) but waits on the owner's socket_readiness, passed separately.
-                let owner_id = net_owner_process_id(process_id).to_string();
-                let is_thread_net =
-                    request.method.starts_with("net.") && owner_id != process_id;
-                let is_poll_wait = request.method == "net.poll_wait";
-                let owner_socket_readiness = if is_thread_net && is_poll_wait {
-                    vm.active_processes
-                        .get(&owner_id)
-                        .map(|p| std::sync::Arc::clone(&p.socket_readiness))
-                } else {
-                    None
-                };
-                let effective_id: &str = if is_thread_net && !is_poll_wait {
-                    &owner_id
-                } else {
-                    process_id
-                };
-
-                let Some(process) = vm.active_processes.get_mut(effective_id) else {
-                    log_stale_process_event(
-                        &self.bridge,
-                        vm_id,
-                        process_id,
-                        "javascript sync RPC bridge dispatch",
-                    );
-                    return Ok(());
-                };
-                service_javascript_sync_rpc(JavascriptSyncRpcServiceRequest {
-                    bridge: &self.bridge,
+                return service_hot_javascript_sync_rpc(
+                    &mut vm,
                     vm_id,
-                    dns: &vm.dns,
-                    socket_paths: &socket_paths,
-                    kernel: &mut vm.kernel,
-                    process,
-                    sync_request: &request,
-                    resource_limits: &resource_limits,
-                    network_counts,
-                    poll_waiter: Some(&poll_waiter),
-                    poll_deferred: Some(&poll_deferred),
-                    owner_socket_readiness,
-                })
+                    process_id,
+                    &request,
+                    &self.bridge,
+                    &poll_waiter,
+                );
             }
         };
 
@@ -3135,6 +3098,135 @@ pub(crate) fn log_stale_process_event<B>(
             "Ignoring stale process event during {context}: VM {vm_id} process {process_id} was already reaped"
         ),
     );
+}
+
+/// HOT-PATH servicing for the generic `_` arm of `handle_javascript_sync_rpc_request` plus its
+/// shared response delivery, extracted so a per-session servicing task can drive it with only a
+/// single per-VM lock + the Arc-shared `bridge`/`poll_waiter` (no `&mut NativeSidecar`). The caller
+/// locks the VM once and passes the guard in as `&mut VmState`; this function services against that
+/// single guard and delivers the response against it too (no re-lock). Behavior is byte-identical to
+/// the inline generic arm + delivery block it replaces.
+///
+/// If `service_javascript_sync_rpc` defers a `net.poll_wait` to the waiter pool, it sets
+/// `poll_deferred` and this function returns `Ok(())` without delivering (the pool delivers later).
+pub(crate) fn service_hot_javascript_sync_rpc<B>(
+    vm: &mut VmState,
+    vm_id: &str,
+    process_id: &str,
+    request: &JavascriptSyncRpcRequest,
+    bridge: &SharedBridge<B>,
+    poll_waiter: &std::sync::Arc<crate::state::PollWaiterPool>,
+) -> Result<(), SidecarError>
+where
+    B: NativeSidecarBridge + Send + 'static,
+    BridgeError<B>: fmt::Debug + Send + Sync + 'static,
+{
+    // Off-thread `net.poll_wait` completion: `service_javascript_sync_rpc` may hand a blocking poll
+    // to the waiter pool and set this flag, in which case the response is delivered later by a pool
+    // worker and we must NOT respond inline below.
+    let poll_deferred = std::cell::Cell::new(false);
+
+    // [rpc-block] default-OFF (SECURE_EXEC_PERFCLOCK=1): time this synchronous sync-RPC dispatch so
+    // the residual pump-starvation (a slow RPC serviced inline) can be attributed to a method.
+    // Deferred net.poll_wait is skipped (answered off-thread).
+    let __m0 = secure_exec_bridge::perf_clock_enabled().then(secure_exec_bridge::perf_now_micros);
+
+    let response: Result<Value, SidecarError> = {
+        let resource_limits = vm.kernel.resource_limits().clone();
+        let network_counts = vm_network_resource_counts(vm);
+        let socket_paths = build_javascript_socket_path_context(vm)?;
+
+        // Route a worker thread's host_net socket ops to its owning (root) process, where the
+        // socket actually lives. Inline data ops (net.write/read/etc.) run AGAINST the owner
+        // process; net.poll_wait keeps the worker process (its execution owns the deferred
+        // response channel) but waits on the owner's socket_readiness, passed separately.
+        let owner_id = net_owner_process_id(process_id).to_string();
+        let is_thread_net = request.method.starts_with("net.") && owner_id != process_id;
+        let is_poll_wait = request.method == "net.poll_wait";
+        let owner_socket_readiness = if is_thread_net && is_poll_wait {
+            vm.active_processes
+                .get(&owner_id)
+                .map(|p| std::sync::Arc::clone(&p.socket_readiness))
+        } else {
+            None
+        };
+        let effective_id: &str = if is_thread_net && !is_poll_wait {
+            &owner_id
+        } else {
+            process_id
+        };
+
+        let Some(process) = vm.active_processes.get_mut(effective_id) else {
+            log_stale_process_event(bridge, vm_id, process_id, "javascript sync RPC bridge dispatch");
+            return Ok(());
+        };
+        service_javascript_sync_rpc(JavascriptSyncRpcServiceRequest {
+            bridge,
+            vm_id,
+            dns: &vm.dns,
+            socket_paths: &socket_paths,
+            kernel: &mut vm.kernel,
+            process,
+            sync_request: request,
+            resource_limits: &resource_limits,
+            network_counts,
+            poll_waiter: Some(poll_waiter),
+            poll_deferred: Some(&poll_deferred),
+            owner_socket_readiness,
+        })
+    };
+
+    if let Some(s) = __m0 {
+        if !poll_deferred.get() {
+            let t = secure_exec_bridge::perf_now_micros().saturating_sub(s);
+            if t > rpc_block_threshold_us() {
+                eprintln!("[rpc-block] {} took {}us", request.method, t);
+            }
+        }
+    }
+
+    // A deferred `net.poll_wait` will be completed off-thread by the waiter pool; skip inline
+    // response delivery so the call id is answered exactly once.
+    if poll_deferred.get() {
+        return Ok(());
+    }
+
+    let shadow_root = vm.cwd.clone();
+    let Some(process) = vm.active_processes.get_mut(process_id) else {
+        log_stale_process_event(bridge, vm_id, process_id, "javascript sync RPC response delivery");
+        return Ok(());
+    };
+
+    if response.is_ok()
+        && matches!(request.method.as_str(), "fs.chmodSync" | "fs.promises.chmod")
+    {
+        let guest_path = javascript_sync_rpc_arg_str(&request.args, 0, "filesystem chmod path")?;
+        let mode = javascript_sync_rpc_arg_u32(&request.args, 1, "filesystem chmod mode")? & 0o7777;
+        let host_path = shadow_host_path_for_process(&shadow_root, &process.guest_cwd, guest_path);
+        if host_path.exists() {
+            fs::set_permissions(&host_path, fs::Permissions::from_mode(mode)).map_err(|error| {
+                SidecarError::Io(format!(
+                    "failed to mirror chmod to shadow path {}: {error}",
+                    host_path.display()
+                ))
+            })?;
+        }
+    }
+
+    match response {
+        Ok(result) => process
+            .execution
+            .respond_javascript_sync_rpc_success(request.id, result)
+            .or_else(ignore_stale_javascript_sync_rpc_response),
+        Err(error) => process
+            .execution
+            .respond_javascript_sync_rpc_error(
+                request.id,
+                javascript_sync_rpc_error_code(&error),
+                error.to_string(),
+            )
+            .or_else(ignore_stale_javascript_sync_rpc_response),
+    }
 }
 
 // filesystem_operation_label moved to crate::vm
