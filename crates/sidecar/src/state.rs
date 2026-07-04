@@ -1869,3 +1869,23 @@ pub(crate) struct ProcNetEntry {
     pub(crate) state: String,
     pub(crate) inode: u64,
 }
+
+/// Increment 1 diagnostic (TEMPORARY): lock a per-VM mutex, detecting same-thread REENTRANT locks. On the
+/// single-threaded dispatch runtime, `try_lock` fails ONLY when this thread already holds the guard (no other
+/// thread locks the vms map), so a WouldBlock here IS a reentrant double-lock — the deadlock we are hunting.
+/// Panic with a backtrace to pinpoint the exact call chain instead of hanging. Remove once Increment 1 is green.
+pub(crate) fn lock_vm(
+    arc: &std::sync::Arc<std::sync::Mutex<VmState>>,
+) -> std::sync::MutexGuard<'_, VmState> {
+    match arc.try_lock() {
+        Ok(g) => g,
+        Err(std::sync::TryLockError::WouldBlock) => {
+            panic!(
+                "[REENTRANT-VM-LOCK] same-thread double lock of vm@{:p}:\n{}",
+                std::sync::Arc::as_ptr(arc),
+                std::backtrace::Backtrace::force_capture()
+            );
+        }
+        Err(std::sync::TryLockError::Poisoned(e)) => e.into_inner(),
+    }
+}

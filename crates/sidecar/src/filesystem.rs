@@ -348,7 +348,7 @@ where
     let (connection_id, session_id, vm_id) = sidecar.vm_scope_for(&request.ownership)?;
     sidecar.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-    let vm = match sidecar.vms.get_mut(&vm_id) {
+    let mut vm = match sidecar.vms.get(&vm_id).map(crate::state::lock_vm) {
         Some(vm) => vm,
         None => {
             return Err(stale_filesystem_request_error(
@@ -359,6 +359,7 @@ where
             ));
         }
     };
+    let vm = &mut *vm;
     let response = match payload.operation {
         GuestFilesystemOperation::ReadFile => {
             sync_active_shadow_path_to_kernel(vm, &payload.path)?;
@@ -726,10 +727,11 @@ where
     B: NativeSidecarBridge + Send + 'static,
     BridgeError<B>: fmt::Debug + Send + Sync + 'static,
 {
-    let Some(vm) = sidecar.vms.get(vm_id) else {
+    let Some(mut vm) = sidecar.vms.get(vm_id).map(crate::state::lock_vm) else {
         log_stale_process_event(&sidecar.bridge, vm_id, process_id, "python VFS RPC");
         return Ok(());
     };
+    let vm = &mut *vm;
     if !vm.active_processes.contains_key(process_id) {
         log_stale_process_event(&sidecar.bridge, vm_id, process_id, "python VFS RPC");
         return Ok(());
@@ -737,10 +739,11 @@ where
 
     let response = match normalize_python_vfs_rpc_path(&request.path) {
         Ok(path) => {
-            let Some(vm) = sidecar.vms.get_mut(vm_id) else {
+            let Some(mut vm) = sidecar.vms.get(vm_id).map(crate::state::lock_vm) else {
                 log_stale_process_event(&sidecar.bridge, vm_id, process_id, "python VFS RPC");
                 return Ok(());
             };
+            let vm = &mut *vm;
             match request.method {
                 PythonVfsRpcMethod::Read => vm
                     .kernel
@@ -803,10 +806,11 @@ where
         Err(error) => Err(error),
     };
 
-    let Some(vm) = sidecar.vms.get_mut(vm_id) else {
+    let Some(mut vm) = sidecar.vms.get(vm_id).map(crate::state::lock_vm) else {
         log_stale_process_event(&sidecar.bridge, vm_id, process_id, "python VFS RPC");
         return Ok(());
     };
+    let vm = &mut *vm;
     let Some(process) = vm.active_processes.get_mut(process_id) else {
         log_stale_process_event(&sidecar.bridge, vm_id, process_id, "python VFS RPC");
         return Ok(());

@@ -857,7 +857,12 @@ pub struct NativeSidecar<B> {
     pub(crate) next_sidecar_request_id: RequestId,
     pub(crate) connections: BTreeMap<String, ConnectionState>,
     pub(crate) sessions: BTreeMap<String, SessionState>,
-    pub(crate) vms: BTreeMap<String, VmState>,
+    // Increment 1 (PARALLEL-SERVICING-PLAN.md): each VM behind its own lock so per-session servicing tasks
+    // can run concurrently (Increment 2). std::sync::Mutex for Increment 1 keeps single-thread behavior with
+    // the least churn — sync handlers `.lock()` directly; the async pump holds a guard across `.await` (fine
+    // on the current-thread runtime, which allows non-Send futures). Switches to a Send-safe restructure in
+    // Increment 2 when the runtime goes multi-thread.
+    pub(crate) vms: BTreeMap<String, std::sync::Arc<std::sync::Mutex<VmState>>>,
     /// Thread pool that completes blocking `net.poll_wait` calls off the single sync-RPC main thread,
     /// so concurrent guests (e.g. a wasm X server + WM + GTK apps) don't serialize on each other's
     /// idle polls. Shared (`Arc`) so the dispatch path can clone a handle past the `&mut self` borrow.
@@ -1045,7 +1050,7 @@ where
         let process_exists = self
             .vms
             .get(&vm_id)
-            .is_some_and(|vm| vm.active_processes.contains_key(&process_id));
+            .is_some_and(|a| crate::state::lock_vm(a).active_processes.contains_key(&process_id));
         if !process_exists {
             return Err(SidecarError::InvalidState(format!(
                 "VM {vm_id} has no active process {process_id}"
@@ -1820,13 +1825,15 @@ where
         process_id: &str,
         request: JavascriptSyncRpcRequest,
     ) -> Result<(), SidecarError> {
-        let Some(vm) = self.vms.get(vm_id) else {
-            log_stale_process_event(&self.bridge, vm_id, process_id, "javascript sync RPC");
-            return Ok(());
-        };
-        if !vm.active_processes.contains_key(process_id) {
-            log_stale_process_event(&self.bridge, vm_id, process_id, "javascript sync RPC");
-            return Ok(());
+        {
+            let Some(vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
+                log_stale_process_event(&self.bridge, vm_id, process_id, "javascript sync RPC");
+                return Ok(());
+            };
+            if !vm.active_processes.contains_key(process_id) {
+                log_stale_process_event(&self.bridge, vm_id, process_id, "javascript sync RPC");
+                return Ok(());
+            }
         }
 
         // Off-thread `net.poll_wait` completion: the generic dispatch arm may hand a blocking poll to
@@ -1853,16 +1860,19 @@ where
                 }
             }
             "child_process.spawn" => {
-                let Some(vm) = self.vms.get(vm_id) else {
-                    log_stale_process_event(
-                        &self.bridge,
-                        vm_id,
-                        process_id,
-                        "javascript sync RPC child_process.spawn",
-                    );
-                    return Ok(());
+                let (payload, _) = {
+                    let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
+                        log_stale_process_event(
+                            &self.bridge,
+                            vm_id,
+                            process_id,
+                            "javascript sync RPC child_process.spawn",
+                        );
+                        return Ok(());
+                    };
+                    let vm = &mut *vm;
+                    parse_javascript_child_process_spawn_request(vm, &request.args)?
                 };
-                let (payload, _) = parse_javascript_child_process_spawn_request(vm, &request.args)?;
                 self.spawn_javascript_child_process(vm_id, process_id, payload)
             }
             "wasm.thread_spawn" => {
@@ -1877,17 +1887,19 @@ where
                 self.spawn_wasm_thread(vm_id, process_id, token, module_path)
             }
             "child_process.spawn_sync" => {
-                let Some(vm) = self.vms.get(vm_id) else {
-                    log_stale_process_event(
-                        &self.bridge,
-                        vm_id,
-                        process_id,
-                        "javascript sync RPC child_process.spawn_sync",
-                    );
-                    return Ok(());
+                let (payload, max_buffer) = {
+                    let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
+                        log_stale_process_event(
+                            &self.bridge,
+                            vm_id,
+                            process_id,
+                            "javascript sync RPC child_process.spawn_sync",
+                        );
+                        return Ok(());
+                    };
+                    let vm = &mut *vm;
+                    parse_javascript_child_process_spawn_request(vm, &request.args)?
                 };
-                let (payload, max_buffer) =
-                    parse_javascript_child_process_spawn_request(vm, &request.args)?;
                 self.spawn_javascript_child_process_sync(vm_id, process_id, payload, max_buffer)
             }
             "child_process.poll" => {
@@ -1943,7 +1955,7 @@ where
                 let signal = javascript_sync_rpc_arg_str(&request.args, 1, "process.kill signal")?;
                 let parsed_signal = parse_signal(signal)?;
                 if parsed_signal == 0 {
-                    let Some(vm) = self.vms.get(vm_id) else {
+                    let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                         log_stale_process_event(
                             &self.bridge,
                             vm_id,
@@ -1952,6 +1964,7 @@ where
                         );
                         return Ok(());
                     };
+                    let vm = &mut *vm;
                     if !vm.active_processes.contains_key(process_id) {
                         log_stale_process_event(
                             &self.bridge,
@@ -1967,7 +1980,7 @@ where
                         .map_err(kernel_error)
                 } else if target_pid < 0 {
                     let caller_kernel_pid = {
-                        let Some(vm) = self.vms.get(vm_id) else {
+                        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                             log_stale_process_event(
                                 &self.bridge,
                                 vm_id,
@@ -1976,6 +1989,7 @@ where
                             );
                             return Ok(());
                         };
+                        let vm = &mut *vm;
                         let Some(caller) = vm.active_processes.get(process_id) else {
                             log_stale_process_event(
                                 &self.bridge,
@@ -2003,7 +2017,7 @@ where
                         KernelPid(u32),
                     }
                     let target = {
-                        let Some(vm) = self.vms.get(vm_id) else {
+                        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                             log_stale_process_event(
                                 &self.bridge,
                                 vm_id,
@@ -2012,6 +2026,7 @@ where
                             );
                             return Ok(());
                         };
+                        let vm = &mut *vm;
                         let Some(caller) = vm.active_processes.get(process_id) else {
                             log_stale_process_event(
                                 &self.bridge,
@@ -2098,7 +2113,7 @@ where
                         )));
                     }
                 };
-                let Some(vm) = self.vms.get_mut(vm_id) else {
+                let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                     log_stale_process_event(
                         &self.bridge,
                         vm_id,
@@ -2107,6 +2122,7 @@ where
                     );
                     return Ok(());
                 };
+                let vm = &mut *vm;
                 if action == SignalDispositionAction::Default && mask.is_empty() && flags == 0 {
                     let remove_process_entry = vm
                         .signal_states
@@ -2145,7 +2161,8 @@ where
                 let socket_id =
                     javascript_sync_rpc_arg_str(&request.args, 1, "net.register_guest_fd socket id")?
                         .to_string();
-                if let Some(vm) = self.vms.get_mut(vm_id) {
+                if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                    let vm = &mut *vm;
                     let owner = net_owner_process_id(process_id).to_string();
                     if socket_id.is_empty() {
                         // Empty socket id = unregister (the fd was closed).
@@ -2173,7 +2190,8 @@ where
                     1,
                     "net.set_guest_fd_nonblock value",
                 )? != 0;
-                if let Some(vm) = self.vms.get_mut(vm_id) {
+                if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                    let vm = &mut *vm;
                     let owner = net_owner_process_id(process_id).to_string();
                     if let Some(entry) =
                         vm.guest_net_fds.get_mut(&owner).and_then(|m| m.get_mut(&fd))
@@ -2187,9 +2205,9 @@ where
                 let fd = javascript_sync_rpc_arg_u64(&request.args, 0, "net.resolve_guest_fd fd")?
                     as u32;
                 let owner = net_owner_process_id(process_id);
-                let entry = self
-                    .vms
-                    .get(vm_id)
+                let vm_guard = self.vms.get(vm_id).map(crate::state::lock_vm);
+                let entry = vm_guard
+                    .as_ref()
                     .and_then(|vm| vm.guest_net_fds.get(owner))
                     .and_then(|m| m.get(&fd));
                 match entry {
@@ -2201,7 +2219,7 @@ where
                 }
             }
             _ => {
-                let Some(vm) = self.vms.get_mut(vm_id) else {
+                let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                     log_stale_process_event(
                         &self.bridge,
                         vm_id,
@@ -2210,6 +2228,7 @@ where
                     );
                     return Ok(());
                 };
+                let vm = &mut *vm;
                 let resource_limits = vm.kernel.resource_limits().clone();
                 let network_counts = vm_network_resource_counts(vm);
                 let socket_paths = build_javascript_socket_path_context(vm)?;
@@ -2276,7 +2295,7 @@ where
             return Ok(());
         }
 
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             log_stale_process_event(
                 &self.bridge,
                 vm_id,
@@ -2285,6 +2304,7 @@ where
             );
             return Ok(());
         };
+        let vm = &mut *vm;
         let shadow_root = vm.cwd.clone();
         let Some(process) = vm.active_processes.get_mut(process_id) else {
             log_stale_process_event(
@@ -2347,9 +2367,14 @@ where
         let action = self
             .vms
             .get(vm_id)
-            .and_then(|vm| vm.signal_states.get(process_id))
-            .and_then(|handlers| handlers.get(&(parsed_signal as u32)))
-            .map(|registration| registration.action.clone())
+            .and_then(|a| {
+                a.lock()
+                    .unwrap()
+                    .signal_states
+                    .get(process_id)
+                    .and_then(|handlers| handlers.get(&(parsed_signal as u32)))
+                    .map(|registration| registration.action.clone())
+            })
             .unwrap_or(SignalDispositionAction::Default);
         if action == SignalDispositionAction::Default
             && parsed_signal != 0
@@ -2358,7 +2383,8 @@ where
                 Some("SIGWINCH" | "SIGCHLD" | "SIGCONT" | "SIGURG")
             )
         {
-            if let Some(vm) = self.vms.get_mut(vm_id) {
+            if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                let vm = &mut *vm;
                 if let Some(process) = vm.active_processes.get_mut(process_id) {
                     process.pending_self_signal_exit = Some(parsed_signal);
                 }
@@ -2401,17 +2427,19 @@ where
     }
 
     pub(crate) fn vm_ownership(&self, vm_id: &str) -> Result<OwnershipScope, SidecarError> {
-        let vm = self
+        let mut vm = self
             .vms
             .get(vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| SidecarError::InvalidState(format!("unknown sidecar VM {vm_id}")))?;
+        let vm = &mut *vm;
         Ok(OwnershipScope::vm(&vm.connection_id, &vm.session_id, vm_id))
     }
 
     pub(crate) fn vm_has_active_processes(&self, vm_id: &str) -> bool {
         self.vms
             .get(vm_id)
-            .is_some_and(|vm| !vm.active_processes.is_empty())
+            .is_some_and(|a| !crate::state::lock_vm(a).active_processes.is_empty())
     }
 
     fn require_authenticated_connection(&self, connection_id: &str) -> Result<(), SidecarError> {
@@ -2449,10 +2477,12 @@ where
         vm_id: &str,
     ) -> Result<(), SidecarError> {
         self.require_owned_session(connection_id, session_id)?;
-        let vm = self
+        let mut vm = self
             .vms
             .get(vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| SidecarError::InvalidState(format!("unknown sidecar VM {vm_id}")))?;
+        let vm = &mut *vm;
         if vm.connection_id != connection_id || vm.session_id != session_id {
             return Err(SidecarError::InvalidState(format!(
                 "VM {vm_id} is not owned by {connection_id}/{session_id}"
@@ -2885,7 +2915,7 @@ where
                 if self
                     .vms
                     .get(&vm_id)
-                    .is_some_and(|vm| vm.active_processes.contains_key(&process_id))
+                    .is_some_and(|a| crate::state::lock_vm(a).active_processes.contains_key(&process_id))
                 {
                     self.kill_process_internal(&vm_id, &process_id, "SIGTERM")?;
                 }

@@ -248,7 +248,7 @@ where
             .insert(vm_id.clone());
         self.vms.insert(
             vm_id.clone(),
-            VmState {
+            std::sync::Arc::new(std::sync::Mutex::new(VmState {
                 connection_id: connection_id.clone(),
                 session_id: session_id.clone(),
                 limits,
@@ -281,7 +281,7 @@ where
                 detached_child_processes: BTreeSet::new(),
                 signal_states: BTreeMap::new(),
                 guest_net_fds: BTreeMap::new(),
-            },
+            })),
         );
 
         let events = vec![
@@ -330,7 +330,8 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self.vms.get_mut(&vm_id).expect("owned VM should exist");
+        let mut vm = self.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         let root = vm.kernel.root_filesystem_mut().ok_or_else(|| {
             SidecarError::InvalidState(String::from("VM root filesystem is unavailable"))
         })?;
@@ -361,7 +362,8 @@ where
 
         let mount_plugins = &self.mount_plugins;
         let bridge = self.bridge.clone();
-        let vm = self.vms.get_mut(&vm_id).expect("owned VM should exist");
+        let mut vm = self.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         let max_pread_bytes = vm.kernel.resource_limits().max_pread_bytes;
         let original_permissions = vm.configuration.permissions.clone();
         let configured_permissions = payload
@@ -424,7 +426,8 @@ where
                     Ok(()) => return Err(error),
                     Err(rollback_error) => {
                         self.vms
-                            .get_mut(&vm_id)
+                            .get(&vm_id)
+                            .map(crate::state::lock_vm)
                             .expect("owned VM should exist")
                             .configuration
                             .permissions = PermissionsPolicy::deny_all();
@@ -454,7 +457,8 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self.vms.get_mut(&vm_id).expect("owned VM should exist");
+        let mut vm = self.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         let layer_id = vm.layers.create_writable_layer()?;
 
         Ok(DispatchResult {
@@ -474,7 +478,8 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self.vms.get_mut(&vm_id).expect("owned VM should exist");
+        let mut vm = self.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         let layer_id = vm.layers.seal_layer(&payload.layer_id)?;
 
         Ok(DispatchResult {
@@ -494,7 +499,8 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self.vms.get_mut(&vm_id).expect("owned VM should exist");
+        let mut vm = self.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         vm.layers.ensure_layer_capacity()?;
         let layer_id = vm
             .layers
@@ -517,7 +523,8 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self.vms.get_mut(&vm_id).expect("owned VM should exist");
+        let mut vm = self.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         let snapshot = vm.layers.export_snapshot(&payload.layer_id)?;
 
         Ok(DispatchResult {
@@ -540,7 +547,8 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self.vms.get_mut(&vm_id).expect("owned VM should exist");
+        let mut vm = self.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         let layer_id = vm.layers.create_overlay_layer(
             match payload.mode {
                 RootFilesystemMode::Ephemeral => KernelRootFilesystemMode::Ephemeral,
@@ -567,7 +575,8 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self.vms.get_mut(&vm_id).expect("owned VM should exist");
+        let mut vm = self.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         let snapshot = vm.kernel.snapshot_root_filesystem().map_err(kernel_error)?;
 
         Ok(DispatchResult {
@@ -599,10 +608,12 @@ where
         self.terminate_vm_processes(vm_id, &mut events).await?;
 
         {
-            let vm = self
+            let mut vm = self
                 .vms
-                .get_mut(vm_id)
+                .get(vm_id)
+                .map(crate::state::lock_vm)
                 .expect("owned VM should exist before disposal");
+            let vm = &mut *vm;
             shutdown_configured_mounts(
                 vm,
                 &MountPluginContext {
@@ -618,10 +629,17 @@ where
             )?;
         }
 
-        let mut vm = self
-            .vms
-            .remove(vm_id)
-            .expect("owned VM should exist before disposal");
+        let mut vm = {
+            let arc = self
+                .vms
+                .remove(vm_id)
+                .expect("owned VM should exist before disposal");
+            std::sync::Arc::try_unwrap(arc)
+                .ok()
+                .expect("owned VM should have no other references before disposal")
+                .into_inner()
+                .expect("owned VM mutex should not be poisoned")
+        };
         let snapshot = if vm.kernel.root_filesystem_mut().is_some() {
             Some(FilesystemSnapshot {
                 format: String::from(ROOT_FILESYSTEM_SNAPSHOT_FORMAT),
@@ -674,7 +692,7 @@ where
         let process_ids = self
             .vms
             .get(vm_id)
-            .map(|vm| vm.active_processes.keys().cloned().collect::<Vec<_>>())
+            .map(|a| crate::state::lock_vm(a).active_processes.keys().cloned().collect::<Vec<_>>())
             .unwrap_or_default();
         if process_ids.is_empty() {
             return Ok(());
@@ -684,7 +702,7 @@ where
             if self
                 .vms
                 .get(vm_id)
-                .is_some_and(|vm| vm.active_processes.contains_key(&process_id))
+                .is_some_and(|a| crate::state::lock_vm(a).active_processes.contains_key(&process_id))
             {
                 self.kill_process_internal(vm_id, &process_id, "SIGTERM")?;
             }
@@ -699,13 +717,13 @@ where
         let remaining = self
             .vms
             .get(vm_id)
-            .map(|vm| vm.active_processes.keys().cloned().collect::<Vec<_>>())
+            .map(|a| crate::state::lock_vm(a).active_processes.keys().cloned().collect::<Vec<_>>())
             .unwrap_or_default();
         for process_id in remaining {
             if self
                 .vms
                 .get(vm_id)
-                .is_some_and(|vm| vm.active_processes.contains_key(&process_id))
+                .is_some_and(|a| crate::state::lock_vm(a).active_processes.contains_key(&process_id))
             {
                 self.kill_process_internal(vm_id, &process_id, "SIGKILL")?;
             }

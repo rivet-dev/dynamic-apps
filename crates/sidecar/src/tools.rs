@@ -57,7 +57,8 @@ where
 
     let registered_name = payload.name.clone();
     let (original_permissions, original_toolkits, original_command_guest_paths) = {
-        let vm = sidecar.vms.get(&vm_id).expect("owned VM should exist");
+        let mut vm = sidecar.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         (
             vm.configuration.permissions.clone(),
             vm.toolkits.clone(),
@@ -68,7 +69,8 @@ where
         .bridge
         .set_vm_permissions(&vm_id, &PermissionsPolicy::allow_all())?;
     let registration_result = (|| -> Result<_, SidecarError> {
-        let vm = sidecar.vms.get_mut(&vm_id).expect("owned VM should exist");
+        let mut vm = sidecar.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+        let vm = &mut *vm;
         ensure_toolkit_name_available(&vm.toolkits, &registered_name)?;
         ensure_command_aliases_available(&vm.toolkits, &payload)?;
         ensure_toolkit_registry_capacity(&vm.toolkits, &payload)?;
@@ -84,7 +86,8 @@ where
             result
         }
         Err(error) => {
-            let vm = sidecar.vms.get_mut(&vm_id).expect("owned VM should exist");
+            let mut vm = sidecar.vms.get(&vm_id).map(crate::state::lock_vm).expect("owned VM should exist");
+            let vm = &mut *vm;
             vm.toolkits = original_toolkits;
             vm.command_guest_paths = original_command_guest_paths;
             match sidecar.bridge.restore_vm_permissions_fail_closed(

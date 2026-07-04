@@ -110,3 +110,22 @@ guest init stops serializing. Everything else has been shipped or refuted (see `
 - BOOT_MS ≤15s median (best-effort toward ≤10× native ≈5.4s; native baseline 0.548s).
 - Serial determinism unaffected; `SIDECAR_IDLE_CPU_CORES` at ~native idle.
 - All wins committed to `wasm-gui-desktop`, `DESKTOP-BOOT-PERF.md` + `LINUX-DIVERGENCES.md` updated.
+
+---
+## STATUS LOG
+
+### 2026-07-04 — Increment 1 LANDED (committed, deadlock-free) — with a 4/5 flakiness to resolve
+- `vms` → `Arc<Mutex<VmState>>` converted across ~96 sites; builds clean; 85/85 lib + VM-lifecycle/kill/signal
+  integration tests pass.
+- **Deadlock hunt (the hard part):** the naive conversion deadlocked the desktop (5/5 timeout, 7.7s CPU,
+  launched=False). Root causes found via a `lock_vm()` try_lock+backtrace detector:
+  1. pump held a std guard across `poll_event(ZERO).await` → replaced with the sync `poll_event_blocking(ZERO)`.
+  2. `spawn_wasm_thread` held a value-lifetime guard across a later `active_processes.insert` re-lock — the
+     conversion turned NLL-scoped `get_mut` borrows (end at last-use) into value guards (end at scope-end),
+     so sequential locks now OVERLAP. Scoped the extract-guard to drop before the re-lock.
+  → after the fixes: desktop RENDERS (95%), normal CPU/threads, no reentrant panic.
+- **Determinism: 4/5 FULL at 55.1s median** (matches baseline speed), 1/5 app-overlap panel-only. Two gates
+  both 4/5. Baseline was 5/5 (2 gates) — so either a small Increment-1 timing effect or the boot's inherent
+  ~90% reliability sampled unluckily. TODO before Increment 2: confirm vs a baseline re-gate; if real, tighten
+  the remaining value-guard lifetimes (drop at last-use like the original NLL borrows) to cut lock-hold time.
+- lock_vm() detector kept (free on the happy path; panics-with-backtrace on any future reentrant regression).

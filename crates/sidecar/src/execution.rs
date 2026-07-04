@@ -3115,10 +3115,12 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self
+        let mut vm = self
             .vms
-            .get_mut(&vm_id)
+            .get(&vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| missing_vm_error(&vm_id))?;
+        let vm = &mut *vm;
         if vm.active_processes.contains_key(&payload.process_id) {
             return Err(SidecarError::InvalidState(format!(
                 "VM {vm_id} already has an active process with id {}",
@@ -3420,10 +3422,12 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self
+        let mut vm = self
             .vms
-            .get_mut(&vm_id)
+            .get(&vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| missing_vm_error(&vm_id))?;
+        let vm = &mut *vm;
         let process = vm
             .active_processes
             .get_mut(&payload.process_id)
@@ -3456,10 +3460,12 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self
+        let mut vm = self
             .vms
-            .get_mut(&vm_id)
+            .get(&vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| missing_vm_error(&vm_id))?;
+        let vm = &mut *vm;
         let process = vm
             .active_processes
             .get_mut(&payload.process_id)
@@ -3518,8 +3524,9 @@ where
             &socket_query_resource(SocketQueryKind::TcpListener, &payload),
         )?;
 
+        let vm_guard = self.vms.get(&vm_id).map(crate::state::lock_vm);
         let listener =
-            find_socket_state_entry(self.vms.get(&vm_id), SocketQueryKind::TcpListener, &payload)?;
+            find_socket_state_entry(vm_guard.as_deref(), SocketQueryKind::TcpListener, &payload)?;
 
         Ok(DispatchResult {
             response: self.respond(
@@ -3547,10 +3554,11 @@ where
 
         let processes = self
             .vms
-            .get_mut(&vm_id)
-            .map(|vm| {
-                prune_exited_process_snapshots(vm);
-                snapshot_vm_processes(vm)
+            .get(&vm_id)
+            .map(|a| {
+                let mut vm = crate::state::lock_vm(a);
+                prune_exited_process_snapshots(&mut vm);
+                snapshot_vm_processes(&vm)
             })
             .unwrap_or_default();
 
@@ -3583,8 +3591,9 @@ where
             "network",
             &socket_query_resource(SocketQueryKind::UdpBound, &lookup_request),
         )?;
+        let vm_guard = self.vms.get(&vm_id).map(crate::state::lock_vm);
         let socket = find_socket_state_entry(
-            self.vms.get(&vm_id),
+            vm_guard.as_deref(),
             SocketQueryKind::UdpBound,
             &lookup_request,
         )?;
@@ -3606,10 +3615,12 @@ where
         let (connection_id, session_id, vm_id) = self.vm_scope_for(&request.ownership)?;
         self.require_owned_vm(&connection_id, &session_id, &vm_id)?;
 
-        let vm = self
+        let mut vm = self
             .vms
-            .get_mut(&vm_id)
+            .get(&vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| SidecarError::InvalidState(String::from("unknown sidecar VM")))?;
+        let vm = &mut *vm;
         let target_path = if payload.path.starts_with('/') {
             payload.path.clone()
         } else {
@@ -3715,8 +3726,13 @@ where
         let handlers = self
             .vms
             .get(&vm_id)
-            .and_then(|vm| vm.signal_states.get(&payload.process_id))
-            .cloned()
+            .and_then(|a| {
+                a.lock()
+                    .unwrap()
+                    .signal_states
+                    .get(&payload.process_id)
+                    .cloned()
+            })
             .unwrap_or_default();
 
         Ok(DispatchResult {
@@ -3742,7 +3758,7 @@ where
         let count = self
             .vms
             .get(&vm_id)
-            .map(|vm| vm.kernel.zombie_timer_count() as u64)
+            .map(|a| crate::state::lock_vm(a).kernel.zombie_timer_count() as u64)
             .unwrap_or_default();
 
         Ok(DispatchResult {
@@ -3762,10 +3778,12 @@ where
     ) -> Result<(), SidecarError> {
         let signal_name = signal.to_owned();
         let signal = parse_signal(signal)?;
-        let vm = self
+        let mut vm = self
             .vms
-            .get_mut(vm_id)
+            .get(vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| SidecarError::InvalidState(format!("unknown sidecar VM {vm_id}")))?;
+        let vm = &mut *vm;
         let process = vm.active_processes.get_mut(process_id).ok_or_else(|| {
             SidecarError::InvalidState(format!("VM {vm_id} has no active process {process_id}"))
         })?;
@@ -3978,22 +3996,32 @@ where
 
         let vm_ids = self.vm_ids_for_scope(ownership)?;
         for vm_id in vm_ids {
-            while let Some(vm) = self.vms.get(&vm_id) {
-                let connection_id = vm.connection_id.clone();
-                let session_id = vm.session_id.clone();
+            while let Some(vm_arc) = self.vms.get(&vm_id) {
+                let (connection_id, session_id) = {
+                    let vm = crate::state::lock_vm(vm_arc);
+                    (vm.connection_id.clone(), vm.session_id.clone())
+                };
                 let process_ids = self
                     .vms
                     .get(&vm_id)
-                    .map(|vm| vm.active_processes.keys().cloned().collect::<Vec<_>>())
+                    .map(|a| {
+                        a.lock()
+                            .unwrap()
+                            .active_processes
+                            .keys()
+                            .cloned()
+                            .collect::<Vec<_>>()
+                    })
                     .unwrap_or_default();
                 let mut emitted_this_pass = false;
 
                 for process_id in process_ids {
-                    if self
-                        .vms
-                        .get(&vm_id)
-                        .is_some_and(|vm| vm.detached_child_processes.contains(&process_id))
-                    {
+                    if self.vms.get(&vm_id).is_some_and(|a| {
+                        a.lock()
+                            .unwrap()
+                            .detached_child_processes
+                            .contains(&process_id)
+                    }) {
                         continue;
                     }
                     enum ProcessPollResult {
@@ -4001,16 +4029,23 @@ where
                         RecoverClosedChannel,
                     }
                     let poll_result = {
-                        let Some(vm) = self.vms.get_mut(&vm_id) else {
+                        let Some(mut vm) = self.vms.get(&vm_id).map(crate::state::lock_vm) else {
                             continue;
                         };
+                        let vm = &mut *vm;
                         let Some(process) = vm.active_processes.get_mut(&process_id) else {
                             continue;
                         };
                         if let Some(event) = process.pending_execution_events.pop_front() {
                             ProcessPollResult::Event(Box::new(Some(event)))
                         } else {
-                            match process.execution.poll_event(Duration::ZERO).await {
+                            // Increment 1 deadlock fix: the vm guard is held across this call, so it MUST
+                            // NOT `.await` — on the current-thread runtime an await here yields to the
+                            // launch handler, which locks the SAME vm and blocks the thread, so the pump
+                            // can never resume to drop the guard (std::Mutex, not reentrant → deadlock).
+                            // poll_event_blocking(Duration::ZERO) is the identical non-blocking poll with no
+                            // await, so the guard is released synchronously at the end of this block.
+                            match process.execution.poll_event_blocking(Duration::ZERO) {
                                 Ok(event) => ProcessPollResult::Event(Box::new(event)),
                                 Err(SidecarError::Execution(message))
                                     if (process.runtime == GuestRuntimeKind::JavaScript
@@ -4066,9 +4101,10 @@ where
         vm_id: &str,
         process_id: &str,
     ) -> Result<Option<ActiveExecutionEvent>, SidecarError> {
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Ok(None);
         };
+        let vm = &mut *vm;
         let Some(process) = vm.active_processes.get(process_id) else {
             return Ok(None);
         };
@@ -4238,8 +4274,10 @@ where
         let detached_process_ids = self
             .vms
             .get(vm_id)
-            .map(|vm| {
-                vm.detached_child_processes
+            .map(|a| {
+                a.lock()
+                    .unwrap()
+                    .detached_child_processes
                     .iter()
                     .cloned()
                     .collect::<Vec<_>>()
@@ -4250,9 +4288,15 @@ where
             let Some((root_process_id, child_path)) = self
                 .vms
                 .get(vm_id)
-                .and_then(|vm| Self::resolve_detached_child_process_path(vm, &detached_process_id))
+                .and_then(|a| {
+                    Self::resolve_detached_child_process_path(
+                        &crate::state::lock_vm(a),
+                        &detached_process_id,
+                    )
+                })
             else {
-                if let Some(vm) = self.vms.get_mut(vm_id) {
+                if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                    let vm = &mut *vm;
                     vm.detached_child_processes.remove(&detached_process_id);
                 }
                 continue;
@@ -4264,9 +4308,10 @@ where
                         RecoverClosedChannel,
                     }
                     let poll_result = {
-                        let Some(vm) = self.vms.get_mut(vm_id) else {
+                        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                             break;
                         };
+                        let vm = &mut *vm;
                         let Some(process) = vm.active_processes.get_mut(&root_process_id) else {
                             break;
                         };
@@ -4301,7 +4346,10 @@ where
                     let Some((connection_id, session_id)) = self
                         .vms
                         .get(vm_id)
-                        .map(|vm| (vm.connection_id.clone(), vm.session_id.clone()))
+                        .map(|a| {
+                            let vm = crate::state::lock_vm(a);
+                            (vm.connection_id.clone(), vm.session_id.clone())
+                        })
                     else {
                         break;
                     };
@@ -4327,7 +4375,8 @@ where
                             emitted_any = true;
                         }
                         ActiveExecutionEvent::Exited(exit_code) => {
-                            if let Some(vm) = self.vms.get_mut(vm_id) {
+                            if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                                let vm = &mut *vm;
                                 vm.detached_child_processes.remove(&detached_process_id);
                             }
                             self.queue_pending_process_event(ProcessEventEnvelope {
@@ -4354,7 +4403,8 @@ where
                             signal,
                             registration,
                         } => {
-                            if let Some(vm) = self.vms.get_mut(vm_id) {
+                            if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                                let vm = &mut *vm;
                                 vm.signal_states
                                     .entry(root_process_id.clone())
                                     .or_default()
@@ -4385,13 +4435,15 @@ where
                         if message.contains("unknown child process")
                             || message.contains("unknown child process path") =>
                     {
-                        if let Some(vm) = self.vms.get_mut(vm_id) {
+                        if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                            let vm = &mut *vm;
                             vm.detached_child_processes.remove(&detached_process_id);
                         }
                         break;
                     }
                     Err(error) if is_javascript_child_process_gone_error(&error) => {
-                        if let Some(vm) = self.vms.get_mut(vm_id) {
+                        if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                            let vm = &mut *vm;
                             vm.detached_child_processes.remove(&detached_process_id);
                         }
                         break;
@@ -4405,7 +4457,10 @@ where
                 let Some((connection_id, session_id)) = self
                     .vms
                     .get(vm_id)
-                    .map(|vm| (vm.connection_id.clone(), vm.session_id.clone()))
+                    .map(|a| {
+                        let vm = crate::state::lock_vm(a);
+                        (vm.connection_id.clone(), vm.session_id.clone())
+                    })
                 else {
                     break;
                 };
@@ -4434,7 +4489,8 @@ where
                         )?),
                     }),
                     "exit" => {
-                        if let Some(vm) = self.vms.get_mut(vm_id) {
+                        if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                            let vm = &mut *vm;
                             vm.detached_child_processes.remove(&detached_process_id);
                         }
                         Some(ProcessEventEnvelope {
@@ -4481,8 +4537,13 @@ where
         let mut child_capacity = self
             .vms
             .get(vm_id)
-            .and_then(|vm| vm.active_processes.get(process_id))
-            .and_then(|root| descendant_pending_execution_event_capacity(root, child_path));
+            .and_then(|a| {
+                a.lock()
+                    .unwrap()
+                    .active_processes
+                    .get(process_id)
+                    .and_then(|root| descendant_pending_execution_event_capacity(root, child_path))
+            });
 
         let mut deferred = VecDeque::new();
         while let Some(envelope) = self.pending_process_events.pop_front() {
@@ -4494,7 +4555,8 @@ where
                     }
                     return Err(process_event_queue_overflow_error());
                 }
-                if let Some(vm) = self.vms.get_mut(vm_id) {
+                if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                    let vm = &mut *vm;
                     if let Some(root) = vm.active_processes.get_mut(process_id) {
                         if let Some(child) = Self::active_process_by_path_mut(root, child_path) {
                             child.queue_pending_execution_event(envelope.event)?;
@@ -4532,7 +4594,8 @@ where
         }
         for envelope in queued {
             if envelope.vm_id == vm_id && envelope.process_id == target_process_id {
-                if let Some(vm) = self.vms.get_mut(vm_id) {
+                if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+                    let vm = &mut *vm;
                     if let Some(root) = vm.active_processes.get_mut(process_id) {
                         if let Some(child) = Self::active_process_by_path_mut(root, child_path) {
                             child.queue_pending_execution_event(envelope.event)?;
@@ -4553,15 +4616,28 @@ where
         process_id: &str,
         event: ActiveExecutionEvent,
     ) -> Result<Option<EventFrame>, SidecarError> {
-        let Some(vm) = self.vms.get(vm_id) else {
-            log_stale_process_event(&self.bridge, vm_id, process_id, "execution event dispatch");
-            return Ok(None);
+        let (connection_id, session_id) = {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
+                log_stale_process_event(
+                    &self.bridge,
+                    vm_id,
+                    process_id,
+                    "execution event dispatch",
+                );
+                return Ok(None);
+            };
+            let vm = &mut *vm;
+            if !vm.active_processes.contains_key(process_id) {
+                log_stale_process_event(
+                    &self.bridge,
+                    vm_id,
+                    process_id,
+                    "execution event dispatch",
+                );
+                return Ok(None);
+            }
+            (vm.connection_id.clone(), vm.session_id.clone())
         };
-        if !vm.active_processes.contains_key(process_id) {
-            log_stale_process_event(&self.bridge, vm_id, process_id, "execution event dispatch");
-            return Ok(None);
-        }
-        let (connection_id, session_id) = { (vm.connection_id.clone(), vm.session_id.clone()) };
         let ownership = OwnershipScope::vm(&connection_id, &session_id, vm_id);
 
         if self.capture_extension_process_output_event(vm_id, process_id, &event) {
@@ -4597,9 +4673,10 @@ where
                 signal,
                 registration,
             } => {
-                let Some(vm) = self.vms.get_mut(vm_id) else {
+                let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                     return Ok(None);
                 };
+                let vm = &mut *vm;
                 if !vm.active_processes.contains_key(process_id) {
                     return Ok(None);
                 }
@@ -4617,9 +4694,14 @@ where
                 let thread_fault_kernel_pid = self
                     .vms
                     .get(vm_id)
-                    .and_then(|vm| vm.active_processes.get(process_id))
-                    .filter(|process| process.is_thread && exit_code != 0)
-                    .map(|process| process.kernel_pid);
+                    .and_then(|a| {
+                        a.lock()
+                            .unwrap()
+                            .active_processes
+                            .get(process_id)
+                            .filter(|process| process.is_thread && exit_code != 0)
+                            .map(|process| process.kernel_pid)
+                    });
 
                 let became_idle = self
                     .finish_active_process_exit(vm_id, process_id, exit_code)?
@@ -4651,9 +4733,10 @@ where
     /// Terminating interrupts the leader's isolate (unwinding its atomic.wait) so it exits and the
     /// guest faults promptly instead of waiting out the execution timeout.
     pub(crate) fn fault_thread_group(&mut self, vm_id: &str, kernel_pid: u32) {
-        let Some(vm) = self.vms.get(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return;
         };
+        let vm = &mut *vm;
         for process in vm.active_processes.values() {
             if process.kernel_pid != kernel_pid {
                 continue;
@@ -4676,10 +4759,12 @@ where
         process_id: &str,
         exit_code: i32,
     ) -> Result<Option<bool>, SidecarError> {
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let became_idle = {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             log_stale_process_event(&self.bridge, vm_id, process_id, "process exit cleanup");
             return Ok(None);
         };
+        let vm = &mut *vm;
         if !vm.active_processes.contains_key(process_id) {
             log_stale_process_event(&self.bridge, vm_id, process_id, "process exit cleanup");
             return Ok(None);
@@ -4724,7 +4809,8 @@ where
             vm.active_processes
                 .insert(detached_process_id, detached_child);
         }
-        let became_idle = vm.active_processes.is_empty();
+        vm.active_processes.is_empty()
+        };
         self.prune_extension_process_resource(process_id);
 
         Ok(Some(became_idle))
@@ -4758,9 +4844,10 @@ where
                 break;
             }
             let event = {
-                let Some(vm) = self.vms.get_mut(vm_id) else {
+                let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                     break;
                 };
+                let vm = &mut *vm;
                 let Some(process) = vm.active_processes.get_mut(process_id) else {
                     break;
                 };
@@ -4789,9 +4876,10 @@ where
                     break;
                 }
                 let delayed_event = {
-                    let Some(vm) = self.vms.get_mut(vm_id) else {
+                    let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                         break;
                     };
+                    let vm = &mut *vm;
                     let Some(process) = vm.active_processes.get_mut(process_id) else {
                         break;
                     };
@@ -4851,13 +4939,15 @@ where
         process_id: &str,
         request: PythonVfsRpcRequest,
     ) -> Result<(), SidecarError> {
-        let Some(vm) = self.vms.get(vm_id) else {
-            return Ok(());
-        };
-        if !vm.active_processes.contains_key(process_id) {
-            return Ok(());
-        }
-        let response = (|| {
+        let response = {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
+                return Ok(());
+            };
+            let vm = &mut *vm;
+            if !vm.active_processes.contains_key(process_id) {
+                return Ok(());
+            }
+            (|| {
             let url_text = request.url.as_deref().ok_or_else(|| {
                 SidecarError::InvalidState(String::from("python httpRequest requires a url"))
             })?;
@@ -4977,7 +5067,8 @@ where
                     .unwrap_or_default()
                     .to_owned(),
             })
-        })();
+            })()
+        };
 
         self.respond_python_rpc(vm_id, process_id, request.id, response)
     }
@@ -4988,13 +5079,15 @@ where
         process_id: &str,
         request: PythonVfsRpcRequest,
     ) -> Result<(), SidecarError> {
-        let Some(vm) = self.vms.get(vm_id) else {
-            return Ok(());
-        };
-        if !vm.active_processes.contains_key(process_id) {
-            return Ok(());
-        }
-        let response = (|| {
+        let response = {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
+                return Ok(());
+            };
+            let vm = &mut *vm;
+            if !vm.active_processes.contains_key(process_id) {
+                return Ok(());
+            }
+            (|| {
             let hostname = request.hostname.as_deref().ok_or_else(|| {
                 SidecarError::InvalidState(String::from("python dnsLookup requires a hostname"))
             })?;
@@ -5020,7 +5113,8 @@ where
                     .map(|address| address.to_string())
                     .collect(),
             })
-        })();
+            })()
+        };
 
         self.respond_python_rpc(vm_id, process_id, request.id, response)
     }
@@ -5035,9 +5129,10 @@ where
             SidecarError::InvalidState(String::from("python subprocessRun requires a command"))
         })?;
         let (internal_bootstrap_env, cwd) = {
-            let Some(vm) = self.vms.get(vm_id) else {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                 return Ok(());
             };
+            let vm = &mut *vm;
             let Some(process) = vm.active_processes.get(process_id) else {
                 return Ok(());
             };
@@ -5112,9 +5207,10 @@ where
         request_id: u64,
         response: Result<PythonVfsRpcResponsePayload, SidecarError>,
     ) -> Result<(), SidecarError> {
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Ok(());
         };
+        let vm = &mut *vm;
         let Some(process) = vm.active_processes.get_mut(process_id) else {
             return Ok(());
         };
@@ -5515,7 +5611,8 @@ where
         request: JavascriptChildProcessSpawnRequest,
     ) -> Result<Value, SidecarError> {
         let resolved = {
-            let vm = self.vms.get(vm_id).ok_or_else(|| missing_vm_error(vm_id))?;
+            let mut vm = self.vms.get(vm_id).map(crate::state::lock_vm).ok_or_else(|| missing_vm_error(vm_id))?;
+            let vm = &mut *vm;
             let parent = vm
                 .active_processes
                 .get(process_id)
@@ -5529,10 +5626,12 @@ where
             )?
         };
         let (parent_kernel_pid, child_process_id) = {
-            let vm = self
+            let mut vm = self
                 .vms
-                .get_mut(vm_id)
+                .get(vm_id)
+                .map(crate::state::lock_vm)
                 .ok_or_else(|| missing_vm_error(vm_id))?;
+            let vm = &mut *vm;
             let process = vm
                 .active_processes
                 .get_mut(process_id)
@@ -5540,10 +5639,12 @@ where
             (process.kernel_pid, process.allocate_child_process_id())
         };
         let sidecar_requests = self.sidecar_requests.clone();
-        let vm = self
+        let mut vm = self
             .vms
-            .get_mut(vm_id)
+            .get(vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| missing_vm_error(vm_id))?;
+        let vm = &mut *vm;
         let (kernel_pid, kernel_handle, execution, kernel_stdin_writer_fd, pty_master_fd) =
             if resolved.tool_command {
                 let tool_resolution = resolve_tool_command(
@@ -5783,7 +5884,8 @@ where
         // `limits.resources.maxThreads` (BARE wire / CreateVmConfig), defaulting to DEFAULT_MAX_THREADS.
         // Counted server-side over this VM's is_thread processes; returning ok:false makes the guest's
         // thread-spawn yield EAGAIN. The process-global ThreadSlots backstop still applies.
-        if let Some(vm) = self.vms.get(vm_id) {
+        if let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) {
+            let vm = &mut *vm;
             let max_threads = vm
                 .limits
                 .resources
@@ -5809,10 +5911,12 @@ where
             parent_socket_readiness,
             thread_id,
         ) = {
-            let vm = self
+            let mut vm = self
                 .vms
-                .get_mut(vm_id)
+                .get(vm_id)
+                .map(crate::state::lock_vm)
                 .ok_or_else(|| missing_vm_error(vm_id))?;
+            let vm = &mut *vm;
             let parent = vm
                 .active_processes
                 .get_mut(parent_process_id)
@@ -5836,16 +5940,26 @@ where
         );
         env.insert(String::from(WASM_STDIO_SYNC_RPC_ENV), String::from("1"));
 
-        let vm = self
-            .vms
-            .get_mut(vm_id)
-            .ok_or_else(|| missing_vm_error(vm_id))?;
-        let wasm_limits = wasm_execution_limits(vm);
-        let wasm_guest_runtime = guest_runtime_identity(
-            vm,
-            Some(u64::from(parent_kernel_pid)),
-            Some(u64::from(parent_kernel_pid)),
-        );
+        // Increment 1 fix: extract everything needed from the vm and DROP the guard before
+        // start_execution + the later `active_processes.insert` re-lock. A value-lifetime MutexGuard is
+        // NOT NLL-shortened (unlike the original `get_mut` borrow), so holding it across the re-lock is a
+        // same-thread reentrant deadlock.
+        let (wasm_limits, wasm_guest_runtime, kernel_poll_handle) = {
+            let mut vm = self
+                .vms
+                .get(vm_id)
+                .map(crate::state::lock_vm)
+                .ok_or_else(|| missing_vm_error(vm_id))?;
+            let vm = &mut *vm;
+            let wasm_limits = wasm_execution_limits(vm);
+            let wasm_guest_runtime = guest_runtime_identity(
+                vm,
+                Some(u64::from(parent_kernel_pid)),
+                Some(u64::from(parent_kernel_pid)),
+            );
+            let kernel_poll_handle = vm.kernel.poll_handle();
+            (wasm_limits, wasm_guest_runtime, kernel_poll_handle)
+        };
 
         // C-lite: a worker thread shares the parent's kernel pid + fd table, so
         // give its bridge thread an fd-poll-only inline drain (registry = None so
@@ -5866,7 +5980,7 @@ where
             if inline_dispatch_enabled() {
                 Some(std::sync::Arc::new(UnixInlineNetDrain::new(
                     None,
-                    Some((vm.kernel.poll_handle(), parent_kernel_pid)),
+                    Some((kernel_poll_handle, parent_kernel_pid)),
                     Some(parent_listener_fd_registry.clone()),
                     Some(std::sync::Arc::clone(&parent_socket_readiness)),
                 )))
@@ -5902,10 +6016,12 @@ where
         // so its host calls hit the shared process fd table. The thread_id namespaces it under the
         // parent for clarity.
         let worker_process_id = format!("{parent_process_id}~thread~{thread_id}");
-        let vm = self
+        let mut vm = self
             .vms
-            .get_mut(vm_id)
+            .get(vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| missing_vm_error(vm_id))?;
+        let vm = &mut *vm;
         vm.active_processes.insert(
             worker_process_id.clone(),
             ActiveProcess::new(
@@ -6062,7 +6178,8 @@ where
         let current_process_label =
             Self::child_process_path_label(process_id, current_process_path);
         let (resolved, parent_kernel_pid) = {
-            let vm = self.vms.get(vm_id).ok_or_else(|| missing_vm_error(vm_id))?;
+            let mut vm = self.vms.get(vm_id).map(crate::state::lock_vm).ok_or_else(|| missing_vm_error(vm_id))?;
+            let vm = &mut *vm;
             let root = vm
                 .active_processes
                 .get(process_id)
@@ -6086,10 +6203,12 @@ where
         };
 
         let sidecar_requests = self.sidecar_requests.clone();
-        let vm = self
+        let mut vm = self
             .vms
-            .get_mut(vm_id)
+            .get(vm_id)
+            .map(crate::state::lock_vm)
             .ok_or_else(|| missing_vm_error(vm_id))?;
+        let vm = &mut *vm;
         let child_process_id = {
             let root = vm
                 .active_processes
@@ -6490,10 +6609,13 @@ where
     ) -> Result<Value, SidecarError> {
         match request.method.as_str() {
             "child_process.spawn" => {
-                let Some(vm) = self.vms.get(vm_id) else {
-                    return Ok(Value::Null);
+                let (payload, _) = {
+                    let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
+                        return Ok(Value::Null);
+                    };
+                    let vm = &mut *vm;
+                    parse_javascript_child_process_spawn_request(vm, &request.args)?
                 };
-                let (payload, _) = parse_javascript_child_process_spawn_request(vm, &request.args)?;
                 self.spawn_descendant_javascript_child_process(
                     vm_id,
                     process_id,
@@ -6502,11 +6624,13 @@ where
                 )
             }
             "child_process.spawn_sync" => {
-                let Some(vm) = self.vms.get(vm_id) else {
-                    return Ok(Value::Null);
+                let (payload, max_buffer) = {
+                    let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
+                        return Ok(Value::Null);
+                    };
+                    let vm = &mut *vm;
+                    parse_javascript_child_process_spawn_request(vm, &request.args)?
                 };
-                let (payload, max_buffer) =
-                    parse_javascript_child_process_spawn_request(vm, &request.args)?;
                 self.spawn_descendant_javascript_child_process_sync(
                     vm_id,
                     process_id,
@@ -6619,9 +6743,10 @@ where
                 deadline.saturating_duration_since(Instant::now())
             };
             let poll_result = {
-                let Some(vm) = self.vms.get_mut(vm_id) else {
+                let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                     return Ok(Value::Null);
                 };
+                let vm = &mut *vm;
                 let Some(parent) =
                     Self::descendant_parent_process_mut(vm, process_id, current_process_path)
                 else {
@@ -6685,9 +6810,10 @@ where
                 }
                 ActiveExecutionEvent::Exited(exit_code) => {
                     let had_trailing_events = {
-                        let Some(vm) = self.vms.get_mut(vm_id) else {
+                        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                             return Ok(Value::Null);
                         };
+                        let vm = &mut *vm;
                         let Some(parent) = Self::descendant_parent_process_mut(
                             vm,
                             process_id,
@@ -6728,9 +6854,10 @@ where
 
                     let parent_signal_key =
                         Self::child_process_signal_key(process_id, current_process_path);
-                    let Some(vm) = self.vms.get_mut(vm_id) else {
+                    let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                         return Ok(Value::Null);
                     };
+                    let vm = &mut *vm;
                     let signal_name = {
                         let Some(parent) = Self::descendant_parent_process_mut(
                             vm,
@@ -6817,9 +6944,10 @@ where
                     let response = if request.method == "process.signal_state" {
                         let (signal, registration) =
                             parse_process_signal_state_request(&request.args)?;
-                        let Some(vm) = self.vms.get_mut(vm_id) else {
+                        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                             return Ok(Value::Null);
                         };
+                        let vm = &mut *vm;
                         let signal_key =
                             Self::child_process_signal_key(process_id, &current_child_path)
                                 .to_owned();
@@ -6846,9 +6974,10 @@ where
                             &request,
                         )
                     } else {
-                        let Some(vm) = self.vms.get_mut(vm_id) else {
+                        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                             return Ok(Value::Null);
                         };
+                        let vm = &mut *vm;
                         let resource_limits = vm.kernel.resource_limits().clone();
                         let network_counts = vm_network_resource_counts(vm);
                         let socket_paths = build_javascript_socket_path_context(vm)?;
@@ -6880,9 +7009,10 @@ where
                         })
                     };
 
-                    let Some(vm) = self.vms.get_mut(vm_id) else {
+                    let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                         return Ok(Value::Null);
                     };
+                    let vm = &mut *vm;
                     let Some(parent) =
                         Self::descendant_parent_process_mut(vm, process_id, current_process_path)
                     else {
@@ -6934,9 +7064,10 @@ where
                     signal,
                     registration,
                 } => {
-                    let Some(vm) = self.vms.get_mut(vm_id) else {
+                    let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                         return Ok(Value::Null);
                     };
+                    let vm = &mut *vm;
                     let signal_key =
                         Self::child_process_signal_key(process_id, &child_path).to_owned();
                     apply_process_signal_state_update(
@@ -6972,9 +7103,10 @@ where
         ) = {
             let mut child_path = current_process_path.to_vec();
             child_path.push(child_process_id);
-            let Some(vm) = self.vms.get_mut(vm_id) else {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                 return Ok(None);
             };
+            let vm = &mut *vm;
             let Some(parent) =
                 Self::descendant_parent_process_mut(vm, process_id, current_process_path)
             else {
@@ -6999,9 +7131,10 @@ where
         }
         let wait_deadline = Instant::now() + Duration::from_millis(wait_ms.min(25));
         loop {
-            let Some(vm) = self.vms.get_mut(vm_id) else {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                 return Ok(None);
             };
+            let vm = &mut *vm;
             if let Some(process_info) = vm.kernel.list_processes().get(&child_kernel_pid) {
                 if process_info.status == ProcessStatus::Exited {
                     return Ok(Some(ActiveExecutionEvent::Exited(
@@ -7047,9 +7180,10 @@ where
     ) -> Result<(), SidecarError> {
         let mut child_path = current_process_path.to_vec();
         child_path.push(child_process_id);
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Err(javascript_child_process_gone_error(process_id, &child_path));
         };
+        let vm = &mut *vm;
         let Some(root) = vm.active_processes.get_mut(process_id) else {
             return Err(javascript_child_process_gone_error(process_id, &child_path));
         };
@@ -7083,9 +7217,10 @@ where
         current_process_path: &[&str],
         child_process_id: &str,
     ) -> Result<(), SidecarError> {
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Ok(());
         };
+        let vm = &mut *vm;
         let Some(root) = vm.active_processes.get_mut(process_id) else {
             return Ok(());
         };
@@ -7133,9 +7268,10 @@ where
     ) -> Result<(), SidecarError> {
         let mut child_path = current_process_path.to_vec();
         child_path.push(child_process_id);
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Err(javascript_child_process_gone_error(process_id, &child_path));
         };
+        let vm = &mut *vm;
         let Some(root) = vm.active_processes.get_mut(process_id) else {
             return Err(javascript_child_process_gone_error(process_id, &child_path));
         };
@@ -7159,9 +7295,10 @@ where
     ) -> Result<(), SidecarError> {
         let signal_name = signal.to_owned();
         let signal = parse_signal(signal)?;
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Ok(());
         };
+        let vm = &mut *vm;
         let Some(root) = vm.active_processes.get_mut(process_id) else {
             return Ok(());
         };
@@ -7212,11 +7349,12 @@ where
         if signal != 0 && target_pid < 0 {
             let pgid = target_pid.unsigned_abs();
             let caller_kernel_pid = {
-                let Some(vm) = self.vms.get(vm_id) else {
+                let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                     return Err(SidecarError::InvalidState(String::from(
                         "ESRCH: unknown VM during process.kill",
                     )));
                 };
+                let vm = &mut *vm;
                 let Some(root) = vm.active_processes.get(process_id) else {
                     return Err(SidecarError::InvalidState(format!(
                         "ESRCH: unknown process {process_id} during process.kill",
@@ -7234,9 +7372,10 @@ where
             if !caller_is_member {
                 return Ok(Value::Null);
             }
-            let Some(vm) = self.vms.get_mut(vm_id) else {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                 return Ok(Value::Null);
             };
+            let vm = &mut *vm;
             let Some(root) = vm.active_processes.get_mut(process_id) else {
                 return Ok(Value::Null);
             };
@@ -7256,40 +7395,44 @@ where
             }));
         }
 
-        let Some(vm) = self.vms.get_mut(vm_id) else {
-            return Err(SidecarError::InvalidState(String::from(
-                "ESRCH: unknown VM during process.kill",
-            )));
-        };
-
-        if signal == 0 {
-            vm.kernel
-                .signal_process(EXECUTION_DRIVER_NAME, target_pid, signal)
-                .map_err(kernel_error)?;
-            return Ok(Value::Null);
-        }
-
-        let target_kernel_pid = u32::try_from(target_pid).map_err(|_| {
-            SidecarError::InvalidState(format!("EINVAL: invalid process pid {target_pid}"))
-        })?;
-        let (source_pid, located_target_path) = {
-            let Some(root) = vm.active_processes.get(process_id) else {
-                return Err(SidecarError::InvalidState(format!(
-                    "ESRCH: unknown process {process_id} during process.kill",
+        let (source_pid, located_target_path, target_kernel_pid) = {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
+                return Err(SidecarError::InvalidState(String::from(
+                    "ESRCH: unknown VM during process.kill",
                 )));
             };
-            let Some(source) = Self::active_process_by_path(root, &source_path) else {
-                return Err(SidecarError::InvalidState(format!(
-                    "ESRCH: unknown child process {child_process_id} during process.kill",
-                )));
+            let vm = &mut *vm;
+
+            if signal == 0 {
+                vm.kernel
+                    .signal_process(EXECUTION_DRIVER_NAME, target_pid, signal)
+                    .map_err(kernel_error)?;
+                return Ok(Value::Null);
+            }
+
+            let target_kernel_pid = u32::try_from(target_pid).map_err(|_| {
+                SidecarError::InvalidState(format!("EINVAL: invalid process pid {target_pid}"))
+            })?;
+            let (source_pid, located_target_path) = {
+                let Some(root) = vm.active_processes.get(process_id) else {
+                    return Err(SidecarError::InvalidState(format!(
+                        "ESRCH: unknown process {process_id} during process.kill",
+                    )));
+                };
+                let Some(source) = Self::active_process_by_path(root, &source_path) else {
+                    return Err(SidecarError::InvalidState(format!(
+                        "ESRCH: unknown child process {child_process_id} during process.kill",
+                    )));
+                };
+                vm.kernel
+                    .signal_process(EXECUTION_DRIVER_NAME, target_pid, 0)
+                    .map_err(kernel_error)?;
+                (
+                    source.kernel_pid,
+                    Self::active_process_path_by_kernel_pid(root, target_kernel_pid),
+                )
             };
-            vm.kernel
-                .signal_process(EXECUTION_DRIVER_NAME, target_pid, 0)
-                .map_err(kernel_error)?;
-            (
-                source.kernel_pid,
-                Self::active_process_path_by_kernel_pid(root, target_kernel_pid),
-            )
+            (source_pid, located_target_path, target_kernel_pid)
         };
         let Some(target_path) = located_target_path else {
             // The target is alive but not part of this root's process tree.
@@ -7298,11 +7441,12 @@ where
             self.signal_vm_kernel_pid(vm_id, target_kernel_pid, signal_name)?;
             return Ok(Value::Null);
         };
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Err(SidecarError::InvalidState(String::from(
                 "ESRCH: unknown VM during process.kill",
             )));
         };
+        let vm = &mut *vm;
 
         if source_pid == target_kernel_pid {
             let Some(root) = vm.active_processes.get_mut(process_id) else {
@@ -7434,12 +7578,13 @@ where
         child_process_id: &str,
         chunk: &[u8],
     ) -> Result<(), SidecarError> {
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Err(javascript_child_process_gone_error(
                 process_id,
                 &[child_process_id],
             ));
         };
+        let vm = &mut *vm;
         let Some(child) = vm
             .active_processes
             .get_mut(process_id)
@@ -7467,12 +7612,13 @@ where
         process_id: &str,
         child_process_id: &str,
     ) -> Result<(), SidecarError> {
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Err(javascript_child_process_gone_error(
                 process_id,
                 &[child_process_id],
             ));
         };
+        let vm = &mut *vm;
         let Some(child) = vm
             .active_processes
             .get_mut(process_id)
@@ -7498,9 +7644,10 @@ where
     ) -> Result<(), SidecarError> {
         let signal_name = signal.to_owned();
         let signal = parse_signal(signal)?;
-        let Some(vm) = self.vms.get_mut(vm_id) else {
+        let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
             return Ok(());
         };
+        let vm = &mut *vm;
         let process = vm
             .active_processes
             .get_mut(process_id)
@@ -7547,11 +7694,12 @@ where
     ) -> Result<(), SidecarError> {
         let signal = parse_signal(signal_name)?;
         let located = {
-            let Some(vm) = self.vms.get(vm_id) else {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                 return Err(SidecarError::InvalidState(String::from(
                     "ESRCH: unknown VM during process.kill",
                 )));
             };
+            let vm = &mut *vm;
             let alive = vm
                 .kernel
                 .list_processes()
@@ -7573,9 +7721,10 @@ where
                 self.kill_process_internal(vm_id, &process_id, signal_name)
             }
             Some((process_id, path)) => {
-                let Some(vm) = self.vms.get_mut(vm_id) else {
+                let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                     return Ok(());
                 };
+                let vm = &mut *vm;
                 let Some(root) = vm.active_processes.get_mut(&process_id) else {
                     return Ok(());
                 };
@@ -7599,9 +7748,10 @@ where
                 Ok(())
             }
             None => {
-                let Some(vm) = self.vms.get_mut(vm_id) else {
+                let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                     return Ok(());
                 };
+                let vm = &mut *vm;
                 let target_pid = i32::try_from(target_kernel_pid).map_err(|_| {
                     SidecarError::InvalidState(format!(
                         "EINVAL: invalid process pid {target_kernel_pid}"
@@ -7638,11 +7788,12 @@ where
     ) -> Result<bool, SidecarError> {
         parse_signal(signal_name)?;
         let members = {
-            let Some(vm) = self.vms.get(vm_id) else {
+            let Some(mut vm) = self.vms.get(vm_id).map(crate::state::lock_vm) else {
                 return Err(SidecarError::InvalidState(String::from(
                     "ESRCH: unknown VM during process.kill",
                 )));
             };
+            let vm = &mut *vm;
             vm.kernel
                 .list_processes()
                 .into_iter()
