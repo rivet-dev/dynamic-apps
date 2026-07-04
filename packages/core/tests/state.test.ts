@@ -29,9 +29,13 @@ describe("state conversion", () => {
 		).toEqual({
 			mode: 0o100644,
 			size: 42,
+			size_u64: "42",
 			blocks: 1,
+			blocks_u64: "1",
 			dev: 2,
+			dev_u64: "2",
 			rdev: 0,
+			rdev_u64: "0",
 			is_directory: false,
 			is_symbolic_link: false,
 			atime_ms: 100,
@@ -39,10 +43,40 @@ describe("state conversion", () => {
 			ctime_ms: 300,
 			birthtime_ms: 400,
 			ino: 10,
+			ino_u64: "10",
 			nlink: 1,
 			uid: 1000,
 			gid: 1000,
 		});
+	});
+
+	it("does not reject u64 stat identity fields above the safe integer range", () => {
+		const unsafe = BigInt(Number.MAX_SAFE_INTEGER) + 2n;
+
+		const stat = fromGeneratedGuestFilesystemStat({
+			mode: 0o100644,
+			size: unsafe,
+			blocks: unsafe,
+			dev: unsafe,
+			rdev: unsafe,
+			isDirectory: false,
+			isSymbolicLink: false,
+			atimeMs: 100n,
+			mtimeMs: 200n,
+			ctimeMs: 300n,
+			birthtimeMs: 400n,
+			ino: unsafe,
+			nlink: 1n,
+			uid: 1000,
+			gid: 1000,
+		});
+
+		expect(stat.dev_u64).toBe(unsafe.toString());
+		expect(stat.rdev_u64).toBe(unsafe.toString());
+		expect(stat.ino_u64).toBe(unsafe.toString());
+		expect(stat.size_u64).toBe(unsafe.toString());
+		expect(stat.blocks_u64).toBe(unsafe.toString());
+		expect(() => JSON.stringify(stat)).not.toThrow();
 	});
 
 	it("maps generated socket state entries to live socket entries", () => {

@@ -14,6 +14,35 @@ var O_CREAT = 64;
 var O_EXCL = 128;
 var O_TRUNC = 512;
 var O_APPEND = 1024;
+function normalizeStatOptions(options) {
+  if (options === void 0 || options === null) {
+    return { bigint: false };
+  }
+  if (typeof options !== "object") {
+    throw createInvalidArgTypeError("options", "of type object", options);
+  }
+  validateBooleanOption("bigint", options.bigint);
+  return { bigint: options.bigint === true };
+}
+function normalizeStatCallbackArgs(optionsOrCallback, callback) {
+  if (typeof optionsOrCallback === "function") {
+    return { options: normalizeStatOptions(void 0), callback: optionsOrCallback };
+  }
+  validateCallback(callback, "cb");
+  return { options: normalizeStatOptions(optionsOrCallback), callback };
+}
+function toStatNumber(value, fallback = 0) {
+  return Number(value ?? fallback);
+}
+function toStatBigInt(value, fallback = 0) {
+  return BigInt(value ?? fallback);
+}
+function statModeMatches(mode, bits) {
+  if (typeof mode === "bigint") {
+    return (mode & 61440n) === BigInt(bits);
+  }
+  return (mode & 61440) === bits;
+}
 var Stats = class {
   dev;
   ino;
@@ -34,36 +63,73 @@ var Stats = class {
   ctime;
   birthtime;
   constructor(init) {
-    this.dev = init.dev ?? 0;
-    this.ino = init.ino ?? 0;
-    this.mode = init.mode;
-    this.nlink = init.nlink ?? 1;
-    this.uid = init.uid ?? 0;
-    this.gid = init.gid ?? 0;
-    this.rdev = init.rdev ?? 0;
-    this.size = init.size;
-    this.blksize = init.blksize ?? 4096;
-    this.blocks = init.blocks ?? Math.ceil(init.size / 512);
+    const options = normalizeStatOptions(arguments[1]);
+    if (options.bigint) {
+      this.dev = toStatBigInt(init.dev_u64 ?? init.dev);
+      this.ino = toStatBigInt(init.ino_u64 ?? init.ino);
+      this.mode = toStatBigInt(init.mode);
+      this.nlink = toStatBigInt(init.nlink ?? 1);
+      this.uid = toStatBigInt(init.uid);
+      this.gid = toStatBigInt(init.gid);
+      this.rdev = toStatBigInt(init.rdev_u64 ?? init.rdev);
+      this.size = toStatBigInt(init.size_u64 ?? init.size);
+      this.blksize = toStatBigInt(init.blksize ?? 4096);
+      this.blocks = toStatBigInt(
+        init.blocks_u64 ?? init.blocks ?? Math.ceil(Number(this.size) / 512)
+      );
+    } else {
+      this.dev = toStatNumber(init.dev);
+      this.ino = toStatNumber(init.ino);
+      this.mode = init.mode;
+      this.nlink = init.nlink ?? 1;
+      this.uid = init.uid ?? 0;
+      this.gid = init.gid ?? 0;
+      this.rdev = toStatNumber(init.rdev);
+      this.size = toStatNumber(init.size);
+      this.blksize = init.blksize ?? 4096;
+      this.blocks = toStatNumber(
+        init.blocks ?? Math.ceil(toStatNumber(init.size) / 512)
+      );
+    }
     const atimeMs = init.atimeMs ?? Date.now();
     const mtimeMs = init.mtimeMs ?? Date.now();
     const ctimeMs = init.ctimeMs ?? Date.now();
-    this.atimeMs = atimeMs + ((init.atimeNsec ?? 0) % 1e6) / 1e6;
-    this.mtimeMs = mtimeMs + ((init.mtimeNsec ?? 0) % 1e6) / 1e6;
-    this.ctimeMs = ctimeMs + ((init.ctimeNsec ?? 0) % 1e6) / 1e6;
-    this.birthtimeMs = init.birthtimeMs ?? Date.now();
-    this.atime = new Date(this.atimeMs);
-    this.mtime = new Date(this.mtimeMs);
-    this.ctime = new Date(this.ctimeMs);
-    this.birthtime = new Date(this.birthtimeMs);
+    const birthtimeMs = init.birthtimeMs ?? Date.now();
+    if (options.bigint) {
+      const atimeNsec = toStatBigInt(init.atimeNsec);
+      const mtimeNsec = toStatBigInt(init.mtimeNsec);
+      const ctimeNsec = toStatBigInt(init.ctimeNsec);
+      this.atimeMs = toStatBigInt(atimeMs);
+      this.mtimeMs = toStatBigInt(mtimeMs);
+      this.ctimeMs = toStatBigInt(ctimeMs);
+      this.birthtimeMs = toStatBigInt(birthtimeMs);
+      this.atimeNs = this.atimeMs * 1000000n + atimeNsec % 1000000n;
+      this.mtimeNs = this.mtimeMs * 1000000n + mtimeNsec % 1000000n;
+      this.ctimeNs = this.ctimeMs * 1000000n + ctimeNsec % 1000000n;
+      this.birthtimeNs = this.birthtimeMs * 1000000n;
+      this.atime = new Date(Number(this.atimeMs));
+      this.mtime = new Date(Number(this.mtimeMs));
+      this.ctime = new Date(Number(this.ctimeMs));
+      this.birthtime = new Date(Number(this.birthtimeMs));
+    } else {
+      this.atimeMs = atimeMs + ((init.atimeNsec ?? 0) % 1e6) / 1e6;
+      this.mtimeMs = mtimeMs + ((init.mtimeNsec ?? 0) % 1e6) / 1e6;
+      this.ctimeMs = ctimeMs + ((init.ctimeNsec ?? 0) % 1e6) / 1e6;
+      this.birthtimeMs = birthtimeMs;
+      this.atime = new Date(this.atimeMs);
+      this.mtime = new Date(this.mtimeMs);
+      this.ctime = new Date(this.ctimeMs);
+      this.birthtime = new Date(this.birthtimeMs);
+    }
   }
   isFile() {
-    return (this.mode & 61440) === 32768;
+    return statModeMatches(this.mode, 32768);
   }
   isDirectory() {
-    return (this.mode & 61440) === 16384;
+    return statModeMatches(this.mode, 16384);
   }
   isSymbolicLink() {
-    return (this.mode & 61440) === 40960;
+    return statModeMatches(this.mode, 40960);
   }
   isBlockDevice() {
     return false;
@@ -378,9 +444,9 @@ var FileHandle = class _FileHandle {
       handle._closing = false;
     }
   }
-  async stat() {
+  async stat(options) {
     const handle = _FileHandle._assertHandle(this);
-    return fs.fstatSync(handle.fd);
+    return fs.fstatSync(handle.fd, options);
   }
   async sync() {
     const handle = _FileHandle._assertHandle(this);
@@ -2387,11 +2453,12 @@ async function fsRmdirAsync(path) {
   const pathStr = normalizePathLike(path);
   await _fsAsync.rmdir.apply(void 0, [pathStr]);
 }
-async function fsStatAsync(path) {
+async function fsStatAsync(path, options) {
   const rawPath = normalizePathLike(path);
+  const statOptions = normalizeStatOptions(options);
   try {
     const statJson = await _fsAsync.stat.apply(void 0, [rawPath]);
-    return new Stats(decodeBridgeJson(statJson));
+    return new Stats(decodeBridgeJson(statJson), statOptions);
   } catch (err) {
     if (bridgeErrorCode(err) === "ENOENT") {
       throw createFsError(
@@ -2404,10 +2471,11 @@ async function fsStatAsync(path) {
     throw err;
   }
 }
-async function fsLstatAsync(path) {
+async function fsLstatAsync(path, options) {
   const pathStr = normalizePathLike(path);
+  const statOptions = normalizeStatOptions(options);
   const statJson = await _fsAsync.lstat.apply(void 0, [pathStr]);
-  return new Stats(decodeBridgeJson(statJson));
+  return new Stats(decodeBridgeJson(statJson), statOptions);
 }
 async function fsUnlinkAsync(path) {
   const pathStr = normalizePathLike(path);
@@ -2768,9 +2836,10 @@ var fs = {
     }
     return _fs.exists.applySyncPromise(void 0, [pathStr]);
   },
-  statSync(path, _options) {
+  statSync(path, options) {
     const rawPath = normalizePathLike(path);
     const pathStr = rawPath;
+    const statOptions = normalizeStatOptions(options);
     let statJson;
     try {
       statJson = _fs.stat.applySyncPromise(void 0, [pathStr]);
@@ -2786,13 +2855,14 @@ var fs = {
       throw err;
     }
     const stat = decodeBridgeJson(statJson);
-    return new Stats(stat);
+    return new Stats(stat, statOptions);
   },
-  lstatSync(path, _options) {
+  lstatSync(path, options) {
     const pathStr = normalizePathLike(path);
+    const statOptions = normalizeStatOptions(options);
     const statJson = bridgeCall(() => _fs.lstat.applySyncPromise(void 0, [pathStr]), "lstat", pathStr);
     const stat = decodeBridgeJson(statJson);
-    return new Stats(stat);
+    return new Stats(stat, statOptions);
   },
   unlinkSync(path) {
     const pathStr = normalizePathLike(path);
@@ -2972,8 +3042,9 @@ var fs = {
       throw e;
     }
   },
-  fstatSync(fd) {
+  fstatSync(fd, options) {
     normalizeFdInteger(fd);
+    const statOptions = normalizeStatOptions(options);
     let raw;
     try {
       raw = _fdFstat.applySyncPromise(void 0, [fd]);
@@ -2982,7 +3053,7 @@ var fs = {
       if (msg.includes("EBADF")) throw createFsError("EBADF", "EBADF: bad file descriptor, fstat", "fstat");
       throw e;
     }
-    return new Stats(decodeBridgeJson(raw));
+    return new Stats(decodeBridgeJson(raw), statOptions);
   },
   ftruncateSync(fd, len) {
     normalizeFdInteger(fd);
@@ -3331,22 +3402,23 @@ var fs = {
     }
     queueMicrotask(() => callback(Boolean(tryNormalizeExistsPath(path) && fs.existsSync(path))));
   },
-  stat(path, callback) {
-    validateCallback(callback, "cb");
+  stat(path, optionsOrCallback, callback) {
+    const args = normalizeStatCallbackArgs(optionsOrCallback, callback);
     normalizePathLike(path);
-    const cb = callback;
+    const cb = args.callback;
     try {
-      const stats = fs.statSync(path);
+      const stats = fs.statSync(path, args.options);
       queueMicrotask(() => cb(null, stats));
     } catch (e) {
       queueMicrotask(() => cb(e));
     }
   },
-  lstat(path, callback) {
-    if (callback) {
-      const cb = callback;
+  lstat(path, optionsOrCallback, callback) {
+    if (optionsOrCallback || callback) {
+      const args = normalizeStatCallbackArgs(optionsOrCallback, callback);
+      const cb = args.callback;
       try {
-        const stats = fs.lstatSync(path);
+        const stats = fs.lstatSync(path, args.options);
         queueMicrotask(() => cb(null, stats));
       } catch (e) {
         queueMicrotask(() => cb(e));
@@ -3611,12 +3683,13 @@ var fs = {
     }
     return totalBytesWritten;
   },
-  fstat(fd, callback) {
-    if (callback) {
+  fstat(fd, optionsOrCallback, callback) {
+    if (optionsOrCallback || callback) {
+      const args = normalizeStatCallbackArgs(optionsOrCallback, callback);
       try {
-        callback(null, fs.fstatSync(fd));
+        args.callback(null, fs.fstatSync(fd, args.options));
       } catch (e) {
-        callback(e);
+        args.callback(e);
       }
     } else {
       return Promise.resolve(fs.fstatSync(fd));
@@ -3723,11 +3796,11 @@ var fs = {
     async rmdir(path) {
       return fsRmdirAsync(path);
     },
-    async stat(path) {
-      return fsStatAsync(path);
+    async stat(path, options) {
+      return fsStatAsync(path, options);
     },
-    async lstat(path) {
-      return fsLstatAsync(path);
+    async lstat(path, options) {
+      return fsLstatAsync(path, options);
     },
     async unlink(path) {
       return fsUnlinkAsync(path);

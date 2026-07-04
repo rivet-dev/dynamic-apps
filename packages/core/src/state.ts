@@ -5,9 +5,13 @@ import { fromGeneratedProcessSnapshotStatus } from "./protocol-maps.js";
 export interface LiveGuestFilesystemStat {
 	mode: number;
 	size: number;
+	size_u64: string;
 	blocks: number;
+	blocks_u64: string;
 	dev: number;
+	dev_u64: string;
 	rdev: number;
+	rdev_u64: string;
 	is_directory: boolean;
 	is_symbolic_link: boolean;
 	atime_ms: number;
@@ -15,6 +19,7 @@ export interface LiveGuestFilesystemStat {
 	ctime_ms: number;
 	birthtime_ms: number;
 	ino: number;
+	ino_u64: string;
 	nlink: number;
 	uid: number;
 	gid: number;
@@ -46,10 +51,14 @@ export function fromGeneratedGuestFilesystemStat(
 ): LiveGuestFilesystemStat {
 	return {
 		mode: stat.mode,
-		size: bigIntToSafeNumber(stat.size, "guest filesystem stat size"),
-		blocks: bigIntToSafeNumber(stat.blocks, "guest filesystem stat blocks"),
-		dev: bigIntToSafeNumber(stat.dev, "guest filesystem stat dev"),
-		rdev: bigIntToSafeNumber(stat.rdev, "guest filesystem stat rdev"),
+		size: Number(stat.size),
+		size_u64: stat.size.toString(),
+		blocks: Number(stat.blocks),
+		blocks_u64: stat.blocks.toString(),
+		dev: Number(stat.dev),
+		dev_u64: stat.dev.toString(),
+		rdev: Number(stat.rdev),
+		rdev_u64: stat.rdev.toString(),
 		is_directory: stat.isDirectory,
 		is_symbolic_link: stat.isSymbolicLink,
 		atime_ms: bigIntToSafeNumber(stat.atimeMs, "guest filesystem stat atime"),
@@ -59,7 +68,8 @@ export function fromGeneratedGuestFilesystemStat(
 			stat.birthtimeMs,
 			"guest filesystem stat birthtime",
 		),
-		ino: bigIntToSafeNumber(stat.ino, "guest filesystem stat ino"),
+		ino: Number(stat.ino),
+		ino_u64: stat.ino.toString(),
 		nlink: bigIntToSafeNumber(stat.nlink, "guest filesystem stat nlink"),
 		uid: stat.uid,
 		gid: stat.gid,
