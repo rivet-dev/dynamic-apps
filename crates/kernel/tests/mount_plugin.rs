@@ -19,7 +19,7 @@ impl FileSystemPluginFactory<()> for SeededMemoryPlugin {
     fn open(
         &self,
         _request: OpenFileSystemPluginRequest<'_, ()>,
-    ) -> Result<Box<dyn secure_exec_kernel::mount_table::MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn secure_exec_kernel::mount_table::MountedFileSystem + Send>, PluginError> {
         let mut filesystem = MemoryFileSystem::new();
         filesystem
             .write_file("/hello.txt", b"hello".to_vec())
@@ -36,7 +36,7 @@ impl FileSystemPluginFactory<()> for NamedPlugin {
     fn open(
         &self,
         _request: OpenFileSystemPluginRequest<'_, ()>,
-    ) -> Result<Box<dyn secure_exec_kernel::mount_table::MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn secure_exec_kernel::mount_table::MountedFileSystem + Send>, PluginError> {
         Ok(Box::new(MountedVirtualFileSystem::new(
             MemoryFileSystem::new(),
         )))

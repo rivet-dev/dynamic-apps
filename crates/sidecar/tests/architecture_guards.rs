@@ -263,6 +263,9 @@ const FS_ALLOW: &[&str] = &[
     "crates/execution/src/javascript.rs",
     "crates/execution/src/node_import_cache.rs",
     "crates/execution/src/runtime_support.rs",
+    // CPU profiler output writer: writes a guest-CPU-profile artifact to an
+    // operator-configured host path (debug/profiling tool, not guest-driven I/O).
+    "crates/v8-runtime/src/cpuprofile.rs",
 ];
 
 /// net: host network access.
@@ -314,6 +317,25 @@ const ENV_ALLOW: &[&str] = &[
     // reads NODE_IMPORT_CACHE_MATERIALIZE_TIMEOUT_MS, a process-wide build/test timeout knob
     // (bucket 1: host/build/test config shared across all VMs, not per-VM wire config).
     "crates/execution/src/node_import_cache.rs",
+    // Process-wide debug / perf / parallelism gates read at startup: every read below is a
+    // `std::env::var("SECURE_EXEC_*" | "SX_*")` observability/tuning knob (perf-clock, RPC/wake
+    // profilers, stack-dump samplers, V8 flags, lazy-compile, poll bounds, parallel-VM + launch
+    // stagger). These are bucket-1 host/build/test config shared across all VMs, NOT guest-reachable
+    // per-VM surface, so they are not a sandbox boundary.
+    "crates/bridge/src/lib.rs",
+    "crates/execution/src/javascript.rs",
+    "crates/execution/src/wasm.rs",
+    "crates/kernel/src/kernel.rs",
+    "crates/sidecar/src/filesystem.rs",
+    "crates/sidecar/src/rpc_trace.rs",
+    "crates/sidecar/src/service.rs",
+    "crates/sidecar/src/state.rs",
+    "crates/sidecar/src/stdio.rs",
+    "crates/v8-runtime/src/cpuprofile.rs",
+    "crates/v8-runtime/src/execution.rs",
+    "crates/v8-runtime/src/hopsplit.rs",
+    "crates/v8-runtime/src/isolate.rs",
+    "crates/v8-runtime/src/session.rs",
 ];
 
 fn fs_class() -> BannedClass {

@@ -33,6 +33,9 @@ mod plugins;
 #[path = "../src/protocol.rs"]
 mod protocol;
 #[allow(dead_code)]
+#[path = "../src/rpc_trace.rs"]
+mod rpc_trace;
+#[allow(dead_code)]
 #[path = "../src/state.rs"]
 mod state;
 #[allow(dead_code)]
@@ -274,10 +277,7 @@ ykAheWCsAteSEWVc0w==\n\
                 GuestRuntimeKind::JavaScript,
                 ActiveExecution::Tool(ToolExecution::default()),
             );
-            sidecar
-                .vms
-                .get_mut(vm_id)
-                .expect("test vm")
+            crate::state::lock_vm(sidecar.vms.get(vm_id).expect("test vm"))
                 .active_processes
                 .insert(process_id.to_owned(), process);
         }
@@ -420,10 +420,7 @@ ykAheWCsAteSEWVc0w==\n\
                 }
                 child
             };
-            sidecar
-                .vms
-                .get_mut(&vm_id)
-                .expect("test vm")
+            crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("test vm"))
                 .active_processes
                 .get_mut("root-proc")
                 .expect("root process")
@@ -626,10 +623,8 @@ ykAheWCsAteSEWVc0w==\n\
         fn sqlite_database_handles_are_bounded() {
             let (mut sidecar, vm_id) = create_sqlite_handle_test_sidecar();
             {
-                let process = sidecar
-                    .vms
-                    .get_mut(&vm_id)
-                    .expect("sqlite vm")
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("sqlite vm"));
+                let process = vm
                     .active_processes
                     .get_mut("proc-sqlite-handles")
                     .expect("sqlite process");
@@ -666,10 +661,8 @@ ykAheWCsAteSEWVc0w==\n\
         fn sqlite_statement_handles_are_bounded() {
             let (mut sidecar, vm_id) = create_sqlite_handle_test_sidecar();
             {
-                let process = sidecar
-                    .vms
-                    .get_mut(&vm_id)
-                    .expect("sqlite vm")
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("sqlite vm"));
+                let process = vm
                     .active_processes
                     .get_mut("proc-sqlite-handles")
                     .expect("sqlite process");
@@ -1520,7 +1513,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -1535,7 +1528,7 @@ ykAheWCsAteSEWVc0w==\n\
             };
 
             {
-                let vm = sidecar.vms.get_mut(vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     process_id.to_owned(),
                     ActiveProcess::new(
@@ -1759,7 +1752,7 @@ ykAheWCsAteSEWVc0w==\n\
             let mut exit_code = None;
             for _ in 0..64 {
                 let next_event = {
-                    let vm = sidecar.vms.get_mut(vm_id).expect("active vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("active vm"));
                     vm.active_processes.get_mut(process_id).and_then(|process| {
                         if let Some(event) = process.pending_execution_events.pop_front() {
                             Some(event)
@@ -1847,7 +1840,7 @@ ykAheWCsAteSEWVc0w==\n\
                 });
 
             let env = {
-                let vm = sidecar.vms.get(vm_id).expect("wasm vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("wasm vm"));
                 BTreeMap::from([
                     (
                         String::from(EXECUTION_SANDBOX_ROOT_ENV),
@@ -1872,7 +1865,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .expect("start fake wasm execution");
 
             let (kernel_handle, master_fd) = {
-                let vm = sidecar.vms.get_mut(vm_id).expect("wasm vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("wasm vm"));
                 let kernel_handle = vm
                     .kernel
                     .spawn_process(
@@ -1904,7 +1897,7 @@ ykAheWCsAteSEWVc0w==\n\
                 (kernel_handle, master_fd)
             };
 
-            let vm = sidecar.vms.get_mut(vm_id).expect("wasm vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("wasm vm"));
             let kernel_pid = kernel_handle.pid();
             vm.active_processes.insert(
                 process_id.to_owned(),
@@ -1951,7 +1944,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -1965,7 +1958,7 @@ ykAheWCsAteSEWVc0w==\n\
                     .expect("spawn kernel javascript process")
             };
 
-            let vm = sidecar.vms.get_mut(vm_id).expect("javascript vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("javascript vm"));
             vm.active_processes.insert(
                 process_id.to_owned(),
                 ActiveProcess::new(
@@ -1985,7 +1978,8 @@ ykAheWCsAteSEWVc0w==\n\
             process_id: &str,
         ) {
             let (kernel_handle, guest_env) = {
-                let vm = sidecar.vms.get_mut(vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let handle = vm
                     .kernel
                     .create_virtual_process(
@@ -2003,7 +1997,7 @@ ykAheWCsAteSEWVc0w==\n\
                 (handle, vm.guest_env.clone())
             };
 
-            let vm = sidecar.vms.get_mut(vm_id).expect("javascript vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("javascript vm"));
             vm.active_processes.insert(
                 process_id.to_owned(),
                 ActiveProcess::new(
@@ -2025,10 +2019,10 @@ ykAheWCsAteSEWVc0w==\n\
         ) -> Result<Value, SidecarError> {
             let bridge = sidecar.bridge.clone();
             let (dns, socket_paths, counts, limits) = {
-                let vm = sidecar.vms.get(vm_id).expect("javascript vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("javascript vm"));
                 (
                     vm.dns.clone(),
-                    build_javascript_socket_path_context(vm).expect("build socket path context"),
+                    build_javascript_socket_path_context(&vm).expect("build socket path context"),
                     vm.active_processes
                         .get(process_id)
                         .expect("javascript process")
@@ -2037,7 +2031,8 @@ ykAheWCsAteSEWVc0w==\n\
                 )
             };
 
-            let vm = sidecar.vms.get_mut(vm_id).expect("javascript vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(vm_id).expect("javascript vm"));
+            let vm = &mut *vm;
             let process = vm
                 .active_processes
                 .get_mut(process_id)
@@ -2052,6 +2047,9 @@ ykAheWCsAteSEWVc0w==\n\
                 sync_request: &request,
                 resource_limits: &limits,
                 network_counts: counts,
+                poll_waiter: None,
+                poll_deferred: None,
+                owner_socket_readiness: None,
             })
         }
 
@@ -2081,6 +2079,9 @@ ykAheWCsAteSEWVc0w==\n\
                 sync_request: request,
                 resource_limits,
                 network_counts,
+                poll_waiter: None,
+                poll_deferred: None,
+                owner_socket_readiness: None,
             })
         }
 
@@ -2154,7 +2155,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("bind kernel-backed udp socket");
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("vm state");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("vm state"));
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-kernel-query")
@@ -2553,7 +2554,8 @@ ykAheWCsAteSEWVc0w==\n\
             )
             .expect("bind kernel-backed udp socket");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("vm state");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("vm state"));
+            let vm = &mut *vm;
             let process = vm
                 .active_processes
                 .get_mut("proc-js-kernel-counts")
@@ -3220,7 +3222,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .to_string();
 
             {
-                let vm = sidecar.vms.get(&vm_id).expect("javascript vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 let process = vm
                     .active_processes
                     .get("proc-js-net-read")
@@ -3425,7 +3427,7 @@ ykAheWCsAteSEWVc0w==\n\
             // The client socket must be routed through the shared kernel socket
             // table, not a host-only loopback shortcut.
             {
-                let vm = sidecar.vms.get(&vm_id).expect("javascript vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 let client = vm
                     .active_processes
                     .get("proc-client")
@@ -3926,7 +3928,7 @@ ykAheWCsAteSEWVc0w==\n\
                 PermissionsPolicy::allow_all(),
                 BTreeMap::from([(
                     format!("env.{LOOPBACK_EXEMPT_PORTS_ENV}"),
-                    serde_json::to_string(&vec![port.to_string()]).expect("serialize exempt ports"),
+                    serde_json::to_string(&vec![port]).expect("serialize exempt ports"),
                 )]),
             )
             .expect("create vm");
@@ -4644,7 +4646,7 @@ ykAheWCsAteSEWVc0w==\n\
                 })
                 .expect("start fake javascript execution");
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -4658,7 +4660,7 @@ ykAheWCsAteSEWVc0w==\n\
                     .expect("spawn kernel javascript process")
             };
             let kernel_stdin_writer_fd = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 let (read_fd, write_fd) = vm
                     .kernel
                     .open_pipe(EXECUTION_DRIVER_NAME, kernel_handle.pid())
@@ -4672,7 +4674,7 @@ ykAheWCsAteSEWVc0w==\n\
                 write_fd
             };
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-stdin"),
                     ActiveProcess::new(
@@ -4805,7 +4807,7 @@ ykAheWCsAteSEWVc0w==\n\
                 })
                 .expect("start fake javascript execution");
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -4819,7 +4821,7 @@ ykAheWCsAteSEWVc0w==\n\
                     .expect("spawn kernel javascript process")
             };
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 let (_master_fd, slave_fd, _pty_path) = vm
                     .kernel
                     .open_pty(EXECUTION_DRIVER_NAME, kernel_handle.pid())
@@ -4843,7 +4845,7 @@ ykAheWCsAteSEWVc0w==\n\
             }
 
             {
-                let vm = sidecar.vms.get(&vm_id).expect("javascript vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 let kernel_pid = vm.active_processes["proc-js-pty"].kernel_pid;
                 let termios = vm
                     .kernel
@@ -4868,7 +4870,7 @@ ykAheWCsAteSEWVc0w==\n\
             assert_eq!(raw, Value::Null);
 
             {
-                let vm = sidecar.vms.get(&vm_id).expect("javascript vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 let kernel_pid = vm.active_processes["proc-js-pty"].kernel_pid;
                 let termios = vm
                     .kernel
@@ -4893,7 +4895,7 @@ ykAheWCsAteSEWVc0w==\n\
             assert_eq!(cooked, Value::Null);
 
             {
-                let vm = sidecar.vms.get(&vm_id).expect("javascript vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 let kernel_pid = vm.active_processes["proc-js-pty"].kernel_pid;
                 let termios = vm
                     .kernel
@@ -5045,8 +5047,11 @@ ykAheWCsAteSEWVc0w==\n\
                         PermissionsPolicy::allow_all(),
                     )
                     .expect("create live vm");
-                    let vm = sidecar.vms.get_mut(&live_vm_id).expect("live vm");
-                    vm.active_processes.remove("proc-js-race");
+                    {
+                        let mut vm =
+                            crate::state::lock_vm(sidecar.vms.get(&live_vm_id).expect("live vm"));
+                        vm.active_processes.remove("proc-js-race");
+                    }
                     assert!(sidecar
                         .handle_execution_event(
                             &live_vm_id,
@@ -5313,7 +5318,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .expect("create live vm");
 
                 {
-                    let vm = sidecar.vms.get(&live_vm_id).expect("live vm");
+                    let vm = crate::state::lock_vm(sidecar.vms.get(&live_vm_id).expect("live vm"));
                     assert!(
                         !vm.kernel
                             .exists("/workspace")
@@ -5349,7 +5354,7 @@ ykAheWCsAteSEWVc0w==\n\
                     .expect("ignore stale python vfs process");
 
                 {
-                    let vm = sidecar.vms.get(&live_vm_id).expect("live vm");
+                    let vm = crate::state::lock_vm(sidecar.vms.get(&live_vm_id).expect("live vm"));
                     assert!(
                         !vm.kernel
                             .exists("/workspace")
@@ -5466,7 +5471,7 @@ ykAheWCsAteSEWVc0w==\n\
             .expect("create vm");
 
             let zombie_pid = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
                 vm.kernel
                     .register_driver(CommandDriver::new("test-driver", ["test-zombie"]))
                     .expect("register test driver");
@@ -5499,7 +5504,7 @@ ykAheWCsAteSEWVc0w==\n\
             }
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
                 let waited = vm.kernel.waitpid(zombie_pid).expect("waitpid");
                 assert_eq!(waited.pid, zombie_pid);
                 assert_eq!(waited.status, 17);
@@ -5689,7 +5694,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure mounts");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let hidden = vm
                 .kernel
                 .filesystem_mut()
@@ -5760,7 +5765,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure readonly mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let error = vm
                 .kernel
                 .filesystem_mut()
@@ -5833,7 +5838,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure host_dir mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let hidden = vm
                 .kernel
                 .filesystem_mut()
@@ -5904,7 +5909,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure host_dir mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let error = vm
                 .kernel
                 .filesystem_mut()
@@ -5959,7 +5964,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure module_access mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let error = vm
                 .kernel
                 .filesystem_mut()
@@ -6074,7 +6079,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure js_bridge mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             vm.kernel
                 .filesystem_mut()
                 .link("/workspace/original.txt", "/workspace/linked.txt")
@@ -6207,7 +6212,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure js_bridge mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let read_error = vm
                 .kernel
                 .filesystem_mut()
@@ -6293,7 +6298,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure js_bridge mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             assert_eq!(
                 vm.kernel
                     .filesystem_mut()
@@ -6408,7 +6413,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure js_bridge mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let read_error = vm
                 .kernel
                 .filesystem_mut()
@@ -6502,7 +6507,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure sandbox_agent mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let hidden = vm
                 .kernel
                 .filesystem_mut()
@@ -6598,25 +6603,28 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure s3 mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
-            let hidden = vm
-                .kernel
-                .filesystem_mut()
-                .read_file("/data/root-only.txt")
-                .expect_err("mounted s3 fs should hide root-backed file");
-            assert_eq!(hidden.code(), "ENOENT");
+            {
+                let mut vm =
+                    crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
+                let hidden = vm
+                    .kernel
+                    .filesystem_mut()
+                    .read_file("/data/root-only.txt")
+                    .expect_err("mounted s3 fs should hide root-backed file");
+                assert_eq!(hidden.code(), "ENOENT");
 
-            vm.kernel
-                .filesystem_mut()
-                .write_file("/data/from-vm.txt", b"native s3 mount".to_vec())
-                .expect("write s3-backed file");
-            assert_eq!(
                 vm.kernel
                     .filesystem_mut()
-                    .read_file("/data/from-vm.txt")
-                    .expect("read s3-backed file"),
-                b"native s3 mount".to_vec()
-            );
+                    .write_file("/data/from-vm.txt", b"native s3 mount".to_vec())
+                    .expect("write s3-backed file");
+                assert_eq!(
+                    vm.kernel
+                        .filesystem_mut()
+                        .read_file("/data/from-vm.txt")
+                        .expect("read s3-backed file"),
+                    b"native s3 mount".to_vec()
+                );
+            }
             drop(sidecar);
 
             let requests = server.requests();
@@ -6908,7 +6916,7 @@ ykAheWCsAteSEWVc0w==\n\
             )
             .expect("create vm");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             vm.kernel
                 .filesystem_mut()
                 .write_file("/blocked.txt", b"nope".to_vec())
@@ -6942,14 +6950,12 @@ ykAheWCsAteSEWVc0w==\n\
                 .with_bridge_mut(|bridge| bridge.permission_checks.len())
                 .expect("read bootstrap permission checks");
 
-            let write_error = sidecar
-                .vms
-                .get_mut(&vm_id)
-                .expect("configured vm")
-                .kernel
-                .filesystem_mut()
-                .write_file("/blocked.txt", b"nope".to_vec())
-                .expect_err("write should be denied");
+            let write_error =
+                crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"))
+                    .kernel
+                    .filesystem_mut()
+                    .write_file("/blocked.txt", b"nope".to_vec())
+                    .expect_err("write should be denied");
             assert_eq!(write_error.code(), "EACCES");
 
             let permission_check_count_after_write = sidecar
@@ -7030,10 +7036,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .expect("vm permissions tracked");
             assert_eq!(stored_permissions, PermissionsPolicy::deny_all());
             assert_eq!(
-                sidecar
-                    .vms
-                    .get(&vm_id)
-                    .expect("configured vm")
+                crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"))
                     .configuration
                     .permissions,
                 PermissionsPolicy::deny_all()
@@ -7042,14 +7045,12 @@ ykAheWCsAteSEWVc0w==\n\
             let permission_check_count_before_write = sidecar
                 .with_bridge_mut(|bridge| bridge.permission_checks.len())
                 .expect("read bridge permission checks");
-            let write_error = sidecar
-                .vms
-                .get_mut(&vm_id)
-                .expect("configured vm")
-                .kernel
-                .filesystem_mut()
-                .write_file("/blocked.txt", b"nope".to_vec())
-                .expect_err("write should be denied after failed rollback");
+            let write_error =
+                crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"))
+                    .kernel
+                    .filesystem_mut()
+                    .write_file("/blocked.txt", b"nope".to_vec())
+                    .expect_err("write should be denied after failed rollback");
             assert_eq!(write_error.code(), "EACCES");
             let permission_check_count_after_write = sidecar
                 .with_bridge_mut(|bridge| bridge.permission_checks.len())
@@ -7082,7 +7083,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .expect("register original toolkit");
 
             let (toolkits_before, command_paths_before) = {
-                let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
                 (vm.toolkits.clone(), vm.command_guest_paths.clone())
             };
 
@@ -7130,7 +7131,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .expect("vm permissions tracked");
             assert_eq!(stored_permissions, PermissionsPolicy::deny_all());
 
-            let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+            let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             assert_eq!(vm.configuration.permissions, PermissionsPolicy::deny_all());
             assert_eq!(vm.toolkits, toolkits_before);
             assert_eq!(vm.command_guest_paths, command_paths_before);
@@ -7453,7 +7454,7 @@ ykAheWCsAteSEWVc0w==\n\
                     .expect("dispatch guest filesystem request");
             }
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let note_stat = vm
                 .kernel
                 .stat("/workspace/note.txt")
@@ -7597,33 +7598,27 @@ ykAheWCsAteSEWVc0w==\n\
                 other => panic!("expected configured response, got {other:?}"),
             }
 
-            let operator_mounts = sidecar
-                .vms
-                .get(&vm_id)
-                .expect("configured vm")
-                .kernel
-                .mounted_filesystems();
+            let operator_mounts =
+                crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"))
+                    .kernel
+                    .mounted_filesystems();
             assert_eq!(operator_mounts.len(), 2, "root + operator-applied mount");
 
-            let mount_error = sidecar
-                .vms
-                .get_mut(&vm_id)
-                .expect("configured vm")
-                .kernel
-                .mount_filesystem(
-                    "/guest-mount",
-                    MemoryFileSystem::new(),
-                    MountOptions::new("memory"),
-                )
-                .expect_err("guest mount under default-deny should be rejected");
+            let mount_error =
+                crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"))
+                    .kernel
+                    .mount_filesystem(
+                        "/guest-mount",
+                        MemoryFileSystem::new(),
+                        MountOptions::new("memory"),
+                    )
+                    .expect_err("guest mount under default-deny should be rejected");
             assert_eq!(mount_error.code(), "EACCES");
 
-            let mounts_after_guest_request = sidecar
-                .vms
-                .get(&vm_id)
-                .expect("configured vm")
-                .kernel
-                .mounted_filesystems();
+            let mounts_after_guest_request =
+                crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"))
+                    .kernel
+                    .mounted_filesystems();
             assert_eq!(mounts_after_guest_request, operator_mounts);
         }
         fn scoped_host_filesystem_unscoped_target_requires_exact_guest_root_prefix() {
@@ -7741,7 +7736,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure host_dir mount");
 
-            let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+            let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let error = vm
                 .kernel
                 .filesystem_mut()
@@ -7805,7 +7800,7 @@ ykAheWCsAteSEWVc0w==\n\
                 other => panic!("unexpected execute response: {other:?}"),
             }
 
-            let vm = sidecar.vms.get(&vm_id).expect("python vm");
+            let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("python vm"));
             let process = vm
                 .active_processes
                 .get("proc-python")
@@ -8112,7 +8107,7 @@ ykAheWCsAteSEWVc0w==\n\
 
             for _ in 0..64 {
                 let next_event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("active vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("active vm"));
                     vm.active_processes
                         .get_mut("proc-wasm-pty")
                         .and_then(|process| {
@@ -8143,7 +8138,7 @@ ykAheWCsAteSEWVc0w==\n\
 
                 if pty_text.is_none() {
                     let maybe_pty = {
-                        let vm = sidecar.vms.get_mut(&vm_id).expect("wasm vm");
+                        let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("wasm vm"));
                         let kernel_pid = vm
                             .active_processes
                             .get("proc-wasm-pty")
@@ -8237,7 +8232,7 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("configure command-path mounts");
 
-            let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+            let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let path = vm
                 .guest_env
                 .get("PATH")
@@ -8324,7 +8319,7 @@ ykAheWCsAteSEWVc0w==\n\
             ] {
                 let resolved = sidecar
                     .resolve_javascript_child_process_execution(
-                        vm,
+                        &vm,
                         &vm.guest_env,
                         &vm.guest_cwd,
                         &vm.host_cwd,
@@ -8348,7 +8343,7 @@ ykAheWCsAteSEWVc0w==\n\
             }
 
             let missing = sidecar.resolve_javascript_child_process_execution(
-                vm,
+                &vm,
                 &vm.guest_env,
                 &vm.guest_cwd,
                 &vm.host_cwd,
@@ -8378,7 +8373,7 @@ ykAheWCsAteSEWVc0w==\n\
             )
             .expect("create vm");
 
-            let vm = sidecar.vms.get(&vm_id).expect("created vm");
+            let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("created vm"));
             assert!(
                 !vm.command_guest_paths.contains_key("sh"),
                 "test VM must not provide a guest sh command"
@@ -8394,7 +8389,7 @@ ykAheWCsAteSEWVc0w==\n\
             };
             let error = sidecar
                 .resolve_javascript_child_process_execution(
-                    vm,
+                    &vm,
                     &vm.guest_env,
                     &vm.guest_cwd,
                     &vm.host_cwd,
@@ -8485,10 +8480,10 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("register math toolkit");
 
-            let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+            let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let resolved = sidecar
                 .resolve_javascript_child_process_execution(
-                    vm,
+                    &vm,
                     &vm.guest_env,
                     &vm.guest_cwd,
                     &vm.host_cwd,
@@ -8602,10 +8597,10 @@ ykAheWCsAteSEWVc0w==\n\
                 ))
                 .expect("register math toolkit");
 
-            let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+            let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             let resolved = sidecar
                 .resolve_javascript_child_process_execution(
-                    vm,
+                    &vm,
                     &vm.guest_env,
                     &vm.guest_cwd,
                     &vm.host_cwd,
@@ -8687,7 +8682,7 @@ ykAheWCsAteSEWVc0w==\n\
                 other => panic!("expected rejected response, got {other:?}"),
             }
 
-            let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+            let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             assert_eq!(vm.toolkits.get("math"), Some(&original_toolkit));
         }
         fn tools_register_host_callbacks_rejects_registry_overflow_without_mutating_vm() {
@@ -8717,7 +8712,7 @@ ykAheWCsAteSEWVc0w==\n\
             }
 
             let (toolkits_before, command_paths_before) = {
-                let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
                 assert_eq!(vm.toolkits.len(), crate::tools::MAX_REGISTERED_TOOLKITS);
                 (vm.toolkits.clone(), vm.command_guest_paths.clone())
             };
@@ -8745,7 +8740,7 @@ ykAheWCsAteSEWVc0w==\n\
                 other => panic!("expected rejected response, got {other:?}"),
             }
 
-            let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+            let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             assert_eq!(vm.toolkits, toolkits_before);
             assert_eq!(vm.command_guest_paths, command_paths_before);
             assert!(
@@ -8801,7 +8796,7 @@ ykAheWCsAteSEWVc0w==\n\
             }
 
             let (toolkits_before, command_paths_before) = {
-                let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+                let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
                 assert_eq!(vm.toolkits.len(), 4);
                 assert_eq!(
                     vm.toolkits
@@ -8836,7 +8831,7 @@ ykAheWCsAteSEWVc0w==\n\
                 other => panic!("expected rejected response, got {other:?}"),
             }
 
-            let vm = sidecar.vms.get(&vm_id).expect("configured vm");
+            let vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
             assert_eq!(vm.toolkits, toolkits_before);
             assert_eq!(vm.command_guest_paths, command_paths_before);
             assert!(
@@ -9048,7 +9043,7 @@ ykAheWCsAteSEWVc0w==\n\
                 .expect("register math toolkit");
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("configured vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("configured vm"));
                 vm.kernel
                     .write_file(
                         "/workspace/invalid-tool-input.json",
@@ -9455,7 +9450,7 @@ export async function loadPyodide() {
                 .expect("start fake python execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("python vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("python vm"));
                 vm.kernel
                     .spawn_process(
                         PYTHON_COMMAND,
@@ -9470,7 +9465,7 @@ export async function loadPyodide() {
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("python vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("python vm"));
                 vm.active_processes.insert(
                     String::from("proc-python-vfs"),
                     ActiveProcess::new(
@@ -9484,7 +9479,7 @@ export async function loadPyodide() {
 
             for _ in 0..16 {
                 let event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("python vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("python vm"));
                     let process = vm
                         .active_processes
                         .get_mut("proc-python-vfs")
@@ -9559,7 +9554,7 @@ export async function loadPyodide() {
             );
 
             let content = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("python vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("python vm"));
                 String::from_utf8(
                     vm.kernel
                         .read_file("/workspace/note.txt")
@@ -9570,7 +9565,7 @@ export async function loadPyodide() {
             assert_eq!(content, "hello from sidecar rpc");
 
             let process = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("python vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("python vm"));
                 vm.active_processes
                     .remove("proc-python-vfs")
                     .expect("remove fake python process")
@@ -9638,7 +9633,7 @@ await new Promise(() => {});
                 .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -9653,7 +9648,7 @@ await new Promise(() => {});
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-sync"),
                     ActiveProcess::new(
@@ -9669,7 +9664,8 @@ await new Promise(() => {});
             let mut saw_stdout = false;
             for _ in 0..16 {
                 let event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                    let vm = &mut *vm;
                     let process = vm
                         .active_processes
                         .get_mut("proc-js-sync")
@@ -9699,7 +9695,7 @@ await new Promise(() => {});
             }
 
             let content = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 String::from_utf8(
                     vm.kernel
                         .read_file("/rpc/note.txt")
@@ -9709,14 +9705,14 @@ await new Promise(() => {});
             };
             assert_eq!(content, "hello from sidecar rpc");
             let link_target = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .read_link("/rpc/link.txt")
                     .expect("read bridged symlink")
             };
             assert_eq!(link_target, "/rpc/note.txt");
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 assert!(
                     !vm.kernel
                         .exists("/rpc/renamed.txt")
@@ -9733,7 +9729,7 @@ await new Promise(() => {});
             assert!(saw_stdout, "expected guest stdout after sync fs round-trip");
 
             let process = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes
                     .remove("proc-js-sync")
                     .expect("remove fake javascript process")
@@ -9840,7 +9836,7 @@ await new Promise(() => {});
             )
             .expect("create vm");
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .write_file("/rpc/input.txt", b"abcdefg")
                     .expect("seed input file");
@@ -9991,7 +9987,7 @@ console.log(
             .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -10006,7 +10002,7 @@ console.log(
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-fd"),
                     ActiveProcess::new(
@@ -10024,7 +10020,7 @@ console.log(
             let mut exit_code = None;
             for _ in 0..64 {
                 let next_event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                     vm.active_processes
                         .get_mut("proc-js-fd")
                         .and_then(|process| {
@@ -10103,7 +10099,7 @@ console.log(
                 "stdout: {stdout}"
             );
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 let output = String::from_utf8(
                     vm.kernel
                         .read_file("/rpc/output.txt")
@@ -10280,7 +10276,7 @@ await new Promise(() => {});
             .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -10295,7 +10291,7 @@ await new Promise(() => {});
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-promises"),
                     ActiveProcess::new(
@@ -10314,7 +10310,8 @@ await new Promise(() => {});
 
             for _ in 0..40 {
                 let event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                    let vm = &mut *vm;
                     let process = vm
                         .active_processes
                         .get_mut("proc-js-promises")
@@ -10383,7 +10380,7 @@ await new Promise(() => {});
             }
 
             let content = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 (0..10)
                     .map(|index| {
                         String::from_utf8(
@@ -10415,7 +10412,7 @@ await new Promise(() => {});
             );
 
             let process = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes
                     .remove("proc-js-promises")
                     .expect("remove fake javascript process")
@@ -11025,7 +11022,7 @@ await new Promise(() => {});
             let process_id = "proc-js-sqlite-rpc";
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("sqlite vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("sqlite vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -11038,17 +11035,19 @@ await new Promise(() => {});
                     )
                     .expect("spawn sqlite kernel process")
             };
-            let vm = sidecar.vms.get_mut(&vm_id).expect("sqlite vm");
-            vm.active_processes.insert(
-                String::from(process_id),
-                ActiveProcess::new(
-                    kernel_handle.pid(),
-                    kernel_handle,
-                    GuestRuntimeKind::JavaScript,
-                    ActiveExecution::Tool(ToolExecution::default()),
-                )
-                .with_host_cwd(cwd.clone()),
-            );
+            {
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("sqlite vm"));
+                vm.active_processes.insert(
+                    String::from(process_id),
+                    ActiveProcess::new(
+                        kernel_handle.pid(),
+                        kernel_handle,
+                        GuestRuntimeKind::JavaScript,
+                        ActiveExecution::Tool(ToolExecution::default()),
+                    )
+                    .with_host_cwd(cwd.clone()),
+                );
+            }
 
             let database_id = call_javascript_sync_rpc(
                 &mut sidecar,
@@ -11300,7 +11299,7 @@ console.log("sqlite-ok");
             assert!(stderr.trim().is_empty(), "stderr: {stderr}");
             assert_eq!(stdout.trim(), "sqlite-ok");
             let database_bytes = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .read_file("/workspace/sqlite-builtins.db")
                     .expect("read sqlite builtins database file")
@@ -11541,7 +11540,7 @@ console.log(JSON.stringify({ lookup, resolve4 }));
             .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -11556,7 +11555,7 @@ console.log(JSON.stringify({ lookup, resolve4 }));
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-dns"),
                     ActiveProcess::new(
@@ -11574,7 +11573,7 @@ console.log(JSON.stringify({ lookup, resolve4 }));
             let mut exit_code = None;
             for _ in 0..64 {
                 let next_event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                     vm.active_processes
                         .get_mut("proc-js-dns")
                         .and_then(|process| {
@@ -11733,7 +11732,7 @@ process.exit(0);
             .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -11748,7 +11747,7 @@ process.exit(0);
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-ssrf-protection"),
                     ActiveProcess::new(
@@ -11766,7 +11765,7 @@ process.exit(0);
             let mut exit_code = None;
             for _ in 0..64 {
                 let next_event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                     vm.active_processes
                         .get_mut("proc-js-ssrf-protection")
                         .and_then(|process| {
@@ -12136,7 +12135,7 @@ console.log(JSON.stringify(data));
                 BTreeMap::from([
                     (
                         format!("env.{LOOPBACK_EXEMPT_PORTS_ENV}"),
-                        serde_json::to_string(&vec![port.to_string()])
+                        serde_json::to_string(&vec![port])
                             .expect("serialize exempt ports"),
                     ),
                     (
@@ -12433,7 +12432,7 @@ console.log(JSON.stringify(summary));
             .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -12448,7 +12447,7 @@ console.log(JSON.stringify(summary));
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-tls"),
                     ActiveProcess::new(
@@ -12466,7 +12465,7 @@ console.log(JSON.stringify(summary));
             let mut exit_code = None;
             for _ in 0..192 {
                 let next_event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                     vm.active_processes
                         .get_mut("proc-js-tls")
                         .and_then(|process| {
@@ -12567,6 +12566,8 @@ console.log(JSON.stringify(summary));
                 sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-http-listen"))
                     .is_some_and(|process| process.http_servers.contains_key(&7)),
                 "HTTP server was not registered",
@@ -12588,6 +12589,8 @@ console.log(JSON.stringify(summary));
                 sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-http-listen"))
                     .is_some_and(|process| process.http_servers.is_empty()),
                 "HTTP server should be removed after close",
@@ -12612,7 +12615,7 @@ console.log(JSON.stringify(summary));
                 "{\"status\":200,\"headers\":[[\"content-type\",\"text/plain\"]],\"body\":\"cG9uZw==\",\"bodyEncoding\":\"base64\"}",
             );
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("vm"));
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-http-respond")
@@ -12636,6 +12639,8 @@ console.log(JSON.stringify(summary));
                 sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-http-respond"))
                     .and_then(|process| process.pending_http_requests.get(&(7, 9)))
                     .cloned(),
@@ -12667,7 +12672,7 @@ console.log(JSON.stringify(summary));
             let response_json = format!(r#"{{"status":200,"body":"{oversized_body}"}}"#);
             assert!(response_json.len() > crate::wire::DEFAULT_MAX_FRAME_BYTES);
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("vm"));
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-http-respond-oversized")
@@ -12694,6 +12699,8 @@ console.log(JSON.stringify(summary));
                 sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-http-respond-oversized"))
                     .and_then(|process| process.pending_http_requests.get(&(7, 10)))
                     .cloned(),
@@ -12981,20 +12988,14 @@ console.log(JSON.stringify(summary));
             let cwd = temp_dir("secure-exec-sidecar-http2-surfaces");
             write_fixture(&cwd.join("entry.mjs"), "");
             start_fake_javascript_process(&mut sidecar, &vm_id, &cwd, "proc-js-http2-surfaces");
-            sidecar
-                .vms
-                .get_mut(&vm_id)
-                .expect("javascript vm")
+            crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"))
                 .active_processes
                 .get_mut("proc-js-http2-surfaces")
                 .expect("javascript process")
                 .guest_cwd = String::from("/workspace");
             let host_only_path = cwd.join("host-only-reply.txt");
             write_fixture(&host_only_path, "host-only");
-            sidecar
-                .vms
-                .get_mut(&vm_id)
-                .expect("javascript vm")
+            crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"))
                 .kernel
                 .write_file("/workspace/reply.txt", b"from-vm-file".to_vec())
                 .expect("seed VM response file");
@@ -13490,7 +13491,7 @@ console.log(JSON.stringify(summary));
                 "{\"status\":200,\"headers\":[[\"content-type\",\"text/plain\"]],\"body\":\"c2VjdXJlLXBvbmc=\",\"bodyEncoding\":\"base64\"}",
             );
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("vm"));
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-http2-respond")
@@ -13514,6 +13515,8 @@ console.log(JSON.stringify(summary));
                 sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-http2-respond"))
                     .and_then(|process| process.pending_http_requests.get(&(33, 44)))
                     .cloned(),
@@ -14810,7 +14813,7 @@ console.log(JSON.stringify(summary));
             .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -14825,7 +14828,7 @@ console.log(JSON.stringify(summary));
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-unix"),
                     ActiveProcess::new(
@@ -14839,10 +14842,12 @@ console.log(JSON.stringify(summary));
             }
 
             let bridge = sidecar.bridge.clone();
-            let dns = sidecar.vms.get(&vm_id).expect("javascript vm").dns.clone();
+            let dns = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"))
+                .dns
+                .clone();
             let limits = ResourceLimits::default();
             let socket_paths = JavascriptSocketPathContext {
-                sandbox_root: cwd.clone(),
+                socket_root: cwd.clone(),
                 mounts: Vec::new(),
                 listen_policy: VmListenPolicy::default(),
                 loopback_exempt_ports: BTreeSet::new(),
@@ -14859,10 +14864,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -14890,7 +14898,7 @@ console.log(JSON.stringify(summary));
             let server_id = listen["serverId"].as_str().expect("server id").to_string();
             assert_eq!(listen["path"], Value::String(String::from(socket_path)));
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 assert!(
                     vm.kernel
                         .exists(socket_path)
@@ -14924,10 +14932,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -14964,10 +14975,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15002,10 +15016,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15033,10 +15050,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15069,10 +15089,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15099,10 +15122,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15133,10 +15159,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15164,10 +15193,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15200,10 +15232,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15230,10 +15265,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15264,10 +15302,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15295,10 +15336,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15325,10 +15369,13 @@ console.log(JSON.stringify(summary));
                 let counts = sidecar
                     .vms
                     .get(&vm_id)
+                    .map(crate::state::lock_vm)
+                    .as_ref()
                     .and_then(|vm| vm.active_processes.get("proc-js-unix"))
                     .expect("unix process")
                     .network_resource_counts();
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
+                let vm = &mut *vm;
                 let process = vm
                     .active_processes
                     .get_mut("proc-js-unix")
@@ -15426,7 +15473,7 @@ console.log(JSON.stringify({
             );
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .write_file("/rpc/note.txt", b"hello from nested child".to_vec())
                     .expect("seed rpc note");
@@ -15460,7 +15507,7 @@ console.log(JSON.stringify({
             .expect("start fake javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -15475,7 +15522,7 @@ console.log(JSON.stringify({
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-child"),
                     ActiveProcess::new(
@@ -15493,7 +15540,7 @@ console.log(JSON.stringify({
             let mut exit_code = None;
             for _ in 0..96 {
                 let next_event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                     vm.active_processes
                         .get_mut("proc-js-child")
                         .and_then(|process| {
@@ -15674,7 +15721,7 @@ console.log(JSON.stringify({
                 .expect("start nested SIGCHLD javascript execution");
 
             let kernel_handle = {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.kernel
                     .spawn_process(
                         JAVASCRIPT_COMMAND,
@@ -15689,7 +15736,7 @@ console.log(JSON.stringify({
             };
 
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-nested-sigchld"),
                     ActiveProcess::new(
@@ -15707,7 +15754,7 @@ console.log(JSON.stringify({
             let mut exit_code = None;
             for _ in 0..128 {
                 let next_event = {
-                    let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                    let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                     vm.active_processes
                         .get_mut("proc-js-nested-sigchld")
                         .and_then(|process| {
@@ -15793,7 +15840,7 @@ console.log(JSON.stringify({
 
             let kernel_handle = create_kernel_process_handle_for_tests();
             {
-                let vm = sidecar.vms.get_mut(&vm_id).expect("javascript vm");
+                let mut vm = crate::state::lock_vm(sidecar.vms.get(&vm_id).expect("javascript vm"));
                 vm.active_processes.insert(
                     String::from("proc-js-child-gone"),
                     ActiveProcess::new(

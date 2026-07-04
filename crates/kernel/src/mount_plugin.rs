@@ -19,7 +19,7 @@ pub trait FileSystemPluginFactory<Context>: Send + Sync {
     fn open(
         &self,
         request: OpenFileSystemPluginRequest<'_, Context>,
-    ) -> Result<Box<dyn MountedFileSystem>, PluginError>;
+    ) -> Result<Box<dyn MountedFileSystem + Send>, PluginError>;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -109,7 +109,7 @@ impl<Context> FileSystemPluginRegistry<Context> {
         &self,
         plugin_id: &str,
         request: OpenFileSystemPluginRequest<'_, Context>,
-    ) -> Result<Box<dyn MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn MountedFileSystem + Send>, PluginError> {
         let Some(factory) = self.factories.get(plugin_id) else {
             return Err(PluginError::unsupported(format!(
                 "filesystem plugin is not registered: {plugin_id}"

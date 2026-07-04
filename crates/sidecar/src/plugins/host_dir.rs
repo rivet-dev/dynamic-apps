@@ -90,7 +90,7 @@ where
     fn open(
         &self,
         request: OpenFileSystemPluginRequest<'_, Context>,
-    ) -> Result<Box<dyn MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn MountedFileSystem + Send>, PluginError> {
         let max_read_bytes = request.context.host_dir_max_read_bytes();
         self.open_with_read_limit(request, max_read_bytes)
     }
@@ -101,7 +101,7 @@ impl HostDirMountPlugin {
         &self,
         request: OpenFileSystemPluginRequest<'_, Context>,
         max_read_bytes: Option<usize>,
-    ) -> Result<Box<dyn MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn MountedFileSystem + Send>, PluginError> {
         let config: HostDirMountConfig = serde_json::from_value(request.config.clone())
             .map_err(|error| PluginError::invalid_input(error.to_string()))?;
         let filesystem = HostDirFilesystem::new_with_read_limit(&config.host_path, max_read_bytes)?;

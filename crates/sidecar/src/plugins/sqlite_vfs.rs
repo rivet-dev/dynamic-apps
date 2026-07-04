@@ -97,7 +97,7 @@ where
     fn open(
         &self,
         request: OpenFileSystemPluginRequest<'_, Context>,
-    ) -> Result<Box<dyn MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn MountedFileSystem + Send>, PluginError> {
         let config: SqliteVfsMountConfig = serde_json::from_value(request.config.clone())
             .map_err(|error| PluginError::invalid_input(error.to_string()))?;
         match config.backend.as_deref().unwrap_or("local") {

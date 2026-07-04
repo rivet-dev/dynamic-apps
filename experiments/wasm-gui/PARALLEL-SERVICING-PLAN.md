@@ -166,3 +166,58 @@ identical (single-thread, uncontended). The ~20% app-overlap flakiness is INHERE
 flakiness source → removed in Increment 3 (concurrent launch). No guard-tightening needed. Proceed to Increment 2.
 NOTE: the "5/5 determinism gate" is really ~80% inherent reliability today; treat "matches baseline (~4/5, ~55s,
 zero HARD deadlock/black-on-all-runs)" as the pass bar per increment, with true 5/5 the Increment-3 outcome.
+
+### 2026-07-04 — Increments 2a / 2c-1 / 2c-2 LANDED — CONCURRENT CONVERGENCE 0/3 → 5/5
+- **2a** (committed): `lock_vm` made multi-thread-safe — blocking `lock()` for genuine cross-thread contention
+  + a thread-local held-set that panics only on SAME-thread reentry (the reentrant bug we hunt). Gated
+  `SX_PARALLEL_VMS` runtime flag. No default behavior change; SX_PARALLEL_VMS=1 boots FULL.
+- **2c-1** (committed): extracted `service_hot_javascript_sync_rpc(vm, bridge, poll_waiter)` — the hot generic-arm
+  servicing + response delivery as a free fn taking a single `&mut VmState` (one lock, no re-lock). Behavior-
+  preserving (3/3 FULL, 85 lib tests). Prereq for the per-VM servicing threads.
+- **2c-2** (committed): **per-VM OS-thread servicing.** Each VM gets a dedicated OS thread (`serve_vm_hot_rpcs`)
+  locking only its own `VmState`, servicing that VM's hot sync-RPCs + draining its process events; the main
+  dispatch skips VM polling under `SX_PARALLEL_VMS` and only drains the forwarded (non-hot) events. This kills the
+  cross-VM pickup latency (the D16 diagnosis).
+  - **Design pivot that mattered:** first tried `tokio::spawn` tasks on a `new_multi_thread` runtime → the
+    servicing loop blocks on the VM's `std::sync::Mutex`, so N contending tasks **starve the shared worker pool**
+    → 2/5 FULL, 3/5 all-black (cov=0.0%, main pump alive but per-VM tasks wedged). Switched to a **dedicated
+    std::thread per VM** (blocking_send to the forwarded-event channel, 250µs idle poll) + reverted the main
+    dispatch to `new_current_thread`. Dedicated threads mirror a native per-process scheduler and remove the pool
+    starvation entirely → **5/5**. (An adaptive idle-backoff experiment reintroduced a black run without lowering
+    idle CPU — the per-VM poll is NOT the idle-CPU driver; reverted to flat 250µs.)
+  - **Unblocked by making the VFS mount boundary `Send`:** `MountedFileSystem: Any + Send`, `Send` bound on the
+    `impl VirtualFileSystem` mount params, `Box<dyn MountedFileSystem + Send>`. Behavior-neutral; **no plugin was
+    non-Send** (s3/host_dir/google_drive/sqlite/js_bridge/sandbox_agent/module_access all Send already).
+  - **Results:** serial determinism gate **3/5 FULL @55.4s, zero hard-black** (matches baseline ~4/5, inherent
+    panel-only flakiness — serial code path unchanged; the notify_waiters change is behind the OFF-by-default
+    event-ingest flag). Concurrent `SX_PARALLEL_VMS=1` **5/5 FULL @53.0s (was 0/3)** — decisively converged, and
+    now MORE reliable than the serial settle-gate. Idle CPU 0.60 median (~baseline 0.55).
+- **Why boot is still ~53s (not ≤15s):** the serial-settle launch scaffold still serializes timing; Increment 2
+  delivered *parallel servicing* (the enabler), not the concurrent-launch speedup. The ≤15s target is Increment 3
+  (delete the settle scaffold + readiness-ordered concurrent launch + flip defaults ON) + replacing the 250µs
+  per-VM poll with an event-driven wakeup graph.
+
+### 2026-07-04 — ⚠️ CORRECTION: the "0/3 → 5/5" above was a MEASUREMENT CONFOUND. Premise in question.
+The entry above is **retracted as validation**. Root cause: the boot harness never plumbed `SX_PARALLEL_VMS`
+to the sidecar — it was absent from measure-boot.sh's docker `-e` list AND inside-measure.sh's host-env prefix
+(both fixed 2026-07-04). So **every "concurrent 5/5" number above ran with per-VM threads OFF** (settle-gated
+concurrent LAUNCH on the serial sidecar). Confirmed by the sidecar thread histogram: prior runs peaked ~151-154
+threads with NO `sx-vmsvc-*` threads; only after the plumbing fix do 20+ `sx-vmsvc-vm-*` threads appear
+(peak ~158-168).
+- **First real per-VM-ON boot (plumbing fixed):** `SX_PARALLEL_VMS=1` concurrent → **5/5 systematic panel-only
+  (cov=4.8%)** — the WM + panel come up but the heavy apps never render. Distinct, reproducible failure mode
+  (all 5 identical), NOT the load-induced random all-black that a PV=0 control shows.
+- **Why (architectural):** ALL rendering funnels through ONE single-threaded Xvfb guest. Dispatch pickup latency
+  (the D16 diagnosis) is NOT the boot's binding constraint — the Xvfb serial render throughput is. Giving every
+  guest an always-polling (250µs) servicing thread oversubscribes CPU and contends the hot Xvfb lock, starving
+  the render → panel-only. The per-VM design optimizes the wrong bottleneck for this workload.
+- **Caveat:** the PV-ON run overlapped external CPU load (a 65-min test-fix subagent build; separately, another
+  session's agentos-sidecar at ~150% CPU), so a definitive PV-ON vs PV-OFF A/B needs a QUIET machine. But the
+  *systematic* panel-only signature (vs load's random black) already points at per-VM threads, not noise.
+- **What still stands (unconditional wins, independent of the premise):** the VFS `Send` refactor (neutral,
+  enables future threading), the `configure_vm` reentrant-deadlock fix, the full sidecar test binary compiling
+  again (133 lock_vm repairs), and Increment 3's env-plumbing + tunable launch orchestration (SX_INFRA_*/
+  SX_WM_FALLBACK_MS/SX_LAUNCH_STAGGER_MS + quiet-gate).
+- **Open decision (needs owner input):** keep `SX_PARALLEL_VMS` OFF and pivot the ≤15s effort to the real
+  bottleneck — Xvfb render / framebuffer-write throughput (the SAB dataBuffer lever, see the M8.6 futex-storm
+  memory) — OR run a clean-machine A/B first to be certain per-VM servicing is a net regression before shelving it.

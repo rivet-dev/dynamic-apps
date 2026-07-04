@@ -246,9 +246,7 @@ where
             .expect("owned session should exist")
             .vm_ids
             .insert(vm_id.clone());
-        self.vms.insert(
-            vm_id.clone(),
-            std::sync::Arc::new(std::sync::Mutex::new(VmState {
+        let vm_arc = std::sync::Arc::new(std::sync::Mutex::new(VmState {
                 connection_id: connection_id.clone(),
                 session_id: session_id.clone(),
                 limits,
@@ -281,8 +279,38 @@ where
                 detached_child_processes: BTreeSet::new(),
                 signal_states: BTreeMap::new(),
                 guest_net_fds: BTreeMap::new(),
-            })),
-        );
+        }));
+        self.vms.insert(vm_id.clone(), std::sync::Arc::clone(&vm_arc));
+
+        // Increment 2c: under SX_PARALLEL_VMS, service this VM's hot sync-RPCs on its OWN dedicated OS thread
+        // (locking only this VM), removing the cross-VM pickup latency. A dedicated thread — not a tokio task —
+        // because the servicing loop blocks on the VM's `std::sync::Mutex`; blocking a shared tokio worker pool
+        // starves it under contention, whereas a real per-VM thread mirrors a native per-process scheduler.
+        if crate::service::parallel_vms_enabled() {
+            let stop = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+            self.servicing_task_stops
+                .insert(vm_id.clone(), std::sync::Arc::clone(&stop));
+            let bridge = self.bridge.clone();
+            let poll_waiter = std::sync::Arc::clone(&self.poll_waiter);
+            let event_sender = self.process_event_sender.clone();
+            let (svc_conn, svc_sess, svc_vm) =
+                (connection_id.clone(), session_id.clone(), vm_id.clone());
+            std::thread::Builder::new()
+                .name(format!("sx-vmsvc-{vm_id}"))
+                .spawn(move || {
+                    crate::service::serve_vm_hot_rpcs(
+                        vm_arc,
+                        svc_conn,
+                        svc_sess,
+                        svc_vm,
+                        bridge,
+                        poll_waiter,
+                        event_sender,
+                        stop,
+                    );
+                })
+                .expect("spawn per-VM servicing thread");
+        }
 
         let events = vec![
             self.vm_lifecycle_event(
@@ -425,12 +453,10 @@ where
                 ) {
                     Ok(()) => return Err(error),
                     Err(rollback_error) => {
-                        self.vms
-                            .get(&vm_id)
-                            .map(crate::state::lock_vm)
-                            .expect("owned VM should exist")
-                            .configuration
-                            .permissions = PermissionsPolicy::deny_all();
+                        // Write through the guard already held above (`vm`) — re-locking this VM here would
+                        // be a same-thread reentrant lock on its std::Mutex (deadlock; caught by the lock_vm
+                        // reentrancy detector). The fail-closed state is set directly on the live guard.
+                        vm.configuration.permissions = PermissionsPolicy::deny_all();
                         return Err(rollback_error);
                     }
                 }
@@ -634,6 +660,18 @@ where
                 .vms
                 .remove(vm_id)
                 .expect("owned VM should exist before disposal");
+            // Increment 2c: stop the per-VM servicing task and wait for it to drop its Arc clone before
+            // taking sole ownership (Arc::try_unwrap needs strong_count == 1). The task checks the stop flag
+            // at its loop top and exits within ~one poll cycle; NO vm guard is held here, so it can finish
+            // its current pass and release. Bounded wait (default single-thread has no task → no-op).
+            if let Some(stop) = self.servicing_task_stops.remove(vm_id) {
+                stop.store(true, std::sync::atomic::Ordering::Relaxed);
+                let mut waits = 0u32;
+                while std::sync::Arc::strong_count(&arc) > 1 && waits < 100 {
+                    tokio::time::sleep(std::time::Duration::from_micros(200)).await;
+                    waits += 1;
+                }
+            }
             std::sync::Arc::try_unwrap(arc)
                 .ok()
                 .expect("owned VM should have no other references before disposal")

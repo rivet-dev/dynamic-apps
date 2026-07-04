@@ -8,7 +8,7 @@ use std::collections::BTreeSet;
 use std::path::{Component, Path};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub trait MountedFileSystem: Any {
+pub trait MountedFileSystem: Any + Send {
     fn as_any(&self) -> &dyn Any;
     fn as_any_mut(&mut self) -> &mut dyn Any;
     fn read_file(&mut self, path: &str) -> VfsResult<Vec<u8>>;
@@ -157,7 +157,7 @@ impl<F> MountedVirtualFileSystem<F> {
 
 impl<F> MountedFileSystem for MountedVirtualFileSystem<F>
 where
-    F: VirtualFileSystem + 'static,
+    F: VirtualFileSystem + 'static + Send,
 {
     fn as_any(&self) -> &dyn Any {
         self
@@ -610,7 +610,7 @@ struct MountRegistration {
     path: String,
     plugin_id: String,
     read_only: bool,
-    filesystem: Box<dyn MountedFileSystem>,
+    filesystem: Box<dyn MountedFileSystem + Send>,
 }
 
 pub struct MountTable {
@@ -618,7 +618,7 @@ pub struct MountTable {
 }
 
 impl MountTable {
-    pub fn new(root_fs: impl VirtualFileSystem + 'static) -> Self {
+    pub fn new(root_fs: impl VirtualFileSystem + 'static + Send) -> Self {
         Self {
             mounts: vec![MountRegistration {
                 path: String::from("/"),
@@ -629,9 +629,9 @@ impl MountTable {
         }
     }
 
-    pub fn new_boxed_root(filesystem: Box<dyn MountedFileSystem>, options: MountOptions) -> Self {
+    pub fn new_boxed_root(filesystem: Box<dyn MountedFileSystem + Send>, options: MountOptions) -> Self {
         let filesystem = if options.read_only {
-            Box::new(ReadOnlyFileSystem::new(filesystem)) as Box<dyn MountedFileSystem>
+            Box::new(ReadOnlyFileSystem::new(filesystem)) as Box<dyn MountedFileSystem + Send>
         } else {
             filesystem
         };
@@ -649,7 +649,7 @@ impl MountTable {
     pub fn mount(
         &mut self,
         path: &str,
-        filesystem: impl VirtualFileSystem + 'static,
+        filesystem: impl VirtualFileSystem + 'static + Send,
         options: MountOptions,
     ) -> VfsResult<()> {
         self.mount_boxed(
@@ -662,7 +662,7 @@ impl MountTable {
     pub fn mount_boxed(
         &mut self,
         path: &str,
-        mut filesystem: Box<dyn MountedFileSystem>,
+        mut filesystem: Box<dyn MountedFileSystem + Send>,
         options: MountOptions,
     ) -> VfsResult<()> {
         let normalized = normalize_path(path);
@@ -702,7 +702,7 @@ impl MountTable {
         }
 
         let filesystem = if options.read_only {
-            Box::new(ReadOnlyFileSystem::new(filesystem)) as Box<dyn MountedFileSystem>
+            Box::new(ReadOnlyFileSystem::new(filesystem)) as Box<dyn MountedFileSystem + Send>
         } else {
             filesystem
         };

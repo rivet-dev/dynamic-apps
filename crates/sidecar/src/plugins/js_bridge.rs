@@ -40,7 +40,7 @@ impl<B> FileSystemPluginFactory<MountPluginContext<B>> for JsBridgeMountPlugin {
     fn open(
         &self,
         request: OpenFileSystemPluginRequest<'_, MountPluginContext<B>>,
-    ) -> Result<Box<dyn MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn MountedFileSystem + Send>, PluginError> {
         let config: JsBridgeMountConfig = match &request.config {
             Value::Null => JsBridgeMountConfig::default(),
             Value::Object(_) => serde_json::from_value(request.config.clone())

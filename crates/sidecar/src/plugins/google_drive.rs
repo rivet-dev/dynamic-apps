@@ -60,7 +60,7 @@ impl<Context> FileSystemPluginFactory<Context> for GoogleDriveMountPlugin {
     fn open(
         &self,
         request: OpenFileSystemPluginRequest<'_, Context>,
-    ) -> Result<Box<dyn MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn MountedFileSystem + Send>, PluginError> {
         let config: GoogleDriveMountConfig = serde_json::from_value(request.config.clone())
             .map_err(|error| PluginError::invalid_input(error.to_string()))?;
         let filesystem = GoogleDriveBackedFilesystem::from_config(config)?;

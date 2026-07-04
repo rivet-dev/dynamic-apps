@@ -863,6 +863,10 @@ pub struct NativeSidecar<B> {
     // on the current-thread runtime, which allows non-Send futures). Switches to a Send-safe restructure in
     // Increment 2 when the runtime goes multi-thread.
     pub(crate) vms: BTreeMap<String, std::sync::Arc<std::sync::Mutex<VmState>>>,
+    // Increment 2c: per-VM `serve_vm_hot_rpcs` task stop flags (SX_PARALLEL_VMS). Set on dispose so the
+    // task exits its loop. Owned by the main dispatch (&mut self); the task holds a clone.
+    pub(crate) servicing_task_stops:
+        BTreeMap<String, std::sync::Arc<std::sync::atomic::AtomicBool>>,
     /// Thread pool that completes blocking `net.poll_wait` calls off the single sync-RPC main thread,
     /// so concurrent guests (e.g. a wasm X server + WM + GTK apps) don't serialize on each other's
     /// idle polls. Shared (`Arc`) so the dispatch path can clone a handle past the `&mut self` borrow.
@@ -958,6 +962,7 @@ where
             connections: BTreeMap::new(),
             sessions: BTreeMap::new(),
             vms: BTreeMap::new(),
+            servicing_task_stops: BTreeMap::new(),
             poll_waiter: std::sync::Arc::new(crate::state::PollWaiterPool::with_default_size()),
             process_event_sender,
             process_event_receiver: Some(process_event_receiver),
@@ -3098,6 +3103,133 @@ pub(crate) fn log_stale_process_event<B>(
             "Ignoring stale process event during {context}: VM {vm_id} process {process_id} was already reaped"
         ),
     );
+}
+
+/// Increment 2c: SX_PARALLEL_VMS gate — spawn a per-VM servicing task per VM + skip VM-polling in the
+/// main pump (the tasks poll). Must equal the runtime-flag check in stdio.rs so the multi-thread runtime
+/// and the per-VM tasks are enabled together.
+pub(crate) fn parallel_vms_enabled() -> bool {
+    static EN: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *EN.get_or_init(|| std::env::var("SX_PARALLEL_VMS").as_deref() == Ok("1"))
+}
+
+/// Increment 2c: whether a javascript sync-RPC method is a HOT per-VM op serviceable by a per-VM task
+/// (touches only the VM's kernel + Arc bridge/poll_waiter). The complement — the RARE arms of
+/// `handle_javascript_sync_rpc_request` that touch shared engines/connections (spawn/child_process/kill/
+/// signal/register_guest_fd) — is forwarded to the main dispatch. Keep in sync with those explicit arms.
+pub(crate) fn is_hot_rpc_method(method: &str) -> bool {
+    !matches!(
+        method,
+        "__perf_now"
+            | "child_process.spawn"
+            | "wasm.thread_spawn"
+            | "child_process.spawn_sync"
+            | "child_process.poll"
+            | "child_process.write_stdin"
+            | "child_process.close_stdin"
+            | "child_process.kill"
+            | "process.kill"
+            | "process.signal_state"
+            | "net.register_guest_fd"
+            | "net.set_guest_fd_nonblock"
+            | "net.resolve_guest_fd"
+    )
+}
+
+/// Increment 2c: per-VM servicing task (one `tokio::spawn` per VM under SX_PARALLEL_VMS). Polls ONLY this
+/// VM's processes, services HOT sync-RPCs inline locking only this VM (so VM A's RPCs no longer queue
+/// behind every other guest on the single dispatch task — this is the pickup-latency kill), and forwards
+/// every other event (stdout/stderr/exit/signal/rare-RPC) to the main dispatch via the process_event mpsc.
+/// The main pump skips VM-polling when SX_PARALLEL_VMS so it does not double-drain. Deadlock-free: locks
+/// only its own VM, never nested/cross-VM, and never holds the guard across an `.await`.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn serve_vm_hot_rpcs<B>(
+    vm_arc: std::sync::Arc<std::sync::Mutex<VmState>>,
+    connection_id: String,
+    session_id: String,
+    vm_id: String,
+    bridge: SharedBridge<B>,
+    poll_waiter: std::sync::Arc<crate::state::PollWaiterPool>,
+    event_sender: tokio::sync::mpsc::Sender<crate::state::ProcessEventEnvelope>,
+    stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
+) where
+    B: NativeSidecarBridge + Send + 'static,
+    BridgeError<B>: fmt::Debug + Send + Sync + 'static,
+{
+    use std::sync::atomic::Ordering;
+    while !stop.load(Ordering::Relaxed) {
+        let mut emitted = false;
+        let mut forwarded: Vec<crate::state::ProcessEventEnvelope> = Vec::new();
+        {
+            let mut vm = crate::state::lock_vm(&vm_arc);
+            let vm = &mut *vm;
+            let process_ids: Vec<String> = vm.active_processes.keys().cloned().collect();
+            for process_id in process_ids {
+                loop {
+                    let event = {
+                        let Some(process) = vm.active_processes.get_mut(&process_id) else {
+                            break;
+                        };
+                        if let Some(event) = process.pending_execution_events.pop_front() {
+                            Some(event)
+                        } else {
+                            // Non-blocking poll; a closed/errored channel is left for the main pump's
+                            // recovery path (the exit event still flows through).
+                            process
+                                .execution
+                                .poll_event_blocking(std::time::Duration::ZERO)
+                                .unwrap_or(None)
+                        }
+                    };
+                    let Some(event) = event else { break };
+                    emitted = true;
+                    match event {
+                        ActiveExecutionEvent::JavascriptSyncRpcRequest(request)
+                            if is_hot_rpc_method(&request.method) =>
+                        {
+                            let _ = service_hot_javascript_sync_rpc(
+                                vm,
+                                &vm_id,
+                                &process_id,
+                                &request,
+                                &bridge,
+                                &poll_waiter,
+                            );
+                        }
+                        other => forwarded.push(crate::state::ProcessEventEnvelope {
+                            connection_id: connection_id.clone(),
+                            session_id: session_id.clone(),
+                            vm_id: vm_id.clone(),
+                            process_id: process_id.clone(),
+                            event: other,
+                        }),
+                    }
+                }
+            }
+        } // VM guard dropped before any await below
+
+        let had_forward = !forwarded.is_empty();
+        for envelope in forwarded {
+            // Dedicated OS thread (not a tokio worker), so `blocking_send` is correct and applies natural
+            // backpressure if the main-dispatch drain falls behind; an `Err` means the receiver (sidecar)
+            // is gone → shut this servicing thread down.
+            if event_sender.blocking_send(envelope).is_err() {
+                return; // channel closed → sidecar shutting down
+            }
+        }
+        if had_forward {
+            // Wake the main dispatch to drain the forwarded events into outbound frames / rare-RPC servicing.
+            secure_exec_execution::process_event_notify().notify_waiters();
+        }
+        if emitted {
+            continue; // more work likely — drain again without waiting
+        }
+        // Idle: this VM produced nothing this pass. Poll at 250µs (the main pump's timer-fallback cadence) so
+        // an about-to-arrive peer event is picked up promptly during the throughput-bound boot. A dedicated
+        // per-VM thread can't cheaply park on the tokio `Notify`; the residual idle CPU here is dominated by
+        // the poll-waiter pool + main pump, not this poll, and the event-driven wakeup graph is Increment 3.
+        std::thread::sleep(std::time::Duration::from_micros(250));
+    }
 }
 
 /// HOT-PATH servicing for the generic `_` arm of `handle_javascript_sync_rpc_request` plus its

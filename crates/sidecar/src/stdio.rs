@@ -120,19 +120,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
 }
 
 pub fn run_with_extensions(extensions: Vec<Box<dyn Extension>>) -> Result<(), Box<dyn Error>> {
-    // Increment 2 (PARALLEL-SERVICING-PLAN.md): SX_PARALLEL_VMS=1 enables a multi-thread runtime so the
-    // per-session servicing tasks (Increment 2c) run in parallel. Default = current_thread (byte-identical
-    // single-thread behavior). NOTE: `block_on` runs the main dispatch future on the calling thread either
-    // way, so this flag alone changes nothing until per-session tasks are spawned; it is the prerequisite.
-    let runtime = if std::env::var("SX_PARALLEL_VMS").as_deref() == Ok("1") {
-        tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()?
-    } else {
-        tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()?
-    };
+    // The main dispatch runs on a single-thread runtime (`block_on` on the calling thread). Under
+    // SX_PARALLEL_VMS the per-VM servicing runs on dedicated OS threads (see `vm.rs` / `serve_vm_hot_rpcs`),
+    // NOT tokio worker tasks — so no multi-thread runtime is needed, and current_thread keeps the dispatch
+    // loop's single-thread determinism while the per-VM threads run truly in parallel beside it.
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()?;
     runtime.block_on(run_async(extensions))
 }
 

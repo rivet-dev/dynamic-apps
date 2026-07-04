@@ -3994,7 +3994,15 @@ where
             self.queue_pending_process_event(envelope)?;
         }
 
-        let vm_ids = self.vm_ids_for_scope(ownership)?;
+        // Increment 2c: under SX_PARALLEL_VMS the per-VM servicing tasks poll their own VMs (and forward
+        // non-hot events back through the mpsc drained above), so the main pump must NOT also poll them or
+        // it would double-drain the guest executions. Skip the per-VM polling loop; the mpsc drain above
+        // (forwarded events) is still processed by poll_event → handle_process_event_envelope.
+        let vm_ids = if crate::service::parallel_vms_enabled() {
+            Vec::new()
+        } else {
+            self.vm_ids_for_scope(ownership)?
+        };
         for vm_id in vm_ids {
             while let Some(vm_arc) = self.vms.get(&vm_id) {
                 let (connection_id, session_id) = {

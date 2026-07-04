@@ -4307,7 +4307,7 @@ impl KernelVm<MountTable> {
     pub fn mount_filesystem(
         &mut self,
         path: &str,
-        filesystem: impl VirtualFileSystem + 'static,
+        filesystem: impl VirtualFileSystem + 'static + Send,
         options: MountOptions,
     ) -> KernelResult<()> {
         self.assert_not_terminated()?;
@@ -4322,7 +4322,7 @@ impl KernelVm<MountTable> {
     pub fn mount_boxed_filesystem(
         &mut self,
         path: &str,
-        filesystem: Box<dyn MountedFileSystem>,
+        filesystem: Box<dyn MountedFileSystem + Send>,
         options: MountOptions,
     ) -> KernelResult<()> {
         self.assert_not_terminated()?;

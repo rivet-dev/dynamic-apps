@@ -58,7 +58,7 @@ impl<Context> FileSystemPluginFactory<Context> for S3MountPlugin {
     fn open(
         &self,
         request: OpenFileSystemPluginRequest<'_, Context>,
-    ) -> Result<Box<dyn MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn MountedFileSystem + Send>, PluginError> {
         let config: S3MountConfig = serde_json::from_value(request.config.clone())
             .map_err(|error| PluginError::invalid_input(error.to_string()))?;
         let filesystem = S3BackedFilesystem::from_config(config)?;

@@ -3671,6 +3671,7 @@ mod tests {
             guest_path: String::from("/"),
             host_root: host_root.clone(),
             host_path: host_root.clone(),
+            allow_non_linux_writable_fallback: false,
         };
 
         create_mapped_runtime_root_directory(&mapped, true)

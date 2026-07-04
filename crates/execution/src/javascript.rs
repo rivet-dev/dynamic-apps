@@ -3347,7 +3347,11 @@ fn send_javascript_event(
                 if event_ingest_monotonic_us() < event_ingest_window_us()
                     && !process_event_drain_pending().swap(true, Ordering::AcqRel)
                 {
-                    process_event_notify().notify_one();
+                    // notify_waiters (not notify_one) so BOTH the main dispatch AND every per-VM servicing
+                    // task (SX_PARALLEL_VMS, Increment 2c) wake — notify_one would wake only one of them.
+                    // No stored permit, so waiters use register-before-poll + a timer fallback (see the
+                    // main select! and serve_vm_hot_rpcs) to cover the no-waiter race.
+                    process_event_notify().notify_waiters();
                 }
             }
             true

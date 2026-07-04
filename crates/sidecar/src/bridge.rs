@@ -1041,7 +1041,7 @@ impl<Context> FileSystemPluginFactory<Context> for MemoryMountPlugin {
     fn open(
         &self,
         _request: OpenFileSystemPluginRequest<'_, Context>,
-    ) -> Result<Box<dyn secure_exec_kernel::mount_table::MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn secure_exec_kernel::mount_table::MountedFileSystem + Send>, PluginError> {
         Ok(Box::new(MountedVirtualFileSystem::new(
             MemoryFileSystem::new(),
         )))

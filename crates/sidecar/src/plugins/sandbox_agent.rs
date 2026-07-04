@@ -41,7 +41,7 @@ impl<Context> FileSystemPluginFactory<Context> for SandboxAgentMountPlugin {
     fn open(
         &self,
         request: OpenFileSystemPluginRequest<'_, Context>,
-    ) -> Result<Box<dyn MountedFileSystem>, PluginError> {
+    ) -> Result<Box<dyn MountedFileSystem + Send>, PluginError> {
         let config: SandboxAgentMountConfig = serde_json::from_value(request.config.clone())
             .map_err(|error| PluginError::invalid_input(error.to_string()))?;
         let filesystem = SandboxAgentFilesystem::from_config(config)?;
