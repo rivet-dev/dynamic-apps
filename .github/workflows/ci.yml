@@ -82,6 +82,8 @@ jobs:
           workspaces: . -> target
           key: js-checks
       - run: npx --yes zx@8 scripts/ci.mjs js-checks
+      - run: node --test scripts/verify-fixed-versions.test.mjs
+      - run: pnpm --filter=publish exec tsx src/ci/verify-fixed-versions.ts
 
   rust-lint:
     runs-on: [self-hosted, agentos-builder]

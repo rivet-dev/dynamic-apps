@@ -124,6 +124,7 @@ Every bound that protects a shared resource — memory/heap, CPU/wall-clock, fd/
 ### Release Tracks
 
 - **secure-exec runtime** — `@secure-exec/*` npm packages and `secure-exec-*` crates; releases keep npm/crates in sync, previews are npm-only. See "Release-previewing" and "Publishing" for details.
+- **GATE — secure-exec product versions are always `0.0.1` in the committed tree.** Every package returned by `scripts/publish/src/lib/packages.ts` `discoverPackages(repoRoot)` and the root `Cargo.toml [workspace.package]` version stays pinned at `0.0.1`; the real version is applied ONLY transiently in the CI publish checkout by `bump-versions`, never committed. `scripts/publish/src/ci/verify-fixed-versions.ts` enforces this in CI. `@agentos-software/*` registry packages under `registry/{software,agent}/*` are exempt and stay independently versioned.
 - **`@agentos-software/*` registry packages** — generic VM software from secure-exec `registry/software/*` plus agent adapters from secure-exec `registry/agent/*`; versioned independently of secure-exec runtime packages.
 - **agent-os product/API** — `@rivet-dev/agentos*`, AgentOs APIs, sidecar wrapper, docs, quickstarts, and examples; see agent-os `CLAUDE.md` for its pinning workflow.
 
