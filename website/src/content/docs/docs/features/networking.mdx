@@ -1,6 +1,6 @@
 ---
 title: Networking
-description: A short overview of Secure Exec networking, with a link to the canonical agentOS networking docs.
+description: A short overview of Secure Exec networking.
 ---
 
 Secure Exec virtualizes all VM networking so guest code never touches the real host network. At a glance:
@@ -12,8 +12,5 @@ Secure Exec virtualizes all VM networking so guest code never touches the real h
 
 ## Full reference
 
-The canonical networking API, permission rules, and egress details are owned by agentOS.
-
-<Card title="agentOS: Networking" href="https://agentos-sdk.dev/docs/networking">
-  The complete networking API, permission rules, and egress configuration.
-</Card>
+Networking stays VM-scoped unless the host explicitly allows egress or exposes a
+loopback port to the guest.

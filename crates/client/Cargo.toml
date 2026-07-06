@@ -1,0 +1,13 @@
+[package]
+name = "secure-exec-client"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "secure-exec-client compatibility shim for agentos-sidecar-client"
+
+[lib]
+name = "secure_exec_client"
+
+[dependencies]
+agentos_sidecar_client = { package = "agentos-sidecar-client", path = "../../../agentos/crates/sidecar-client", version = "0.0.1" }

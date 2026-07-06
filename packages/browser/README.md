@@ -1,6 +1,3 @@
-# Secure Exec Browser
+# @secure-exec/browser
 
-Browser driver primitives for secure-exec.
-
-- Package: `@secure-exec/browser`
-- Exports: `createBrowserDriver`, `createBrowserRuntimeDriverFactory`, `createOpfsFileSystem`, `BrowserWorkerAdapter`
+Compatibility shim for `@rivet-dev/agentos-runtime-browser`.

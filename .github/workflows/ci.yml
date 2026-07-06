@@ -1,14 +1,3 @@
-# INTENTIONAL: the cache-heavy rust/registry jobs here (wasm-commands, rust-lint,
-# rust-test, js-test) run on the agent-os self-hosted builders
-# (runs-on: [self-hosted, agentos-builder]), NOT GitHub-hosted runners. The cheap
-# job (js-checks — typecheck/boundary/publish tests) stays on GitHub Actions,
-# which spins up small/dynamically and doesn't need the warm cache.
-# agent-os compiles the secure-exec crates (via the prepare-build clone), so both
-# repos share ONE warm secure-exec build cache on those boxes — the cargo
-# registry, the rusty_v8 V8 prebuilt, and sccache'd crate objects (shared
-# CARGO_HOME + SCCACHE_DIR). secure-exec CI warms the cache agent-os reuses, and
-# vice versa. On the self-hosted jobs the persistent on-disk target/ + CARGO_HOME
-# + sccache replace the GHA cache steps, which is why they're absent there.
 name: CI
 
 on:
@@ -17,57 +6,8 @@ on:
   push:
     branches: [main]
 
-concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
-
 jobs:
-  # Guest WASM command binaries are needed by both the cargo service tests and
-  # the JS turbo tests. Build them once here and hand them to both via an
-  # artifact so neither pays the cold build twice.
-  wasm-commands:
-    runs-on: [self-hosted, agentos-builder]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-wasip1
-      - run: pnpm install --frozen-lockfile --filter "@secure-exec/core..."
-      # Cache the built guest WASM commands. `make -C registry/native wasm` is a
-      # ~4.5min `cargo build -Z build-std` against a PATCHED std + vendored crates,
-      # so it recompiles std-from-source every run and the persistent target/
-      # can't warm it — but its OUTPUT is deterministic from the registry command
-      # sources. Key on those sources: a command/patch/toolchain change rebuilds,
-      # an unchanged tree restores in seconds. This is the one spot a GHA cache
-      # beats the on-disk target (the build is uncacheable; the output isn't).
-      - uses: actions/cache@v4
-        id: wasm-cache
-        with:
-          path: |
-            packages/core/commands
-            registry/native/target/wasm32-wasip1/release/commands
-          key: wasm-commands-v1-${{ hashFiles('registry/native/crates/**', 'registry/native/patches/**', 'registry/native/scripts/**', 'registry/native/Makefile', 'registry/native/Cargo.toml', 'registry/native/Cargo.lock', 'rust-toolchain.toml') }}
-      - if: steps.wasm-cache.outputs.cache-hit != 'true'
-        run: make -C registry/native wasm
-      - if: steps.wasm-cache.outputs.cache-hit != 'true'
-        run: node packages/core/scripts/copy-wasm-commands.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: wasm-commands
-          path: |
-            packages/core/commands
-            registry/native/target/wasm32-wasip1/release/commands
-          retention-days: 1
-          if-no-files-found: error
-
-  # Cheap job (typecheck / boundary checks / publish tests, no heavy cargo
-  # compile) — runs on GitHub-hosted runners, not the self-hosted pool, which is
-  # reserved for the cache-heavy rust/registry jobs.
-  js-checks:
+  static:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -77,60 +17,6 @@ jobs:
           node-version: 22
           cache: pnpm
       - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: . -> target
-          key: js-checks
-      - run: npx --yes zx@8 scripts/ci.mjs js-checks
-      - run: node --test scripts/verify-fixed-versions.test.mjs
-      - run: pnpm --filter=publish exec tsx src/ci/verify-fixed-versions.ts
-
-  rust-lint:
-    runs-on: [self-hosted, agentos-builder]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt, clippy
-      - run: pnpm install --frozen-lockfile --filter "@secure-exec/build-tools..."
-      - run: npx --yes zx@8 scripts/ci.mjs rust-lint
-
-  rust-test:
-    runs-on: [self-hosted, agentos-builder]
-    needs: wasm-commands
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: taiki-e/install-action@v2
-        with:
-          tool: nextest
-      - run: pnpm install --frozen-lockfile --filter "@secure-exec/core..." --filter "@secure-exec/build-tools..."
-      - uses: actions/download-artifact@v4
-        with:
-          name: wasm-commands
-      - run: npx --yes zx@8 scripts/ci.mjs rust-test
-        env:
-          NEXTEST_PROFILE: ci
-
-  js-test:
-    runs-on: [self-hosted, agentos-builder]
-    needs: wasm-commands
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: actions/download-artifact@v4
-        with:
-          name: wasm-commands
-      - run: npx --yes zx@8 scripts/ci.mjs js-test
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check-types
+      - run: cargo check --workspace

@@ -1,0 +1,13 @@
+[package]
+name = "secure-exec-vfs-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "secure-exec-vfs-core compatibility shim for agentos-vfs-core"
+
+[lib]
+name = "secure_exec_vfs_core"
+
+[dependencies]
+vfs = { package = "agentos-vfs-core", path = "../../../agentos/crates/vfs", version = "0.0.1" }

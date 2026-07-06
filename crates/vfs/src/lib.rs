@@ -1,6 +1,3 @@
-#![deny(unsafe_code)]
+//! Compatibility shim for `agentos-vfs`.
 
-#[cfg(not(target_arch = "wasm32"))]
-pub mod adapter;
-pub mod engine;
-pub mod posix;
+pub use agentos_vfs::*;

@@ -4,7 +4,10 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Build script helpers for secure-exec crates"
+description = "secure-exec-build-support compatibility shim for agentos-build-support"
 
 [lib]
-path = "v8_bridge_build.rs"
+name = "secure_exec_build_support"
+
+[dependencies]
+agentos_build_support = { package = "agentos-build-support", path = "../../../agentos/crates/build-support", version = "0.0.1" }

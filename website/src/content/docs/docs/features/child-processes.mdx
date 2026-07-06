@@ -97,4 +97,4 @@ await server.wait();
 
 ## Underlying process model
 
-- The kernel process table, signals, and shell that back `node:child_process` and `rt.spawn` are documented in agentOS: [Processes & Shell](https://agentos-sdk.dev/docs/processes).
+- The kernel process table, signals, and shell that back `node:child_process` and `rt.spawn` are virtualized by Secure Exec.

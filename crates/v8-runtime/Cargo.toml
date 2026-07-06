@@ -4,17 +4,10 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "V8 isolate runtime for secure-exec guest JavaScript execution"
+description = "secure-exec-v8-runtime compatibility shim for agentos-v8-runtime"
+
+[lib]
+name = "secure_exec_v8_runtime"
 
 [dependencies]
-secure-exec-bridge = { workspace = true }
-v8 = "130"
-crossbeam-channel = "0.5"
-signal-hook = "0.3"
-libc = "0.2"
-ciborium = "0.2"
-serde = "1.0"
-sha2 = "0.10"
-
-[build-dependencies]
-secure-exec-build-support = { workspace = true }
+agentos_v8_runtime = { package = "agentos-v8-runtime", path = "../../../agentos/crates/v8-runtime", version = "0.0.1" }

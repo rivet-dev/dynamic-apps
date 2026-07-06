@@ -21,7 +21,7 @@ export default defineConfig({
 	integrations: [
 		// The shared Rivet docs framework (copied 1:1 from rivet.dev, no Starlight).
 		// docsTheme() provides react + mdx + the remark/rehype/Shiki pipeline +
-		// route generation + the virtual config. docs.config.mjs maps agentOS's
+		// route generation + the virtual config. docs.config.mjs maps this site's
 		// identity/nav/sitemap onto it.
 		...docsTheme(siteConfig),
 		tailwind({ applyBaseStyles: false }),

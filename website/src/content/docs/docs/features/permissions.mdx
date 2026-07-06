@@ -1,6 +1,6 @@
 ---
 title: Permissions
-description: A short overview of Secure Exec permissions, with a link to the canonical agentOS permissions docs.
+description: A short overview of Secure Exec permissions.
 ---
 
 Secure Exec checks a per-domain permission policy against every guest syscall, so denied operations are rejected before any host resource is touched. At a glance:
@@ -13,8 +13,4 @@ Secure Exec checks a per-domain permission policy against every guest syscall, s
 
 ## Full reference
 
-The complete permission scopes, modes, and rule configuration are owned by agentOS.
-
-<Card title="agentOS: Permissions" href="https://agentos-sdk.dev/docs/permissions">
-  The complete permission scopes, modes, and rule configuration.
-</Card>
+Permissions are host-configured policy applied to untrusted guest behavior.

@@ -1,12 +1,3 @@
-pub mod bridge;
-pub mod embedded_runtime;
-pub mod execution;
-pub mod host_call;
-pub mod ipc;
-pub mod ipc_binary;
-pub mod isolate;
-pub mod runtime_protocol;
-pub mod session;
-pub mod snapshot;
-pub mod stream;
-pub mod timeout;
+//! Compatibility shim for `agentos-v8-runtime`.
+
+pub use agentos_v8_runtime::*;

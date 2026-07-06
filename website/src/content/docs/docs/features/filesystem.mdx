@@ -1,6 +1,6 @@
 ---
 title: Filesystem
-description: A short overview of the Secure Exec filesystem, with a link to the canonical agentOS filesystem docs.
+description: A short overview of the Secure Exec filesystem.
 ---
 
 Each VM presents a normal POSIX filesystem to guest code, backed by a virtual filesystem inside the kernel. At a glance:
@@ -13,8 +13,5 @@ Each VM presents a normal POSIX filesystem to guest code, backed by a virtual fi
 
 ## Full reference
 
-The canonical filesystem API, including seeding files, host-boundary file exchange, and the full mount and backend configuration, is owned by agentOS.
-
-<Card title="agentOS: Filesystem" href="https://agentos-sdk.dev/docs/filesystem">
-  The complete filesystem API plus mount and backend configuration details.
-</Card>
+The filesystem API covers seeding files, exchanging files with the host, and
+mounting confined host-backed sources into the guest VM.

@@ -4,13 +4,10 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "Shared Secure Exec sidecar logic for native and browser shells"
+description = "secure-exec-sidecar-core compatibility shim for agentos-native-sidecar-core"
+
+[lib]
+name = "secure_exec_sidecar_core"
 
 [dependencies]
-secure-exec-bridge = { workspace = true }
-secure-exec-kernel = { workspace = true }
-secure-exec-sidecar-protocol = { workspace = true }
-secure-exec-vm-config = { workspace = true }
-base64 = "0.22"
-serde_json = "1.0"
-vfs = { workspace = true }
+agentos_native_sidecar_core = { package = "agentos-native-sidecar-core", path = "../../../agentos/crates/native-sidecar-core", version = "0.0.1" }

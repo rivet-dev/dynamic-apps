@@ -1,0 +1,10 @@
+name: sync-from-agentos
+
+on:
+  workflow_dispatch:
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Regenerate this mirror from AgentOS with scripts/generate-secure-exec-mirror.mjs."

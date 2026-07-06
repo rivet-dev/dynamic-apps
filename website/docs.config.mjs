@@ -51,7 +51,7 @@ export const siteConfig = {
 	// Docs pages have no top-nav links (Documentation/Changelog live on the
 	// marketing page's own Navigation). The header keeps logo + search + CTA.
 	topNav: [],
-	// Single tab → the theme hides the secondary tab strip (only agentOS, with 2
+	// Single tab → the theme hides the secondary tab strip (sites with 2
 	// tabs, shows it). Kept here so the docs section context still resolves.
 	tabs: [{ label: "Documentation", href: "/docs", match: "/docs" }],
 	cta: { label: "Get Started", href: "/docs/quickstart" },

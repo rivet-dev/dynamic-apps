@@ -261,12 +261,7 @@ CPU budgets therefore emit both the ~80% approach warning *and* a terminal exhau
 | Memory | `v8_heap_bytes`, `wasm_memory_bytes` |
 | CPU | `v8_cpu_time_ms`, `v8_wall_clock_ms`, `wasm_fuel_ms` |
 
-## Related agentOS docs
+## Related runtime docs
 
-agentOS layers its own session and adapter limits on top of Secure Exec.
-
-<CardGroup>
-  <Card title="agentOS: Resource Limits" href="https://agentos-sdk.dev/docs/resource-limits">
-    The complete set of per-VM resource limits, defaults, and configuration options.
-  </Card>
-</CardGroup>
+Secure Exec exposes per-VM resource limits, defaults, and configuration options
+for runtime consumers.

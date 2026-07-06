@@ -1,6 +1,6 @@
 ---
 title: Architecture
-description: A short overview of the Secure Exec architecture, with a link to the canonical agentOS architecture docs.
+description: A short overview of the Secure Exec architecture.
 ---
 
 Secure Exec runs untrusted guest code inside a fully virtualized VM whose kernel services every guest syscall. At a glance:
@@ -12,8 +12,6 @@ Secure Exec runs untrusted guest code inside a fully virtualized VM whose kernel
 
 ## Full reference
 
-The canonical, in-depth architecture reference, including packages, crates, trust boundaries, and syscall paths, is owned by agentOS.
-
-<Card title="agentOS: Architecture" href="https://agentos-sdk.dev/docs/architecture">
-  The complete architecture reference, including components, trust boundary, and syscall paths.
-</Card>
+Secure Exec is maintained as a compatibility runtime surface. Its public
+architecture centers on the VM kernel, V8/WASM executors, and sidecar-mediated
+syscalls described above.

@@ -1,9 +1,0 @@
-## M1 automated test (through secure-exec) — 2026-06-20T07:37:35Z
-build: guest.wasm OK (102752 bytes)
-build: wasm-gui-host + secure-exec-sidecar OK
-  secure-exec: captured 1228812 bytes -> /tmp/tmp.H5nUlMEVbF/frame_secureexec.bin
-secure-exec capture: 1228812 bytes
-  header OK (640x480), 7 golden pixels match
-frame size: 1228812 bytes == 12 + 640*480*4 (exact)
-proof PNG: /home/nathan/tmp/gui-progress/assets/frame_secureexec.png (8006 bytes)
-RESULT: PASS (frame rendered by guest INSIDE secure-exec, via the standard Rust client)

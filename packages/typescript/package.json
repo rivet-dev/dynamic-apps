@@ -3,34 +3,29 @@
 	"version": "0.0.1",
 	"type": "module",
 	"license": "Apache-2.0",
+	"description": "@secure-exec/typescript compatibility shim for @rivet-dev/agentos-typescript.",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"files": [
 		"dist",
 		"README.md"
 	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/rivet-dev/secure-exec.git",
-		"directory": "packages/typescript"
-	},
 	"exports": {
 		".": {
 			"types": "./dist/index.d.ts",
 			"import": "./dist/index.js",
 			"default": "./dist/index.js"
-		}
+		},
+		"./package.json": "./package.json"
 	},
 	"scripts": {
 		"build": "tsc",
 		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@secure-exec/core": "workspace:*",
-		"secure-exec": "workspace:*",
-		"typescript": "^5.9.3"
+		"@rivet-dev/agentos-typescript": "link:../../../agentos/packages/typescript"
 	},
 	"devDependencies": {
-		"@types/node": "^22.10.2"
+		"typescript": "^5.9.2"
 	}
 }

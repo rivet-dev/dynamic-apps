@@ -3,6 +3,7 @@
 	"version": "0.0.1",
 	"type": "module",
 	"license": "Apache-2.0",
+	"description": "@secure-exec/browser compatibility shim for @rivet-dev/agentos-runtime-browser.",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"files": [
@@ -15,79 +16,16 @@
 			"import": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
-		"./internal/driver": {
-			"types": "./dist/driver.d.ts",
-			"import": "./dist/driver.js",
-			"default": "./dist/driver.js"
-		},
-		"./internal/runtime-driver": {
-			"types": "./dist/runtime-driver.d.ts",
-			"import": "./dist/runtime-driver.js",
-			"default": "./dist/runtime-driver.js"
-		},
-		"./internal/worker": {
-			"types": "./dist/worker.d.ts",
-			"import": "./dist/worker.js",
-			"default": "./dist/worker.js"
-		},
-		"./internal/worker-protocol": {
-			"types": "./dist/worker-protocol.d.ts",
-			"import": "./dist/worker-protocol.js",
-			"default": "./dist/worker-protocol.js"
-		},
-		"./internal/permission-validation": {
-			"types": "./dist/permission-validation.d.ts",
-			"import": "./dist/permission-validation.js",
-			"default": "./dist/permission-validation.js"
-		},
-		"./internal/os-filesystem": {
-			"types": "./dist/os-filesystem.d.ts",
-			"import": "./dist/os-filesystem.js",
-			"default": "./dist/os-filesystem.js"
-		},
-		"./internal/worker-adapter": {
-			"types": "./dist/worker-adapter.d.ts",
-			"import": "./dist/worker-adapter.js",
-			"default": "./dist/worker-adapter.js"
-		},
-		"./internal/runtime": {
-			"types": "./dist/runtime.d.ts",
-			"import": "./dist/runtime.js",
-			"default": "./dist/runtime.js"
-		},
-		"./internal/sync-bridge": {
-			"types": "./dist/sync-bridge.d.ts",
-			"import": "./dist/sync-bridge.js",
-			"default": "./dist/sync-bridge.js"
-		}
+		"./package.json": "./package.json"
 	},
 	"scripts": {
-		"check:bridge-contract": "node ./scripts/check-bridge-contract.mjs",
-		"check:signals": "node ./scripts/check-signal-table.mjs",
-		"check:wasi-surface": "node ./scripts/check-wasi-surface.mjs",
-		"check-types": "pnpm check:bridge-contract && pnpm check:signals && pnpm check:wasi-surface && tsc --noEmit",
 		"build": "tsc",
-		"build:sidecar-wasm": "node ./scripts/build-sidecar-wasm.mjs",
-		"build:dist-wasm": "node ./scripts/build-dist-wasm.mjs",
-		"build:dist": "pnpm build && pnpm build:dist-wasm",
-		"generate:wasi-polyfill": "node ./scripts/generate-wasi-polyfill.mjs",
-		"test:browser": "node ./scripts/run-browser-tests.mjs",
-		"test:converged": "pnpm test && pnpm test:browser",
-		"test:integration": "pnpm build:sidecar-wasm && vitest run tests/integration",
-		"test:unit": "vitest run tests/runtime tests/runtime-driver",
-		"test": "pnpm check:bridge-contract && pnpm check:signals && pnpm check:wasi-surface && node --check ./scripts/build-browser-test-assets.mjs && node --check ./scripts/serve-browser-tests.mjs && pnpm test:unit && pnpm build"
+		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@secure-exec/core": "workspace:*",
-		"@noble/ciphers": "^2.2.0",
-		"@noble/hashes": "^2.2.0",
-		"sucrase": "^3.35.0"
+		"@rivet-dev/agentos-runtime-browser": "link:../../../agentos/packages/runtime-browser"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.54.2",
-		"@types/node": "^22.10.2",
-		"typescript": "^5.7.2",
-		"vitest": "^2.1.8"
-	},
-	"description": "Browser driver primitives for secure-exec."
+		"typescript": "^5.9.2"
+	}
 }

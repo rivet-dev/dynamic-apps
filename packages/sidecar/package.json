@@ -1,24 +1,31 @@
 {
 	"name": "@secure-exec/sidecar",
 	"version": "0.0.1",
-	"description": "Platform-specific resolver for the Secure Exec native sidecar binary",
+	"type": "module",
 	"license": "Apache-2.0",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/rivet-dev/secure-exec.git",
-		"directory": "packages/sidecar"
-	},
-	"main": "./index.js",
-	"types": "./index.d.ts",
+	"description": "@secure-exec/sidecar compatibility shim for @rivet-dev/agentos-sidecar.",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
 	"files": [
-		"index.js",
-		"index.d.ts",
+		"dist",
 		"README.md"
 	],
-	"scripts": {
-		"test": "node --test tests/*.test.cjs"
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./package.json": "./package.json"
 	},
-	"engines": {
-		"node": ">=20"
+	"scripts": {
+		"build": "tsc",
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@rivet-dev/agentos-sidecar": "link:../../../agentos/packages/sidecar-binary"
+	},
+	"devDependencies": {
+		"typescript": "^5.9.2"
 	}
 }
