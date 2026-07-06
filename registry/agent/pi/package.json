@@ -17,7 +17,8 @@
 		}
 	},
 	"files": [
-		"dist"
+		"dist",
+		"agentos-package.json"
 	],
 	"scripts": {
 		"build": "tsc && node scripts/build-snapshot-bundle.mjs && agentos-toolchain pack . --out dist/package --agent pi-sdk-acp --prune-native && node scripts/copy-snapshot-into-package.mjs",

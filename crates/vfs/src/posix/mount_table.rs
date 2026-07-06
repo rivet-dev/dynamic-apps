@@ -839,6 +839,46 @@ impl MountTable {
         ))
     }
 
+    /// Resolve a path for a CONTENT operation (read_file/stat/pread/read_dir)
+    /// that must follow symlinks like POSIX `open()`. `resolve_index` is purely
+    /// lexical, so a path that descends through a symlink whose target lives in a
+    /// *different* mount (e.g. `/opt/agentos/pkgs/<pkg>/current -> <version>`,
+    /// where `current` is its own single-symlink leaf mount) would route into the
+    /// symlink mount and fail. `realpath` follows those cross-mount symlinks, so
+    /// resolve it first, then route the resolved path. Falls back to the raw path
+    /// when realpath can't resolve it (e.g. a genuinely missing file) so callers
+    /// still receive the mount's own ENOENT.
+    /// True only for the tar-vfs single-symlink-root leaf mount (`<pkg>/current ->
+    /// <version>` and the `bin/<cmd>` links), whose root inode IS a symlink. Only
+    /// these mounts need cross-mount realpath resolution for content ops and the
+    /// ENOENT->component-walk fallback; every other mount serves its own paths and
+    /// MUST keep its native error semantics (e.g. a js_bridge mount's ENOENT/EIO),
+    /// so gating on the concrete leaf type leaves normal mounts untouched.
+    fn mount_is_symlink_leaf(&self, index: usize) -> bool {
+        // Behavioral check (robust through the ReadOnly/MountedVirtual wrappers the
+        // projection applies): a leaf whose root inode is itself a symbolic link.
+        // Only the tar-vfs `<pkg>/current -> <version>` and `bin/<cmd>` single-symlink
+        // mounts satisfy this; every normal mount's root is a directory.
+        self.mounts[index]
+            .filesystem
+            .lstat("/")
+            .map(|stat| stat.is_symbolic_link)
+            .unwrap_or(false)
+    }
+
+    fn resolve_content_index(&self, path: &str) -> VfsResult<(usize, String)> {
+        let raw = self.resolve_index(&normalize_path(path))?;
+        if !self.mount_is_symlink_leaf(raw.0) {
+            return Ok(raw);
+        }
+        // The leaf's root is a symlink, so a descendant path must be followed across
+        // the mount boundary to the real version tree before the content op runs.
+        match self.realpath(path) {
+            Ok(resolved) => self.resolve_index(&resolved),
+            Err(_) => Ok(raw),
+        }
+    }
+
     fn child_mount_basenames(&self, path: &str) -> Vec<String> {
         let normalized = normalize_path(path);
         let mut basenames = BTreeSet::new();
@@ -918,7 +958,7 @@ impl Drop for MountTable {
 
 impl VirtualFileSystem for MountTable {
     fn read_file(&mut self, path: &str) -> VfsResult<Vec<u8>> {
-        let (index, relative_path) = self.resolve_index(path)?;
+        let (index, relative_path) = self.resolve_content_index(path)?;
         self.mounts[index].filesystem.read_file(&relative_path)
     }
 
@@ -1068,7 +1108,7 @@ impl VirtualFileSystem for MountTable {
     }
 
     fn stat(&mut self, path: &str) -> VfsResult<VirtualStat> {
-        let (index, relative_path) = self.resolve_index(path)?;
+        let (index, relative_path) = self.resolve_content_index(path)?;
         self.mounts[index].filesystem.stat(&relative_path)
     }
 
@@ -1102,7 +1142,18 @@ impl VirtualFileSystem for MountTable {
         let (index, relative_path) = self.resolve_index(&normalized)?;
         match self.realpath_in_mount(index, &relative_path) {
             Ok(resolved) => return Ok(resolved),
+            // Always fall back to the component walk on ELOOP. Fall back on ENOENT
+            // ONLY for a single-symlink LEAF mount (e.g. `<pkg>/current -> <version>`):
+            // it cannot resolve a descendant path itself — its root IS the symlink, so
+            // a subpath resolves into it and ENOENTs; the walk then follows that
+            // symlink across mounts. For every OTHER mount an ENOENT is a genuine
+            // "missing file" that must propagate unchanged (walking it would rewrite a
+            // mount's native ENOENT into a spurious success/EIO — see the js_bridge
+            // errno-mapping mount). Non-leaf within-mount paths resolve via
+            // `realpath_in_mount` above and return early, so pnpm resolution is
+            // unaffected either way.
             Err(error) if error.code() == "ELOOP" => {}
+            Err(error) if error.code() == "ENOENT" && self.mount_is_symlink_leaf(index) => {}
             Err(error) => return Err(error),
         }
 
@@ -1237,7 +1288,7 @@ impl VirtualFileSystem for MountTable {
     }
 
     fn pread(&mut self, path: &str, offset: u64, length: usize) -> VfsResult<Vec<u8>> {
-        let (index, relative_path) = self.resolve_index(path)?;
+        let (index, relative_path) = self.resolve_content_index(path)?;
         self.mounts[index]
             .filesystem
             .pread(&relative_path, offset, length)

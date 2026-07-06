@@ -300,11 +300,18 @@ export function pack(options: PackOptions): PackResult {
 	const { source, out, agent, pruneNative } = options;
 	const tmp = mkdtempSync(join(tmpdir(), "agentos-pack-"));
 	try {
-		const sourceManifest = readAgentosPackageManifest(source);
 		npmInstallFlat(resolveInstallSpec(source, tmp), tmp);
 
 		const name = installedPackageName(source);
 		const installedDir = join(tmp, "node_modules", name);
+		// Read the source `agentos-package.json` from the INSTALLED package dir, not
+		// the source spec: for npm specs (`@scope/name`) the spec is not a directory,
+		// so reading it yields nothing and the packed name falls back to the unscoped
+		// npm name — which is only coincidentally correct (e.g. `@agentos-software/pi`
+		// -> `pi`) and wrong when they differ (`@agentos-software/claude-code` ->
+		// `claude-code`, but the agent id is `claude`). The installed manifest carries
+		// the canonical unscoped agent `name` the sidecar projects/resolves on.
+		const sourceManifest = readAgentosPackageManifest(installedDir);
 		const pkg = JSON.parse(readFileSync(join(installedDir, "package.json"), "utf8"));
 		const version: string = pkg.version;
 		const bins = binEntries(installedDir);

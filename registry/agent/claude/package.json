@@ -17,7 +17,8 @@
 		}
 	},
 	"files": [
-		"dist"
+		"dist",
+		"agentos-package.json"
 	],
 	"scripts": {
 		"build": "tsc && node ./scripts/build-patched-cli.mjs && rm -rf dist/package && agentos-toolchain pack . --out dist/package --agent claude-sdk-acp --prune-native",
