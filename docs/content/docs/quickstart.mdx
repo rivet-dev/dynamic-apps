@@ -1,0 +1,72 @@
+---
+title: "Quickstart"
+description: "Set up the server, deploy an AI-generated app, and visit it."
+skill: true
+---
+
+import DeployTargets from '@/components/docs/DeployTargets.astro';
+
+[View the complete Quickstart example on GitHub](https://github.com/rivet-dev/agentos/tree/main/examples/apps-hello-world).
+
+<Steps>
+
+<Step title="Install">
+
+```sh
+npm add @rivet-dev/agentos @rivet-dev/agentos-apps
+npm add @hono/node-server hono
+npm add --save-dev tsx
+npm pkg set type=module
+```
+
+</Step>
+
+<Step title="Setup the server">
+
+Setup the HTTP server that will serve requests for AI-generated apps. Also set
+up the actors that power the deployments.
+
+<CodeGroup>
+<CodeSnippet file="examples/apps-hello-world/src/server.ts" title="src/server.ts" />
+<CodeSnippet file="examples/apps-hello-world/src/actors.ts" title="src/actors.ts" />
+</CodeGroup>
+
+Run the server:
+
+```sh
+npx tsx src/server.ts
+```
+
+</Step>
+
+<Step title="Deploy an AI-generated app">
+
+Pass generated files directly to `deployApp()`. This can be called by an agent,
+an upload endpoint, or any other part of your system:
+
+<CodeSnippet file="examples/apps-hello-world/src/deploy.ts" title="src/deploy.ts" />
+
+```sh
+npx tsx src/deploy.ts
+```
+
+</Step>
+
+<Step title="Visit the AI-generated app">
+
+Open `http://localhost:3000/apps/hello-world/`. Pass this URL to agents,
+frontends, or any other part of your system that needs to visit the deployment.
+
+</Step>
+
+<Step title="Deploy">
+
+Deploy the host server to any supported target:
+
+<DeployTargets />
+
+See [Deployment](/agentos/docs/deployment) for managed and self-hosted options.
+
+</Step>
+
+</Steps>

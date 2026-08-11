@@ -1,0 +1,77 @@
+---
+title: "Deploy App Reference"
+description: "Deploy a directory or generated files with deployApp(), repair TypeScript, and configure regions and scaling."
+skill: true
+---
+
+Deploy a directory:
+
+```ts
+await deployApp({
+  appId: "hello-world",
+  source: new URL("../fixtures/app/", import.meta.url),
+});
+```
+
+Or deploy generated files:
+
+```ts
+await deployApp({
+  appId: "generated-app",
+  files: {
+    "index.html": "<h1>Hello</h1>",
+  },
+});
+```
+
+## TypeScript repair
+
+`deployApp()` returns build diagnostics when generated TypeScript does not
+compile. An agent can use those diagnostics to repair the files and call
+`deployApp()` again:
+
+```ts
+for (let attempt = 0; attempt < 3; attempt++) {
+  try {
+    await deployApp({ appId: "generated-app", files });
+    break;
+  } catch (error) {
+    if (attempt === 2) throw error;
+    files = await repairWithAgent(files, String(error));
+  }
+}
+```
+
+A failed build does not replace the currently active release. See the
+[AI App Builder example](https://github.com/rivet-dev/agentos/tree/main/examples/apps-ai-builder).
+
+`appId` must contain 1–63 lowercase letters, numbers, or hyphens. Pass exactly
+one of `source` or `files`.
+
+## Configuration
+
+```ts
+await deployApp({
+  appId: "my-app",
+  source,
+  regions: ["atl", "fra"],
+  createNamespace: true,
+  scaling: {
+    minReplicas: 0,
+    maxReplicas: 128,
+    targetConcurrency: 8,
+  },
+});
+```
+
+| Option | Default |
+| --- | --- |
+| `regions` | Current Rivet region |
+| `createNamespace` | `false` |
+| `scaling.minReplicas` | `0` |
+| `scaling.maxReplicas` | `128` |
+| `scaling.targetConcurrency` | `8` |
+
+By default, apps use the namespace configured on the ordinary Rivet client.
+Enable `createNamespace` only when the app needs its own namespace; it requires
+Rivet namespace list and create permissions.

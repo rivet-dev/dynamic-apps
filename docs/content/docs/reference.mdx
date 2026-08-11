@@ -1,0 +1,30 @@
+---
+title: "Reference"
+description: "Build apps with AI, authenticate requests, and see what is planned next."
+skill: true
+---
+
+## Build Apps with AI
+
+Give an agent the app requirements, let it generate the project files, and pass
+those files to `deployApp()`. If the build returns TypeScript diagnostics, give
+them back to the agent and deploy its repaired files again.
+
+[View the complete AI App Builder example](https://github.com/rivet-dev/agentos/tree/main/examples/apps-ai-builder).
+
+## Authentication
+
+Use normal Hono middleware to authenticate requests before they reach deployed
+apps:
+
+```ts
+server.use("/apps/*", authMiddleware);
+server.route("/apps", appsRouter);
+```
+
+## Planned Improvements
+
+- Automatically include agent skills based on the
+  [Rivet Cookbooks](https://rivet.dev/cookbook/) for better app generation.
+- Billing API for tracking and charging for app usage.
+- Built-in error reporting for generated apps.
