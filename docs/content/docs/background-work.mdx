@@ -1,0 +1,22 @@
+---
+title: "Background Work"
+description: "Durable jobs and recurring schedules inside an app."
+---
+
+## Workflows
+
+Example AI-generated app code that runs durable multi-step jobs that can sleep
+and resume. [View the complete workflows example](https://github.com/rivet-dev/agentos/tree/main/examples/apps-workflows).
+
+<CodeGroup>
+<CodeSnippet file="examples/apps-workflows/fixtures/app/src/index.ts" title="Server" />
+<CodeSnippet file="examples/apps-workflows/src/client.ts" title="Client" />
+</CodeGroup>
+
+## Cron jobs
+
+AI-generated apps can schedule recurring work from an actor. See
+[Cron Jobs](/agentos/docs/cron).
+
+These capabilities use RivetKit and its ordinary DirectActor client. agentOS
+Apps does not wrap the client.

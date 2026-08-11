@@ -4,7 +4,8 @@ description: "Set up the server, deploy an AI-generated app, and visit it."
 skill: true
 ---
 
-import DeployTargets from '@/components/docs/DeployTargets.astro';
+import { Hosting } from "@/components/docs/Hosting";
+
 
 [View the complete Quickstart example on GitHub](https://github.com/rivet-dev/agentos/tree/main/examples/apps-hello-world).
 
@@ -61,11 +62,9 @@ frontends, or any other part of your system that needs to visit the deployment.
 
 <Step title="Deploy">
 
-Deploy the host server to any supported target:
 
-<DeployTargets />
+<Hosting product="dynamic-apps" />
 
-See [Deployment](/agentos/docs/deployment) for managed and self-hosted options.
 
 </Step>
 

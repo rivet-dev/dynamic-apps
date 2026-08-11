@@ -1,0 +1,24 @@
+---
+title: "State & Data"
+description: "Durable SQLite state and queued work inside an app."
+---
+
+Agents can generate more than pages and REST APIs. These examples show apps
+with durable SQLite data, workflows, multiplayer state, queues, and scheduled
+jobs. The server snippets represent AI-generated app code; the client snippets
+show how another part of your system connects to it.
+
+## SQLite
+
+Example AI-generated app code that stores durable data in an actor-owned SQLite
+database. [View the complete SQLite example](https://github.com/rivet-dev/agentos/tree/main/examples/apps-sqlite).
+
+<CodeGroup>
+<CodeSnippet file="examples/apps-sqlite/fixtures/app/src/index.ts" title="Server" />
+<CodeSnippet file="examples/apps-sqlite/src/client.ts" title="Client" />
+</CodeGroup>
+
+## Queues
+
+AI-generated apps can use actor queues for durable background work and ordered
+processing.

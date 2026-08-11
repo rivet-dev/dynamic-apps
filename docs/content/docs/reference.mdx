@@ -1,7 +1,6 @@
 ---
 title: "Reference"
-description: "Build apps with AI, authenticate requests, and see what is planned next."
-skill: true
+description: "Building apps with AI, and what is planned next."
 ---
 
 ## Build Apps with AI
@@ -11,16 +10,6 @@ those files to `deployApp()`. If the build returns TypeScript diagnostics, give
 them back to the agent and deploy its repaired files again.
 
 [View the complete AI App Builder example](https://github.com/rivet-dev/agentos/tree/main/examples/apps-ai-builder).
-
-## Authentication
-
-Use normal Hono middleware to authenticate requests before they reach deployed
-apps:
-
-```ts
-server.use("/apps/*", authMiddleware);
-server.route("/apps", appsRouter);
-```
 
 ## Planned Improvements
 

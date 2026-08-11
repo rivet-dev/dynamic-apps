@@ -1,0 +1,14 @@
+---
+title: "Authentication"
+description: "Authenticating requests to a deployed app."
+---
+
+## Authentication
+
+Use normal Hono middleware to authenticate requests before they reach deployed
+apps:
+
+```ts
+server.use("/apps/*", authMiddleware);
+server.route("/apps", appsRouter);
+```

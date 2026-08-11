@@ -2,7 +2,7 @@
 
 Rules for the docs in this repo. These pages are **not** rendered here — they are
 published on [rivet.dev](https://rivet.dev) by the
-[rivet-website](https://github.com/rivet-dev/rivet-website) repo, which symlinks
+[rivet-website](https://github.com/rivet-dev/website) repo, which symlinks
 this directory in. Everything below exists so a page written here renders
 correctly there.
 
@@ -112,7 +112,7 @@ Clone the website next to this repo and run it. It detects the sibling
 automatically and serves this directory's pages live:
 
 ```sh
-git clone https://github.com/rivet-dev/rivet-website
+git clone https://github.com/rivet-dev/website
 cd rivet-website && pnpm install && pnpm dev
 ```
 
