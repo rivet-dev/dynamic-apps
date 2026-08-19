@@ -1,0 +1,23 @@
+{
+	"name": "@rivet-dev/dynamic-apps-workspace",
+	"private": true,
+	"packageManager": "pnpm@10.13.1",
+	"engines": {
+		"node": ">=22.0.0"
+	},
+	"scripts": {
+		"build": "pnpm --filter @rivet-dev/dynamic-apps-builder build && pnpm --filter @rivet-dev/dynamic-apps build",
+		"check-types": "pnpm -r --if-present check-types",
+		"test": "pnpm --filter @rivet-dev/dynamic-apps-builder test && pnpm --filter @rivet-dev/dynamic-apps test && pnpm --filter @rivet-dev/dynamic-apps-benchmarks test",
+		"lint": "pnpm biome check .",
+		"fmt": "pnpm biome check --write --diagnostic-level=error .",
+		"check-boundaries": "node scripts/check-boundaries.mjs",
+		"test:packed": "node scripts/test-packed.mjs"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.4.10",
+		"@types/node": "^22.19.15",
+		"tsx": "^4.21.0",
+		"typescript": "^5.9.2"
+	}
+}

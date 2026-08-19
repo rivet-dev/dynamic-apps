@@ -1,28 +1,28 @@
 ---
 title: "Dynamic Apps"
-description: "Deploy user-generated applications in agentOS VMs."
+description: "Deploy user-generated applications in isolated VMs."
 skill: true
 ---
 
-agentOS Apps runs user-generated HTTP applications on Rivet. Apps can add
+Dynamic Apps runs user-generated HTTP applications on Rivet. Apps can add
 durable SQLite state, workflows, multiplayer and realtime state, queues, and
 cron jobs.
 
 <Note>
-agentOS Apps is in preview and its API is subject to change.
+Dynamic Apps is in preview and its API is subject to change.
 </Note>
 
 ## Architecture
 
-**agentOS Apps is a library, not a hosted AI-generated app deployment
+**Dynamic Apps is a library, not a hosted AI-generated app deployment
 platform.** Unlike managed platforms, you can deploy it anywhere and customize
 the server, routing, authentication, and deployment flow.
 
 Requests reach your Hono server, where `appsRouter` routes them to a prewarmed
-agentOS VM serving the generated application. Rivet handles request routing and
+isolated VM serving the generated application. Rivet handles request routing and
 orchestrates the pool of prewarmed VMs.
 
-<svg viewBox="0 0 620 190" role="img" aria-label="An HTTP request reaches your Hono server, where appsRouter uses Rivet to route it to a prewarmed agentOS VM serving the AI-generated app." style="width:100%;height:auto;max-width:620px;display:block;margin:2.5rem auto 1rem;">
+<svg viewBox="0 0 620 190" role="img" aria-label="An HTTP request reaches your Hono server, where appsRouter uses Rivet to route it to a prewarmed isolated VM serving the AI-generated app." style="width:100%;height:auto;max-width:620px;display:block;margin:2.5rem auto 1rem;">
   <defs>
     <marker id="apps-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
       <path d="M0,0 L10,5 L0,10 z" fill="#1b1916" />

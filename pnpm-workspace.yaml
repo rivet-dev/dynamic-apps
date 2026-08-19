@@ -1,0 +1,20 @@
+packages:
+  - packages/*
+  - examples/apps-*
+  - benchmarks/dynamic-apps
+  - tests/e2e/dynamic-apps
+
+onlyBuiltDependencies:
+  - '@biomejs/biome'
+  - better-sqlite3
+  - cbor-extract
+  - esbuild
+
+overrides:
+  '@rivet-dev/agentos-core': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
+  rivetkit: 0.0.0-feat-workflows-public-host-apis.0ff6164
+  '@rivetkit/rivetkit-wasm': 0.0.0-feat-workflows-public-host-apis.0ff6164
+
+catalogs:
+  rivetkit:
+    rivetkit: 0.0.0-feat-workflows-public-host-apis.0ff6164

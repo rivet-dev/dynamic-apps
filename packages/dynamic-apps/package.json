@@ -1,0 +1,52 @@
+{
+	"name": "@rivet-dev/dynamic-apps",
+	"version": "0.2.15",
+	"description": "Run and scale user-generated HTTP applications with Rivet Actors.",
+	"license": "Apache-2.0",
+	"type": "module",
+	"sideEffects": false,
+	"files": [
+		"dist",
+		"assets",
+		"README.md",
+		"package.json"
+	],
+	"exports": {
+		".": {
+			"import": {
+				"types": "./dist/index.d.ts",
+				"default": "./dist/index.js"
+			}
+		},
+		"./advanced": {
+			"import": {
+				"types": "./dist/advanced.d.ts",
+				"default": "./dist/advanced.js"
+			}
+		}
+	},
+	"engines": {
+		"node": ">=22.0.0"
+	},
+	"scripts": {
+		"build": "tsup src/index.ts src/advanced.ts --format esm --dts --sourcemap --clean --external rivetkit --external @rivet-dev/agentos --external @rivet-dev/agentos-core --external @rivet-dev/agentos-toolchain --external @rivet-dev/dynamic-apps-builder --external @agentos-software/sh --external @agentos-software/tar",
+		"check-types": "tsc --noEmit",
+		"test": "vitest run"
+	},
+	"dependencies": {
+		"@agentos-software/sh": "0.2.15",
+		"@agentos-software/tar": "0.3.5",
+		"@rivet-dev/agentos": "0.2.15",
+		"@rivet-dev/agentos-core": "0.2.15",
+		"@rivet-dev/agentos-toolchain": "0.2.15",
+		"@rivet-dev/dynamic-apps-builder": "workspace:0.2.15",
+		"hono": "^4.7.0",
+		"rivetkit": "0.0.0-feat-workflows-public-host-apis.0ff6164"
+	},
+	"devDependencies": {
+		"@types/node": "^22.19.15",
+		"tsup": "^8.4.0",
+		"typescript": "^5.7.3",
+		"vitest": "^2.1.8"
+	}
+}
