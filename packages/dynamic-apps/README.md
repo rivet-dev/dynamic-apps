@@ -3,6 +3,8 @@
 Dynamic Apps deploys user-generated JavaScript and static sites into isolated
 VMs and routes HTTP through Rivet Actors.
 
+[Documentation](https://rivet.dev/dynamic-apps/docs)
+
 Install Dynamic Apps in a Node.js 22 or newer project:
 
 ```sh
