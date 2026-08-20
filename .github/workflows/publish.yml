@@ -38,6 +38,8 @@ jobs:
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           registry-url: https://registry.npmjs.org
+      - name: Install OIDC-capable npm
+        run: npm install --global npm@11.16.0
       - run: pnpm install --frozen-lockfile
       - id: release
         run: >-
@@ -46,11 +48,9 @@ jobs:
           --tag=${{ inputs.dist_tag }}
           --branch=${{ github.ref_name }}
       - name: Verify npm authentication and unused versions
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
-          npm whoami
+          npm ping
           for package in @rivet-dev/dynamic-apps-builder @rivet-dev/dynamic-apps; do
             if npm view "$package@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
               echo "$package@${{ steps.release.outputs.version }} already exists" >&2
@@ -65,8 +65,6 @@ jobs:
       - run: pnpm lint
       - run: pnpm test:packed
       - name: Publish builder
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: >-
           npm publish
           .pack/rivet-dev-dynamic-apps-builder-${{ steps.release.outputs.version }}.tgz
@@ -85,8 +83,6 @@ jobs:
           echo "builder version did not become visible" >&2
           exit 1
       - name: Publish main package
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: >-
           npm publish
           .pack/rivet-dev-dynamic-apps-${{ steps.release.outputs.version }}.tgz
