@@ -11,7 +11,6 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { AgentOs } from "@rivet-dev/agentos-core";
-import { appsBuilderVersion } from "@rivet-dev/dynamic-apps-builder";
 import { Hono } from "hono";
 import { setup } from "rivetkit";
 import { afterEach, describe, expect, test, vi } from "vitest";
@@ -1311,8 +1310,8 @@ describe("runtime generation", () => {
 		};
 
 		expect(fixture.sourcePackages).toEqual({
-			"@rivet-dev/agentos-apps": appsBuilderVersion,
-			"@agentos-software/apps-builder": appsBuilderVersion,
+			"@rivet-dev/agentos-apps": "0.2.15",
+			"@agentos-software/apps-builder": "0.2.15",
 		});
 		expect(fixture.sourceRevision).toMatch(/^[a-f0-9]{40}$/);
 		expect(Object.keys(createAppsActors())).toEqual(fixture.actorKeys);

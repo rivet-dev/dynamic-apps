@@ -35,8 +35,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
           registry-url: https://registry.npmjs.org
       - name: Install OIDC-capable npm
         run: npm install --global npm@11.16.0
@@ -47,7 +45,7 @@ jobs:
           --version=${{ inputs.version }}
           --tag=${{ inputs.dist_tag }}
           --branch=${{ github.ref_name }}
-      - name: Verify npm authentication and unused versions
+      - name: Verify npm registry and unused versions
         run: |
           set -euo pipefail
           npm ping
