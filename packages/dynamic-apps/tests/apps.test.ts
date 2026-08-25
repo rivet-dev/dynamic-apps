@@ -15,6 +15,7 @@ import { Hono } from "hono";
 import { setup } from "rivetkit";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import {
+	actorPlacementOptions,
 	createAppsActors,
 	migrateAppsTables,
 	normalizeScaling,
@@ -23,6 +24,7 @@ import {
 	replicaLoopbackExemptPorts,
 	resolveAppCallbackSecret,
 	type ScalerState,
+	warmReplicaLimits,
 } from "../src/actors.js";
 import {
 	configureAppNamespaceRunner,
@@ -95,6 +97,20 @@ function typecheckPublicApi(): void {
 void typecheckPublicApi;
 
 describe("public API", () => {
+	test("uses implicit actor placement for the default region", () => {
+		expect(actorPlacementOptions("default")).toBeUndefined();
+		expect(actorPlacementOptions("us-west")).toEqual({
+			createInRegion: "us-west",
+		});
+	});
+
+	test("gives persistent execution replicas a persistent CPU budget", () => {
+		expect(warmReplicaLimits(123).jsRuntime?.cpuTimeLimitMs).toBe(
+			24 * 60 * 60_000,
+		);
+		expect(warmReplicaLimits(123).http?.maxFetchResponseBytes).toBe(123);
+	});
+
 	test("exports a RivetKit-shaped setup wrapper and one error constructor", () => {
 		const registry = setupDynamicApps({ use: {} });
 		expect(registry).toBeDefined();
@@ -899,6 +915,20 @@ describe("regional scaler", () => {
 		expect(log.warn).not.toHaveBeenCalledWith(
 			expect.objectContaining({ maxReplicas: 2 }),
 		);
+
+		state.scaling = { ...release.scaling, minReplicas: 1, maxReplicas: 1 };
+		const drainedKey = state.replicas[0]!.key;
+		expect(await actions.drainReplica!(context, drainedKey)).toEqual({
+			draining: true,
+		});
+		await vi.waitFor(() => {
+			expect(state.replicas).toHaveLength(1);
+			expect(state.replicas[0]!.key).not.toEqual(drainedKey);
+			expect(replica.destroy).toHaveBeenCalledTimes(1);
+		});
+		state.scaling = release.scaling;
+		state.capacityWarningLatched = false;
+		log.warn.mockClear();
 
 		const firstAdmission = await actions.acquire!(context);
 		await vi.waitFor(() => expect(state.replicas).toHaveLength(2));

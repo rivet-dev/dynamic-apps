@@ -4,12 +4,25 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"benchmark:local": "node --import tsx src/local.ts --host 0.0.0.0",
+		"benchmark:suite": "node --import tsx src/suite.ts",
+		"deploy:fixture": "node --import tsx src/deploy-fixture.ts",
 		"load": "node --import tsx src/load.ts",
+		"start": "node --import tsx src/server.ts --host 0.0.0.0",
 		"check-types": "tsc --noEmit",
 		"test": "node --import tsx --test src/load.test.ts"
 	},
+	"dependencies": {
+		"@hono/node-server": "^2.0.11",
+		"@rivet-dev/agentos-core": "0.2.15",
+		"@rivet-dev/dynamic-apps": "workspace:*",
+		"hono": "^4.12.9",
+		"rivetkit": "0.0.0-feat-workflows-public-host-apis.0ff6164"
+	},
 	"devDependencies": {
+		"@rivetkit/engine-cli": "0.0.0-feat-workflows-public-host-apis.0ff6164",
 		"@types/node": "^22.19.15",
+		"get-port": "^7.1.0",
 		"tsx": "^4.20.6",
 		"typescript": "^5.7.3"
 	}

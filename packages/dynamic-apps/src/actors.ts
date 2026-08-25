@@ -1,5 +1,5 @@
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
-import { mkdtemp, open, readFile, rm, stat } from "node:fs/promises";
+import { chmod, mkdtemp, open, readFile, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -63,6 +63,7 @@ const DEFAULT_MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
 const DEFAULT_MAX_SERVERLESS_METADATA_BYTES = 256 * 1024;
 const GUEST_SHUTDOWN_TIMEOUT_MS = 15_000;
 const GUEST_RPC_TIMEOUT_MS = 30_000;
+const WARM_REPLICA_CPU_TIME_LIMIT_MS = 24 * 60 * 60_000;
 const MAX_PENDING_GUEST_RPCS = 1_024;
 const GUEST_RPC_PREFIX = "AGENTOS_APPS_RPC ";
 const DEFAULT_MAX_DEPENDENCIES = 256;
@@ -87,6 +88,23 @@ const REPLICA_ACTOR_NAME = "agentOSAppsReplica";
 const INSPECTOR_ROOT = fileURLToPath(
 	new URL("../assets/inspector", import.meta.url),
 );
+
+/** @internal Exported for focused placement tests. */
+export function actorPlacementOptions(
+	region: string,
+): { createInRegion: string } | undefined {
+	return region === "default" ? undefined : { createInRegion: region };
+}
+
+/** @internal Exported for focused VM limit tests. */
+export function warmReplicaLimits(
+	maxFetchResponseBytes: number,
+): NonNullable<AgentOsOptions["limits"]> {
+	return {
+		http: { maxFetchResponseBytes },
+		jsRuntime: { cpuTimeLimitMs: WARM_REPLICA_CPU_TIME_LIMIT_MS },
+	};
+}
 
 export interface StoredAppRelease extends AppReleaseInfo {
 	entrypoint: string;
@@ -1446,10 +1464,12 @@ export function createAppsActors(
 		c: AnyActorContext,
 		request: Request,
 	): Promise<Response> {
+		const requestStartedAt = performance.now();
 		const state = c.state as AppState;
 		const release = state.activeRelease
 			? await getStoredRelease(c.db, state.activeRelease)
 			: undefined;
+		const releaseLoadedAt = performance.now();
 		if (!release || release.status !== "ready") {
 			return new Response("Dynamic App has no active release", { status: 503 });
 		}
@@ -1494,19 +1514,21 @@ export function createAppsActors(
 			});
 		}
 		const body = await readBoundedRequestBody(request, maxRequestBytes);
+		const bodyLoadedAt = performance.now();
 		if (body === null) {
 			return new Response("Request body exceeds Dynamic Apps limit", {
 				status: 413,
 			});
 		}
-
+		const scalerAcquireStartedAt = performance.now();
 		const scaler = c
 			.client()
 			[SCALER_ACTOR_NAME].getOrCreate(
 				scalerKey(c.key[0]!, release.release, region),
-				{ createInRegion: region },
+				actorPlacementOptions(region),
 			);
 		const admission = (await scaler.acquire()) as ReplicaAdmission;
+		const scalerAcquiredAt = performance.now();
 		const replica = c
 			.client()
 			[REPLICA_ACTOR_NAME].getOrCreate(admission.key) as ReplicaHandle;
@@ -1630,6 +1652,7 @@ export function createAppsActors(
 					headers: responseHeaders,
 				});
 			}
+			const replicaRequestStartedAt = performance.now();
 			const guestResponse = await replica.vmFetchStreamStart(
 				APP_PORT,
 				forwardedUrl.href,
@@ -1639,6 +1662,7 @@ export function createAppsActors(
 					body,
 				},
 			);
+			const replicaResponseStartedAt = performance.now();
 			const responseHeaders = new Headers(
 				guestResponse.rawHeaders ?? Object.entries(guestResponse.headers),
 			);
@@ -1762,6 +1786,26 @@ export function createAppsActors(
 			responseHeaders.set(
 				"x-agentos-app-cold-start",
 				admission.coldStart ? "1" : "0",
+			);
+			responseHeaders.set(
+				"x-agentos-app-release-lookup-ms",
+				(releaseLoadedAt - requestStartedAt).toFixed(2),
+			);
+			responseHeaders.set(
+				"x-agentos-app-request-body-ms",
+				(bodyLoadedAt - releaseLoadedAt).toFixed(2),
+			);
+			responseHeaders.set(
+				"x-agentos-app-scaler-acquire-ms",
+				(scalerAcquiredAt - scalerAcquireStartedAt).toFixed(2),
+			);
+			responseHeaders.set(
+				"x-agentos-app-replica-headers-ms",
+				(replicaResponseStartedAt - replicaRequestStartedAt).toFixed(2),
+			);
+			responseHeaders.set(
+				"x-agentos-app-request-headers-ms",
+				(replicaResponseStartedAt - requestStartedAt).toFixed(2),
 			);
 			return new Response(responseBody, {
 				status: guestResponse.status,
@@ -2078,18 +2122,19 @@ export function createAppsActors(
 							);
 						}
 
+						const client = c.client();
 						const rolloutRelease: StoredAppRelease = {
 							...release,
 							regions,
 							scaling,
 						};
-						const client = c.client();
 						const rolloutResults = await Promise.allSettled(
 							regions.map((region) =>
 								client[SCALER_ACTOR_NAME]
-									.getOrCreate(scalerKey(appId, releaseId, region), {
-										createInRegion: region,
-									})
+									.getOrCreate(
+										scalerKey(appId, releaseId, region),
+										actorPlacementOptions(region),
+									)
 									.prepare({
 										appId,
 										release: rolloutRelease,
@@ -2111,9 +2156,10 @@ export function createAppsActors(
 							const cleanup = await Promise.allSettled(
 								cleanupRegions.map((region) =>
 									client[SCALER_ACTOR_NAME]
-										.getOrCreate(scalerKey(appId, releaseId, region), {
-											createInRegion: region,
-										})
+										.getOrCreate(
+											scalerKey(appId, releaseId, region),
+											actorPlacementOptions(region),
+										)
 										.retire(),
 								),
 							);
@@ -2165,9 +2211,10 @@ export function createAppsActors(
 								const cleanup = await Promise.allSettled(
 									regions.map((region) =>
 										client[SCALER_ACTOR_NAME]
-											.getOrCreate(scalerKey(appId, releaseId, region), {
-												createInRegion: region,
-											})
+											.getOrCreate(
+												scalerKey(appId, releaseId, region),
+												actorPlacementOptions(region),
+											)
 											.retire(),
 									),
 								);
@@ -2201,7 +2248,7 @@ export function createAppsActors(
 									client[SCALER_ACTOR_NAME]
 										.getOrCreate(
 											scalerKey(appId, retirement.release, retirement.region),
-											{ createInRegion: retirement.region },
+											actorPlacementOptions(retirement.region),
 										)
 										.retire(),
 								),
@@ -2225,17 +2272,18 @@ export function createAppsActors(
 							while (retained > maxVersions) {
 								const candidate = removable.shift();
 								if (!candidate) break;
-								const retirements = await Promise.allSettled(
-									candidate.regions.map((region) =>
-										client[SCALER_ACTOR_NAME]
-											.getOrCreate(
-												scalerKey(appId, candidate.release, region),
-												{ createInRegion: region },
-											)
-											.retire(),
-									),
-								);
-								const stillReferenced = retirements.some(
+								const stillReferenced = (
+									await Promise.allSettled(
+										candidate.regions.map((region) =>
+											client[SCALER_ACTOR_NAME]
+												.getOrCreate(
+													scalerKey(appId, candidate.release, region),
+													actorPlacementOptions(region),
+												)
+												.retire(),
+										),
+									)
+								).some(
 									(result) =>
 										result.status === "rejected" ||
 										Number(result.value?.drainingReplicas ?? 0) > 0,
@@ -2273,6 +2321,12 @@ export function createAppsActors(
 				requestedRegion?: string,
 			) => {
 				const state = c.state as AppState;
+				const appId = c.key[0];
+				if (!appId)
+					fail(
+						"agentos_apps_invalid_app_id",
+						"application actor key is missing",
+					);
 				const release = state.activeRelease
 					? await getStoredRelease(c.db, state.activeRelease)
 					: undefined;
@@ -2292,10 +2346,10 @@ export function createAppsActors(
 				const region = requestedRegion ?? release.regions[0];
 				if (!region) fail("agentos_apps_no_region", "active app has no region");
 				return {
-					appId: c.key[0],
+					appId,
 					release: release.release,
 					region,
-					scalerKey: scalerKey(c.key[0]!, release.release, region),
+					scalerKey: scalerKey(appId, release.release, region),
 					revision: state.revision,
 					maxRequestBytes,
 					maxResponseBytes,
@@ -2431,12 +2485,18 @@ export function createAppsActors(
 
 	async function reserveReplica(
 		c: AnyActorContext,
+		allowDrainingReplacement = false,
 	): Promise<{ index: number; key: string[] } | null> {
 		return serialized(`scaler:${c.actorId}`, async () => {
 			const state = requireScalerState(c);
+			const canReplaceDraining =
+				allowDrainingReplacement &&
+				state.warmingReplicas === 0 &&
+				state.replicas.some((replica) => replica.draining);
 			if (
 				state.replicas.length + state.warmingReplicas >=
-				state.scaling.maxReplicas
+					state.scaling.maxReplicas &&
+				!canReplaceDraining
 			) {
 				return null;
 			}
@@ -2464,9 +2524,10 @@ export function createAppsActors(
 			const release = (await client[APP_ACTOR_NAME]
 				.getOrCreate([appId])
 				.getRelease(releaseId)) as StoredAppRelease;
-			handle = client[REPLICA_ACTOR_NAME].getOrCreate(key, {
-				createInRegion: region,
-			}) as ReplicaHandle;
+			handle = client[REPLICA_ACTOR_NAME].getOrCreate(
+				key,
+				actorPlacementOptions(region),
+			) as ReplicaHandle;
 			await handle.configure({
 				appId,
 				release: release.release,
@@ -2571,9 +2632,47 @@ export function createAppsActors(
 		}
 	}
 
-	async function addReplica(c: AnyActorContext): Promise<boolean> {
-		const reservation = await reserveReplica(c);
+	async function addReplica(
+		c: AnyActorContext,
+		allowDrainingReplacement = false,
+	): Promise<boolean> {
+		const reservation = await reserveReplica(c, allowDrainingReplacement);
 		return reservation === null ? false : warmReservedReplica(c, reservation);
+	}
+
+	async function finishDrainingReplica(
+		c: AnyActorContext,
+		key: string[],
+		needsReplacement: boolean,
+	): Promise<void> {
+		try {
+			if (needsReplacement && !(await addReplica(c, true))) {
+				fail(
+					"agentos_apps_no_replacement_capacity",
+					"unable to reserve capacity for a draining replica replacement",
+				);
+			}
+			await serialized(`scaler:${c.actorId}`, async () => {
+				const state = requireScalerState(c);
+				await reconcileIdleReplicas(c, state);
+			});
+		} catch (error) {
+			await serialized(`scaler:${c.actorId}`, async () => {
+				const state = requireScalerState(c);
+				const replica = state.replicas.find(
+					(candidate) => candidate.key.join("\0") === key.join("\0"),
+				);
+				if (replica?.draining) {
+					replica.draining = false;
+					state.revision += 1;
+				}
+			});
+			c.log.error({
+				msg: "Dynamic Apps draining replica replacement failed",
+				key,
+				error,
+			});
+		}
 	}
 
 	function requireScalerState(c: AnyActorContext): ScalerState & {
@@ -3048,30 +3147,41 @@ export function createAppsActors(
 				),
 			drainReplica: async (c: AnyActorContext, key: string[]) =>
 				c.keepAwake(
-					serialized(`scaler:${c.actorId}`, async () => {
-						const state = requireScalerState(c);
-						const replica = state.replicas.find(
-							(candidate) => candidate.key.join("\0") === key.join("\0"),
+					(async () => {
+						const replacement = await serialized(
+							`scaler:${c.actorId}`,
+							async () => {
+								const state = requireScalerState(c);
+								const replica = state.replicas.find(
+									(candidate) => candidate.key.join("\0") === key.join("\0"),
+								);
+								if (!replica) {
+									fail(
+										"agentos_apps_replica_not_found",
+										"replica is not in this scaler",
+									);
+								}
+								const wasDraining = replica.draining;
+								replica.draining = true;
+								if (!wasDraining) state.revision += 1;
+								const needsReplacement =
+									state.replicas.length <= state.scaling.minReplicas;
+								return {
+									needsReplacement,
+									shouldRun:
+										!wasDraining ||
+										!needsReplacement ||
+										state.warmingReplicas === 0,
+								};
+							},
 						);
-						if (!replica) {
-							fail(
-								"agentos_apps_replica_not_found",
-								"replica is not in this scaler",
+						if (replacement.shouldRun) {
+							void c.keepAwake(
+								finishDrainingReplica(c, key, replacement.needsReplacement),
 							);
 						}
-						if (state.replicas.length <= state.scaling.minReplicas) {
-							void c.keepAwake(addReplica(c)).catch((error) => {
-								c.log.error({
-									msg: "Dynamic Apps replacement replica warm failed",
-									error,
-								});
-							});
-						}
-						replica.draining = true;
-						state.revision += 1;
-						await reconcileIdleReplicas(c, state);
-						return { draining: replica.activeRequests > 0 };
-					}),
+						return { draining: true };
+					})(),
 				),
 			retire: async (c: AnyActorContext) =>
 				c.keepAwake(
@@ -3142,6 +3252,9 @@ export function createAppsActors(
 		const outputDirectory = await mkdtemp(
 			join(tmpdir(), "agentos-apps-build-output-"),
 		);
+		// The AgentOS sidecar may run under a different uid in a container. The
+		// directory is private to this build and removed when the VM is disposed.
+		await chmod(outputDirectory, 0o777);
 		const artifactGuestPath = "/agentos-app-output/agentos-app.tar";
 		const artifactHostPath = join(outputDirectory, "agentos-app.tar");
 		let vm: AgentOs;
@@ -3598,11 +3711,7 @@ export function createAppsActors(
 			env: "allow",
 			network: "allow",
 		},
-		limits: {
-			http: {
-				maxFetchResponseBytes: maxResponseBytes,
-			},
-		},
+		limits: warmReplicaLimits(maxResponseBytes),
 		resolveOptions: async (c: any) => {
 			const state = c.state as ReplicaState;
 			if (!state.configuration) {
@@ -3714,6 +3823,13 @@ export function createAppsActors(
 				guestEngineRegistrations.set(c.actorId, engineRegistration);
 			}
 			return {
+				// One native sidecar currently admits one V8 executor per available CPU.
+				// Isolating pools by replica lets a replacement warm before its draining
+				// predecessor stops, including in single-CPU Compute containers.
+				sidecar: {
+					kind: "shared" as const,
+					pool: `agentos-apps-replica-${c.actorId}`,
+				},
 				loopbackExemptPorts: replicaLoopbackExemptPorts(
 					state.configuration,
 					engineRegistration?.port,
