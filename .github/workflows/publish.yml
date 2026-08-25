@@ -1,0 +1,98 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semver to publish, or "legacy" for the matching legacy baseline
+        required: true
+        default: legacy
+        type: string
+      dist_tag:
+        description: npm dist-tag (auto derives latest/rc/next)
+        required: true
+        default: auto
+        type: choice
+        options: [auto, latest, rc, next, preview]
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Install OIDC-capable npm
+        run: npm install --global npm@11.16.0
+      - run: pnpm install --frozen-lockfile
+      - id: release
+        run: >-
+          node scripts/resolve-release.mjs
+          --version=${{ inputs.version }}
+          --tag=${{ inputs.dist_tag }}
+          --branch=${{ github.ref_name }}
+      - name: Verify npm registry and unused versions
+        run: |
+          set -euo pipefail
+          npm ping
+          for package in @rivet-dev/dynamic-apps-builder @rivet-dev/dynamic-apps; do
+            if npm view "$package@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
+              echo "$package@${{ steps.release.outputs.version }} already exists" >&2
+              exit 1
+            fi
+          done
+      - run: node scripts/set-release-version.mjs ${{ steps.release.outputs.version }}
+      - run: pnpm build
+      - run: pnpm check-types
+      - run: pnpm test
+      - run: pnpm check-boundaries
+      - run: pnpm lint
+      - run: pnpm test:packed
+      - name: Publish builder
+        run: >-
+          npm publish
+          .pack/rivet-dev-dynamic-apps-builder-${{ steps.release.outputs.version }}.tgz
+          --access public
+          --provenance
+          --tag ${{ steps.release.outputs.npm_tag }}
+      - name: Wait for builder registry visibility
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if npm view "@rivet-dev/dynamic-apps-builder@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "builder version did not become visible" >&2
+          exit 1
+      - name: Publish main package
+        run: >-
+          npm publish
+          .pack/rivet-dev-dynamic-apps-${{ steps.release.outputs.version }}.tgz
+          --access public
+          --provenance
+          --tag ${{ steps.release.outputs.npm_tag }}
+      - name: Create release tag
+        if: steps.release.outputs.real_release == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git tag "v${{ steps.release.outputs.version }}"
+          git push origin "v${{ steps.release.outputs.version }}"
+          gh release create "v${{ steps.release.outputs.version }}" --generate-notes

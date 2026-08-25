@@ -1,0 +1,25 @@
+{
+	"name": "@rivet-dev/dynamic-apps-e2e",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"test:e2e": "node --import tsx src/run.ts",
+		"test:e2e:build": "node --import tsx src/run.ts --build-only",
+		"test:e2e:fast": "node --import tsx src/run.ts --fast",
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@rivet-dev/dynamic-apps": "workspace:*",
+		"@rivet-dev/dynamic-apps-builder": "workspace:*",
+		"rivetkit": "0.0.0-feat-workflows-public-host-apis.0ff6164"
+	},
+	"devDependencies": {
+		"@rivet-dev/agentos-toolchain": "0.2.15",
+		"@rivetkit/engine-cli": "0.0.0-feat-workflows-public-host-apis.0ff6164",
+		"@types/node": "^22.19.15",
+		"get-port": "^7.1.0",
+		"tsx": "^4.20.6",
+		"typescript": "^5.7.3"
+	}
+}
