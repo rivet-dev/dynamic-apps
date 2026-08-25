@@ -3,6 +3,7 @@ import { pathToFileURL } from "node:url";
 
 export interface LoadConfig {
 	target: string;
+	token?: string;
 	concurrency: number;
 	durationSeconds: number;
 	timeoutMs: number;
@@ -42,6 +43,9 @@ export interface LoadResult {
 	replicaHeaderCoverage: number;
 	maximumReplicaCount: number;
 	queueDelayMs: Pick<LatencySummary, "p50" | "p95" | "max">;
+	serverColdStartMs: LatencySummary;
+	serverPhaseMs: Record<string, LatencySummary>;
+	serverPhaseSamples: Record<string, number>;
 	sampledRequests: number;
 	droppedLatencySamples: number;
 	droppedQueueDelaySamples: number;
@@ -54,6 +58,7 @@ export function readLoadConfig(
 ): LoadConfig {
 	return {
 		target: env.LOAD_TEST_URL ?? "http://127.0.0.1:3000/apps/hello-world",
+		token: env.LOAD_TEST_TOKEN,
 		concurrency: integerEnv(env, "LOAD_TEST_CONCURRENCY", 16, 1, 1_000),
 		durationSeconds: integerEnv(
 			env,
@@ -102,6 +107,8 @@ export async function runLoadTest(
 	const statuses = new Map<string, number>();
 	const replicas = new Map<string, number>();
 	const queueDelays: number[] = [];
+	const serverColdStarts: number[] = [];
+	const serverPhases = new Map<string, number[]>();
 	let started = 0;
 	let completed = 0;
 	let successful = 0;
@@ -123,7 +130,10 @@ export async function runLoadTest(
 				try {
 					const response = await fetchImpl(config.target, {
 						signal: AbortSignal.timeout(config.timeoutMs),
-						headers: { "user-agent": "agentos-apps-load-test" },
+						headers: {
+							"user-agent": "agentos-apps-load-test",
+							...(config.token ? { "x-rivet-token": config.token } : {}),
+						},
 					});
 					await consumeResponseBody(response, config.maxResponseBytes);
 					status = String(response.status);
@@ -150,6 +160,45 @@ export async function runLoadTest(
 						warmRequests += 1;
 						temperature = "warm";
 					}
+
+					const serverColdStart = headerNumber(
+						response,
+						"x-agentos-app-cold-start-ms",
+					);
+					if (
+						serverColdStart !== undefined &&
+						serverColdStarts.length < config.maxSamples
+					) {
+						serverColdStarts.push(serverColdStart);
+					}
+					for (const [phase, header] of Object.entries({
+						bundleLoad: "x-agentos-app-bundle-load-ms",
+						isolateStart: "x-agentos-app-isolate-start-ms",
+						processReady: "x-agentos-app-process-ready-ms",
+						dispatch: "x-agentos-app-dispatch-ms",
+						appReleaseLookup: "x-agentos-app-release-lookup-ms",
+						appRequestBody: "x-agentos-app-request-body-ms",
+						appScalerAcquire: "x-agentos-app-scaler-acquire-ms",
+						appReplicaHeaders: "x-agentos-app-replica-headers-ms",
+						appRequestHeaders: "x-agentos-app-request-headers-ms",
+					})) {
+						const value = headerNumber(response, header);
+						if (value === undefined) continue;
+						const samples = serverPhases.get(phase) ?? [];
+						if (samples.length < config.maxSamples) samples.push(value);
+						serverPhases.set(phase, samples);
+					}
+					response.headers.forEach((header, name) => {
+						const match = /^x-agentos-bench-(.+)-ms$/.exec(name);
+						if (!match) return;
+						const value = Number(header);
+						if (!Number.isFinite(value)) return;
+						const phase = match[1];
+						if (!phase) return;
+						const samples = serverPhases.get(phase) ?? [];
+						if (samples.length < config.maxSamples) samples.push(value);
+						serverPhases.set(phase, samples);
+					});
 
 					const queueDelay = headerNumber(
 						response,
@@ -201,6 +250,7 @@ export async function runLoadTest(
 	const elapsedSeconds = (performance.now() - loadStartedAt) / 1_000;
 	const successRate = completed === 0 ? 0 : successful / completed;
 	const classifiedRequests = coldStarts + warmRequests;
+	const queueDelaySummary = latencySummary(queueDelays);
 	return {
 		target: config.target,
 		concurrency: config.concurrency,
@@ -222,10 +272,23 @@ export async function runLoadTest(
 		replicaHeaderCoverage: completed === 0 ? 0 : replicaHeaders / completed,
 		maximumReplicaCount,
 		queueDelayMs: {
-			p50: round(percentile(queueDelays, 0.5)),
-			p95: round(percentile(queueDelays, 0.95)),
-			max: round(Math.max(...queueDelays, 0)),
+			p50: queueDelaySummary.p50,
+			p95: queueDelaySummary.p95,
+			max: queueDelaySummary.max,
 		},
+		serverColdStartMs: latencySummary(serverColdStarts),
+		serverPhaseMs: Object.fromEntries(
+			[...serverPhases.entries()].map(([phase, samples]) => [
+				phase,
+				latencySummary(samples),
+			]),
+		),
+		serverPhaseSamples: Object.fromEntries(
+			[...serverPhases.entries()].map(([phase, samples]) => [
+				phase,
+				samples.length,
+			]),
+		),
 		sampledRequests: latencies.length,
 		droppedLatencySamples,
 		droppedQueueDelaySamples,
@@ -347,9 +410,11 @@ function latencySummary(values: number[]): LatencySummary {
 
 function percentile(sorted: number[], quantile: number): number {
 	if (sorted.length === 0) return 0;
-	return sorted[
-		Math.min(sorted.length - 1, Math.ceil(sorted.length * quantile) - 1)
-	]!;
+	return (
+		sorted[
+			Math.min(sorted.length - 1, Math.ceil(sorted.length * quantile) - 1)
+		] ?? 0
+	);
 }
 
 function round(value: number): number {

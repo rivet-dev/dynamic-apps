@@ -27,10 +27,32 @@ importers:
         version: 5.9.3
 
   benchmarks/dynamic-apps:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^2.0.11
+        version: 2.1.1(hono@4.13.3)
+      '@rivet-dev/agentos-core':
+        specifier: 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
+        version: 0.0.0-fix-core-spawn-keep-stdin-open.242e11c(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(ws@8.21.3)
+      '@rivet-dev/dynamic-apps':
+        specifier: workspace:*
+        version: link:../../packages/dynamic-apps
+      hono:
+        specifier: ^4.12.9
+        version: 4.13.3
+      rivetkit:
+        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
+        version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
     devDependencies:
+      '@rivetkit/engine-cli':
+        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
+        version: 0.0.0-feat-workflows-public-host-apis.0ff6164
       '@types/node':
         specifier: ^22.19.15
         version: 22.20.1
+      get-port:
+        specifier: ^7.1.0
+        version: 7.2.0
       tsx:
         specifier: ^4.20.6
         version: 4.23.12
@@ -1321,6 +1343,18 @@ packages:
     cpu: [arm64]
     os: [darwin]
 
+  '@rivet-dev/agentos-runtime-sidecar-darwin-x64@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
+    resolution: {integrity: sha512-iSB0oRLMcPuuHca2y5e1vEVq02IRXYQ5R7A189F/Hj7v0UUFUnyRRLfnanc/0RPs9Zxiqq8nf/7WhfoWU1aJEQ==}
+    engines: {node: '>=20'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@rivet-dev/agentos-runtime-sidecar-linux-arm64-gnu@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
+    resolution: {integrity: sha512-wrc8yS1bfpMowIeG8Ge9FDNy/BuXuSGnarW4cqsrSThzAIJVy4HcK3itH+lAXOgDxgJnUqYjCFk5Xk1l3aATtA==}
+    engines: {node: '>=20'}
+    cpu: [arm64]
+    os: [linux]
+
   '@rivet-dev/agentos-runtime-sidecar-linux-x64-gnu@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
     resolution: {integrity: sha512-vUGoVLr2mQXsrN6R+jASBvc4px/D7FR51dxY/vrBXAdlZRsIqCu8t6Mu5JPt/DiySJxvEawF8pMvhRlUWzg+gA==}
     engines: {node: '>=20'}
@@ -1336,6 +1370,18 @@ packages:
     engines: {node: '>=20'}
     cpu: [arm64]
     os: [darwin]
+
+  '@rivet-dev/agentos-sidecar-darwin-x64@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
+    resolution: {integrity: sha512-+Reu0fWkO/2D/2lqTEutX52Cz3Hv+x9PTGu5ZM6z832529/SIXTgl0BFykPpTbPDJhVpFBS7piId/FQXpQmphQ==}
+    engines: {node: '>=20'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@rivet-dev/agentos-sidecar-linux-arm64-gnu@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
+    resolution: {integrity: sha512-majX/SiINTMpqp+URlWBJohvxO4QVHOKbQulHlpVsRVZtRg1/zymuQJY+KdWEGCvYbmW0mvmrLUU8vu7Uk8L2Q==}
+    engines: {node: '>=20'}
+    cpu: [arm64]
+    os: [linux]
 
   '@rivet-dev/agentos-sidecar-linux-x64-gnu@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
     resolution: {integrity: sha512-EIQUdVPLIEizhQa4sRBA3maXvEUomBV23dPfSaV21VFTcVD6uF9HrM/fzwPZQ5Eklksv0+EgY8+fuA1opZropg==}
@@ -4617,15 +4663,29 @@ snapshots:
   '@rivet-dev/agentos-runtime-sidecar-darwin-arm64@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
     optional: true
 
+  '@rivet-dev/agentos-runtime-sidecar-darwin-x64@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
+    optional: true
+
+  '@rivet-dev/agentos-runtime-sidecar-linux-arm64-gnu@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
+    optional: true
+
   '@rivet-dev/agentos-runtime-sidecar-linux-x64-gnu@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
     optional: true
 
   '@rivet-dev/agentos-runtime-sidecar@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
     optionalDependencies:
       '@rivet-dev/agentos-runtime-sidecar-darwin-arm64': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
+      '@rivet-dev/agentos-runtime-sidecar-darwin-x64': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
+      '@rivet-dev/agentos-runtime-sidecar-linux-arm64-gnu': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
       '@rivet-dev/agentos-runtime-sidecar-linux-x64-gnu': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
 
   '@rivet-dev/agentos-sidecar-darwin-arm64@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
+    optional: true
+
+  '@rivet-dev/agentos-sidecar-darwin-x64@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
+    optional: true
+
+  '@rivet-dev/agentos-sidecar-linux-arm64-gnu@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
     optional: true
 
   '@rivet-dev/agentos-sidecar-linux-x64-gnu@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
@@ -4634,6 +4694,8 @@ snapshots:
   '@rivet-dev/agentos-sidecar@0.0.0-fix-core-spawn-keep-stdin-open.242e11c':
     optionalDependencies:
       '@rivet-dev/agentos-sidecar-darwin-arm64': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
+      '@rivet-dev/agentos-sidecar-darwin-x64': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
+      '@rivet-dev/agentos-sidecar-linux-arm64-gnu': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
       '@rivet-dev/agentos-sidecar-linux-x64-gnu': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
 
   '@rivet-dev/agentos-toolchain@0.2.15':

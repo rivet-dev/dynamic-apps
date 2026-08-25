@@ -24,7 +24,13 @@ describe("Dynamic Apps load driver", () => {
 				`replica-${requestCount % 2}`,
 			);
 			response.setHeader("x-agentos-app-replica-count", "2");
-			response.setHeader("x-agentos-app-queue-delay-ms", "3");
+			response.setHeader(
+				"x-agentos-app-queue-delay-ms",
+				String([9, 1, 3, 7][requestCount - 1]),
+			);
+			response.setHeader("x-agentos-app-cold-start-ms", "7");
+			response.setHeader("x-agentos-app-bundle-load-ms", "2");
+			response.setHeader("x-agentos-bench-edge-total-ms", "5");
 			response.end("hello");
 		});
 		await new Promise<void>((resolve) =>
@@ -50,6 +56,11 @@ describe("Dynamic Apps load driver", () => {
 			assert.equal(result.warmHitRate, 0.5);
 			assert.equal(result.replicaHeaderCoverage, 1);
 			assert.equal(result.maximumReplicaCount, 2);
+			assert.deepEqual(result.queueDelayMs, { p50: 3, p95: 9, max: 9 });
+			assert.equal(result.serverColdStartMs.p50, 7);
+			assert.equal(result.serverPhaseMs.bundleLoad?.p50, 2);
+			assert.equal(result.serverPhaseMs["edge-total"]?.p50, 5);
+			assert.equal(result.serverPhaseSamples["edge-total"], 4);
 			assert.equal(result.stoppedBy, "request-limit");
 			assert(result.coldLatencyMs.p50 > 0);
 			assert(result.warmLatencyMs.p50 > 0);

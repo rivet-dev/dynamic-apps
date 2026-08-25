@@ -256,6 +256,7 @@ if (typeof guestRegistry?.handler !== "function") {
 		: `const appModule = await import(${JSON.stringify(entrypoint)});
 const guestRegistry = undefined;`;
 	return `import http from "node:http";
+const guestStartedAt = performance.now();
 ${rivetKitImport}
 
 const release = ${JSON.stringify(input.release)};
@@ -397,7 +398,10 @@ http.createServer(async (incoming, outgoing) => {
   try {
     if (incoming.url === "/.agentos/ready") {
       outgoing.setHeader("content-type", "application/json");
-      outgoing.end(JSON.stringify({ release }));
+		outgoing.end(JSON.stringify({
+			release,
+			guestUptimeMs: performance.now() - guestStartedAt,
+		}));
       return;
     }
 
@@ -482,6 +486,7 @@ import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
 import { extname, join, normalize, resolve, sep } from "node:path";
 
+const guestStartedAt = performance.now();
 const release = ${JSON.stringify(input.release)};
 const port = ${input.port};
 const root = resolve("/app", ${JSON.stringify(staticRoot)});
@@ -507,7 +512,10 @@ http.createServer(async (request, response) => {
     const url = new URL(request.url ?? "/", "http://agentos-app");
     if (url.pathname === "/.agentos/ready") {
       response.setHeader("content-type", "application/json");
-      response.end(JSON.stringify({ release }));
+		response.end(JSON.stringify({
+			release,
+			guestUptimeMs: performance.now() - guestStartedAt,
+		}));
       return;
     }
     if (request.method !== "GET" && request.method !== "HEAD") {
