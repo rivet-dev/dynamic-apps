@@ -63,6 +63,10 @@ jobs:
       - run: pnpm lint
       - run: pnpm test:packed
       - name: Publish builder
+        env:
+          # setup-node provides a dummy token value; clear it so npm uses
+          # trusted publishing through the job's OIDC identity.
+          NODE_AUTH_TOKEN: ""
         run: >-
           npm publish
           .pack/rivet-dev-dynamic-apps-builder-${{ steps.release.outputs.version }}.tgz
@@ -81,6 +85,10 @@ jobs:
           echo "builder version did not become visible" >&2
           exit 1
       - name: Publish main package
+        env:
+          # setup-node provides a dummy token value; clear it so npm uses
+          # trusted publishing through the job's OIDC identity.
+          NODE_AUTH_TOKEN: ""
         run: >-
           npm publish
           .pack/rivet-dev-dynamic-apps-${{ steps.release.outputs.version }}.tgz
