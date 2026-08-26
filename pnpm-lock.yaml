@@ -77,9 +77,6 @@ importers:
       hono:
         specifier: ^4.12.9
         version: 4.13.3
-      rivetkit:
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
     devDependencies:
       '@types/node':
         specifier: ^22.19.15
@@ -113,106 +110,6 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
 
-  examples/apps-multiplayer:
-    dependencies:
-      '@hono/node-server':
-        specifier: ^2.0.11
-        version: 2.1.1(hono@4.13.3)
-      '@rivet-dev/dynamic-apps':
-        specifier: workspace:*
-        version: link:../../packages/dynamic-apps
-      hono:
-        specifier: ^4.12.9
-        version: 4.13.3
-      rivetkit:
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.15
-        version: 22.20.1
-      tsx:
-        specifier: ^4.20.6
-        version: 4.23.12
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-
-  examples/apps-sqlite:
-    dependencies:
-      '@hono/node-server':
-        specifier: ^2.0.11
-        version: 2.1.1(hono@4.13.3)
-      '@rivet-dev/dynamic-apps':
-        specifier: workspace:*
-        version: link:../../packages/dynamic-apps
-      hono:
-        specifier: ^4.12.9
-        version: 4.13.3
-      rivetkit:
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.15
-        version: 22.20.1
-      tsx:
-        specifier: ^4.20.6
-        version: 4.23.12
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-
-  examples/apps-static-website:
-    dependencies:
-      '@hono/node-server':
-        specifier: ^2.0.11
-        version: 2.1.1(hono@4.13.3)
-      '@rivet-dev/dynamic-apps':
-        specifier: workspace:*
-        version: link:../../packages/dynamic-apps
-      hono:
-        specifier: ^4.12.9
-        version: 4.13.3
-      rivetkit:
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.15
-        version: 22.20.1
-      tsx:
-        specifier: ^4.20.6
-        version: 4.23.12
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-
-  examples/apps-workflows:
-    dependencies:
-      '@hono/node-server':
-        specifier: ^2.0.11
-        version: 2.1.1(hono@4.13.3)
-      '@rivet-dev/dynamic-apps':
-        specifier: workspace:*
-        version: link:../../packages/dynamic-apps
-      hono:
-        specifier: ^4.12.9
-        version: 4.13.3
-      rivetkit:
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
-    devDependencies:
-      '@types/node':
-        specifier: ^22.19.15
-        version: 22.20.1
-      tsx:
-        specifier: ^4.20.6
-        version: 4.23.12
-      typescript:
-        specifier: ^5.7.3
-        version: 5.9.3
-
   packages/dynamic-apps:
     dependencies:
       '@agentos-software/sh':
@@ -231,11 +128,14 @@ importers:
         specifier: 0.2.15
         version: 0.2.15
       '@rivet-dev/dynamic-apps-builder':
-        specifier: workspace:0.2.15
+        specifier: workspace:0.12.0-rc.1
         version: link:../dynamic-apps-builder
       hono:
         specifier: ^4.7.0
         version: 4.13.3
+      isolated-vm:
+        specifier: ^6.2.0
+        version: 6.2.0
       rivetkit:
         specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
         version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)

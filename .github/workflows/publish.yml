@@ -26,7 +26,6 @@ concurrency:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    environment: npm
     steps:
       - uses: actions/checkout@v4
         with:
@@ -102,3 +101,6 @@ jobs:
           git tag "v${{ steps.release.outputs.version }}"
           git push origin "v${{ steps.release.outputs.version }}"
           gh release create "v${{ steps.release.outputs.version }}" --generate-notes
+          if [[ "${{ steps.release.outputs.version }}" == *-* ]]; then
+            gh release edit "v${{ steps.release.outputs.version }}" --prerelease
+          fi

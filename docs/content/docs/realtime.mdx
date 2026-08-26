@@ -1,14 +1,22 @@
 ---
-title: "Realtime"
-description: "Share realtime application state across connected users with actor-backed multiplayer coordination and automatic client synchronization."
+title: "Realtime Events"
+description: "Subscribe to events from an app-defined RivetKit actor."
 ---
 
-## Multiplayer
+App-defined actors expose the standard RivetKit realtime client. Subscribe to
+an event on a connected actor handle:
 
-Example AI-generated app code that shares realtime state between clients.
-[View the complete multiplayer example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-multiplayer).
+```ts
+const counter = await client.counter.getOrCreate(["main"]).connect();
 
-<CodeGroup>
-<CodeSnippet file="examples/apps-multiplayer/fixtures/app/src/index.ts" title="Server" />
-<CodeSnippet file="examples/apps-multiplayer/src/client.ts" title="Client" />
-</CodeGroup>
+const unsubscribe = counter.on("changed", (count) => {
+  console.log("count changed", count);
+});
+
+await counter.add(1);
+unsubscribe();
+await counter.dispose();
+```
+
+Dynamic Apps packages the actor registry and configures its stable runner pool;
+it does not wrap or replace RivetKit's action, event, or connection APIs.

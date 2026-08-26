@@ -1,14 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { anthropic } from "@ai-sdk/anthropic";
 import { serve } from "@hono/node-server";
-import {
-	appsRouter,
-	DynamicAppsError,
-	deployApp,
-} from "@rivet-dev/dynamic-apps";
+import { appsRouter, deployApp } from "@rivet-dev/dynamic-apps";
 import { generateText } from "ai";
 import { Hono } from "hono";
-import { registry } from "./actors.js";
 
 const editablePaths = [
 	"package.json",
@@ -17,8 +12,6 @@ const editablePaths = [
 ] as const;
 const maxRepairs = 3;
 const maxFileBytes = 64 * 1024;
-
-registry.start();
 
 async function loadSeed(): Promise<Record<string, string>> {
 	const files: Record<string, string> = {};
@@ -62,7 +55,7 @@ async function revise(
 		prompt: [
 			'Return JSON only as {"files":{"path":"content"}}.',
 			`You may edit only: ${editablePaths.join(", ")}.`,
-			"The app must compile, start a RivetKit registry, and export a Web fetch handler.",
+			"The app must export a default object with fetch(request) returning a Web Response.",
 			`User request: ${prompt}`,
 			diagnostics ? `Previous build diagnostics:\n${diagnostics}` : "",
 			`Current files:\n${JSON.stringify(files)}`,
@@ -83,12 +76,11 @@ async function generateApp(appId: string, prompt: string) {
 			});
 		} catch (error) {
 			const appsError =
-				error instanceof DynamicAppsError ||
-				(typeof error === "object" &&
-					error !== null &&
-					"code" in error &&
-					typeof error.code === "string" &&
-					error.code.startsWith("agentos_apps_"));
+				typeof error === "object" &&
+				error !== null &&
+				"code" in error &&
+				typeof error.code === "string" &&
+				error.code.startsWith("agentos_apps_");
 			if (!appsError || attempt === maxRepairs) {
 				throw error;
 			}
@@ -109,6 +101,14 @@ async function generateApp(appId: string, prompt: string) {
 }
 
 const server = new Hono();
+const dispatchRegistry = (request: Request) => {
+	const headers = new Headers(request.headers);
+	headers.set("x-agentos-app-registry-dispatch", "1");
+	return appsRouter.fetch(new Request(request, { headers }));
+};
+server.all("/api/rivet", (c) => dispatchRegistry(c.req.raw));
+server.all("/api/rivet/*", (c) => dispatchRegistry(c.req.raw));
+
 // An agent or any other part of the system can call this route. A generic
 // deployment endpoint could accept multipart files; this example generates the
 // files from a prompt instead.

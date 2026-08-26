@@ -1,24 +1,49 @@
 ---
-title: "State & Data"
-description: "Give Dynamic Apps durable SQLite state, queues, workflows, multiplayer coordination, and scheduled jobs within each application."
+title: "State & Actors"
+description: "Add durable RivetKit actors to an application while keeping ordinary HTTP on the direct-isolate path."
 ---
 
-Agents can generate more than pages and REST APIs. These examples show apps
-with durable SQLite data, workflows, multiplayer state, queues, and scheduled
-jobs. The server snippets represent AI-generated app code; the client snippets
-show how another part of your system connects to it.
+An application can combine ordinary HTTP with app-defined RivetKit actors.
+Declare `rivetkit` in the application's dependencies, export its registry, and
+keep the normal `registry.start()` call:
 
-## SQLite
+```ts
+import { actor, event, setup } from "rivetkit";
 
-Example AI-generated app code that stores durable data in an actor-owned SQLite
-database. [View the complete SQLite example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-sqlite).
+const counter = actor({
+  state: { count: 0 },
+  events: { changed: event() },
+  actions: {
+    add(c, amount = 1) {
+      c.state.count += amount;
+      c.broadcast("changed", c.state.count);
+      return c.state.count;
+    },
+  },
+});
 
-<CodeGroup>
-<CodeSnippet file="examples/apps-sqlite/fixtures/app/src/index.ts" title="Server" />
-<CodeSnippet file="examples/apps-sqlite/src/client.ts" title="Client" />
-</CodeGroup>
+export const registry = setup({ use: { counter } });
+registry.start();
 
-## Queues
+export default () => new Response("ordinary HTTP still runs locally");
+```
 
-AI-generated apps can use actor queues for durable background work and ordered
-processing.
+`deployApp()` returns the stable namespace and runner-pool names needed by the
+ordinary RivetKit client:
+
+```ts
+import { createClient } from "rivetkit/client";
+
+const deployment = await deployApp({ appId: "counter", source });
+const client = createClient({
+  namespace: deployment.namespace,
+  poolName: deployment.pool,
+});
+
+const handle = await client.counter.getOrCreate(["main"]).connect();
+console.log(await handle.add(1));
+```
+
+Actor actions, state, events, connections, and streaming actor responses use
+normal Rivet routing. Requests to the application's default HTTP export still
+use the process-local direct-isolate path.

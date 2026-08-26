@@ -58,13 +58,7 @@ await writeFile(
 );
 await execFileAsync(
 	"npm",
-	[
-		"install",
-		"--ignore-scripts",
-		"--no-audit",
-		"--no-fund",
-		"--loglevel=error",
-	],
+	["install", "--no-audit", "--no-fund", "--loglevel=error"],
 	{ cwd: fixture },
 );
 
@@ -78,14 +72,11 @@ if (basename(builder.default.packagePath) !== "package.aospkg") {
 	throw new Error("packed builder did not export package.aospkg");
 }
 await access(builder.default.packagePath);
-await access(join(mainRoot, "assets/inspector/deployment/index.html"));
-await access(join(mainRoot, "assets/inspector/scaler/index.html"));
-await access(join(mainRoot, "assets/inspector/replica/index.html"));
 
 const main = await import(pathToFileURL(join(mainRoot, "dist/index.js")));
-for (const name of ["setup", "setupApps", "deployApp", "appsRouter"]) {
-	if (!(name in main))
-		throw new Error(`packed main package is missing ${name}`);
+const exports = Object.keys(main).sort();
+if (JSON.stringify(exports) !== JSON.stringify(["appsRouter", "deployApp"])) {
+	throw new Error(`packed main package has unexpected exports: ${exports}`);
 }
 
 for (const packageRoot of [builderRoot, mainRoot]) {
@@ -112,7 +103,7 @@ const release = join(fixture, "builder-release");
 await mkdir(workspace, { recursive: true });
 await writeFile(
 	join(workspace, "entry.ts"),
-	'export default "packed builder";\n',
+	'globalThis.__dynamicAppDispatch = async () => JSON.stringify({ status: 200, statusText: "OK", headers: [], bodyBase64: "" });\n',
 );
 await writeFile(
 	join(workspace, "package.json"),
@@ -128,6 +119,7 @@ await writeFile(
 		version: "packed-smoke",
 		sourceFiles: ["entry.ts"],
 		usesRivetKit: false,
+		directIsolate: true,
 		maxOutputBytes: 1024 * 1024,
 		maxOutputFiles: 16,
 		maxFileBytes: 512 * 1024,
@@ -138,6 +130,52 @@ await execFileAsync(process.execPath, [
 	configPath,
 ]);
 await access(join(release, "main.mjs"));
+if (
+	/^\s*(?:import|export)\s/m.test(
+		await readFile(join(release, "main.mjs"), "utf8"),
+	)
+) {
+	throw new Error("packed direct builder emitted a module instead of an IIFE");
+}
+
+const actorWorkspace = join(fixture, "actor-builder-smoke");
+const actorRelease = join(fixture, "actor-builder-release");
+await mkdir(actorWorkspace, { recursive: true });
+await writeFile(
+	join(actorWorkspace, "entry.ts"),
+	'import { setup } from "rivetkit"; export const registry = setup({ use: {} });\n',
+);
+await writeFile(
+	join(actorWorkspace, "package.json"),
+	JSON.stringify({ private: true, type: "module" }),
+);
+const actorConfigPath = join(fixture, "actor-builder-config.json");
+await writeFile(
+	actorConfigPath,
+	JSON.stringify({
+		workspace: actorWorkspace,
+		release: actorRelease,
+		entrypoint: "entry.ts",
+		version: "packed-actor-smoke",
+		sourceFiles: ["entry.ts"],
+		usesRivetKit: true,
+		directIsolate: false,
+		platformRivetKit: true,
+		maxOutputBytes: 1024 * 1024,
+		maxOutputFiles: 16,
+		maxFileBytes: 512 * 1024,
+	}),
+);
+await execFileAsync(process.execPath, [
+	join(builderRoot, "cli/apps-builder.mjs"),
+	actorConfigPath,
+]);
+const actorEntrypoint = join(actorRelease, "main.mjs");
+await access(actorEntrypoint);
+const actorModule = await import(pathToFileURL(actorEntrypoint));
+if (typeof actorModule.registry?.handler !== "function") {
+	throw new Error("packed actor builder did not emit a RivetKit registry");
+}
 
 console.log(
 	`Verified ${basename(builderTarball)} and ${basename(mainTarball)}.`,

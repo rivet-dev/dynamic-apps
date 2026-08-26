@@ -1,13 +1,12 @@
 ---
 title: "Dynamic Apps"
-seoTitle: "Dynamic Apps Documentation"
-description: "Deploy user-generated applications in isolated environments with durable state, workflows, realtime coordination, queues, and scheduled jobs."
+description: "Build user-generated HTTP apps and serve them from bounded process-local V8 isolates."
 skill: true
 ---
 
-Dynamic Apps runs user-generated HTTP applications on Rivet. Apps can add
-durable SQLite state, workflows, multiplayer and realtime state, queues, and
-cron jobs.
+Dynamic Apps builds user-generated HTTP applications in a sandboxed deployment
+VM, stores immutable releases in a per-app Rivet actor, and serves ordinary HTTP
+from V8 isolates in your own server process.
 
 <Note>
 Dynamic Apps is in preview and its API is subject to change.
@@ -15,44 +14,30 @@ Dynamic Apps is in preview and its API is subject to change.
 
 ## Architecture
 
-**Dynamic Apps is a library, not a hosted AI-generated app deployment
-platform.** Unlike managed platforms, you can deploy it anywhere and customize
-the server, routing, authentication, and deployment flow.
+**Dynamic Apps is a library, not a hosted app deployment platform.** You own the
+Hono server, its authentication, and the URL on which applications are mounted.
 
-Requests reach your Hono server, where `appsRouter` routes them to a prewarmed
-isolated VM serving the generated application. Rivet handles request routing and
-orchestrates the pool of prewarmed VMs.
+Deployment and request serving are deliberately separate:
 
-<svg viewBox="0 0 620 190" role="img" aria-label="An HTTP request reaches your Hono server, where appsRouter uses Rivet to route it to a prewarmed isolated VM serving the AI-generated app." style="width:100%;height:auto;max-width:620px;display:block;margin:2.5rem auto 1rem;">
-  <defs>
-    <marker id="apps-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#1b1916" />
-    </marker>
-    <symbol id="apps-os" viewBox="0 0 100 100">
-      <rect x="8" y="8" width="84" height="84" rx="26" fill="none" stroke="#1b1916" stroke-width="8" />
-      <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-family="var(--sl-font)" font-weight="700" font-size="38" fill="#1b1916">OS</text>
-    </symbol>
-  </defs>
+```text
+deployApp -> per-app state actor -> AgentOS build VM -> immutable AOSP release
 
-  <rect x="12" y="66" width="126" height="58" rx="12" fill="#ffffff" stroke="#1b1916" stroke-width="1.5" />
-  <text x="75" y="91" text-anchor="middle" font-family="var(--sl-font)" font-size="14" font-weight="600" fill="#1b1916">Request</text>
-  <text x="75" y="110" text-anchor="middle" font-family="var(--sl-font)" font-size="10.5" fill="#56524a">Agent · Browser · API</text>
+first HTTP request -> state actor -> verified artifact -> snapshot/isolate cache
+cache-hit HTTP request -> local V8 isolate -> response (zero actor calls)
+```
 
-  <line x1="140" y1="95" x2="184" y2="95" stroke="#1b1916" stroke-width="1.5" marker-end="url(#apps-arrow)" />
+`appsRouter` executes each request in a clean JavaScript context. The default
+mode keeps a small bounded pool of native isolates and restores a clean context
+from a cached V8 snapshot after every request. Snapshot-only and fully fresh
+isolate modes are also available.
 
-  <rect x="190" y="42" width="174" height="106" rx="14" fill="#faf8f3" stroke="#1b1916" stroke-width="1.5" />
-  <text x="206" y="65" font-family="var(--sl-font)" font-size="13" font-weight="600" fill="#1b1916">Your Hono server</text>
-  <rect x="206" y="78" width="142" height="50" rx="8" fill="#ffffff" stroke="#1b1916" stroke-width="1.2" />
-  <text x="277" y="99" text-anchor="middle" font-family="var(--sl-font)" font-size="12" font-weight="600" fill="#1b1916">appsRouter</text>
-  <text x="277" y="116" text-anchor="middle" font-family="var(--sl-font)" font-size="10" fill="#56524a">route the request</text>
+An application may additionally export a RivetKit registry. Those app-defined
+actors use normal Rivet routing for durable state, actions, events, and
+connections, while the same application's ordinary HTTP handler still runs in
+the direct-isolate path.
 
-  <line x1="366" y1="95" x2="410" y2="95" stroke="#1b1916" stroke-width="1.5" marker-end="url(#apps-arrow)" />
-  <text x="388" y="82" text-anchor="middle" font-family="var(--sl-font)" font-size="10" fill="#56524a">Rivet</text>
-
-  <rect x="416" y="42" width="192" height="106" rx="14" fill="#faf8f3" stroke="#1b1916" stroke-width="1.5" />
-  <text x="432" y="65" font-family="var(--sl-font)" font-size="13" font-weight="600" fill="#1b1916">V8 isolate</text>
-  <rect x="432" y="78" width="160" height="50" rx="8" fill="#ffffff" stroke="#1b1916" stroke-width="1.2" />
-  <use href="#apps-os" x="444" y="88" width="30" height="30" />
-  <text x="485" y="99" font-family="var(--sl-font)" font-size="11.5" font-weight="600" fill="#1b1916">AI-generated app</text>
-  <text x="485" y="116" font-family="var(--sl-font)" font-size="10" fill="#56524a">serves the response</text>
-</svg>
+<Note>
+`isolated-vm` is a V8 isolation primitive, not a complete hostile multi-tenant
+sandbox. Run one trust domain per container and rely on container isolation for
+mutually untrusted tenants.
+</Note>
