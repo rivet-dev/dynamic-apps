@@ -36,8 +36,6 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
-      - name: Install OIDC-capable npm
-        run: npm install --global npm@11.16.0
       - run: pnpm install --frozen-lockfile
       - id: release
         run: >-
