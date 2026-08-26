@@ -3,26 +3,14 @@ import { createBenchmarkApplication } from "./edge.js";
 
 const port = integer(process.env.PORT ?? "3000", "PORT");
 const host = argument("--host") ?? "127.0.0.1";
-const serverless = process.env.RIVETKIT_RUNTIME_MODE === "serverless";
-const registryPort = integer(
-	process.env.BENCH_REGISTRY_PORT ?? String(port + 1),
-	"BENCH_REGISTRY_PORT",
-);
-
-if (serverless) process.env.RIVET_PORT = String(registryPort);
-const { registry } = await import("./registry.js");
-registry.start();
-
-const application = createBenchmarkApplication({
-	registryProxyUrl: serverless ? `http://127.0.0.1:${registryPort}` : undefined,
-});
+const application = createBenchmarkApplication();
 
 serve({ fetch: application.fetch, port, hostname: host });
 console.log(
 	JSON.stringify({
 		event: "dynamic_apps_benchmark_started",
 		url: `http://${host}:${port}`,
-		registryProxy: serverless ? registryPort : null,
+		serverless: process.env.RIVETKIT_RUNTIME_MODE === "serverless",
 	}),
 );
 

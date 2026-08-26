@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { controlFetch } from "./control-request.js";
-import { AgentOSAppsError } from "./errors.js";
+import { DynamicAppsError } from "./errors.js";
 import { appRunnerPool, ensureServerlessRunnerConfig } from "./runtime.js";
 
 const DEFAULT_ENDPOINT = "http://localhost:6420";
@@ -24,7 +24,7 @@ async function readBoundedJson(response: Response): Promise<unknown> {
 			bytes += value.byteLength;
 			if (bytes > MAX_CONTROL_RESPONSE_BYTES) {
 				await reader.cancel("Dynamic Apps control response limit exceeded");
-				throw new AgentOSAppsError(
+				throw new DynamicAppsError(
 					"agentos_apps_control_response_limit",
 					`Rivet control response exceeded ${MAX_CONTROL_RESPONSE_BYTES} bytes`,
 					{ limit: MAX_CONTROL_RESPONSE_BYTES },
@@ -41,8 +41,8 @@ async function readBoundedJson(response: Response): Promise<unknown> {
 
 /**
  * Resolves the same standard Rivet connection variables as createClient(), but
- * only when a deployment or replica actually needs control-plane information.
- * This is intentionally not called by setupApps() or at module import time.
+ * only when a deployment needs control-plane information. This is not called
+ * at module import time.
  */
 export function resolveDefaultRivetConnection(): ResolvedRivetConnection {
 	const rawEndpoint =
@@ -59,7 +59,10 @@ export function resolveDefaultRivetConnection(): ResolvedRivetConnection {
 	return {
 		endpoint: url.toString().replace(/\/$/, ""),
 		namespace: endpointNamespace ?? process.env.RIVET_NAMESPACE ?? "default",
-		token: endpointToken ?? process.env.RIVET_TOKEN,
+		token:
+			process.env.DYNAMIC_APPS_CONTROL_TOKEN ??
+			endpointToken ??
+			process.env.RIVET_TOKEN,
 	};
 }
 
@@ -70,7 +73,7 @@ function namespaceName(appId: string, hostNamespace: string): string {
 		.update(appId)
 		.digest("hex")
 		.slice(0, 10);
-	return `agentos-app-${appId}`.slice(0, 63 - suffix.length - 1) + `-${suffix}`;
+	return `${`agentos-app-${appId}`.slice(0, 63 - suffix.length - 1)}-${suffix}`;
 }
 
 function controlHeaders(token?: string): Record<string, string> {
@@ -79,17 +82,6 @@ function controlHeaders(token?: string): Record<string, string> {
 		"content-type": "application/json",
 		...(token ? { authorization: `Bearer ${token}` } : {}),
 	};
-}
-
-function serverlessAppUrl(
-	appActorId: string,
-	connection: ResolvedRivetConnection,
-): string {
-	const url = new URL(
-		`/gateway/${encodeURIComponent(appActorId)}/request/.agentos/apps/rivet`,
-		connection.endpoint,
-	);
-	return url.toString();
 }
 
 /** Idempotently provisions the isolated application namespace. */
@@ -107,7 +99,7 @@ export async function provisionAppNamespace(
 			headers,
 		});
 		if (!response.ok) {
-			throw new AgentOSAppsError(
+			throw new DynamicAppsError(
 				"agentos_apps_namespace_lookup_failed",
 				`Rivet namespace lookup failed with HTTP ${response.status}`,
 				{ status: response.status },
@@ -132,7 +124,7 @@ export async function provisionAppNamespace(
 			},
 		);
 		if (!response.ok && !(await lookup())) {
-			throw new AgentOSAppsError(
+			throw new DynamicAppsError(
 				"agentos_apps_namespace_create_failed",
 				`Rivet namespace creation failed with HTTP ${response.status}`,
 				{ status: response.status },
@@ -147,7 +139,17 @@ export async function provisionAppNamespace(
 	};
 }
 
-/** Configures the guest pool only after a healthy release has been activated. */
+function serverlessAppUrl(
+	appActorId: string,
+	connection: ResolvedRivetConnection,
+): string {
+	return new URL(
+		`/gateway/${encodeURIComponent(appActorId)}/request/.agentos/apps/rivet`,
+		connection.endpoint,
+	).toString();
+}
+
+/** Configure the nested actor pool only after its release is ready. */
 export async function configureAppNamespaceRunner(
 	appActorId: string,
 	runtime: { endpoint: string; namespace: string; pool: string },
@@ -164,7 +166,7 @@ export async function configureAppNamespaceRunner(
 			callbackSecret,
 		});
 	} catch (error) {
-		throw new AgentOSAppsError(
+		throw new DynamicAppsError(
 			"agentos_apps_runner_config_failed",
 			`Rivet runner configuration failed for namespace ${runtime.namespace} and pool ${runtime.pool}`,
 			{

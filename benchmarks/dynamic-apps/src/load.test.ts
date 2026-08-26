@@ -1,6 +1,7 @@
 import { strict as assert } from "node:assert";
 import { createServer } from "node:http";
 import { describe, it } from "node:test";
+import { actorApplicationClientConfig, benchmarkErrorDetails } from "./edge.js";
 import { readLoadConfig, runLoadTest } from "./load.js";
 
 describe("Dynamic Apps load driver", () => {
@@ -8,6 +9,34 @@ describe("Dynamic Apps load driver", () => {
 		assert.throws(
 			() => readLoadConfig({ LOAD_TEST_MIN_SUCCESS_RATE: "1.1" }),
 			/LOAD_TEST_MIN_SUCCESS_RATE must be a number between 0 and 1/,
+		);
+	});
+
+	it("redacts credentials from benchmark error details", () => {
+		const error = Object.assign(
+			new Error(
+				"failed https://namespace:sk_example@api.rivet.dev with cloud_api_example",
+			),
+			{ code: "runner_failed" },
+		);
+		assert.deepEqual(benchmarkErrorDetails(error), {
+			code: "runner_failed",
+			message: "failed https://[redacted]@api.rivet.dev with [redacted]",
+		});
+	});
+
+	it("separates endpoint auth from the deployed app namespace", () => {
+		assert.deepEqual(
+			actorApplicationClientConfig(
+				{ namespace: "app-namespace", pool: "app-pool" },
+				"https://host-namespace:pk_example@api.rivet.dev",
+			),
+			{
+				endpoint: "https://api.rivet.dev",
+				namespace: "app-namespace",
+				poolName: "app-pool",
+				token: "pk_example",
+			},
 		);
 	});
 

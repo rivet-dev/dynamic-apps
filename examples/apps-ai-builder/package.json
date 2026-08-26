@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"start": "node --import tsx src/server.ts",
+		"start": "node --no-node-snapshot --import tsx src/server.ts",
 		"check-types": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -12,8 +12,7 @@
 		"@hono/node-server": "^2.0.11",
 		"@rivet-dev/dynamic-apps": "workspace:*",
 		"ai": "^7.0.37",
-		"hono": "^4.12.9",
-		"rivetkit": "0.0.0-feat-workflows-public-host-apis.0ff6164"
+		"hono": "^4.12.9"
 	},
 	"devDependencies": {
 		"@types/node": "^22.19.15",

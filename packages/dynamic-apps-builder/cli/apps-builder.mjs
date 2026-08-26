@@ -38,6 +38,9 @@ const entrypoint = resolve(workspace, config.entrypoint);
 const maxOutputBytes = positiveInteger(config.maxOutputBytes, "maxOutputBytes");
 const maxOutputFiles = positiveInteger(config.maxOutputFiles, "maxOutputFiles");
 const maxFileBytes = positiveInteger(config.maxFileBytes, "maxFileBytes");
+const directIsolate = config.directIsolate === true;
+const stubRivetKit = directIsolate && config.stubRivetKit === true;
+const platformRivetKit = !directIsolate && config.platformRivetKit === true;
 
 await rm(release, { recursive: true, force: true });
 await mkdir(join(release, "modules"), { recursive: true });
@@ -47,7 +50,7 @@ const define = {
 };
 const require = createRequire(pathToFileURL(entrypoint));
 const builderRequire = createRequire(import.meta.url);
-if (config.usesRivetKit) {
+if (config.usesRivetKit && !platformRivetKit) {
 	const wasmSource = require.resolve(
 		"@rivetkit/rivetkit-wasm/rivetkit_wasm_bg.wasm",
 	);
@@ -76,12 +79,16 @@ const build = await esbuild.build({
 	entryPoints: [entrypoint],
 	outfile: join(release, "main.mjs"),
 	bundle: true,
-	format: "esm",
-	platform: "node",
-	target: "node22",
-	banner: {
-		js: 'import { createRequire as __agentOSCreateRequire } from "node:module"; const require = __agentOSCreateRequire(import.meta.url);',
-	},
+	format: directIsolate ? "iife" : "esm",
+	platform: directIsolate ? "browser" : "node",
+	target: directIsolate ? "es2022" : "node22",
+	...(directIsolate
+		? {}
+		: {
+				banner: {
+					js: 'import { createRequire as __agentOSCreateRequire } from "node:module"; const require = __agentOSCreateRequire(import.meta.url);',
+			},
+		}),
 	treeShaking: true,
 	minify: true,
 	sourcemap: "external",
@@ -270,8 +277,39 @@ function nodeFileSystemPlugin() {
 	return {
 		name: "agentos-node-filesystem",
 		setup(build) {
+			build.onResolve({ filter: /^rivetkit(?:\/.*)?$/ }, (args) => {
+				if (!stubRivetKit) return;
+				return { path: args.path, namespace: "dynamic-apps-rivetkit-stub" };
+			});
+			build.onResolve({ filter: /^rivetkit(?:\/.*)?$/ }, (args) => {
+				if (!platformRivetKit) return;
+				return { path: args.path, external: true };
+			});
+			build.onResolve(
+				{ filter: /^@rivetkit\/rivetkit-wasm(?:\/.*)?$/ },
+				(args) => {
+					if (!platformRivetKit) return;
+					return { path: args.path, external: true };
+				},
+			);
+			build.onLoad(
+				{ filter: /.*/, namespace: "dynamic-apps-rivetkit-stub" },
+				(args) => ({
+					contents: rivetKitStub(args.path),
+					loader: "js",
+				}),
+			);
 			build.onResolve({ filter: /.*/ }, async (args) => {
 				if (builtins.has(args.path)) {
+					if (directIsolate) {
+						return {
+							errors: [
+								{
+									text: `Node builtin ${JSON.stringify(args.path)} is unsupported in the direct isolate runtime`,
+								},
+							],
+						};
+					}
 					return { path: args.path, external: true };
 				}
 				const importer =
@@ -354,6 +392,30 @@ function nodeFileSystemPlugin() {
 			});
 		},
 	};
+}
+
+function rivetKitStub(path) {
+	if (path === "rivetkit/db" || path === "rivetkit/db/drizzle") {
+		return "export const db = (config) => config;";
+	}
+	if (path === "rivetkit/workflow") {
+		return "export const workflow = (definition) => definition; export class Loop {};";
+	}
+	if (path === "rivetkit/client") {
+		return "export const createClient = () => { throw new Error('RivetKit clients are unavailable in the direct request isolate'); };";
+	}
+	return `
+export const actor = (definition) => definition;
+export const event = (definition = {}) => definition;
+export const queue = (definition = {}) => definition;
+export const setup = (config) => ({ config, start() {}, startAndWait: async () => {}, handler: async () => new Response("RivetKit actor callbacks use the actor runtime", { status: 503 }) });
+export const defineRunHandler = (handler) => handler;
+export const db = (config) => config;
+export class UserError extends Error {}
+export class RivetError extends Error {}
+export class ActorError extends RivetError {}
+export class Registry {}
+`;
 }
 
 async function resolveEsmImport(specifier, importer) {

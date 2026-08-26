@@ -1,27 +1,110 @@
-import { execFile, spawn } from "node:child_process";
+import { execFile } from "node:child_process";
 import { createHash } from "node:crypto";
-import {
-	copyFile,
-	mkdir,
-	mkdtemp,
-	readdir,
-	readFile,
-	writeFile,
-} from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
+import { createContext, runInContext } from "node:vm";
 import { describe, expect, test } from "vitest";
-import { runnerSource } from "../../dynamic-apps/src/runtime.js";
+import {
+	actorRunnerSource,
+	directRunnerSource,
+} from "../../dynamic-apps/src/runtime.js";
 
 const execFileAsync = promisify(execFile);
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const repositoryRoot = resolve(packageRoot, "../..");
 const builder = join(packageRoot, "cli", "apps-builder.mjs");
-const rivetKitTarball = process.env.AGENTOS_APPS_RIVETKIT_TARBALL;
 
 describe("apps-builder", () => {
+	test("emits an executable direct-isolate IIFE and rejects Node builtins", async () => {
+		const root = await mkdtemp(join(tmpdir(), "agentos-apps-direct-builder-"));
+		const workspace = join(root, "workspace");
+		const release = join(root, "release");
+		await mkdir(workspace, { recursive: true });
+		await writeFile(
+			join(workspace, "runner.mjs"),
+			directRunnerSource({
+				entrypoint: "app.ts",
+				release: "direct-test",
+				maxResponseBytes: 1024 * 1024,
+			}),
+		);
+		await writeFile(
+			join(workspace, "app.ts"),
+			[
+				"let count = 0;",
+				"export default {",
+				"  fetch(request: Request) {",
+				"    count += 1;",
+				"    return new Response(request.method + ':' + new URL(request.url).pathname + ':' + count);",
+				"  },",
+				"};",
+			].join("\n"),
+		);
+		const configPath = join(root, "config.json");
+		const config = {
+			workspace,
+			release,
+			entrypoint: "runner.mjs",
+			version: "direct-test",
+			sourceFiles: ["app.ts"],
+			usesRivetKit: false,
+			directIsolate: true,
+			maxOutputBytes: 1024 * 1024,
+			maxOutputFiles: 16,
+			maxFileBytes: 1024 * 1024,
+		};
+		await writeFile(configPath, JSON.stringify(config));
+
+		await execFileAsync(process.execPath, [builder, configPath]);
+		const source = await readFile(join(release, "main.mjs"), "utf8");
+		expect(source).not.toMatch(/^\s*(?:import|export)\s/m);
+		const sandbox = {
+			Headers,
+			Request,
+			Response,
+			URL,
+			Uint8Array,
+			performance,
+			__dynamicAppsBase64Decode: (value: string) =>
+				new Uint8Array(Buffer.from(value, "base64")),
+			__dynamicAppsBase64Encode: (value: Uint8Array) =>
+				Buffer.from(value).toString("base64"),
+			__dynamicAppDispatch: undefined as
+				| ((input: string) => Promise<string>)
+				| undefined,
+		};
+		const context = createContext(sandbox);
+		runInContext(source, context);
+		if (!sandbox.__dynamicAppDispatch)
+			throw new Error("direct bundle did not install its dispatcher");
+		const output = JSON.parse(
+			await sandbox.__dynamicAppDispatch(
+				JSON.stringify({
+					url: "https://example.test/nested",
+					method: "POST",
+					headers: [],
+				}),
+			),
+		);
+		expect(Buffer.from(output.bodyBase64, "base64").toString()).toBe(
+			"POST:/nested:1",
+		);
+
+		await writeFile(
+			join(workspace, "app.ts"),
+			'import { readFile } from "node:fs/promises"; export default { fetch: () => new Response(String(readFile)) };',
+		);
+		await expect(
+			execFileAsync(process.execPath, [builder, configPath]),
+		).rejects.toMatchObject({
+			stderr: expect.stringContaining(
+				'Node builtin "node:fs/promises" is unsupported',
+			),
+		});
+	});
+
 	test("emits a minimal executable TypeScript release with static assets", async () => {
 		const root = await mkdtemp(join(tmpdir(), "agentos-apps-builder-"));
 		const workspace = join(root, "workspace");
@@ -132,156 +215,52 @@ describe("apps-builder", () => {
 		});
 	});
 
-	test.skipIf(!rivetKitTarball)(
-		"bundles a real RivetKit application without native runtime packages",
-		async () => {
-			const root = await mkdtemp(
-				join(tmpdir(), "agentos-apps-rivetkit-builder-"),
-			);
-			const workspace = join(root, "workspace");
-			const release = join(root, "release");
-			await mkdir(join(workspace, "src"), { recursive: true });
-			await mkdir(join(workspace, "vendor"), { recursive: true });
-			await copyFile(
-				rivetKitTarball!,
-				join(workspace, "vendor", "rivetkit.tgz"),
-			);
-			await writeFile(
-				join(workspace, "package.json"),
-				JSON.stringify({
-					private: true,
-					type: "module",
-					dependencies: {
-						rivetkit: "file:./vendor/rivetkit.tgz",
-						"@rivetkit/rivetkit-wasm":
-							"0.0.0-feat-workflows-public-host-apis.0ff6164",
-					},
-					overrides: {
-						"@rivet-dev/agent-os-core": "npm:empty-npm-package@1.0.0",
-						"@rivetkit/engine-cli": "npm:empty-npm-package@1.0.0",
-						"@rivetkit/rivetkit-napi": "npm:empty-npm-package@1.0.0",
-					},
-				}),
-			);
-			await writeFile(
-				join(workspace, "runner.mjs"),
-				runnerSource({
-					entrypoint: "src/index.mjs",
-					release: "rivetkit-test",
-					port: 3080,
-					maxRequestBytes: 1024 * 1024,
-					maxResponseBytes: 1024 * 1024,
-					usesRivetKit: true,
-				}),
-			);
-			await writeFile(
-				join(workspace, "src", "index.mjs"),
-				[
-					'import { actor, setup } from "rivetkit";',
-					"export const counter = actor({",
-					"  state: { count: 0 },",
-					"  actions: { increment: (c) => ++c.state.count },",
-					"});",
-					"export const registry = setup({ use: { counter } });",
-					"registry.start();",
-					'export default () => new Response("hello");',
-				].join("\n"),
-			);
-			const configPath = join(root, "config.json");
-			await writeFile(
-				configPath,
-				JSON.stringify({
-					workspace,
-					release,
-					entrypoint: "runner.mjs",
-					version: "rivetkit-test",
-					sourceFiles: ["src/index.mjs"],
-					usesRivetKit: true,
-					maxOutputBytes: 16 * 1024 * 1024,
-					maxOutputFiles: 64,
-					maxFileBytes: 8 * 1024 * 1024,
-				}),
-			);
+	test("emits a small platform-linked actor registry bundle", async () => {
+		const root = await mkdtemp(join(tmpdir(), "agentos-apps-actor-builder-"));
+		const workspace = join(root, "workspace");
+		const release = join(root, "release");
+		await mkdir(join(workspace, "src"), { recursive: true });
+		await writeFile(
+			join(workspace, "runner.mjs"),
+			actorRunnerSource("src/index.mjs"),
+		);
+		await writeFile(
+			join(workspace, "src", "index.mjs"),
+			[
+				'import { actor, setup } from "rivetkit";',
+				"const counter = actor({ state: { count: 0 } });",
+				"export const registry = setup({ use: { counter } });",
+				"registry.start();",
+			].join("\n"),
+		);
+		const configPath = join(root, "config.json");
+		await writeFile(
+			configPath,
+			JSON.stringify({
+				workspace,
+				release,
+				entrypoint: "runner.mjs",
+				version: "actor-test",
+				sourceFiles: ["src/index.mjs"],
+				usesRivetKit: true,
+				platformRivetKit: true,
+				maxOutputBytes: 1024 * 1024,
+				maxOutputFiles: 16,
+				maxFileBytes: 1024 * 1024,
+			}),
+		);
 
-			await execFileAsync(
-				"npm",
-				[
-					"install",
-					"--install-strategy=shallow",
-					"--omit=optional",
-					"--omit=peer",
-					"--legacy-peer-deps",
-					"--ignore-scripts",
-					"--no-audit",
-					"--no-fund",
-					"--loglevel=error",
-				],
-				{ cwd: workspace },
-			);
-			await execFileAsync(process.execPath, [builder, configPath], {
-				cwd: repositoryRoot,
-			});
-
-			const paths = await listFiles(release);
-			const wasmPath = paths.find(
-				(path) =>
-					path.startsWith("modules/rivetkit-") && path.endsWith(".wasm"),
-			);
-			expect(paths).toEqual([
-				"agentos-package.json",
-				"main.mjs",
-				"manifest.json",
-				wasmPath,
-			]);
-			const totalBytes = (
-				await Promise.all(
-					paths.map(
-						async (path) => (await readFile(join(release, path))).byteLength,
-					),
-				)
-			).reduce((sum, bytes) => sum + bytes, 0);
-			expect(totalBytes).toBeLessThan(8 * 1024 * 1024);
-
-			const guest = spawn(process.execPath, [join(release, "main.mjs")], {
-				env: {
-					...process.env,
-					RIVETKIT_RUNTIME: "wasm",
-					RIVETKIT_RUNTIME_MODE: "serverless",
-				},
-				stdio: ["ignore", "pipe", "pipe"],
-			});
-			try {
-				await waitForHttp("http://127.0.0.1:3080/.agentos/ready", guest);
-				const response = await fetch("http://127.0.0.1:3080/");
-				expect(response.status).toBe(200);
-				expect(await response.text()).toBe("hello");
-				const metadata = await fetch(
-					"http://127.0.0.1:3080/api/rivet/metadata",
-					{ headers: { "user-agent": "RivetEngine/test" } },
-				);
-				expect(metadata.status).toBe(200);
-			} finally {
-				guest.kill("SIGTERM");
-				const exited = await Promise.race([
-					new Promise<true>((resolve) =>
-						guest.once("exit", () => resolve(true)),
-					),
-					new Promise<false>((resolve) =>
-						setTimeout(() => resolve(false), 1_000),
-					),
-				]);
-				if (!exited && guest.exitCode === null) {
-					guest.kill("SIGKILL");
-					if (guest.exitCode === null) {
-						await new Promise<void>((resolve) =>
-							guest.once("exit", () => resolve()),
-						);
-					}
-				}
-			}
-		},
-		20_000,
-	);
+		await execFileAsync(process.execPath, [builder, configPath]);
+		const paths = await listFiles(release);
+		expect(paths).toEqual([
+			"agentos-package.json",
+			"main.mjs",
+			"manifest.json",
+		]);
+		const source = await readFile(join(release, "main.mjs"), "utf8");
+		expect(source).toContain('from"rivetkit"');
+		expect(Buffer.byteLength(source)).toBeLessThan(32 * 1024);
+	});
 });
 
 async function listFiles(root: string): Promise<string[]> {
@@ -298,29 +277,4 @@ async function listFiles(root: string): Promise<string[]> {
 	};
 	await walk(root);
 	return paths.sort();
-}
-
-async function waitForHttp(
-	url: string,
-	process: ReturnType<typeof spawn>,
-): Promise<void> {
-	const deadline = Date.now() + 10_000;
-	let stderr = "";
-	process.stderr?.on("data", (chunk) => {
-		stderr = `${stderr}${chunk}`.slice(-16_384);
-	});
-	while (Date.now() < deadline) {
-		if (process.exitCode !== null) {
-			throw new Error(
-				`bundled application exited with ${process.exitCode}: ${stderr}`,
-			);
-		}
-		try {
-			if ((await fetch(url)).ok) return;
-		} catch {
-			// The application is still starting.
-		}
-		await new Promise((resolve) => setTimeout(resolve, 25));
-	}
-	throw new Error(`bundled application did not become ready: ${stderr}`);
 }

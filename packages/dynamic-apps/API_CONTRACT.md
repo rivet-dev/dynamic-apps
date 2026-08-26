@@ -87,6 +87,16 @@ interface PreparedDeployAppInput {
 interface DeployAppOptions {
 	client?: {
 		agentOSAppsApp: {
+			get?(key: string | string[]): {
+				deploy(
+					input: PreparedDeployAppInput,
+				): Promise<
+					Deployment & {
+						appActorId: string;
+						usesRivetKit: boolean;
+					}
+				>;
+			};
 			getOrCreate(key: string | string[]): {
 				deploy(
 					input: PreparedDeployAppInput,
@@ -151,20 +161,28 @@ export.
   --omit=optional --omit=peer --legacy-peer-deps`.
 - Install, build, and packaging have a 15-minute timeout and capture at most 2
   MiB of diagnostic output. The build filesystem is limited to 2 GiB.
-- The final bundle is limited to 64 MiB, 4,096 files, and 32 MiB per file. Its
-  entry module is bundled ESM for Node 22 and is validated in a fresh isolate
-  before activation.
-- Native Node addons, static-only output, and a `rivetkit` application
-  dependency are rejected in the first preview.
+- The final AOSP package is limited to 64 MiB, 4,096 files, and 32 MiB per
+  file. Its direct entrypoint is a self-contained browser-targeted IIFE stored
+  as `direct/main.mjs`; it rejects Node builtins and is validated before
+  activation.
+- Native Node addons and static-only output are rejected in the first preview.
+- A declared `rivetkit` dependency enables a second, platform-linked
+  `actor/main.mjs` bundle. RivetKit itself is supplied by the host rather than
+  installed into every app artifact. Both bundles must validate before the
+  release can activate.
 
 ### Rivet and actor call
 
 - The app state actor key is exactly `[input.appId]` and its client property
   remains `agentOSAppsApp` so the structural injected-client contract works.
-- An injected `options.client` is called exactly as
-  `agentOSAppsApp.getOrCreate([input.appId]).deploy(preparedInput)`. This remains
-  the existing mock/adapter seam and actor-side deployment path. The rewrite
-  does not add a second deployment protocol or new Dynamic Apps credential.
+- If an injected client implements `agentOSAppsApp.get`, deployment first calls
+  `get([input.appId]).deploy(preparedInput)` so an existing stable actor is
+  resolved without a datacenter creation constraint. Only an actor-scoped
+  `not_found` falls back to
+  `getOrCreate([input.appId]).deploy(preparedInput)`. A client that implements
+  only the retained required `getOrCreate` method keeps the original exact call
+  shape. The rewrite does not add a second deployment protocol or new Dynamic
+  Apps credential.
 - The ordinary configured namespace is used unless `createNamespace === true`.
 - `createNamespace: true` retains the current namespace provisioning behavior.
 - The default client is created lazily and reused process-wide.
@@ -191,12 +209,12 @@ export.
 - `scaling` remains accepted and validated. Defaults are `minReplicas: 0`,
   `maxReplicas: 128`, and `targetConcurrency: 8`; bounds are 0–128, 1–128, and
   1–1,024 respectively, with `minReplicas <= maxReplicas`. It is compatibility
-  metadata and has no scaler/replica effect.
+  metadata for direct HTTP and has no deleted scaler/replica effect.
 - `namespace` and deterministic `pool` remain in the result. The pool is
-  `agentos-apps-${sha256(appId).slice(0, 16)}`. It is compatibility/control-plane
-  metadata and is not the request execution pool.
-- `createNamespace` remains functional even though the minimal application
-  runtime cannot host a nested RivetKit registry in its first preview.
+  `agentos-apps-${sha256(appId).slice(0, 16)}`. Direct HTTP does not execute in
+  that pool. Actor-enabled apps use it as their stable app actor runner pool.
+- `createNamespace` remains functional, including for app-defined RivetKit
+  actors.
 
 ### Result
 
@@ -290,11 +308,47 @@ The router preserves this exception mapping:
 Replica identity/count/cold-start headers and benchmark timing headers are not
 part of the retained API.
 
+## App-defined RivetKit actor contract
+
+An application that declares `rivetkit` may export
+`const registry = setup(...)` and may retain its `registry.start()` call. The
+platform suppresses that call while importing the managed actor bundle. The
+same app must still provide a valid direct default fetch handler.
+
+On activation, deployment configures the returned `namespace` and `pool` with
+an authenticated serverless callback to the private `agentOSAppsApp` actor.
+Failure to configure that runner rolls the active pointer back. The callback
+accepts only Rivet Engine traffic with the per-app secret and only the active
+actor-enabled release.
+
+The callback lazily verifies and extracts `actor/main.mjs`, then caches one
+worker-thread V8 isolate per active release. The worker uses the platform's
+pinned RivetKit native runtime and the app namespace/pool connection. Actor
+state, actions, events, connections, request/response streaming, backpressure,
+and cancellation use the ordinary RivetKit protocol. Worker entries are
+bounded by count, V8 heap, idle TTL, callback body size, and container memory
+pressure. They do not receive the deployment actor's control credential.
+
+Runner configuration uses the ordinary `RIVET_ENDPOINT` credential by default.
+`DYNAMIC_APPS_CONTROL_TOKEN` can provide a separate token with datacenter-list
+and runner-config create/update permissions; it is used only for those control
+calls and is never included in the actor worker environment.
+
+The actor worker uses `RIVET_PUBLIC_ENDPOINT` when present. If
+`RIVET_ENDPOINT` contains credentials and no public endpoint is configured,
+actor-enabled activation fails instead of forwarding the host secret. URL auth
+is split into explicit endpoint, namespace, and publishable-token fields before
+the worker creates its RivetKit registry.
+
+Actor bundle execution shares a process with the host and is not a mutually
+hostile-code security boundary. Direct HTTP remains separately isolated and
+never enters the actor worker.
+
 ## Deliberate runtime narrowing
 
-The names and call shapes above are preserved, but the first preview supports
-only a bundled ESM entrypoint whose default export is an object with a `fetch`
-method:
+The names and call shapes above are preserved, but the first preview requires a
+bundled ESM entrypoint whose default export is an object with a `fetch` method
+or a fetch function:
 
 ```ts
 export default {
@@ -308,16 +362,19 @@ The following old behaviors are intentionally removed:
 
 - static-only `index.html` packages;
 - named `fetch` exports;
-- default function exports;
-- application-exported RivetKit registries;
 - WebSockets and streaming request/response bodies;
 - replica scaling, admission leases, rolling replica replacement, and warm
   execution actors.
 
+Default fetch functions and application-exported RivetKit registries remain
+supported. Streaming in the list above refers only to ordinary direct HTTP;
+the RivetKit actor callback remains streaming.
+
 Dependencies that the builder can bundle into the single entrypoint remain
 allowed. Native Node addons remain unsupported.
 
-Deployment validates the bundled module in a fresh isolate before activation.
+Deployment validates the bundled dispatcher in its existing disposable build
+VM before activation.
 Top-level import failure or a default export without a callable `fetch` fails
 the deployment and leaves the previous active release unchanged. Application
 handler exceptions occur at request time. Because the new path buffers before
@@ -326,9 +383,9 @@ execution-limit failures return the JSON exception shape; this is an explicit
 replacement for the old mid-stream failure behavior.
 
 An oversized response header/status envelope fails with
-`agentos_apps_response_header_limit` in the JSON exception shape. The serialized
-agentOS limits are 2 MiB for evaluation input and 6 MiB for evaluation output,
-large enough for the logical body and header maxima after base64/JSON expansion.
+`agentos_apps_response_header_limit` in the JSON exception shape. The isolate
+boundary copies JSON text and enforces the logical body and header maxima before
+and after base64 expansion.
 
 The retained deploy/source/control error codes are locked by golden tests,
 including `agentos_apps_invalid_app_id`, `agentos_apps_invalid_source`,
@@ -338,7 +395,6 @@ including `agentos_apps_invalid_app_id`, `agentos_apps_invalid_source`,
 `agentos_apps_file_count_limit`, `agentos_apps_duplicate_file_path`,
 `agentos_apps_invalid_file`, `agentos_apps_entrypoint_not_found`,
 `agentos_apps_invalid_package_json`, `agentos_apps_dependency_limit`,
-`agentos_apps_invalid_rivetkit_dependency`,
 `agentos_apps_invalid_regions`, `agentos_apps_invalid_region`,
 `agentos_apps_invalid_scaling`, `agentos_apps_invalid_config`,
 `agentos_apps_app_id_mismatch`, `agentos_apps_namespace_changed`,

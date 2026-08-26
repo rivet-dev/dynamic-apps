@@ -6,7 +6,10 @@ import { serve } from "@hono/node-server";
 import { getEnginePath } from "@rivetkit/engine-cli";
 import getPort from "get-port";
 import { createBenchmarkApplication } from "./edge.js";
-import { deployBenchmarkFixture } from "./fixture.js";
+import {
+	deployActorBenchmarkFixture,
+	deployBenchmarkFixture,
+} from "./fixture.js";
 import { runBenchmarkSuite } from "./suite.js";
 
 const root = await mkdtemp(join(tmpdir(), "dynamic-apps-cold-benchmark-"));
@@ -53,9 +56,8 @@ try {
 	process.env.RIVET_ENDPOINT = endpoint;
 	delete process.env.RIVET_ENGINE;
 	delete process.env.RIVET_RUN_ENGINE;
-	const { registry } = await import("./registry.js");
-	registry.start();
 	const deployment = await deployBenchmarkFixture();
+	const actorDeployment = await deployActorBenchmarkFixture();
 	const application = createBenchmarkApplication();
 	const edge = serve({
 		fetch: application.fetch,
@@ -64,9 +66,24 @@ try {
 	});
 	try {
 		const suite = await runBenchmarkSuite(`http://127.0.0.1:${edgePort}`);
+		const actorVerification = await fetch(
+			`http://127.0.0.1:${edgePort}/bench/actor-app/verify`,
+			{ method: "POST" },
+		);
+		if (!actorVerification.ok) {
+			throw new Error(
+				`actor verification failed with HTTP ${actorVerification.status}: ${await actorVerification.text()}`,
+			);
+		}
 		console.log(
 			JSON.stringify(
-				{ runtime: "local-rivet-engine", deployment, ...suite },
+				{
+					runtime: "local-rivet-engine",
+					deployment,
+					actorDeployment,
+					actorVerification: await actorVerification.json(),
+					...suite,
+				},
 				null,
 				2,
 			),
