@@ -1013,6 +1013,7 @@ async function actorShutdownStress(
 		const settled = await Promise.all(outcomes);
 		assert(settled.every((value) => value === "rejected"));
 		assert.deepEqual(runtime.diagnostics(), {
+			workerLimit: requests,
 			entries: 0,
 			creating: 0,
 			workerReservations: 0,

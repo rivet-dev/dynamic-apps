@@ -1,10 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
-import { readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import ivm from "isolated-vm";
 import { createClient } from "rivetkit/client";
 import type { AppRouteResolution } from "./actors.js";
 import { DynamicAppsError } from "./errors.js";
+import { capConcurrencyForMemory, readCgroupMemory } from "./memory.js";
 import { ensurePrivateAppsRegistry } from "./registry.js";
 import { DIRECT_BUNDLE_PATH, DIRECT_RUNTIME_FORMAT } from "./runtime.js";
 
@@ -15,8 +15,6 @@ const MAX_HEADER_BYTES = 64 * 1024;
 const MAX_RESPONSE_STATUS_TEXT_BYTES = 1024;
 const MAX_REQUEST_BODY_BYTES = 1024 * 1024;
 const MAX_RESPONSE_BODY_BYTES = 4 * 1024 * 1024;
-const MEMORY_ADMISSION_RESERVE_BYTES = 32 * 1024 * 1024;
-const MEMORY_ADMISSION_PAYLOAD_BYTES = 16 * 1024 * 1024;
 
 const HOP_BY_HOP_HEADERS = [
 	"connection",
@@ -201,9 +199,9 @@ export function readExecutorConfig(
 	);
 	const cgroupMemory = readCgroupMemory();
 	const memoryIsolateCap = cgroupMemory
-		? capExecutionConcurrencyForMemory({
+		? capConcurrencyForMemory({
 				requested: 1_024,
-				isolateHeapLimitMb,
+				heapLimitMb: isolateHeapLimitMb,
 				memoryHighWaterPercent,
 				currentBytes: cgroupMemory.currentBytes,
 				maxBytes: cgroupMemory.maxBytes,
@@ -1394,48 +1392,13 @@ export function capExecutionConcurrencyForMemory(input: {
 	currentBytes: number;
 	maxBytes: number;
 }): number {
-	const targetBytes =
-		(input.maxBytes * input.memoryHighWaterPercent) / 100 -
-		MEMORY_ADMISSION_RESERVE_BYTES;
-	const availableBytes = Math.max(0, targetBytes - input.currentBytes);
-	const perRequestBytes =
-		input.isolateHeapLimitMb * 1024 * 1024 + MEMORY_ADMISSION_PAYLOAD_BYTES;
-	return Math.max(
-		1,
-		Math.min(input.requested, Math.floor(availableBytes / perRequestBytes)),
-	);
-}
-
-function readCgroupMemory():
-	| { currentBytes: number; maxBytes: number }
-	| undefined {
-	try {
-		const cgroupPath = readFileSync("/proc/self/cgroup", "utf8")
-			.split("\n")
-			.find((line) => line.startsWith("0::"))
-			?.slice(3);
-		if (!cgroupPath?.startsWith("/") || cgroupPath.includes("..")) {
-			return undefined;
-		}
-		const directory = `/sys/fs/cgroup${cgroupPath === "/" ? "" : cgroupPath}`;
-		const currentBytes = Number(
-			readFileSync(`${directory}/memory.current`, "utf8").trim(),
-		);
-		const maxText = readFileSync(`${directory}/memory.max`, "utf8").trim();
-		if (maxText === "max") return undefined;
-		const maxBytes = Number(maxText);
-		if (
-			!Number.isFinite(currentBytes) ||
-			currentBytes < 0 ||
-			!Number.isFinite(maxBytes) ||
-			maxBytes <= 0
-		) {
-			return undefined;
-		}
-		return { currentBytes, maxBytes };
-	} catch {
-		return undefined;
-	}
+	return capConcurrencyForMemory({
+		requested: input.requested,
+		heapLimitMb: input.isolateHeapLimitMb,
+		memoryHighWaterPercent: input.memoryHighWaterPercent,
+		currentBytes: input.currentBytes,
+		maxBytes: input.maxBytes,
+	});
 }
 
 class Semaphore {

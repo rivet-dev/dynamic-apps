@@ -13,6 +13,7 @@ import { dirname, join, posix } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Worker } from "node:worker_threads";
 import { DynamicAppsError } from "./errors.js";
+import { capConcurrencyForMemory, readCgroupMemory } from "./memory.js";
 import { ACTOR_BUNDLE_PATH } from "./runtime.js";
 
 const MAX_ACTOR_FILES = 4_096;
@@ -82,21 +83,39 @@ export class DynamicActorRuntime {
 	#disposePromise?: Promise<void>;
 
 	constructor(env: NodeJS.ProcessEnv = process.env) {
+		const requestedMaxEntries = integerEnv(
+			env,
+			"DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES",
+			4,
+			1,
+			1_024,
+		);
+		const heapLimitMb = integerEnv(
+			env,
+			"DYNAMIC_APPS_ACTOR_WORKER_HEAP_LIMIT_MB",
+			96,
+			16,
+			2_048,
+		);
+		const memoryHighWaterPercent = integerEnv(
+			env,
+			"DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT",
+			70,
+			10,
+			95,
+		);
+		const cgroupMemory = readCgroupMemory();
 		this.config = {
-			maxEntries: integerEnv(
-				env,
-				"DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES",
-				4,
-				1,
-				1_024,
-			),
-			heapLimitMb: integerEnv(
-				env,
-				"DYNAMIC_APPS_ACTOR_WORKER_HEAP_LIMIT_MB",
-				96,
-				16,
-				2_048,
-			),
+			maxEntries: cgroupMemory
+				? capConcurrencyForMemory({
+						requested: requestedMaxEntries,
+						heapLimitMb,
+						memoryHighWaterPercent,
+						currentBytes: cgroupMemory.currentBytes,
+						maxBytes: cgroupMemory.maxBytes,
+					})
+				: requestedMaxEntries,
+			heapLimitMb,
 			startTimeoutMs: integerEnv(
 				env,
 				"DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS",
@@ -118,13 +137,7 @@ export class DynamicActorRuntime {
 				1,
 				16 * 1024 * 1024,
 			),
-			memoryHighWaterPercent: integerEnv(
-				env,
-				"DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT",
-				70,
-				10,
-				95,
-			),
+			memoryHighWaterPercent,
 			requestConcurrency: integerEnv(
 				env,
 				"DYNAMIC_APPS_ACTOR_REQUEST_CONCURRENCY",
@@ -242,6 +255,7 @@ export class DynamicActorRuntime {
 	diagnostics(): Record<string, number> {
 		const entries = [...this.#entries.values()];
 		return {
+			workerLimit: this.config.maxEntries,
 			entries: entries.length,
 			creating: this.#creating.size,
 			workerReservations: this.#workerReservations,
