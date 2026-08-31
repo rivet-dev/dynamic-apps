@@ -137,6 +137,7 @@ export async function runLoadTest(
 					: undefined;
 				const startedAt = performance.now();
 				let status = "error";
+				let responseWasOk: boolean | undefined;
 				let temperature: "cold" | "warm" | undefined;
 				try {
 					const response = await fetchImpl(
@@ -151,6 +152,8 @@ export async function runLoadTest(
 							},
 						},
 					);
+					status = String(response.status);
+					responseWasOk = response.ok;
 					const responseBody = await consumeResponseBody(
 						response,
 						config.maxResponseBytes,
@@ -159,7 +162,6 @@ export async function runLoadTest(
 					if (config.validateJsonOk || requestId !== undefined) {
 						validateJsonResponse(responseBody, requestId);
 					}
-					status = String(response.status);
 					if (response.ok) successful += 1;
 
 					const replica = response.headers.get("x-agentos-app-replica");
@@ -260,7 +262,9 @@ export async function runLoadTest(
 						maximumReplicaCount = Math.max(maximumReplicaCount, replicaCount);
 					}
 				} catch (error) {
-					status = error instanceof Error ? error.name : "error";
+					if (responseWasOk !== false) {
+						status = error instanceof Error ? error.name : "error";
+					}
 				}
 
 				const latency = performance.now() - startedAt;

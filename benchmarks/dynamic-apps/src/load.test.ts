@@ -141,6 +141,23 @@ describe("Dynamic Apps load driver", () => {
 		assert.deepEqual(result.statuses, { InvalidBenchmarkResponseError: 1 });
 	});
 
+	it("preserves a non-success HTTP status when body validation fails", async () => {
+		const result = await runLoadTest(
+			{
+				...readLoadConfig({}),
+				target: "http://load.test",
+				concurrency: 1,
+				durationSeconds: 1,
+				maxRequests: 1,
+				validateJsonOk: true,
+			},
+			async () => new Response("upstream timeout", { status: 504 }),
+		);
+
+		assert.equal(result.successRate, 0);
+		assert.deepEqual(result.statuses, { "504": 1 });
+	});
+
 	it("resumes setup after the ingress times out an idempotent POST", async () => {
 		let attempts = 0;
 		const result = await ensureCloudSetup(
