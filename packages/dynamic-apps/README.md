@@ -60,17 +60,21 @@ import { createClient } from "rivetkit/client";
 
 const deployment = await deployApp({ appId: "counter", source: appSource });
 const client = createClient({
+	endpoint: deployment.endpoint,
 	namespace: deployment.namespace,
 	poolName: deployment.pool,
+	token: deployment.token,
 });
 ```
 
-On an authenticated server deployment, configure `RIVET_PUBLIC_ENDPOINT` with
-the public Engine endpoint/publishable credential used by app actors. If the
-host `RIVET_ENDPOINT` contains a secret credential and no public endpoint is
-available, actor-enabled activation fails instead of copying that secret into
-the app worker. URL authentication is separated into endpoint, namespace, and
-token fields before RivetKit starts.
+Every app is deployed to its own stable Rivet namespace. On Rivet Cloud, set
+`RIVET_CLOUD_TOKEN` to a server-side `cloud_api_*` project token. Dynamic Apps
+uses it to provision the namespace and namespace-scoped access, secret, and
+publishable credentials. The management credential is never returned or passed
+to app code; `deployApp()` returns only the app's publishable token.
+Rivet Compute derives the app actor callback from its `.rivet.run` hostname.
+Set `DYNAMIC_APPS_CALLBACK_URL` only when the host is exposed at a different
+public origin; Dynamic Apps appends `/api/rivet`.
 
 Actor requests follow the normal Rivet Engine path. The app's serverless
 callback loads its verified actor bundle into a bounded process-local worker
@@ -173,11 +177,10 @@ concurrency appears as `executionConcurrency` in executor diagnostics, and the
 effective actor limit appears as `workerLimit` in actor diagnostics.
 
 `DYNAMIC_APPS_CONTROL_TOKEN` optionally overrides only the token used by
-Dynamic Apps control-plane requests, including explicit app-namespace
-provisioning, datacenter discovery, and actor runner-pool configuration. It is
-unnecessary on a local Engine or when the `RIVET_ENDPOINT` secret has the
-required permissions. It is never passed to app code or used by the app actor
-client.
+Dynamic Apps Engine control-plane requests when running against a local or
+self-hosted Engine. Rivet Cloud namespace provisioning uses
+`RIVET_CLOUD_TOKEN` instead. Neither credential is passed to app code or used by
+the external app actor client.
 
 For idempotent multi-region deploys, `deployApp` resolves an existing app actor
 with `get()` when the supplied RivetKit client supports it, then falls back to

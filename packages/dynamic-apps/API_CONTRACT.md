@@ -67,8 +67,10 @@ type DeployAppInput =
 interface Deployment {
 	appId: string;
 	release: string;
+	endpoint: string;
 	namespace: string;
 	pool: string;
+	token?: string;
 	regions: string[];
 }
 
@@ -77,11 +79,6 @@ interface PreparedDeployAppInput {
 	files: Record<string, Uint8Array>;
 	regions?: string[];
 	scaling?: AppScaling;
-	namespace: string;
-	runtime: {
-		endpoint: string;
-		pool: string;
-	};
 }
 
 interface DeployAppOptions {
@@ -183,8 +180,12 @@ export.
   only the retained required `getOrCreate` method keeps the original exact call
   shape. The rewrite does not add a second deployment protocol or new Dynamic
   Apps credential.
-- The ordinary configured namespace is used unless `createNamespace === true`.
-- `createNamespace: true` retains the current namespace provisioning behavior.
+- Every app is provisioned into a stable, isolated namespace before its build is
+  activated. `createNamespace` remains accepted as a deprecated compatibility
+  option but no longer changes behavior.
+- Rivet Cloud deployments require the server-side `RIVET_CLOUD_TOKEN`
+  management credential. App-defined actors use namespace-scoped credentials;
+  the management credential is never returned to callers or app code.
 - The default client is created lazily and reused process-wide.
 - `no_runner_config_configured` is retried every 50 ms for no more than 15
   seconds. Other failures propagate.
@@ -210,11 +211,11 @@ export.
   `maxReplicas: 128`, and `targetConcurrency: 8`; bounds are 0–128, 1–128, and
   1–1,024 respectively, with `minReplicas <= maxReplicas`. It is compatibility
   metadata for direct HTTP and has no deleted scaler/replica effect.
-- `namespace` and deterministic `pool` remain in the result. The pool is
+- `endpoint`, `namespace`, deterministic `pool`, and an optional namespace-scoped
+  publishable `token` are returned. The pool is
   `agentos-apps-${sha256(appId).slice(0, 16)}`. Direct HTTP does not execute in
   that pool. Actor-enabled apps use it as their stable app actor runner pool.
-- `createNamespace` remains functional, including for app-defined RivetKit
-  actors.
+- `createNamespace` remains source-compatible but is deprecated and ignored.
 
 ### Result
 
@@ -224,8 +225,10 @@ The resolved value contains exactly these enumerable keys:
 {
 	appId: string;
 	release: string;
+	endpoint: string;
 	namespace: string;
 	pool: string;
+	token?: string;
 	regions: string[];
 }
 ```

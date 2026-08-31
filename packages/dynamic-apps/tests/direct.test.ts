@@ -109,8 +109,10 @@ describe("retained public surface", () => {
 									return {
 										appId: "demo",
 										release: "release-1",
-										namespace: input.namespace,
-										pool: input.runtime.pool,
+										endpoint: "https://api.example.test",
+										namespace: "app-demo",
+										pool: "agentos-apps-demo",
+										token: "pk_demo",
 										regions: ["us-west"],
 										appActorId: "actor-1",
 										usesRivetKit: false,
@@ -126,8 +128,10 @@ describe("retained public surface", () => {
 		expect(Object.keys(result)).toEqual([
 			"appId",
 			"release",
+			"endpoint",
 			"namespace",
 			"pool",
+			"token",
 			"regions",
 		]);
 		expect(prepared).toMatchObject({ appId: "demo", regions: ["us-west"] });
@@ -245,15 +249,14 @@ describe("retained public surface", () => {
 	});
 });
 
-function deploymentResult(input: {
-	namespace: string;
-	runtime: { pool: string };
-}) {
+function deploymentResult(_input: unknown) {
 	return {
 		appId: "demo",
 		release: "release-1",
-		namespace: input.namespace,
-		pool: input.runtime.pool,
+		endpoint: "https://api.example.test",
+		namespace: "app-demo",
+		pool: "agentos-apps-demo",
+		token: "pk_demo",
 		regions: ["default"],
 		appActorId: "actor-1",
 		usesRivetKit: false,

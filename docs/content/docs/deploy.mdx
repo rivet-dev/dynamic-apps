@@ -70,7 +70,6 @@ await deployApp({
   appId: "my-app",
   source,
   regions: ["atl", "fra"],
-  createNamespace: true,
   scaling: {
     minReplicas: 0,
     maxReplicas: 128,
@@ -82,11 +81,19 @@ await deployApp({
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `regions` | State actor's current region | Stored compatibility metadata; it does not move direct HTTP execution |
-| `createNamespace` | `false` | Provision a stable namespace for the app |
+| `createNamespace` | — | Deprecated compatibility option; every app always receives its own stable namespace |
 | `scaling.minReplicas` | `0` | App-defined actor runner setting; compatibility metadata for direct HTTP |
 | `scaling.maxReplicas` | `128` | App-defined actor runner setting; compatibility metadata for direct HTTP |
 | `scaling.targetConcurrency` | `8` | App-defined actor runner setting; compatibility metadata for direct HTTP |
 
-Namespace creation and app-actor runner configuration require the corresponding
-Rivet control-plane permissions. Configure `RIVET_PUBLIC_ENDPOINT` with a
-publishable Engine endpoint when deploying actor-enabled applications.
+Every app receives its own Rivet namespace. Locally, configure an Engine secret
+token with permission to create namespaces. On Rivet Cloud, set
+`RIVET_CLOUD_TOKEN` to a `cloud_api_*` token for the project; `deployApp()` uses
+it to create the namespace and namespace-scoped actor credentials. Keep this
+management token server-side. The deployment result includes the app's Engine
+endpoint, namespace, pool, and publishable token for connecting to app-defined
+actors.
+
+Rivet Compute automatically uses the deployment's `.rivet.run/api/rivet`
+callback. For another public host, set `DYNAMIC_APPS_CALLBACK_URL` to its
+origin.

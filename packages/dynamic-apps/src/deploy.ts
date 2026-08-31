@@ -1,11 +1,6 @@
 import { createClient } from "rivetkit/client";
-import {
-	provisionAppNamespace,
-	resolveDefaultRivetConnection,
-} from "./control-plane.js";
 import { DynamicAppsError } from "./errors.js";
 import { ensurePrivateAppsRegistry } from "./registry.js";
-import { appRunnerPool } from "./runtime.js";
 import { prepareSource } from "./source.js";
 import type {
 	DeployAppInput,
@@ -48,14 +43,6 @@ export async function deployApp(
 	options: DeployAppOptions = {},
 ): Promise<Deployment> {
 	const files = await prepareSource(input);
-	const connection = resolveDefaultRivetConnection();
-	const runtime = input.createNamespace
-		? await provisionAppNamespace(input.appId, connection)
-		: {
-				endpoint: connection.endpoint,
-				namespace: connection.namespace,
-				pool: appRunnerPool(input.appId),
-			};
 	if (!options.client) await ensurePrivateAppsRegistry();
 	const client = options.client ?? getDefaultClient();
 	const prepared: PreparedDeployAppInput = {
@@ -63,11 +50,6 @@ export async function deployApp(
 		files,
 		regions: input.regions,
 		scaling: input.scaling,
-		namespace: runtime.namespace,
-		runtime: {
-			endpoint: runtime.endpoint,
-			pool: runtime.pool,
-		},
 	};
 	const result = await deployThroughStableActor(
 		client.agentOSAppsApp,
@@ -77,8 +59,10 @@ export async function deployApp(
 	return {
 		appId: input.appId,
 		release: result.release,
+		endpoint: result.endpoint,
 		namespace: result.namespace,
-		pool: runtime.pool,
+		pool: result.pool,
+		...(result.token ? { token: result.token } : {}),
 		regions: result.regions,
 	};
 }

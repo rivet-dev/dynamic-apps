@@ -3,12 +3,10 @@ import { availableParallelism } from "node:os";
 import { appsRouter } from "@rivet-dev/dynamic-apps";
 import { Hono } from "hono";
 import { createClient } from "rivetkit/client";
-import { resolveDefaultRivetConnection } from "../../../packages/dynamic-apps/src/control-plane.js";
 import {
 	DynamicAppsExecutor,
 	readExecutorConfig,
 } from "../../../packages/dynamic-apps/src/executor.js";
-import { appRunnerPool } from "../../../packages/dynamic-apps/src/runtime.js";
 import {
 	ACTOR_BENCHMARK_APP_ID,
 	BENCHMARK_APP_ID,
@@ -48,6 +46,9 @@ interface ActorApplicationClient {
 }
 
 const ACTOR_LOAD_KEY = ["load-v2"];
+let actorApplicationResolvedDeployment:
+	| Awaited<ReturnType<typeof deployActorBenchmarkFixture>>
+	| undefined;
 
 export function createBenchmarkApplication(): Hono {
 	const app = new Hono();
@@ -87,12 +88,15 @@ export function createBenchmarkApplication(): Hono {
 		| undefined;
 	let actorApplicationClient: ActorApplicationClient | undefined;
 	const getActorApplicationDeployment = () => {
-		actorApplicationDeployment ??= deployActorBenchmarkFixture(client).catch(
-			(error) => {
+		actorApplicationDeployment ??= deployActorBenchmarkFixture(client)
+			.then((deployment) => {
+				actorApplicationResolvedDeployment = deployment;
+				return deployment;
+			})
+			.catch((error) => {
 				actorApplicationDeployment = undefined;
 				throw error;
-			},
-		);
+			});
 		return actorApplicationDeployment;
 	};
 	const getActorApplicationClient = () => {
@@ -180,20 +184,9 @@ export function createBenchmarkApplication(): Hono {
 		return Response.json({ status: "ready", deployment });
 	});
 	const setupActorApplication = async () => {
-		let deployment: {
-			appId: string;
-			namespace: string;
-			pool: string;
-			reused?: boolean;
-		} = actorApplicationRuntime();
+		const deployment = await getActorApplicationDeployment();
 		const actorClient = getActorApplicationClient();
-		try {
-			await actorClient.counter.get(ACTOR_LOAD_KEY).inspect();
-		} catch (error) {
-			if (!isActorNotFound(error)) throw error;
-			deployment = await getActorApplicationDeployment();
-			await actorClient.counter.getOrCreate(ACTOR_LOAD_KEY).inspect();
-		}
+		await actorClient.counter.getOrCreate(ACTOR_LOAD_KEY).inspect();
 		return Response.json({ status: "ready", deployment });
 	};
 	app.get("/bench/actor-app/setup", setupActorApplication);
@@ -324,34 +317,17 @@ export function createBenchmarkApplication(): Hono {
 	return app;
 }
 
-function errorCode(error: unknown): string | undefined {
-	if (typeof error !== "object" || error === null || !("code" in error)) {
-		return undefined;
-	}
-	return typeof error.code === "string" ? error.code : undefined;
-}
-
-function isActorNotFound(error: unknown): boolean {
-	if (typeof error !== "object" || error === null) return false;
-	const code = errorCode(error);
-	return (
-		code === "actor_not_found" ||
-		(code === "not_found" && "group" in error && error.group === "actor")
-	);
-}
-
 function actorApplicationRuntime(): {
 	appId: string;
+	endpoint: string;
 	namespace: string;
 	pool: string;
-	reused: true;
+	token?: string;
 } {
-	return {
-		appId: ACTOR_BENCHMARK_APP_ID,
-		namespace: resolveDefaultRivetConnection().namespace,
-		pool: appRunnerPool(ACTOR_BENCHMARK_APP_ID),
-		reused: true,
-	};
+	if (!actorApplicationResolvedDeployment) {
+		throw new Error("actor application has not been deployed");
+	}
+	return actorApplicationResolvedDeployment;
 }
 
 export function benchmarkErrorDetails(error: unknown): {
@@ -382,8 +358,14 @@ export function benchmarkErrorDetails(error: unknown): {
 }
 
 export function actorApplicationClientConfig(
-	deployment: { namespace: string; pool: string },
-	rawEndpoint = process.env.RIVET_PUBLIC_ENDPOINT ??
+	deployment: {
+		namespace: string;
+		pool: string;
+		endpoint?: string;
+		token?: string;
+	},
+	rawEndpoint = deployment.endpoint ??
+		process.env.RIVET_PUBLIC_ENDPOINT ??
 		process.env.RIVET_ENDPOINT ??
 		"http://localhost:6420",
 ): {
@@ -402,8 +384,11 @@ export function actorApplicationClientConfig(
 		endpoint: endpoint.toString().replace(/\/$/u, ""),
 		namespace: deployment.namespace,
 		poolName: deployment.pool,
-		...(endpointToken || process.env.RIVET_TOKEN
-			? { token: endpointToken ?? process.env.RIVET_TOKEN }
+		...(deployment.token || endpointToken || process.env.RIVET_TOKEN
+			? {
+					token:
+						deployment.token ?? endpointToken ?? process.env.RIVET_TOKEN,
+				}
 			: {}),
 	};
 }

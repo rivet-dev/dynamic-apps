@@ -1,7 +1,7 @@
 import { deployApp } from "@rivet-dev/dynamic-apps";
 
 export const BENCHMARK_APP_ID = "dynamic-apps-cold-start-benchmark-v2";
-export const ACTOR_BENCHMARK_APP_ID = "dynamic-apps-actor-runtime-benchmark-v1";
+export const ACTOR_BENCHMARK_APP_ID = "dynamic-apps-actor-runtime-benchmark-v2";
 
 export type BenchmarkDeploymentClient = NonNullable<
 	NonNullable<Parameters<typeof deployApp>[1]>["client"]
@@ -66,20 +66,37 @@ export async function deployActorBenchmarkFixture(
 				}),
 				"index.js": `
 import { actor, event, setup } from "rivetkit";
+import { db } from "rivetkit/db";
 
 const counter = actor({
-  state: { count: 0 },
-  events: { changed: event() },
-  actions: {
-    add(c, amount = 1) {
-      c.state.count += amount;
-      c.broadcast("changed", c.state.count);
-      return c.state.count;
-    },
-    inspect(c) {
-      return c.state.count;
-    },
-  },
+	db: db({
+		async onMigrate(database) {
+			await database.execute(
+				"CREATE TABLE IF NOT EXISTS benchmark_counter (id INTEGER PRIMARY KEY CHECK (id = 1), value INTEGER NOT NULL)",
+			);
+		},
+	}),
+	events: { changed: event() },
+	actions: {
+		async add(c, amount = 1) {
+			await c.db.execute(
+				"INSERT INTO benchmark_counter (id, value) VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET value = value + excluded.value",
+				amount,
+			);
+			const rows = await c.db.execute(
+				"SELECT value FROM benchmark_counter WHERE id = 1",
+			);
+			const value = Number(rows[0]?.value ?? 0);
+			c.broadcast("changed", value);
+			return value;
+		},
+		async inspect(c) {
+			const rows = await c.db.execute(
+				"SELECT value FROM benchmark_counter WHERE id = 1",
+			);
+			return Number(rows[0]?.value ?? 0);
+		},
+	},
 });
 
 export const registry = setup({ use: { counter } });

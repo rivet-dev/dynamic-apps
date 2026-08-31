@@ -19,6 +19,7 @@ import { db, type RawAccess } from "rivetkit/db";
 import { getDefaultActorRuntime } from "./actor-runtime.js";
 import {
 	configureAppNamespaceRunner,
+	provisionAppNamespace,
 	resolveDefaultRivetConnection,
 } from "./control-plane.js";
 import { DynamicAppsError } from "./errors.js";
@@ -122,6 +123,9 @@ export interface AppState {
 	activeRelease: string | null;
 	namespace: string | null;
 	revision: number;
+	cloudNamespace?: string | null;
+	runnerToken?: string | null;
+	publicToken?: string | null;
 }
 
 export interface AppRouteResolution {
@@ -482,7 +486,16 @@ function validCallbackSecret(request: Request, expected: string): boolean {
 	);
 }
 
-function actorPublicEndpoint(release: StoredAppRelease): string {
+function actorPublicEndpoint(
+	release: StoredAppRelease,
+	state: AppState,
+): string {
+	if (state.runnerToken) {
+		const endpoint = new URL(release.runtimeEndpoint);
+		endpoint.username = release.namespace;
+		endpoint.password = state.runnerToken;
+		return endpoint.toString();
+	}
 	const publicEndpoint = process.env.RIVET_PUBLIC_ENDPOINT;
 	const raw =
 		publicEndpoint ?? process.env.RIVET_ENDPOINT ?? release.runtimeEndpoint;
@@ -1171,7 +1184,7 @@ export function createAppsActors(
 			return await getDefaultActorRuntime().request({
 				key: `${release.release}:${release.artifactHash}`,
 				loadArtifact: () => readStoredArtifact(c.db, release),
-				endpoint: actorPublicEndpoint(release),
+				endpoint: actorPublicEndpoint(release, state),
 				namespace: release.namespace,
 				pool: release.runtimePool,
 				request: forwardActorCallbackRequest(request, callbackPath),
@@ -1193,6 +1206,9 @@ export function createAppsActors(
 			activeRelease: null,
 			namespace: null,
 			revision: 0,
+			cloudNamespace: null,
+			runnerToken: null,
+			publicToken: null,
 		}),
 		actions: {
 			deploy: async (
@@ -1214,6 +1230,19 @@ export function createAppsActors(
 							maxFiles: DEFAULT_MAX_FILES,
 							maxDependencies: DEFAULT_MAX_DEPENDENCIES,
 						});
+						const state = c.state as AppState;
+						const runtime = await provisionAppNamespace(
+							appId,
+							resolveDefaultRivetConnection(),
+							{
+								namespace: state.namespace,
+								cloudNamespace: state.cloudNamespace,
+							},
+						);
+						state.namespace = runtime.namespace;
+						state.cloudNamespace = runtime.cloudNamespace ?? null;
+						state.runnerToken = runtime.runnerToken ?? null;
+						state.publicToken = runtime.publicToken ?? null;
 						const regions = normalizeRegions(
 							input.regions,
 							c.region,
@@ -1234,24 +1263,14 @@ export function createAppsActors(
 							deploymentIdentity: JSON.stringify({
 								regions,
 								scaling,
-								namespace: input.namespace,
-								runtime: input.runtime,
+								namespace: runtime.namespace,
+								runtime: {
+									endpoint: runtime.endpoint,
+									pool: runtime.pool,
+								},
 								usesRivetKit: plan.usesRivetKit,
 							}),
 						});
-						const state = c.state as AppState;
-						if (state.namespace && state.namespace !== input.namespace) {
-							fail(
-								"agentos_apps_namespace_changed",
-								"an appId cannot be reassigned to a different Rivet namespace",
-								{
-									appId,
-									expected: state.namespace,
-									received: input.namespace,
-								},
-							);
-						}
-						state.namespace = input.namespace;
 						const releasesBefore = await listStoredReleases(c.db);
 						let release = await getStoredRelease(c.db, releaseId);
 						const callbackSecret = plan.usesRivetKit
@@ -1286,9 +1305,9 @@ export function createAppsActors(
 								DIRECT_ENTRYPOINT,
 								JSON.stringify(regions),
 								JSON.stringify(scaling),
-								input.namespace,
-								input.runtime.endpoint,
-								input.runtime.pool,
+								runtime.namespace,
+								runtime.endpoint,
+								runtime.pool,
 								callbackSecret,
 								plan.usesRivetKit ? 1 : 0,
 							);
@@ -1373,8 +1392,8 @@ export function createAppsActors(
 									WHERE release_id = ?`,
 								JSON.stringify(regions),
 								JSON.stringify(scaling),
-								input.runtime.endpoint,
-								input.runtime.pool,
+								runtime.endpoint,
+								runtime.pool,
 								callbackSecret,
 								plan.usesRivetKit ? 1 : 0,
 								releaseId,
@@ -1391,17 +1410,16 @@ export function createAppsActors(
 						state.activeRelease = releaseId;
 						try {
 							if (release.usesRivetKit) {
-								actorPublicEndpoint(release);
-								const connection = resolveDefaultRivetConnection();
+								actorPublicEndpoint(release, state);
 								if (
-									connection.endpoint.replace(/\/$/, "") !==
+									runtime.endpoint.replace(/\/$/, "") !==
 									release.runtimeEndpoint.replace(/\/$/, "")
 								) {
 									fail(
 										"agentos_apps_runtime_changed",
 										"the app actor Rivet endpoint does not match the deployment runtime",
 										{
-											expected: connection.endpoint,
+											expected: runtime.endpoint,
 											received: release.runtimeEndpoint,
 										},
 									);
@@ -1412,9 +1430,9 @@ export function createAppsActors(
 										endpoint: release.runtimeEndpoint,
 										namespace: release.namespace,
 										pool: release.runtimePool,
+										controlToken: runtime.controlToken,
 									},
 									release.callbackSecret,
-									connection,
 								);
 							}
 						} catch (error) {
@@ -1456,8 +1474,12 @@ export function createAppsActors(
 						return {
 							appId,
 							release: releaseId,
-							namespace: input.namespace,
-							pool: input.runtime.pool,
+							endpoint: runtime.endpoint,
+							namespace: runtime.namespace,
+							pool: runtime.pool,
+							...(runtime.publicToken
+								? { token: runtime.publicToken }
+								: {}),
 							regions,
 							appActorId: c.actorId,
 							usesRivetKit: release.usesRivetKit,
