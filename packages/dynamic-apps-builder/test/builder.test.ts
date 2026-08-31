@@ -5,7 +5,8 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
-import { createContext, runInContext } from "node:vm";
+import { AgentOs } from "@rivet-dev/agentos-core";
+import { packAospkgFromTarBytes } from "@rivet-dev/agentos-toolchain";
 import { describe, expect, test } from "vitest";
 import {
 	actorRunnerSource,
@@ -17,7 +18,7 @@ const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const builder = join(packageRoot, "cli", "apps-builder.mjs");
 
 describe("apps-builder", () => {
-	test("emits an executable direct-isolate IIFE and rejects Node builtins", async () => {
+	test("emits an executable Node ESM dispatcher with Node builtins", async () => {
 		const root = await mkdtemp(join(tmpdir(), "agentos-apps-direct-builder-"));
 		const workspace = join(root, "workspace");
 		const release = join(root, "release");
@@ -33,11 +34,12 @@ describe("apps-builder", () => {
 		await writeFile(
 			join(workspace, "app.ts"),
 			[
+				'import { basename } from "node:path";',
 				"let count = 0;",
 				"export default {",
 				"  fetch(request: Request) {",
 				"    count += 1;",
-				"    return new Response(request.method + ':' + new URL(request.url).pathname + ':' + count);",
+				"    return new Response(basename(new URL(request.url).pathname) + ':' + request.method + ':' + count);",
 				"  },",
 				"};",
 			].join("\n"),
@@ -50,7 +52,7 @@ describe("apps-builder", () => {
 			version: "direct-test",
 			sourceFiles: ["app.ts"],
 			usesRivetKit: false,
-			directIsolate: true,
+			directAgentOs: true,
 			maxOutputBytes: 1024 * 1024,
 			maxOutputFiles: 16,
 			maxFileBytes: 1024 * 1024,
@@ -59,49 +61,115 @@ describe("apps-builder", () => {
 
 		await execFileAsync(process.execPath, [builder, configPath]);
 		const source = await readFile(join(release, "main.mjs"), "utf8");
-		expect(source).not.toMatch(/^\s*(?:import|export)\s/m);
-		const sandbox = {
-			Headers,
-			Request,
-			Response,
-			URL,
-			Uint8Array,
-			performance,
-			__dynamicAppsBase64Decode: (value: string) =>
-				new Uint8Array(Buffer.from(value, "base64")),
-			__dynamicAppsBase64Encode: (value: Uint8Array) =>
-				Buffer.from(value).toString("base64"),
-			__dynamicAppDispatch: undefined as
-				| ((input: string) => Promise<string>)
-				| undefined,
-		};
-		const context = createContext(sandbox);
-		runInContext(source, context);
-		if (!sandbox.__dynamicAppDispatch)
-			throw new Error("direct bundle did not install its dispatcher");
-		const output = JSON.parse(
-			await sandbox.__dynamicAppDispatch(
-				JSON.stringify({
-					url: "https://example.test/nested",
-					method: "POST",
-					headers: [],
-				}),
-			),
-		);
+		expect(source).toMatch(/\bexport\s*\{/);
+		const output = await dispatchInAgentOs(release, {
+			url: "https://example.test/nested",
+			method: "POST",
+			headers: [],
+		});
 		expect(Buffer.from(output.bodyBase64, "base64").toString()).toBe(
-			"POST:/nested:1",
+			"nested:POST:1",
 		);
+		expect(source).not.toContain("__dynamicAppsBase64Decode");
+	});
 
+	test("bundles real RivetKit and invokes it inside agentOS", async () => {
+		const root = await mkdtemp(join(tmpdir(), "agentos-apps-rivetkit-"));
+		const workspace = join(root, "workspace");
+		const release = join(root, "release");
+		await mkdir(workspace, { recursive: true });
+		await writeFile(
+			join(workspace, "runner.mjs"),
+			directRunnerSource({
+				entrypoint: "app.ts",
+				release: "rivetkit-direct-test",
+				maxResponseBytes: 1024 * 1024,
+				usesRivetKit: true,
+			}),
+		);
 		await writeFile(
 			join(workspace, "app.ts"),
-			'import { readFile } from "node:fs/promises"; export default { fetch: () => new Response(String(readFile)) };',
+			[
+				'import { actor, setup } from "rivetkit";',
+				"const counter = actor({ state: { count: 0 } });",
+				"export const registry = setup({ use: { counter } });",
+				"registry.start();",
+				"export default {",
+				"  fetch() {",
+				'    return new Response(typeof registry.handler + ":" + typeof counter);',
+				"  },",
+				"};",
+			].join("\n"),
+		);
+		const configPath = join(root, "config.json");
+		await writeFile(
+			configPath,
+			JSON.stringify({
+				workspace,
+				release,
+				entrypoint: "runner.mjs",
+				version: "rivetkit-direct-test",
+				sourceFiles: ["app.ts"],
+				usesRivetKit: true,
+				directAgentOs: true,
+				maxOutputBytes: 32 * 1024 * 1024,
+				maxOutputFiles: 64,
+				maxFileBytes: 16 * 1024 * 1024,
+			}),
+		);
+
+		await execFileAsync(process.execPath, [builder, configPath]);
+		const paths = await listFiles(release);
+		expect(
+			paths.some(
+				(path) =>
+					path.startsWith("modules/rivetkit-") && path.endsWith(".wasm"),
+			),
+		).toBe(true);
+		const source = await readFile(join(release, "main.mjs"), "utf8");
+		expect(source).not.toContain(
+			"RivetKit actor callbacks use the actor runtime",
+		);
+		const output = await dispatchInAgentOs(release, {
+			url: "https://example.test/",
+			method: "GET",
+			headers: [],
+		});
+		expect(Buffer.from(output.bodyBase64, "base64").toString()).toBe(
+			"function:object",
+		);
+	}, 30_000);
+
+	test("rejects native Node addons in direct agentOS bundles", async () => {
+		const root = await mkdtemp(join(tmpdir(), "agentos-apps-native-addon-"));
+		const workspace = join(root, "workspace");
+		const release = join(root, "release");
+		await mkdir(workspace, { recursive: true });
+		await writeFile(join(workspace, "addon.node"), new Uint8Array([1, 2, 3]));
+		await writeFile(
+			join(workspace, "entry.mjs"),
+			'import addon from "./addon.node"; export default addon;',
+		);
+		const configPath = join(root, "config.json");
+		await writeFile(
+			configPath,
+			JSON.stringify({
+				workspace,
+				release,
+				entrypoint: "entry.mjs",
+				version: "native-test",
+				sourceFiles: ["entry.mjs", "addon.node"],
+				usesRivetKit: false,
+				directAgentOs: true,
+				maxOutputBytes: 1024 * 1024,
+				maxOutputFiles: 16,
+				maxFileBytes: 1024 * 1024,
+			}),
 		);
 		await expect(
 			execFileAsync(process.execPath, [builder, configPath]),
 		).rejects.toMatchObject({
-			stderr: expect.stringContaining(
-				'Node builtin "node:fs/promises" is unsupported',
-			),
+			stderr: expect.stringContaining("native Node addon is unsupported"),
 		});
 	});
 
@@ -277,4 +345,69 @@ async function listFiles(root: string): Promise<string[]> {
 	};
 	await walk(root);
 	return paths.sort();
+}
+
+async function dispatchInAgentOs(
+	release: string,
+	request: {
+		url: string;
+		method: string;
+		headers: Array<[string, string]>;
+		bodyBase64?: string;
+	},
+): Promise<{
+	status: number;
+	statusText: string;
+	headers: Array<[string, string]>;
+	bodyBase64: string;
+}> {
+	const archive = `${release}.tar`;
+	const artifact = `${release}.aospkg`;
+	await execFileAsync("tar", ["-cf", archive, "-C", release, "."]);
+	await writeFile(
+		artifact,
+		packAospkgFromTarBytes(await readFile(archive)).bytes,
+	);
+	const vm = await AgentOs.create({
+		defaultSoftware: false,
+		mounts: [
+			{
+				path: "/app",
+				readOnly: true,
+				plugin: {
+					id: "agentos_packages",
+					config: {
+						kind: "tar",
+						tarPath: artifact,
+						root: "/",
+						readOnly: true,
+					},
+				},
+			},
+		],
+		permissions: {
+			fs: "allow",
+			childProcess: "allow",
+			process: "allow",
+			env: "allow",
+			network: "allow",
+		},
+	});
+	try {
+		const result = await vm.javascript.evaluate<{
+			status: number;
+			statusText: string;
+			headers: Array<[string, string]>;
+			bodyBase64: string;
+		}>('await (await import("/app/main.mjs")).dispatch(inputs.request)', {
+			inputs: { request },
+			timeoutMs: 10_000,
+		});
+		if (result.outcome !== "succeeded" || result.value === undefined) {
+			throw new Error(`agentOS dispatcher failed: ${JSON.stringify(result)}`);
+		}
+		return result.value;
+	} finally {
+		await vm.dispose();
+	}
 }

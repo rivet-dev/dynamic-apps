@@ -1,12 +1,12 @@
 ---
 title: "Dynamic Apps"
-description: "Build user-generated HTTP apps and serve them from bounded process-local V8 isolates."
+description: "Build user-generated HTTP apps and serve them through bounded agentOS VMs."
 skill: true
 ---
 
 Dynamic Apps builds user-generated HTTP applications in a sandboxed deployment
 VM, stores immutable releases in a per-app Rivet actor, and serves ordinary HTTP
-from V8 isolates in your own server process.
+through agentOS in your own server process.
 
 <Note>
 Dynamic Apps is in preview and its API is subject to change.
@@ -22,22 +22,22 @@ Deployment and request serving are deliberately separate:
 ```text
 deployApp -> per-app state actor -> AgentOS build VM -> immutable AOSP release
 
-first HTTP request -> state actor -> verified artifact -> snapshot/isolate cache
-cache-hit HTTP request -> local V8 isolate -> response (zero actor calls)
+first HTTP request -> state actor -> verified artifact -> cached agentOS VM
+cache-hit HTTP request -> headless JavaScript evaluation -> response (zero actor calls)
 ```
 
 `appsRouter` executes each request in a clean JavaScript context. The default
-mode keeps a small bounded pool of native isolates and restores a clean context
-from a cached V8 snapshot after every request. Snapshot-only and fully fresh
-isolate modes are also available.
+mode keeps a small bounded pool of retained agentOS contexts, resetting and
+reinitializing each one after use. Ephemeral mode asks agentOS for a fresh
+context on every request while reusing the immutable release VM.
 
 An application may additionally export a RivetKit registry. Those app-defined
 actors use normal Rivet routing for durable state, actions, events, and
-connections, while the same application's ordinary HTTP handler still runs in
-the direct-isolate path.
+connections, while the same application's ordinary HTTP handler still runs
+through headless agentOS evaluation.
 
 <Note>
-`isolated-vm` is a V8 isolation primitive, not a complete hostile multi-tenant
-sandbox. Run one trust domain per container and rely on container isolation for
-mutually untrusted tenants.
+agentOS provides the filesystem, process, environment, and network permission
+boundary for direct requests. App-defined actor workers share the host process,
+so run one trust domain per container for mutually untrusted tenants.
 </Note>

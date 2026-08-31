@@ -78,9 +78,25 @@ export function directRunnerSource(input: {
 	entrypoint: string;
 	release: string;
 	maxResponseBytes: number;
+	usesRivetKit?: boolean;
 }): string {
 	const entrypoint = `./${normalizeAppPath(input.entrypoint)}`;
-	return `import exported from ${JSON.stringify(entrypoint)};
+	const importApplication = input.usesRivetKit
+		? `const dynamicAppsModuleImportStartedAt = performance.now();
+import { Registry } from "rivetkit";
+const originalStart = Registry.prototype.start;
+Registry.prototype.start = function dynamicAppsManagedStart() {};
+let application;
+try {
+  application = await import(${JSON.stringify(entrypoint)});
+} finally {
+  Registry.prototype.start = originalStart;
+}`
+		: `const dynamicAppsModuleImportStartedAt = performance.now();
+const application = await import(${JSON.stringify(entrypoint)});`;
+	return `${importApplication}
+const dynamicAppsModuleImportMs = performance.now() - dynamicAppsModuleImportStartedAt;
+const exported = application.default;
 const appFetch = typeof exported === "function"
   ? exported
   : typeof exported?.fetch === "function"
@@ -92,16 +108,15 @@ if (!appFetch) {
   );
 }
 
-globalThis.__dynamicAppMetadata = Object.freeze({
+export const dynamicAppMetadata = Object.freeze({
   format: ${JSON.stringify(DIRECT_RUNTIME_FORMAT)},
   release: ${JSON.stringify(input.release)},
 });
 
-globalThis.__dynamicAppDispatch = async function(inputJson) {
-  const input = JSON.parse(inputJson);
+export async function dispatch(input) {
   const startedAt = performance.now();
   const body = input.bodyBase64
-    ? globalThis.__dynamicAppsBase64Decode(input.bodyBase64)
+    ? Buffer.from(input.bodyBase64, "base64")
     : undefined;
   const request = new Request(input.url, {
     method: input.method,
@@ -130,19 +145,20 @@ globalThis.__dynamicAppDispatch = async function(inputJson) {
     headers.push(["set-cookie", cookie]);
   }
   const serializedAt = performance.now();
-	return JSON.stringify({
+	return {
     status: response.status,
     statusText: response.statusText,
     headers,
-		bodyBase64: globalThis.__dynamicAppsBase64Encode(responseBody),
+		bodyBase64: Buffer.from(responseBody).toString("base64"),
     timing: {
+		moduleImportMs: dynamicAppsModuleImportMs,
       requestBuildMs: requestBuiltAt - startedAt,
       handlerMs: handlerAt - requestBuiltAt,
       responseSerializeMs: serializedAt - handlerAt,
       dispatcherMs: serializedAt - startedAt,
     },
-	});
-};
+	};
+}
 `;
 }
 

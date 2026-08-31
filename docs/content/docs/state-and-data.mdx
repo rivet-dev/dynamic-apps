@@ -1,6 +1,6 @@
 ---
 title: "State & Actors"
-description: "Add durable RivetKit actors to an application while keeping ordinary HTTP on the direct-isolate path."
+description: "Add durable RivetKit actors while ordinary HTTP runs through agentOS."
 ---
 
 An application can combine ordinary HTTP with app-defined RivetKit actors.
@@ -46,4 +46,4 @@ console.log(await handle.add(1));
 
 Actor actions, state, events, connections, and streaming actor responses use
 normal Rivet routing. Requests to the application's default HTTP export still
-use the process-local direct-isolate path.
+use the cached agentOS direct-request path.

@@ -28,12 +28,20 @@ const mainPackage = JSON.parse(
 	await read("packages/dynamic-apps/package.json"),
 );
 assert(
-	mainPackage.dependencies?.["@rivet-dev/agentos"] === "0.2.15",
-	"agentOS must remain a pinned implementation dependency",
+	!mainPackage.dependencies?.["@rivet-dev/agentos"],
+	"Dynamic Apps must use agentOS core rather than the actor package",
 );
 assert(
-	!mainPackage.peerDependencies?.["@rivet-dev/agentos"],
-	"agentOS must not be a peer dependency",
+	mainPackage.dependencies?.["@rivet-dev/agentos-core"] === "0.2.15",
+	"agentOS core must remain a pinned implementation dependency",
+);
+assert(
+	!mainPackage.dependencies?.["isolated-vm"],
+	"isolated-vm must not be a direct runtime dependency",
+);
+assert(
+	!mainPackage.peerDependencies?.["@rivet-dev/agentos-core"],
+	"agentOS core must not be a peer dependency",
 );
 assert(
 	mainPackage.dependencies?.["@rivet-dev/dynamic-apps-builder"] ===
@@ -75,9 +83,17 @@ const index = await read("packages/dynamic-apps/src/index.ts");
 assert(
 	index.includes("export { appsRouter }") &&
 		index.includes("export { deployApp }") &&
+		index.includes("setDynamicAppsLogHandler,") &&
 		!index.includes("setupApps") &&
 		!index.includes("createAppsRouter"),
-	"package root must retain only appsRouter and deployApp",
+	"package root must expose only the retained values and log handler",
+);
+
+const logging = await read("packages/dynamic-apps/src/logging.ts");
+assert(
+	logging.includes("export function setDynamicAppsLogHandler") &&
+		logging.includes("export interface DynamicAppsLogEvent"),
+	"structured logging public surface is missing",
 );
 
 const builderManifest = JSON.parse(

@@ -1,6 +1,6 @@
 ---
 title: "Quickstart"
-description: "Start the host server, deploy a generated app, and serve it from a local V8 isolate."
+description: "Start the host server, deploy a generated app, and serve it through agentOS."
 skill: true
 ---
 
@@ -26,14 +26,14 @@ npm pkg set type=module
 
 Mount the private Rivet callback separately from application traffic. The
 callback keeps the deployment state actor available; ordinary app requests are
-served by `appsRouter` from local isolates.
+served by `appsRouter` through a cached agentOS VM.
 
 <CodeSnippet file="examples/apps-hello-world/src/server.ts" title="src/server.ts" />
 
-Run the server with Node snapshots disabled, as required by `isolated-vm`:
+Run the server normally:
 
 ```sh
-node --no-node-snapshot --import tsx src/server.ts
+node --import tsx src/server.ts
 ```
 
 </Step>

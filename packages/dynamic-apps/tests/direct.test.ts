@@ -21,6 +21,10 @@ import {
 	type ExecutorConfig,
 	readExecutorConfig,
 } from "../src/executor.js";
+import {
+	type DynamicAppsLogEvent,
+	setDynamicAppsLogHandler,
+} from "../src/logging.js";
 import { appsRouter, setRouterRequestOverride } from "../src/router.js";
 import {
 	canonicalDeploymentHash,
@@ -33,7 +37,10 @@ import { prepareSource } from "../src/source.js";
 
 const execFileAsync = promisify(execFile);
 
-afterEach(() => setRouterRequestOverride());
+afterEach(() => {
+	setRouterRequestOverride();
+	setDynamicAppsLogHandler(undefined);
+});
 
 describe("retained public surface", () => {
 	test("rewrites a prefix-mounted application request", async () => {
@@ -302,40 +309,38 @@ describe("source and runtime contract", () => {
 			release: "release-1",
 			maxResponseBytes: 1024,
 		});
-		expect(source).toContain("__dynamicAppDispatch");
+		expect(source).toContain("export async function dispatch");
 		expect(source).not.toContain("listen(");
 		expect(source).not.toContain("createServer");
 	});
 
-	test("supports fresh, snapshot, and prewarm config", () => {
+	test("supports ephemeral and pooled execution config", () => {
 		expect(
-			readExecutorConfig({ DYNAMIC_APPS_ISOLATE_MODE: "fresh" }).isolateMode,
-		).toBe("fresh");
+			readExecutorConfig({ DYNAMIC_APPS_EXECUTION_MODE: "ephemeral" })
+				.executionMode,
+		).toBe("ephemeral");
 		expect(
 			readExecutorConfig({
-				DYNAMIC_APPS_ISOLATE_MODE: "prewarm",
-				DYNAMIC_APPS_ISOLATE_POOL_SIZE: "0",
-			}).isolateMode,
-		).toBe("snapshot");
-		expect(
-			readExecutorConfig({ DYNAMIC_APPS_ISOLATE_MODE: "snapshot" }).isolateMode,
-		).toBe("snapshot");
+				DYNAMIC_APPS_EXECUTION_MODE: "pooled",
+				DYNAMIC_APPS_CONTEXT_POOL_SIZE: "0",
+			}).executionMode,
+		).toBe("pooled");
 	});
 
-	test("caps isolate admission below a finite cgroup high-water mark", () => {
+	test("caps agentOS context admission below a finite cgroup high-water mark", () => {
 		expect(
 			capExecutionConcurrencyForMemory({
 				requested: 32,
-				isolateHeapLimitMb: 64,
+				contextHeapLimitMb: 64,
 				memoryHighWaterPercent: 70,
 				currentBytes: 128 * 1024 * 1024,
 				maxBytes: 512 * 1024 * 1024,
 			}),
-		).toBe(2);
+		).toBe(1);
 	});
 });
 
-describe("direct V8 execution", () => {
+describe("direct agentOS execution", () => {
 	test("does not publish a runtime that finishes preparing during shutdown", async () => {
 		const artifact = await makeArtifact("shutdown-prepare");
 		let releaseChunk = () => {};
@@ -353,7 +358,7 @@ describe("direct V8 execution", () => {
 			},
 		});
 		const executor = new DynamicAppsExecutor(
-			executorConfig("prewarm"),
+			executorConfig("pooled"),
 			fake.client,
 		);
 		const outcome = executor
@@ -370,7 +375,7 @@ describe("direct V8 execution", () => {
 			expect(await outcome).toBe("rejected");
 			expect(executor.diagnostics()).toMatchObject({
 				runtimes: 0,
-				pooledIsolates: 0,
+				pooledContexts: 0,
 				poolReservations: 0,
 			});
 		} finally {
@@ -383,12 +388,12 @@ describe("direct V8 execution", () => {
 	test("times out an asynchronous handler that never settles", async () => {
 		const artifact = await makeArtifact(
 			"async-stall",
-			`globalThis.__dynamicAppDispatch = async function() {
-  return new Promise(() => {});
-};`,
+			`export async function dispatch() {
+	  return new Promise(() => {});
+	}`,
 		);
 		const fake = fakeStateClient(artifact);
-		const config = { ...executorConfig("prewarm"), executionTimeoutMs: 50 };
+		const config = { ...executorConfig("pooled"), executionTimeoutMs: 50 };
 		const executor = new DynamicAppsExecutor(config, fake.client);
 		try {
 			const outcome = await Promise.race([
@@ -400,7 +405,7 @@ describe("direct V8 execution", () => {
 							: Promise.reject(error),
 				),
 				new Promise<"hung">((resolve) =>
-					setTimeout(() => resolve("hung"), 250),
+					setTimeout(() => resolve("hung"), 1_000),
 				),
 			]);
 			expect(outcome).toBe("timeout");
@@ -410,11 +415,11 @@ describe("direct V8 execution", () => {
 		}
 	}, 5_000);
 
-	test("round-trips binary request bodies through the isolate envelope", async () => {
+	test("round-trips binary request bodies through the agentOS envelope", async () => {
 		const artifact = await makeArtifact("binary");
 		const fake = fakeStateClient(artifact);
 		const executor = new DynamicAppsExecutor(
-			executorConfig("prewarm"),
+			executorConfig("pooled"),
 			fake.client,
 		);
 		const input = Uint8Array.from(
@@ -439,10 +444,9 @@ describe("direct V8 execution", () => {
 	});
 
 	test.each([
-		"fresh",
-		"snapshot",
-		"prewarm",
-	] as const)("isolates every request in %s mode", async (mode) => {
+		"ephemeral",
+		"pooled",
+	] as const)("starts every request clean in %s mode", async (mode) => {
 		const artifact = await makeArtifact("one");
 		const fake = fakeStateClient(artifact);
 		const executor = new DynamicAppsExecutor(executorConfig(mode), fake.client);
@@ -481,11 +485,11 @@ describe("direct V8 execution", () => {
 		}
 	}, 120_000);
 
-	test("reuses bounded prewarmed isolates while resetting context state", async () => {
+	test("reuses bounded retained contexts while resetting module state", async () => {
 		const artifact = await makeArtifact("reuse");
 		const fake = fakeStateClient(artifact);
 		const executor = new DynamicAppsExecutor(
-			executorConfig("prewarm"),
+			executorConfig("pooled"),
 			fake.client,
 		);
 		try {
@@ -498,12 +502,11 @@ describe("direct V8 execution", () => {
 				await waitForCleanPool(executor, 2);
 			}
 			expect(executor.diagnostics()).toMatchObject({
-				cleanIsolates: 2,
-				isolateCreates: 2,
-				isolateDisposes: 0,
-				contextCreates: 22,
-				contextDisposes: 20,
-				dispatches: 20,
+				cleanContexts: 2,
+				vmCreates: 1,
+				contextCreates: 2,
+				contextDisposes: 0,
+				evaluations: 20,
 			});
 		} finally {
 			await executor.dispose();
@@ -516,7 +519,7 @@ describe("direct V8 execution", () => {
 		const fake = fakeStateClient(artifact);
 		const executor = new DynamicAppsExecutor(
 			{
-				...executorConfig("prewarm"),
+				...executorConfig("pooled"),
 				executionConcurrency: 1,
 				executionQueueSize: 0,
 			},
@@ -570,7 +573,7 @@ describe("direct V8 execution", () => {
 		}
 	});
 
-	test("bounds the total prewarm cache across applications", async () => {
+	test("bounds the total retained context cache across applications", async () => {
 		const artifacts = await Promise.all(
 			Array.from({ length: 6 }, (_, index) => makeArtifact(`multi-${index}`)),
 		);
@@ -581,9 +584,9 @@ describe("direct V8 execution", () => {
 		);
 		const executor = new DynamicAppsExecutor(
 			{
-				...executorConfig("prewarm"),
+				...executorConfig("pooled"),
 				runtimeCacheMaxEntries: artifacts.length,
-				isolatePoolMaxTotal: 4,
+				contextPoolMaxTotal: 4,
 			} as ExecutorConfig,
 			fake.client,
 		);
@@ -597,11 +600,89 @@ describe("direct V8 execution", () => {
 			}
 			expect(executor.diagnostics()).toMatchObject({
 				runtimes: artifacts.length,
-				cleanIsolates: 4,
+				cleanContexts: 4,
 			});
 		} finally {
 			await executor.dispose();
 			await Promise.all(artifacts.map((artifact) => artifact.dispose()));
+		}
+	});
+
+	test("runs supported Node builtins inside the sandbox", async () => {
+		const artifact = await makeArtifact(
+			"node-api",
+			`import { basename } from "node:path";
+export async function dispatch(input) {
+  return { status: 200, statusText: "OK", headers: [], bodyBase64: Buffer.from(basename(new URL(input.url).pathname)).toString("base64") };
+}`,
+		);
+		const fake = fakeStateClient(artifact);
+		const executor = new DynamicAppsExecutor(
+			executorConfig("ephemeral"),
+			fake.client,
+		);
+		try {
+			const response = await executor.request(
+				"demo",
+				new Request("http://example.test/path/file.txt"),
+			);
+			expect(await response.text()).toBe("file.txt");
+		} finally {
+			await executor.dispose();
+			await artifact.dispose();
+		}
+	});
+
+	test("attributes application output and request summaries", async () => {
+		const events: Readonly<DynamicAppsLogEvent>[] = [];
+		setDynamicAppsLogHandler((event) => events.push(event));
+		const artifact = await makeArtifact(
+			"logging",
+			`export async function dispatch() {
+  console.log("application stdout");
+  console.error("application stderr");
+  return { status: 200, statusText: "OK", headers: [], bodyBase64: "" };
+}`,
+		);
+		const fake = fakeStateClient(artifact);
+		const executor = new DynamicAppsExecutor(
+			{ ...executorConfig("ephemeral"), logRequests: true },
+			fake.client,
+		);
+		try {
+			const response = await executor.request(
+				"demo",
+				new Request("http://example.test/log", {
+					headers: { authorization: "Bearer never-log-this" },
+				}),
+				"request-test",
+			);
+			expect(response.status).toBe(200);
+			expect(events).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						source: "application",
+						stream: "stdout",
+						message: "application stdout",
+						appId: "demo",
+						requestId: "request-test",
+					}),
+					expect.objectContaining({
+						source: "application",
+						stream: "stderr",
+						message: "application stderr",
+					}),
+					expect.objectContaining({
+						source: "runtime",
+						message: "Dynamic Apps request completed",
+						requestId: "request-test",
+					}),
+				]),
+			);
+			expect(JSON.stringify(events)).not.toContain("never-log-this");
+		} finally {
+			await executor.dispose();
+			await artifact.dispose();
 		}
 	});
 });
@@ -994,6 +1075,52 @@ export const registry = {
 			await artifact.dispose();
 		}
 	}, 5_000);
+
+	test("attributes actor worker stdout and stderr", async () => {
+		const events: Readonly<DynamicAppsLogEvent>[] = [];
+		setDynamicAppsLogHandler((event) => events.push(event));
+		const artifact = await makeActorArtifact(`
+console.log("actor stdout");
+console.error("actor stderr");
+export const registry = { handler: () => new Response("ok") };
+`);
+		const runtime = new DynamicActorRuntime();
+		try {
+			const response = await runtime.request({
+				key: "actor-logging",
+				appId: "demo",
+				release: "release-logging",
+				loadArtifact: async () => artifact.bytes,
+				endpoint: "http://example.test",
+				namespace: "test",
+				pool: "default",
+				request: new Request("http://example.test/start", { method: "POST" }),
+			});
+			expect(await response.text()).toBe("ok");
+			await waitFor(
+				() => events.filter((event) => event.source === "actor").length >= 2,
+			);
+			expect(events).toEqual(
+				expect.arrayContaining([
+					expect.objectContaining({
+						source: "actor",
+						stream: "stdout",
+						message: "actor stdout",
+						appId: "demo",
+						release: "release-logging",
+					}),
+					expect.objectContaining({
+						source: "actor",
+						stream: "stderr",
+						message: "actor stderr",
+					}),
+				]),
+			);
+		} finally {
+			await runtime.dispose();
+			await artifact.dispose();
+		}
+	});
 });
 
 async function waitForCleanPool(
@@ -1001,10 +1128,10 @@ async function waitForCleanPool(
 	expected: number,
 ): Promise<void> {
 	for (let attempt = 0; attempt < 100; attempt += 1) {
-		if (executor.diagnostics().cleanIsolates === expected) return;
+		if (executor.diagnostics().cleanContexts === expected) return;
 		await new Promise((resolve) => setTimeout(resolve, 1));
 	}
-	throw new Error("prewarm pool did not refill");
+	throw new Error("retained context pool did not refill");
 }
 
 async function waitFor(predicate: () => boolean): Promise<void> {
@@ -1026,15 +1153,13 @@ function streamingRequest(
 	} as RequestInit & { duplex: "half" });
 }
 
-function executorConfig(
-	mode: "fresh" | "snapshot" | "prewarm",
-): ExecutorConfig {
+function executorConfig(mode: "ephemeral" | "pooled"): ExecutorConfig {
 	return {
-		isolateMode: mode,
-		isolatePoolSize: 2,
-		isolatePoolMaxTotal: 8,
-		isolateIdleTtlMs: 30_000,
-		isolateHeapLimitMb: 128,
+		executionMode: mode,
+		contextPoolSize: 2,
+		contextPoolMaxTotal: 8,
+		contextIdleTtlMs: 30_000,
+		contextHeapLimitMb: 128,
 		runtimeCacheMaxEntries: 4,
 		runtimeCacheMaxBytes: 64 * 1024 * 1024,
 		runtimeCacheIdleTtlMs: 60_000,
@@ -1064,9 +1189,8 @@ async function makeArtifact(
 	const moduleSource =
 		customSource ??
 		`let counter = 0;
-globalThis.__dynamicAppDispatch = async function(inputJson) {
-	const input = JSON.parse(inputJson);
-	const requestBody = globalThis.__dynamicAppsBase64Decode(input.bodyBase64 || "");
+export async function dispatch(input) {
+	const requestBody = Buffer.from(input.bodyBase64 || "", "base64");
   counter += 1;
   const request = new Request(input.url, { method: input.method, headers: input.headers });
   const body = JSON.stringify({
@@ -1075,16 +1199,16 @@ globalThis.__dynamicAppDispatch = async function(inputJson) {
     path: new URL(request.url).pathname + new URL(request.url).search,
     authorization: request.headers.get("authorization"),
     privateToken: request.headers.get("x-rivet-token"),
-		requestBodyBase64: globalThis.__dynamicAppsBase64Encode(requestBody),
+		requestBodyBase64: Buffer.from(requestBody).toString("base64"),
   });
-	return JSON.stringify({
+	return {
     status: 200,
     statusText: "OK",
     headers: [["content-type", "application/json"], ["set-cookie", "a=1"], ["set-cookie", "b=2"]],
-		bodyBase64: globalThis.__dynamicAppsBase64Encode(new TextEncoder().encode(body)),
+		bodyBase64: Buffer.from(body).toString("base64"),
     timing: { moduleImportMs: 0, handlerMs: 0 },
-	});
-};`;
+	};
+}`;
 	await mkdir(join(directory, "direct"));
 	await writeFile(join(directory, "direct", "main.mjs"), moduleSource);
 	await writeFile(

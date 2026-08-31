@@ -10,7 +10,7 @@ export interface CgroupMemory {
 
 export function capConcurrencyForMemory(input: {
 	requested: number;
-	heapLimitMb: number;
+	contextAndVmLimitMb: number;
 	memoryHighWaterPercent: number;
 	currentBytes: number;
 	maxBytes: number;
@@ -20,7 +20,7 @@ export function capConcurrencyForMemory(input: {
 		MEMORY_ADMISSION_RESERVE_BYTES;
 	const availableBytes = Math.max(0, targetBytes - input.currentBytes);
 	const perRequestBytes =
-		input.heapLimitMb * 1024 * 1024 + MEMORY_ADMISSION_PAYLOAD_BYTES;
+		input.contextAndVmLimitMb * 1024 * 1024 + MEMORY_ADMISSION_PAYLOAD_BYTES;
 	return Math.max(
 		1,
 		Math.min(input.requested, Math.floor(availableBytes / perRequestBytes)),

@@ -2,7 +2,7 @@
 
 Status: normative rewrite contract  
 Baseline: `@rivet-dev/dynamic-apps@0.2.15`, JJ `xuymorrq`, commit `baca1719`  
-Scope: only `appsRouter` and `deployApp`
+Scope: `appsRouter`, `deployApp`, and structured log delivery
 
 This file is the source of truth that must be written and verified against the
 old implementation before its internals are deleted. It deliberately does not
@@ -23,10 +23,10 @@ deleted.
 
 ## Exact root module
 
-The rewritten package root exports exactly two runtime values:
+The rewritten package root exports exactly three runtime values:
 
 ```ts
-export { appsRouter, deployApp };
+export { appsRouter, deployApp, setDynamicAppsLogHandler };
 ```
 
 The `./advanced` export is removed. Named exports including `setup`,
@@ -114,6 +114,35 @@ export declare function deployApp(
 ): Promise<Deployment>;
 
 export declare const appsRouter: Hono<BlankEnv, BlankSchema, "/">;
+
+export type DynamicAppsLogLevel = "debug" | "info" | "warn" | "error";
+export type DynamicAppsLogSource =
+	| "application"
+	| "actor"
+	| "build"
+	| "runtime";
+
+export interface DynamicAppsLogEvent {
+	version: 1;
+	timestamp: number;
+	level: DynamicAppsLogLevel;
+	source: DynamicAppsLogSource;
+	message: string;
+	appId?: string;
+	release?: string;
+	requestId?: string;
+	actorId?: string;
+	stream?: "stdout" | "stderr";
+	metadata?: Readonly<Record<string, string | number | boolean | null>>;
+}
+
+export type DynamicAppsLogHandler = (
+	event: Readonly<DynamicAppsLogEvent>,
+) => void;
+
+export declare function setDynamicAppsLogHandler(
+	handler: DynamicAppsLogHandler | undefined,
+): void;
 ```
 
 There are no overloads. The optional structural `client` argument is part of
@@ -159,9 +188,9 @@ export.
 - Install, build, and packaging have a 15-minute timeout and capture at most 2
   MiB of diagnostic output. The build filesystem is limited to 2 GiB.
 - The final AOSP package is limited to 64 MiB, 4,096 files, and 32 MiB per
-  file. Its direct entrypoint is a self-contained browser-targeted IIFE stored
-  as `direct/main.mjs`; it rejects Node builtins and is validated before
-  activation.
+  file. Its direct entrypoint is a self-contained Node-targeted ESM dispatcher
+  stored as `direct/main.mjs`; supported Node builtins resolve inside agentOS
+  and the bundle is validated before activation.
 - Native Node addons and static-only output are rejected in the first preview.
 - A declared `rivetkit` dependency enables a second, platform-linked
   `actor/main.mjs` bundle. RivetKit itself is supplied by the host rather than
@@ -248,7 +277,7 @@ The resolved value contains exactly these enumerable keys:
   buffered body.
 - Invalid app IDs fail before actor lookup or cache work.
 - The serialized absolute request URL is limited to 16 KiB of UTF-8. This is an
-  intentional first-preview limit so every accepted request fits the isolated
+  intentional first-preview limit so every accepted request fits the bounded
   transport envelope.
 - Request bodies are limited to 1 MiB even without `Content-Length`.
 - Response bodies are limited to 4 MiB. Version one intentionally buffers the
@@ -256,7 +285,7 @@ The resolved value contains exactly these enumerable keys:
 - The first preview adds an explicit envelope bound: at most 256 request header
   pairs and 64 KiB total UTF-8 header names/values; responses have the same
   header limit plus a 1 KiB UTF-8 status-text limit. This is an intentional new
-  limit required by isolated serialization.
+  limit required by envelope serialization.
 - `x-agentos-app-region` selects a configured release region for compatibility
   and is stripped before application execution. It does not change the
   physical placement of the process-local executor.
@@ -344,8 +373,8 @@ is split into explicit endpoint, namespace, and publishable-token fields before
 the worker creates its RivetKit registry.
 
 Actor bundle execution shares a process with the host and is not a mutually
-hostile-code security boundary. Direct HTTP remains separately isolated and
-never enters the actor worker.
+hostile-code security boundary. Direct HTTP remains inside agentOS and never
+enters the actor worker.
 
 ## Deliberate runtime narrowing
 
@@ -386,9 +415,9 @@ execution-limit failures return the JSON exception shape; this is an explicit
 replacement for the old mid-stream failure behavior.
 
 An oversized response header/status envelope fails with
-`agentos_apps_response_header_limit` in the JSON exception shape. The isolate
-boundary copies JSON text and enforces the logical body and header maxima before
-and after base64 expansion.
+`agentos_apps_response_header_limit` in the JSON exception shape. The agentOS
+request ABI enforces the logical body and header maxima before and after base64
+expansion.
 
 The retained deploy/source/control error codes are locked by golden tests,
 including `agentos_apps_invalid_app_id`, `agentos_apps_invalid_source`,
@@ -422,12 +451,12 @@ The old implementation must first pass:
    rollback.
 
 Record an explicit reviewed removal snapshot for all old root and subpath
-exports. The old package is not expected to pass the new two-export assertion.
+exports. The old package is not expected to pass the new three-export assertion.
 
 After the rewrite, the package must additionally pass:
 
 1. a packed-package assertion that the runtime export key set is exactly
-   `appsRouter,deployApp`;
+   `appsRouter,deployApp,setDynamicAppsLogHandler`;
 2. a normalized generated `dist/index.d.ts` snapshot matching this file; and
 3. explicit new tests for every intentional difference in “Deliberate runtime
    narrowing.”

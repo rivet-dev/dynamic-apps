@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Hono } from "hono";
 import type { BlankEnv, BlankSchema } from "hono/types";
 import { DynamicAppsError } from "./errors.js";
@@ -9,8 +10,15 @@ const PRIVATE_REGISTRY_SENTINEL = "x-agentos-app-registry-dispatch";
 const MAX_URL_BYTES = 16 * 1024;
 const MAX_METHOD_BYTES = 256;
 let requestOverride:
-	| ((appId: string, request: Request) => Promise<Response>)
+	| ((appId: string, request: Request, requestId: string) => Promise<Response>)
 	| undefined;
+
+function requestId(request: Request): string {
+	const provided = request.headers.get("x-request-id");
+	return provided && /^[\x21-\x7e]{1,128}$/.test(provided)
+		? provided
+		: randomUUID();
+}
 
 function errorCode(error: unknown): string | undefined {
 	if (error instanceof DynamicAppsError) return error.code;
@@ -136,9 +144,10 @@ const handler = async (context: {
 		}
 		url.pathname = suffix.startsWith("/") ? suffix : `/${suffix}`;
 		const forwarded = new Request(url, original);
+		const id = requestId(original);
 		return await (requestOverride
-			? requestOverride(appId, forwarded)
-			: getDefaultExecutor().request(appId, forwarded));
+			? requestOverride(appId, forwarded, id)
+			: getDefaultExecutor().request(appId, forwarded, id));
 	} catch (error) {
 		return exceptionResponse(error);
 	}
@@ -166,7 +175,11 @@ export const appsRouter: Hono<BlankEnv, BlankSchema, "/"> = router;
 
 /** @internal Test and benchmark seam; not exported from the package root. */
 export function setRouterRequestOverride(
-	override?: (appId: string, request: Request) => Promise<Response>,
+	override?: (
+		appId: string,
+		request: Request,
+		requestId: string,
+	) => Promise<Response>,
 ): void {
 	requestOverride = override;
 }

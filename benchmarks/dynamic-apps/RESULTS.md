@@ -1,4 +1,19 @@
-# Direct-isolate Dynamic Apps benchmark
+# agentOS inline Dynamic Apps benchmark
+
+Status: local correctness implemented; deployed performance qualification is
+pending.
+
+The active architecture keeps the durable per-app Rivet actor for deployment,
+then caches one agentOS VM per immutable release and executes the exported ESM
+dispatcher through headless JavaScript evaluation. `pooled` mode resets and
+reinitializes retained contexts; `ephemeral` mode requests a fresh context from
+the cached VM.
+
+No agentOS inline latency numbers are published yet. In particular, the old
+guest-server and native-isolate results below must not be reused as inline
+evaluation latency or as evidence that the new performance gates pass.
+
+## Historical comparison: direct-isolate runtime
 
 Qualified 2026-08-26 (US/Pacific). The rewritten architecture keeps the
 durable per-app Rivet actor for releases and invalidation, but removes scaler
@@ -26,7 +41,7 @@ direct isolate pool 2, actor-worker cache 4, and actor-worker heap limit 96 MiB.
 Every Cloud mutation targeted only
 `dynamic-apps-ben-562e-production-sqac`.
 
-## Runtime hardening qualification (2026-08-30)
+## Historical runtime hardening qualification (2026-08-30)
 
 The local stress suite now exercises multi-app cache churn, large payload
 bursts, release invalidation, cold-cache fan-out, queue overflow, oversized
@@ -75,7 +90,7 @@ from the same release. Its warm actor action cases were 100% successful at
 23.42 ms sequential p50 and 61.27 ms concurrency-16 p50; those numbers include
 the local Engine path, unlike the lower-level worker timing above.
 
-## Decision
+## Historical decision
 
 **Use the direct local-isolate path for ordinary request/response. Keep Rivet
 actors for durable state and app-defined actor semantics.**
@@ -92,7 +107,7 @@ Public Rivet Run ingress from this client is roughly 190–220 ms at low load, s
 outer latency hides the architectural difference. Server timing headers are
 the relevant comparison.
 
-## Final Rivet Compute direct results
+## Historical Rivet Compute direct results
 
 The workload is a zero-dependency JSON `fetch()` handler. Initialization and
 warm-up requests are excluded from the steady samples.
@@ -141,7 +156,7 @@ The small pool deliberately trades burst-tail CPU for bounded idle memory.
 Even with 21.23% overflow creation at concurrency 32, the stated server target
 (p50 <= 25 ms, p95 <= 50 ms) passed and memory returned to its steady bound.
 
-## App-defined actor results
+## Historical app-defined actor results
 
 The actor fixture uses ordinary RivetKit state, actions, an event subscription,
 and a direct HTTP handler in the same deployment. Correctness passed locally
@@ -164,7 +179,7 @@ about 5.5x the complete fresh-isolate server p50. Public ingress adds another
 roughly 225 ms at the median. This confirms that the earlier actor-heavy design
 was benchmarking network topology rather than a useful V8 warm-cache advantage.
 
-## Local direct baseline
+## Historical local direct baseline
 
 The same direct executor on a local Engine completed a 10,000-request pool-2,
 concurrency-2 run at 100% success:

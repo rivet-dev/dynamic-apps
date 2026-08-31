@@ -9,7 +9,7 @@ import {
 type StressMode = "ramp" | "soak" | "both";
 
 interface StressCase {
-	name: "warm" | "snapshot" | "actor";
+	name: "pooled" | "ephemeral" | "actor";
 	path: string;
 	concurrency: number;
 	echoRequestId: boolean;
@@ -103,10 +103,10 @@ export async function runCloudStress(
 	try {
 		if (config.mode === "ramp" || config.mode === "both") {
 			result.ramps.push(
-				await runRamp(config, "warm", (concurrency) => [
+				await runRamp(config, "pooled", (concurrency) => [
 					{
-						name: "warm",
-						path: "/bench/warm",
+						name: "pooled",
+						path: "/bench/pooled",
 						concurrency,
 						echoRequestId: true,
 					},
@@ -271,20 +271,20 @@ async function runStage(
 }
 
 function mixedCases(concurrency: number): StressCase[] {
-	const warm = Math.max(1, Math.floor(concurrency * 0.8));
-	const snapshot = Math.max(1, Math.floor(concurrency * 0.1));
-	const actor = Math.max(1, concurrency - warm - snapshot);
+	const pooled = Math.max(1, Math.floor(concurrency * 0.8));
+	const ephemeral = Math.max(1, Math.floor(concurrency * 0.1));
+	const actor = Math.max(1, concurrency - pooled - ephemeral);
 	return [
 		{
-			name: "warm",
-			path: "/bench/warm",
-			concurrency: warm,
+			name: "pooled",
+			path: "/bench/pooled",
+			concurrency: pooled,
 			echoRequestId: true,
 		},
 		{
-			name: "snapshot",
-			path: "/bench/snapshot",
-			concurrency: snapshot,
+			name: "ephemeral",
+			path: "/bench/ephemeral",
+			concurrency: ephemeral,
 			echoRequestId: true,
 		},
 		{
@@ -357,7 +357,7 @@ async function setup(baseUrl: string): Promise<unknown> {
 	);
 	for (let index = 0; index < 10; index += 1) {
 		const response = await fetch(
-			`${baseUrl}/bench/warm?requestId=warmup-${index}`,
+			`${baseUrl}/bench/pooled?requestId=warmup-${index}`,
 			{
 				signal: AbortSignal.timeout(60_000),
 			},
@@ -372,7 +372,7 @@ async function setup(baseUrl: string): Promise<unknown> {
 			body.requestId !== `warmup-${index}`
 		) {
 			throw new Error(
-				`direct warmup ${index} failed with HTTP ${response.status}`,
+				`direct pooled warmup ${index} failed with HTTP ${response.status}`,
 			);
 		}
 	}

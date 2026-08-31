@@ -36,8 +36,10 @@ await deployApp({
 ```
 
 The direct entrypoint must default-export a function or an object with
-`fetch(request)`. Static-only directories, Node builtins, and native addons are
-not supported in this release candidate.
+`fetch(request)`. Code runs inside agentOS with filesystem, process,
+environment, and network permissions, and supported Node builtins are
+available. Static-only directories and native addons are not supported in this
+release candidate.
 
 ## Build repair and rollback
 

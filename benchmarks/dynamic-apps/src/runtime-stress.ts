@@ -12,6 +12,7 @@ import {
 	DynamicAppsExecutor,
 	readExecutorConfig,
 } from "../../../packages/dynamic-apps/src/executor.js";
+import { setDynamicAppsLogHandler } from "../../../packages/dynamic-apps/src/logging.js";
 import {
 	DIRECT_ENTRYPOINT,
 	DIRECT_RUNTIME_FORMAT,
@@ -56,6 +57,7 @@ const STRESS_CASES = [
 	"actorHandlerStall",
 	"actorShutdown",
 	"directShutdown",
+	"logFlood",
 	"actorMemory",
 ] as const;
 
@@ -203,9 +205,9 @@ async function main(): Promise<void> {
 	const directStallArtifact = await createArtifact(
 		"direct-stall",
 		"direct",
-		`globalThis.__dynamicAppDispatch = async function() {
+		`export async function dispatch() {
   return new Promise(() => {});
-};`,
+}`,
 	);
 	const actorHandlerStallArtifact = await createActorArtifact(
 		"actor-handler-stall",
@@ -299,6 +301,9 @@ async function main(): Promise<void> {
 		);
 		await runStressCase(result, selectedCases, "directShutdown", () =>
 			directShutdownStress(artifacts[0] as Artifact, concurrency),
+		);
+		await runStressCase(result, selectedCases, "logFlood", () =>
+			logFloodStress(artifacts[0] as Artifact),
 		);
 		await runStressCase(result, selectedCases, "actorMemory", () =>
 			actorMemoryStress(actorMemoryArtifact, concurrency, actorMemoryBytes),
@@ -406,10 +411,10 @@ async function multiAppStress(
 		const diagnostics = executor.diagnostics() as Record<string, number>;
 		assert.equal(diagnostics.activeEvaluations, 0);
 		assert.equal(diagnostics.queuedEvaluations, 0);
-		assert.equal(diagnostics.inUseIsolates, 0);
+		assert.equal(diagnostics.inUseContexts, 0);
 		assert.equal(diagnostics.contextResetFailures, 0);
-		assert(diagnostics.cleanIsolates <= poolMaxTotal);
-		assert(diagnostics.pooledIsolates <= poolMaxTotal);
+		assert(diagnostics.cleanContexts <= poolMaxTotal);
+		assert(diagnostics.pooledContexts <= poolMaxTotal);
 		return {
 			elapsedMs: round(performance.now() - startedAt),
 			requestsPerSecond: round(
@@ -464,7 +469,7 @@ async function payloadBurstStress(
 		const diagnostics = executor.diagnostics() as Record<string, number>;
 		assert.equal(diagnostics.activeEvaluations, 0);
 		assert.equal(diagnostics.queuedEvaluations, 0);
-		assert.equal(diagnostics.inUseIsolates, 0);
+		assert.equal(diagnostics.inUseContexts, 0);
 		assert.equal(diagnostics.contextResetFailures, 0);
 		return {
 			elapsedMs: round(performance.now() - startedAt),
@@ -868,6 +873,60 @@ async function directStallStress(
 	}
 }
 
+async function logFloodStress(artifact: Artifact): Promise<unknown> {
+	const plane = new FakeStatePlane();
+	plane.set("log-flood", artifact);
+	const executor = new DynamicAppsExecutor(
+		executorConfig({
+			appEntries: 1,
+			concurrency: 1,
+			poolMaxTotal: 1,
+			poolSize: 1,
+		}),
+		plane.client as never,
+	);
+	let delivered = 0;
+	try {
+		setDynamicAppsLogHandler(() => {
+			delivered += 1;
+		});
+		const flood = await executor.request(
+			"log-flood",
+			new Request("http://stress.test/logs?logLines=1000"),
+		);
+		assert.equal(flood.status, 200);
+		assert(delivered >= 2_000);
+
+		setDynamicAppsLogHandler(() => {
+			throw new Error("intentional stress log handler failure");
+		});
+		const throwing = await executor.request(
+			"log-flood",
+			new Request("http://stress.test/logs?logLines=1"),
+		);
+		assert.equal(throwing.status, 200);
+
+		setDynamicAppsLogHandler(() => {
+			const deadline = performance.now() + 1;
+			while (performance.now() < deadline) {}
+		});
+		const slowStartedAt = performance.now();
+		const slow = await executor.request(
+			"log-flood",
+			new Request("http://stress.test/logs?logLines=2"),
+		);
+		assert.equal(slow.status, 200);
+		return {
+			delivered,
+			slowHandlerElapsedMs: round(performance.now() - slowStartedAt),
+			diagnostics: executor.diagnostics(),
+		};
+	} finally {
+		setDynamicAppsLogHandler(undefined);
+		await executor.dispose();
+	}
+}
+
 async function actorAdmissionStress(
 	artifact: Artifact,
 	concurrency: number,
@@ -1073,7 +1132,7 @@ async function directShutdownStress(
 		const settled = await Promise.all(outcomes);
 		assert(settled.every((value) => value === "rejected"));
 		assert.equal(executor.diagnostics().runtimes, 0);
-		assert.equal(executor.diagnostics().pooledIsolates, 0);
+		assert.equal(executor.diagnostics().pooledContexts, 0);
 		return {
 			requests,
 			stateCalls: plane.calls,
@@ -1139,10 +1198,10 @@ function executorConfig(input: {
 	poolSize?: number;
 }) {
 	return readExecutorConfig({
-		DYNAMIC_APPS_ISOLATE_MODE: "prewarm",
-		DYNAMIC_APPS_ISOLATE_POOL_SIZE: String(input.poolSize ?? 2),
-		DYNAMIC_APPS_ISOLATE_POOL_MAX_TOTAL: String(input.poolMaxTotal),
-		DYNAMIC_APPS_ISOLATE_HEAP_LIMIT_MB: "64",
+		DYNAMIC_APPS_EXECUTION_MODE: "pooled",
+		DYNAMIC_APPS_CONTEXT_POOL_SIZE: String(input.poolSize ?? 2),
+		DYNAMIC_APPS_CONTEXT_POOL_MAX_TOTAL: String(input.poolMaxTotal),
+		DYNAMIC_APPS_CONTEXT_HEAP_LIMIT_MB: "64",
 		DYNAMIC_APPS_RUNTIME_CACHE_MAX_ENTRIES: String(input.appEntries),
 		DYNAMIC_APPS_RUNTIME_CACHE_MAX_BYTES: String(512 * 1024 * 1024),
 		DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT: "95",
@@ -1175,28 +1234,32 @@ function resolution(appId: string, state: AppState) {
 async function createDirectArtifact(marker: string): Promise<Artifact> {
 	const source = `
 let counter = 0;
-globalThis.__dynamicAppDispatch = async function(inputJson) {
-  const input = JSON.parse(inputJson);
+export async function dispatch(input) {
   counter += 1;
   const url = new URL(input.url);
+	const logLines = Math.max(0, Math.min(10000, Number(url.searchParams.get("logLines") || 0)));
+	for (let index = 0; index < logLines; index += 1) {
+		console.log("stdout:" + index);
+		console.error("stderr:" + index);
+	}
   const responseBytes = Math.max(0, Math.min(4194304, Number(url.searchParams.get("responseBytes") || 0)));
   const requestBody = input.bodyBase64
-    ? globalThis.__dynamicAppsBase64Decode(input.bodyBase64)
+    ? Buffer.from(input.bodyBase64, "base64")
     : new Uint8Array();
   const body = responseBytes > 0
     ? new Uint8Array(responseBytes).fill(120)
-    : new TextEncoder().encode(JSON.stringify({
+    : Buffer.from(JSON.stringify({
         marker: ${JSON.stringify(marker)},
         counter,
         requestBytes: requestBody.byteLength,
       }));
-  return JSON.stringify({
+  return {
     status: 200,
     statusText: "OK",
     headers: [["content-type", responseBytes > 0 ? "application/octet-stream" : "application/json"]],
-    bodyBase64: globalThis.__dynamicAppsBase64Encode(body),
-  });
-};
+    bodyBase64: Buffer.from(body).toString("base64"),
+  };
+}
 `;
 	return createArtifact(marker, "direct", source);
 }

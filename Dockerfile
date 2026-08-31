@@ -21,4 +21,4 @@ RUN pnpm build
 
 EXPOSE 3000
 
-CMD ["node", "--no-node-snapshot", "--import", "tsx", "benchmarks/dynamic-apps/src/server.ts", "--host", "0.0.0.0"]
+CMD ["node", "--import", "tsx", "benchmarks/dynamic-apps/src/server.ts", "--host", "0.0.0.0"]
