@@ -357,17 +357,28 @@ function actorApplicationRuntime(): {
 export function benchmarkErrorDetails(error: unknown): {
 	code?: string;
 	message: string;
+	causes?: string[];
 } {
 	const code =
 		typeof error === "object" && error !== null && "code" in error
 			? String(error.code).slice(0, 128)
 			: undefined;
-	const rawMessage = error instanceof Error ? error.message : String(error);
-	const message = rawMessage
-		.replace(/https?:\/\/[^/@\s]+@/giu, "https://[redacted]@")
-		.replace(/\b(?:cloud_api|pk|sk)_[a-zA-Z0-9_-]+\b/gu, "[redacted]")
-		.slice(0, 1_024);
-	return { ...(code ? { code } : {}), message };
+	const sanitize = (value: unknown) =>
+		String(value)
+			.replace(/https?:\/\/[^/@\s]+@/giu, "https://[redacted]@")
+			.replace(/\b(?:cloud_api|pk|sk)_[a-zA-Z0-9_-]+\b/gu, "[redacted]")
+			.slice(0, 1_024);
+	const causes: string[] = [];
+	let cause = error instanceof Error ? error.cause : undefined;
+	for (let depth = 0; cause !== undefined && depth < 4; depth += 1) {
+		causes.push(sanitize(cause instanceof Error ? cause.message : cause));
+		cause = cause instanceof Error ? cause.cause : undefined;
+	}
+	return {
+		...(code ? { code } : {}),
+		message: sanitize(error instanceof Error ? error.message : error),
+		...(causes.length > 0 ? { causes } : {}),
+	};
 }
 
 export function actorApplicationClientConfig(

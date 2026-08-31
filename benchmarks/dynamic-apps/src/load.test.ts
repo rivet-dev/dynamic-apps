@@ -14,15 +14,20 @@ describe("Dynamic Apps load driver", () => {
 	});
 
 	it("redacts credentials from benchmark error details", () => {
+		const nested = new Error(
+			"connect https://namespace:pk_nested@api.rivet.dev with sk_nested",
+		);
 		const error = Object.assign(
 			new Error(
 				"failed https://namespace:sk_example@api.rivet.dev with cloud_api_example",
+				{ cause: nested },
 			),
 			{ code: "runner_failed" },
 		);
 		assert.deepEqual(benchmarkErrorDetails(error), {
 			code: "runner_failed",
 			message: "failed https://[redacted]@api.rivet.dev with [redacted]",
+			causes: ["connect https://[redacted]@api.rivet.dev with [redacted]"],
 		});
 	});
 
