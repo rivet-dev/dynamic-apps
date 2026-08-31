@@ -55,6 +55,7 @@ const STRESS_CASES = [
 	"actorAdmission",
 	"actorHandlerStall",
 	"actorShutdown",
+	"directShutdown",
 ] as const;
 
 type StressCase = (typeof STRESS_CASES)[number];
@@ -64,6 +65,7 @@ class FakeStatePlane {
 	readonly releases = new Map<string, Map<string, Artifact>>();
 	readonly listeners = new Map<string, Set<(event: unknown) => void>>();
 	readonly calls = { resolve: 0, manifest: 0, chunk: 0, connect: 0 };
+	beforeChunk?: () => Promise<void>;
 
 	readonly client = {
 		agentOSAppsApp: {
@@ -117,6 +119,7 @@ class FakeStatePlane {
 			},
 			readArtifactChunk: async (release: string) => {
 				this.calls.chunk += 1;
+				await this.beforeChunk?.();
 				return this.#artifactForRelease(appId, release).bytes;
 			},
 			connect: () => {
@@ -281,6 +284,9 @@ async function main(): Promise<void> {
 		);
 		await runStressCase(result, selectedCases, "actorShutdown", () =>
 			actorShutdownStress(actorTrafficArtifact, concurrency),
+		);
+		await runStressCase(result, selectedCases, "directShutdown", () =>
+			directShutdownStress(artifacts[0] as Artifact, concurrency),
 		);
 	} finally {
 		await Promise.allSettled([
@@ -1003,6 +1009,62 @@ async function actorShutdownStress(
 	} finally {
 		release();
 		await runtime.dispose();
+	}
+}
+
+async function directShutdownStress(
+	artifact: Artifact,
+	concurrency: number,
+): Promise<unknown> {
+	const requests = Math.min(concurrency, 16);
+	const plane = new FakeStatePlane();
+	plane.set("direct-shutdown", artifact);
+	let release = () => {};
+	const gate = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	let chunkStarted = false;
+	plane.beforeChunk = async () => {
+		chunkStarted = true;
+		await gate;
+	};
+	const executor = new DynamicAppsExecutor(
+		executorConfig({
+			appEntries: 1,
+			concurrency: requests,
+			poolMaxTotal: 8,
+			poolSize: 8,
+		}),
+		plane.client as never,
+	);
+	const outcomes = Array.from({ length: requests }, (_, index) =>
+		executor
+			.request(
+				"direct-shutdown",
+				new Request(`http://stress.test/shutdown/${index}`),
+			)
+			.then(
+				() => "response" as const,
+				() => "rejected" as const,
+			),
+	);
+	try {
+		await waitFor(() => chunkStarted);
+		const dispose = executor.dispose();
+		release();
+		await dispose;
+		const settled = await Promise.all(outcomes);
+		assert(settled.every((value) => value === "rejected"));
+		assert.equal(executor.diagnostics().runtimes, 0);
+		assert.equal(executor.diagnostics().pooledIsolates, 0);
+		return {
+			requests,
+			stateCalls: plane.calls,
+			diagnostics: executor.diagnostics(),
+		};
+	} finally {
+		release();
+		await executor.dispose();
 	}
 }
 

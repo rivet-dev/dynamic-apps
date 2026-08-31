@@ -319,6 +319,50 @@ describe("source and runtime contract", () => {
 });
 
 describe("direct V8 execution", () => {
+	test("does not publish a runtime that finishes preparing during shutdown", async () => {
+		const artifact = await makeArtifact("shutdown-prepare");
+		let releaseChunk = () => {};
+		const chunkGate = new Promise<void>((resolve) => {
+			releaseChunk = resolve;
+		});
+		let markChunkStarted = () => {};
+		const chunkStarted = new Promise<void>((resolve) => {
+			markChunkStarted = resolve;
+		});
+		const fake = fakeStateClient(artifact, {
+			beforeChunk: async () => {
+				markChunkStarted();
+				await chunkGate;
+			},
+		});
+		const executor = new DynamicAppsExecutor(
+			executorConfig("prewarm"),
+			fake.client,
+		);
+		const outcome = executor
+			.request("demo", new Request("http://example.test/shutdown"))
+			.then(
+				() => "response" as const,
+				() => "rejected" as const,
+			);
+		try {
+			await chunkStarted;
+			const dispose = executor.dispose();
+			releaseChunk();
+			await dispose;
+			expect(await outcome).toBe("rejected");
+			expect(executor.diagnostics()).toMatchObject({
+				runtimes: 0,
+				pooledIsolates: 0,
+				poolReservations: 0,
+			});
+		} finally {
+			releaseChunk();
+			await executor.dispose();
+			await artifact.dispose();
+		}
+	});
+
 	test("times out an asynchronous handler that never settles", async () => {
 		const artifact = await makeArtifact(
 			"async-stall",
@@ -1007,7 +1051,10 @@ async function makeActorArtifact(source: string): Promise<TestArtifact> {
 	};
 }
 
-function fakeStateClient(artifact: TestArtifact) {
+function fakeStateClient(
+	artifact: TestArtifact,
+	options: { beforeChunk?: () => Promise<void> } = {},
+) {
 	const calls = { resolve: 0, manifest: 0, chunk: 0 };
 	const resolution: AppRouteResolution = {
 		appId: "demo",
@@ -1043,6 +1090,7 @@ function fakeStateClient(artifact: TestArtifact) {
 					},
 					async readArtifactChunk() {
 						calls.chunk += 1;
+						await options.beforeChunk?.();
 						return artifact.bytes;
 					},
 					connect() {
