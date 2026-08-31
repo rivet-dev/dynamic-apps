@@ -77,6 +77,7 @@ export class DynamicActorRuntime {
 	readonly #creating = new Map<string, Promise<RuntimeEntry>>();
 	readonly #admission: ActorAdmission;
 	readonly #timer: ReturnType<typeof setInterval>;
+	#workerReservations = 0;
 
 	constructor(env: NodeJS.ProcessEnv = process.env) {
 		this.config = {
@@ -241,6 +242,7 @@ export class DynamicActorRuntime {
 		return {
 			entries: entries.length,
 			creating: this.#creating.size,
+			workerReservations: this.#workerReservations,
 			activeRequests: entries.reduce((sum, entry) => sum + entry.active, 0),
 			pendingRequests: entries.reduce(
 				(sum, entry) => sum + entry.pending.size,
@@ -265,19 +267,49 @@ export class DynamicActorRuntime {
 		if (existing && !existing.disposed) return this.#lease(existing);
 		const pending = this.#creating.get(input.key);
 		if (pending) return this.#lease(await pending);
-		const promise = this.#createEntry(input);
+		const reservation = this.#reserveWorker();
+		const promise = reservation.then(() => this.#createEntry(input));
 		this.#creating.set(input.key, promise);
+		let reserved = true;
 		try {
 			const entry = await promise;
 			this.#entries.set(input.key, entry);
+			this.#creating.delete(input.key);
+			this.#workerReservations = Math.max(0, this.#workerReservations - 1);
+			reserved = false;
 			this.#lease(entry);
 			await this.#prune(entry.key);
 			return entry;
 		} finally {
+			if (reserved) {
+				this.#workerReservations = Math.max(0, this.#workerReservations - 1);
+			}
 			if (this.#creating.get(input.key) === promise) {
 				this.#creating.delete(input.key);
 			}
 		}
+	}
+
+	#reserveWorker(): Promise<void> {
+		if (
+			this.#entries.size + this.#workerReservations <
+			this.config.maxEntries
+		) {
+			this.#workerReservations += 1;
+			return Promise.resolve();
+		}
+		const idle = [...this.#entries.values()]
+			.filter((entry) => entry.active === 0 && !entry.disposed)
+			.sort((a, b) => a.lastUsedAt - b.lastUsedAt)[0];
+		if (!idle) {
+			throw new DynamicAppsError(
+				"agentos_apps_no_capacity",
+				`Dynamic Apps actor worker limit ${this.config.maxEntries} is busy`,
+			);
+		}
+		this.#entries.delete(idle.key);
+		this.#workerReservations += 1;
+		return this.#disposeEntry(idle);
 	}
 
 	#lease(entry: RuntimeEntry): RuntimeEntry {

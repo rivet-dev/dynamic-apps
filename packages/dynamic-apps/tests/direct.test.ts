@@ -785,17 +785,23 @@ export const registry = {
 			const outcome = await Promise.race([
 				Promise.all(
 					Array.from({ length: 8 }, async (_, index) => {
-						const response = await runtime.request({
-							key: `churn-${index}`,
-							loadArtifact: async () => artifact.bytes,
-							endpoint: "http://example.test",
-							namespace: "test",
-							pool: "default",
-							request: new Request(`http://example.test/${index}`, {
-								method: "POST",
-							}),
-						});
-						expect(await response.text()).toBe("ok");
+						try {
+							const response = await runtime.request({
+								key: `churn-${index}`,
+								loadArtifact: async () => artifact.bytes,
+								endpoint: "http://example.test",
+								namespace: "test",
+								pool: "default",
+								request: new Request(`http://example.test/${index}`, {
+									method: "POST",
+								}),
+							});
+							expect(await response.text()).toBe("ok");
+						} catch (error) {
+							expect(error).toMatchObject({
+								code: "agentos_apps_no_capacity",
+							});
+						}
 					}),
 				).then(() => "complete" as const),
 				new Promise<"hung">((resolve) =>
