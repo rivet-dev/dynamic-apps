@@ -24,7 +24,7 @@ Quickstart](/dynamic-apps/docs/quickstart).
 | Build artifact storage | Provide upload and download handlers | Stored automatically |
 | Cache invalidation after updates | Manual notification with `watchActiveRelease` | Handled automatically |
 | Rivet namespace per app | Bring your own integration | Created and connected automatically |
-| Regions and scaling | Managed by your host | Managed through Rivet deployment options |
+| Regions and scaling | Managed by your host | Managed by Rivet |
 | Lifecycle | Explicit `dispose()` | Managed by the package |
 | Best for | Custom infrastructure | Batteries included and scalable |
 
@@ -37,7 +37,7 @@ Quickstart](/dynamic-apps/docs/quickstart).
 Use Node.js 22 or newer:
 
 ```sh
-npm add @rivet-dev/dynamic-apps-core @hono/node-server hono
+npm add @rivet-dev/dynamic-apps-core @rivet-dev/dynamic-apps @hono/node-server hono
 npm add --save-dev tsx
 ```
 
@@ -120,5 +120,5 @@ the first request. Warm requests reuse the cached agentOS VM. Call
 
 </Steps>
 
-Continue with [Core](/dynamic-apps/docs/core) before using
-Core across multiple processes.
+Read [Core](/dynamic-apps/docs/core) before running it across multiple
+processes.
