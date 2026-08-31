@@ -16,6 +16,7 @@ import { forwardActorCallbackRequest } from "../src/actors.js";
 import { resolveDefaultRivetConnection } from "../src/control-plane.js";
 import { deployApp } from "../src/deploy.js";
 import {
+	capExecutionConcurrencyForMemory,
 	DynamicAppsExecutor,
 	type ExecutorConfig,
 	readExecutorConfig,
@@ -315,6 +316,18 @@ describe("source and runtime contract", () => {
 		expect(
 			readExecutorConfig({ DYNAMIC_APPS_ISOLATE_MODE: "snapshot" }).isolateMode,
 		).toBe("snapshot");
+	});
+
+	test("caps isolate admission below a finite cgroup high-water mark", () => {
+		expect(
+			capExecutionConcurrencyForMemory({
+				requested: 32,
+				isolateHeapLimitMb: 64,
+				memoryHighWaterPercent: 70,
+				currentBytes: 128 * 1024 * 1024,
+				maxBytes: 512 * 1024 * 1024,
+			}),
+		).toBe(2);
 	});
 });
 

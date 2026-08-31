@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { availableParallelism } from "node:os";
 import ivm from "isolated-vm";
 import { createClient } from "rivetkit/client";
@@ -15,6 +15,8 @@ const MAX_HEADER_BYTES = 64 * 1024;
 const MAX_RESPONSE_STATUS_TEXT_BYTES = 1024;
 const MAX_REQUEST_BODY_BYTES = 1024 * 1024;
 const MAX_RESPONSE_BODY_BYTES = 4 * 1024 * 1024;
+const MEMORY_ADMISSION_RESERVE_BYTES = 32 * 1024 * 1024;
+const MEMORY_ADMISSION_PAYLOAD_BYTES = 16 * 1024 * 1024;
 
 const HOP_BY_HOP_HEADERS = [
 	"connection",
@@ -169,15 +171,56 @@ export function readExecutorConfig(
 		);
 	}
 	const poolSize = integerEnv(env, "DYNAMIC_APPS_ISOLATE_POOL_SIZE", 2, 0, 128);
+	const isolateHeapLimitMb = integerEnv(
+		env,
+		"DYNAMIC_APPS_ISOLATE_HEAP_LIMIT_MB",
+		64,
+		8,
+		2_048,
+	);
+	const memoryHighWaterPercent = integerEnv(
+		env,
+		"DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT",
+		70,
+		10,
+		95,
+	);
+	const requestedExecutionConcurrency = integerEnv(
+		env,
+		"DYNAMIC_APPS_EXECUTION_CONCURRENCY",
+		Math.max(1, availableParallelism()),
+		1,
+		1_024,
+	);
+	const requestedPoolMaxTotal = integerEnv(
+		env,
+		"DYNAMIC_APPS_ISOLATE_POOL_MAX_TOTAL",
+		8,
+		0,
+		1_024,
+	);
+	const cgroupMemory = readCgroupMemory();
+	const memoryIsolateCap = cgroupMemory
+		? capExecutionConcurrencyForMemory({
+				requested: 1_024,
+				isolateHeapLimitMb,
+				memoryHighWaterPercent,
+				currentBytes: cgroupMemory.currentBytes,
+				maxBytes: cgroupMemory.maxBytes,
+			})
+		: undefined;
+	const executionConcurrency = Math.min(
+		requestedExecutionConcurrency,
+		memoryIsolateCap ?? requestedExecutionConcurrency,
+	);
+	const isolatePoolSize = Math.min(poolSize, memoryIsolateCap ?? poolSize);
 	return {
-		isolateMode: mode === "prewarm" && poolSize === 0 ? "snapshot" : mode,
-		isolatePoolSize: poolSize,
-		isolatePoolMaxTotal: integerEnv(
-			env,
-			"DYNAMIC_APPS_ISOLATE_POOL_MAX_TOTAL",
-			8,
-			0,
-			1_024,
+		isolateMode:
+			mode === "prewarm" && isolatePoolSize === 0 ? "snapshot" : mode,
+		isolatePoolSize,
+		isolatePoolMaxTotal: Math.min(
+			requestedPoolMaxTotal,
+			memoryIsolateCap ?? requestedPoolMaxTotal,
 		),
 		isolateIdleTtlMs: integerEnv(
 			env,
@@ -186,13 +229,7 @@ export function readExecutorConfig(
 			1_000,
 			60 * 60_000,
 		),
-		isolateHeapLimitMb: integerEnv(
-			env,
-			"DYNAMIC_APPS_ISOLATE_HEAP_LIMIT_MB",
-			64,
-			8,
-			2_048,
-		),
+		isolateHeapLimitMb,
 		runtimeCacheMaxEntries: integerEnv(
 			env,
 			"DYNAMIC_APPS_RUNTIME_CACHE_MAX_ENTRIES",
@@ -214,20 +251,8 @@ export function readExecutorConfig(
 			1_000,
 			24 * 60 * 60_000,
 		),
-		memoryHighWaterPercent: integerEnv(
-			env,
-			"DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT",
-			70,
-			10,
-			95,
-		),
-		executionConcurrency: integerEnv(
-			env,
-			"DYNAMIC_APPS_EXECUTION_CONCURRENCY",
-			Math.max(1, availableParallelism()),
-			1,
-			1_024,
-		),
+		memoryHighWaterPercent,
+		executionConcurrency,
 		executionQueueSize: integerEnv(
 			env,
 			"DYNAMIC_APPS_EXECUTION_QUEUE_SIZE",
@@ -358,6 +383,7 @@ export class DynamicAppsExecutor {
 		const runtimes = [...this.#runtimes.values()];
 		return {
 			apps: this.#apps.size,
+			executionConcurrency: this.config.executionConcurrency,
 			runtimes: runtimes.length,
 			artifactBytes: runtimes.reduce(
 				(sum, item) => sum + item.artifactBytes,
@@ -1035,23 +1061,11 @@ export class DynamicAppsExecutor {
 	}
 
 	async #memoryPressure(): Promise<boolean> {
-		try {
-			const [currentText, maxText] = await Promise.all([
-				readFile("/sys/fs/cgroup/memory.current", "utf8"),
-				readFile("/sys/fs/cgroup/memory.max", "utf8"),
-			]);
-			if (maxText.trim() === "max") return false;
-			const current = Number(currentText.trim());
-			const maximum = Number(maxText.trim());
-			return (
-				Number.isFinite(current) &&
-				Number.isFinite(maximum) &&
-				maximum > 0 &&
-				(current / maximum) * 100 >= this.config.memoryHighWaterPercent
-			);
-		} catch {
-			return false;
-		}
+		const memory = readCgroupMemory();
+		return memory
+			? (memory.currentBytes / memory.maxBytes) * 100 >=
+					this.config.memoryHighWaterPercent
+			: false;
 	}
 
 	#finishTrace(headers: Headers, trace: RequestTrace): void {
@@ -1370,6 +1384,58 @@ function integerEnv(
 		);
 	}
 	return value;
+}
+
+/** @internal Computes the safe active-isolate cap for a finite cgroup. */
+export function capExecutionConcurrencyForMemory(input: {
+	requested: number;
+	isolateHeapLimitMb: number;
+	memoryHighWaterPercent: number;
+	currentBytes: number;
+	maxBytes: number;
+}): number {
+	const targetBytes =
+		(input.maxBytes * input.memoryHighWaterPercent) / 100 -
+		MEMORY_ADMISSION_RESERVE_BYTES;
+	const availableBytes = Math.max(0, targetBytes - input.currentBytes);
+	const perRequestBytes =
+		input.isolateHeapLimitMb * 1024 * 1024 + MEMORY_ADMISSION_PAYLOAD_BYTES;
+	return Math.max(
+		1,
+		Math.min(input.requested, Math.floor(availableBytes / perRequestBytes)),
+	);
+}
+
+function readCgroupMemory():
+	| { currentBytes: number; maxBytes: number }
+	| undefined {
+	try {
+		const cgroupPath = readFileSync("/proc/self/cgroup", "utf8")
+			.split("\n")
+			.find((line) => line.startsWith("0::"))
+			?.slice(3);
+		if (!cgroupPath?.startsWith("/") || cgroupPath.includes("..")) {
+			return undefined;
+		}
+		const directory = `/sys/fs/cgroup${cgroupPath === "/" ? "" : cgroupPath}`;
+		const currentBytes = Number(
+			readFileSync(`${directory}/memory.current`, "utf8").trim(),
+		);
+		const maxText = readFileSync(`${directory}/memory.max`, "utf8").trim();
+		if (maxText === "max") return undefined;
+		const maxBytes = Number(maxText);
+		if (
+			!Number.isFinite(currentBytes) ||
+			currentBytes < 0 ||
+			!Number.isFinite(maxBytes) ||
+			maxBytes <= 0
+		) {
+			return undefined;
+		}
+		return { currentBytes, maxBytes };
+	} catch {
+		return undefined;
+	}
 }
 
 class Semaphore {
