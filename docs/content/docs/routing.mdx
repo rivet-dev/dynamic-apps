@@ -5,8 +5,7 @@ skill: true
 ---
 
 The package root exports one router. Mount ordinary application traffic at any
-prefix and explicitly dispatch the private `/api/rivet` callback to the same
-router:
+prefix and forward the private `/api/rivet/*` callback to the same router:
 
 ```ts
 import { appsRouter } from "@rivet-dev/dynamic-apps";
@@ -14,14 +13,7 @@ import { Hono } from "hono";
 
 const server = new Hono();
 
-const dispatchRegistry = (request: Request) => {
-  const headers = new Headers(request.headers);
-  headers.set("x-agentos-app-registry-dispatch", "1");
-  return appsRouter.fetch(new Request(request, { headers }));
-};
-
-server.all("/api/rivet", (c) => dispatchRegistry(c.req.raw));
-server.all("/api/rivet/*", (c) => dispatchRegistry(c.req.raw));
+server.all("/api/rivet/*", (c) => appsRouter.fetch(c.req.raw));
 server.route("/apps", appsRouter);
 ```
 
@@ -30,7 +22,3 @@ This serves `/:appId/*` relative to the mount. For example,
 `/api/items?q=1`. A bare `/apps/example` request redirects to
 `/apps/example/`.
 
-There is no `createAppsRouter` or router-specific client option in the default
-adapter. `appsRouter` creates and reuses its private control client lazily. Once
-an active artifact is prepared, warm requests use only the local runtime and
-isolate caches: they do not call release storage or a Rivet actor.

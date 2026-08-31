@@ -1,0 +1,21 @@
+---
+title: "Static Websites"
+description: "Serve an HTML, CSS, and JavaScript site from a Dynamic App."
+---
+
+An app is a directory with a `package.json` and a server entrypoint. A static
+site is the same directory plus a `public/` folder and a handler that serves
+it. [View the complete example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-static-website).
+
+<CodeGroup>
+<CodeSnippet file="examples/apps-static-website/fixtures/app/src/index.ts" title="src/index.ts" />
+<CodeSnippet file="examples/apps-static-website/fixtures/app/public/index.html" title="public/index.html" />
+<CodeSnippet file="examples/apps-static-website/fixtures/app/package.json" title="package.json" />
+</CodeGroup>
+
+Deploy the directory and open `/apps/static-website/`:
+
+<CodeSnippet file="examples/apps-static-website/src/server.ts" region="deploy" title="src/server.ts" />
+
+Directories that contain only static files are rejected. Every app needs a
+`package.json` and an entrypoint that default-exports a `fetch` handler.

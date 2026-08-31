@@ -15,7 +15,9 @@ import { createClient } from "rivetkit/client";
 import { ensurePrivateAppsRegistry } from "./registry.js";
 import type { AppRouteResolution, Deployment } from "./types.js";
 
-export const ARTIFACT_CHUNK_BYTES = 512 * 1024;
+// Keep the raw payload comfortably below the Engine action-message limit after
+// Uint8Array JSON/base64 serialization and protocol framing.
+export const ARTIFACT_CHUNK_BYTES = 128 * 1024;
 const MAX_ARTIFACT_BYTES = 64 * 1024 * 1024;
 const MAX_ARTIFACT_CHUNKS = Math.ceil(
 	MAX_ARTIFACT_BYTES / ARTIFACT_CHUNK_BYTES,
@@ -100,7 +102,7 @@ interface ReleaseActorGroup {
 }
 
 interface ReleaseStoreClient {
-	agentOSAppsApp: ReleaseActorGroup;
+	dynamicAppsApp: ReleaseActorGroup;
 }
 
 interface DriverEntry {
@@ -137,7 +139,7 @@ export function createRivetReleaseStore(
 		input: PublishReleaseInput,
 	): Promise<Deployment> => {
 		await ensurePrivateAppsRegistry();
-		const group = getClient().agentOSAppsApp;
+		const group = getClient().dynamicAppsApp;
 		const driver = drivers.get(input.appId);
 		let handle: AppReleaseHandle;
 		let usedExisting = false;
@@ -221,7 +223,7 @@ export function createRivetReleaseStore(
 				handle.resolveDeployment(),
 			);
 		} catch (error) {
-			if (getErrorCode(error) === "agentos_apps_not_deployed") return undefined;
+			if (getErrorCode(error) === "dynamic_apps_not_deployed") return undefined;
 			throw error;
 		}
 		const manifest = await timed(context, "artifact-manifest", () =>
@@ -291,7 +293,7 @@ export function createRivetReleaseStore(
 		drivers.set(appId, entry);
 		entry.ready = connectDriver(
 			entry,
-			getClient().agentOSAppsApp,
+			getClient().dynamicAppsApp,
 			invalidate,
 		).catch(async (error) => {
 			if (drivers.get(appId) === entry) drivers.delete(appId);

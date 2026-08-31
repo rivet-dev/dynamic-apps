@@ -1,7 +1,17 @@
-import { appsRouter, deployApp } from "@rivet-dev/dynamic-apps";
+import {
+	appsRouter,
+	deployApp,
+	setDynamicAppsLogHandler,
+} from "@rivet-dev/dynamic-apps";
 import { createClient } from "rivetkit/client";
 
-const appId = `dynamic-apps-sanity-${Date.now()}`;
+setDynamicAppsLogHandler((event) => {
+	console.error(
+		`[dynamic-apps:${event.source}:${event.stream ?? event.level}] ${event.message}`,
+	);
+});
+
+const appId = "dynamic-apps-sanity";
 const deployment = await deployApp({
 	appId,
 	files: {
@@ -11,10 +21,15 @@ const deployment = await deployApp({
 			private: true,
 			type: "module",
 			main: "index.js",
-			dependencies: { hono: "4.13.3", rivetkit: "2.3.11" },
+			dependencies: {
+				"@hono/node-server": "2.1.1",
+				hono: "4.13.3",
+				rivetkit: "2.3.11",
+			},
 		}),
 		"index.js": `
 import { Hono } from "hono";
+import { serve } from "@hono/node-server";
 import { actor, setup } from "rivetkit";
 import { db } from "rivetkit/db";
 const counter = actor({
@@ -33,6 +48,15 @@ const registry = setup({ use: { counter } });
 const app = new Hono();
 app.all("/api/rivet/*", (c) => registry.handler(c.req.raw));
 app.all("*", () => Response.json({ ok: true, path: "direct" }));
+if (process.env.RIVETKIT_RUNTIME_MODE === "serverless") {
+  await new Promise((resolve, reject) => {
+    const server = serve(
+      { fetch: app.fetch, port: Number(process.env.PORT), hostname: "0.0.0.0" },
+      resolve,
+    );
+    server.once("error", reject);
+  });
+}
 export default app;
 `,
 	},
@@ -63,6 +87,8 @@ console.log(
 			event: "dynamic_apps_sanity_passed",
 			deployment,
 			direct: true,
+			health: true,
+			metadata: true,
 			sqlite: [first, second],
 		},
 		null,

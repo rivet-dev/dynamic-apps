@@ -1,0 +1,22 @@
+{
+	"name": "@rivet-dev/dynamic-apps-example-sqlite",
+	"version": "0.0.1",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"start": "npx tsx src/server.ts",
+		"client": "npx tsx src/client.ts",
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@hono/node-server": "^2.0.11",
+		"@rivet-dev/dynamic-apps": "workspace:*",
+		"hono": "^4.12.9",
+		"rivetkit": "2.3.11"
+	},
+	"devDependencies": {
+		"@types/node": "^22.19.15",
+		"tsx": "^4.20.6",
+		"typescript": "^5.7.3"
+	}
+}

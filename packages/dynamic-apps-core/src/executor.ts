@@ -156,7 +156,7 @@ export function readExecutorConfig(
 	const executionMode = env.DYNAMIC_APPS_EXECUTION_MODE ?? "pooled";
 	if (executionMode !== "ephemeral" && executionMode !== "pooled") {
 		throw new DynamicAppsError(
-			"agentos_apps_invalid_config",
+			"dynamic_apps_invalid_config",
 			"DYNAMIC_APPS_EXECUTION_MODE must be ephemeral or pooled",
 		);
 	}
@@ -322,7 +322,7 @@ export function resolveExecutorConfig(
 
 function invalidExecutorConfig(name: string): DynamicAppsError {
 	return new DynamicAppsError(
-		"agentos_apps_invalid_config",
+		"dynamic_apps_invalid_config",
 		`invalid Dynamic Apps executor config ${name}`,
 	);
 }
@@ -362,7 +362,7 @@ export class DynamicAppsExecutor {
 	): Promise<Response> {
 		if (this.#disposed) {
 			throw new DynamicAppsError(
-				"agentos_apps_executor_disposed",
+				"dynamic_apps_executor_disposed",
 				"Dynamic Apps executor is shutting down",
 			);
 		}
@@ -396,7 +396,7 @@ export class DynamicAppsExecutor {
 					!mapping.resolution.regions.includes(requestedRegion)
 				) {
 					throw new DynamicAppsError(
-						"agentos_apps_region_not_deployed",
+						"dynamic_apps_region_not_deployed",
 						`app is not deployed in requested region ${requestedRegion}`,
 						{ requestedRegion, regions: mapping.resolution.regions },
 					);
@@ -519,7 +519,7 @@ export class DynamicAppsExecutor {
 			.then(async (unsubscribe) => {
 				if (typeof unsubscribe !== "function") {
 					throw new DynamicAppsError(
-						"agentos_apps_invalid_subscription",
+						"dynamic_apps_invalid_subscription",
 						"watchActiveRelease must resolve to an unsubscribe function",
 					);
 				}
@@ -574,13 +574,13 @@ export class DynamicAppsExecutor {
 				if (entry.epoch !== epoch) continue;
 				if (!resolution) {
 					throw new DynamicAppsError(
-						"agentos_apps_not_deployed",
+						"dynamic_apps_not_deployed",
 						"app has no active direct release; call deployApp() first",
 					);
 				}
 				if (resolution.appId !== entry.appId) {
 					throw new DynamicAppsError(
-						"agentos_apps_active_release_invalid",
+						"dynamic_apps_active_release_invalid",
 						"loadActiveRelease returned a release for a different app",
 					);
 				}
@@ -613,7 +613,7 @@ export class DynamicAppsExecutor {
 	): Promise<PreparedRuntime> {
 		if (this.#disposed) {
 			throw new DynamicAppsError(
-				"agentos_apps_executor_disposed",
+				"dynamic_apps_executor_disposed",
 				"Dynamic Apps executor is shutting down",
 			);
 		}
@@ -645,7 +645,7 @@ export class DynamicAppsExecutor {
 		await this.#pruneCaches(true, artifact.byteLength);
 		if (artifact.byteLength > this.config.runtimeCacheMaxBytes) {
 			throw new DynamicAppsError(
-				"agentos_apps_artifact_cache_limit",
+				"dynamic_apps_artifact_cache_limit",
 				"application artifact is larger than the configured runtime cache",
 			);
 		}
@@ -722,7 +722,7 @@ export class DynamicAppsExecutor {
 			}
 			if (this.#disposed) {
 				throw new DynamicAppsError(
-					"agentos_apps_executor_disposed",
+					"dynamic_apps_executor_disposed",
 					"Dynamic Apps executor is shutting down",
 				);
 			}
@@ -853,7 +853,7 @@ export class DynamicAppsExecutor {
 		} catch (error) {
 			if (error instanceof Error && error.name === "AbortError") {
 				throw new DynamicAppsError(
-					"agentos_apps_execution_cancelled",
+					"dynamic_apps_execution_cancelled",
 					"application execution was cancelled",
 				);
 			}
@@ -1224,13 +1224,13 @@ function evaluationValue<T>(result: EvaluationResult<T>, timeoutMs: number): T {
 	}
 	if (result.outcome === "timed_out") {
 		throw new DynamicAppsError(
-			"agentos_apps_execution_timeout",
+			"dynamic_apps_execution_timeout",
 			`application execution exceeded ${timeoutMs}ms`,
 		);
 	}
 	if (result.outcome === "cancelled") {
 		throw new DynamicAppsError(
-			"agentos_apps_execution_cancelled",
+			"dynamic_apps_execution_cancelled",
 			"application execution was cancelled",
 		);
 	}
@@ -1241,7 +1241,7 @@ function evaluationValue<T>(result: EvaluationResult<T>, timeoutMs: number): T {
 
 function disposedError(): DynamicAppsError {
 	return new DynamicAppsError(
-		"agentos_apps_executor_disposed",
+		"dynamic_apps_executor_disposed",
 		"Dynamic Apps executor is shutting down",
 	);
 }
@@ -1261,13 +1261,13 @@ function createReleaseLoadContext(
 		recordTiming(name, durationMs) {
 			if (!Number.isFinite(durationMs) || durationMs < 0) {
 				throw new DynamicAppsError(
-					"agentos_apps_invalid_timing",
+					"dynamic_apps_invalid_timing",
 					"release load timing duration must be finite and non-negative",
 				);
 			}
 			if (typeof name !== "string" || Buffer.byteLength(name) > 64) {
 				throw new DynamicAppsError(
-					"agentos_apps_invalid_timing",
+					"dynamic_apps_invalid_timing",
 					"release load timing name must be at most 64 bytes",
 				);
 			}
@@ -1277,7 +1277,7 @@ function createReleaseLoadContext(
 				.replace(/^-|-$/g, "");
 			if (!normalized) {
 				throw new DynamicAppsError(
-					"agentos_apps_invalid_timing",
+					"dynamic_apps_invalid_timing",
 					"release load timing name must contain ASCII letters or digits",
 				);
 			}
@@ -1289,7 +1289,7 @@ function createReleaseLoadContext(
 function verifyActiveRelease(input: ActiveRelease): ActiveRelease {
 	if (!input || typeof input !== "object") {
 		throw new DynamicAppsError(
-			"agentos_apps_active_release_invalid",
+			"dynamic_apps_active_release_invalid",
 			"loadActiveRelease returned an invalid release",
 		);
 	}
@@ -1313,7 +1313,7 @@ function verifyActiveRelease(input: ActiveRelease): ActiveRelease {
 		input.maxResponseBytes < 1
 	) {
 		throw new DynamicAppsError(
-			"agentos_apps_active_release_invalid",
+			"dynamic_apps_active_release_invalid",
 			"loadActiveRelease returned invalid release metadata",
 		);
 	}
@@ -1330,14 +1330,14 @@ function verifyActiveRelease(input: ActiveRelease): ActiveRelease {
 		typeof artifact.usesRivetKit !== "boolean"
 	) {
 		throw new DynamicAppsError(
-			"agentos_apps_artifact_manifest_mismatch",
+			"dynamic_apps_artifact_manifest_mismatch",
 			"loadActiveRelease returned invalid artifact metadata",
 		);
 	}
 	const bytes = new Uint8Array(artifact.bytes);
 	if (createHash("sha256").update(bytes).digest("hex") !== artifact.hash) {
 		throw new DynamicAppsError(
-			"agentos_apps_artifact_hash_mismatch",
+			"dynamic_apps_artifact_hash_mismatch",
 			"loaded artifact failed size or hash verification",
 		);
 	}
@@ -1368,7 +1368,7 @@ function validScaling(value: ActiveRelease["scaling"]): boolean {
 async function serializeRequest(request: Request): Promise<RequestEnvelope> {
 	if (Buffer.byteLength(request.url) > MAX_URL_BYTES) {
 		throw new DynamicAppsError(
-			"agentos_apps_request_limit",
+			"dynamic_apps_request_limit",
 			"request URL exceeds limit",
 		);
 	}
@@ -1377,7 +1377,7 @@ async function serializeRequest(request: Request): Promise<RequestEnvelope> {
 		!/^[!#$%&'*+\-.^_`|~0-9A-Za-z]+$/.test(request.method)
 	) {
 		throw new DynamicAppsError(
-			"agentos_apps_request_limit",
+			"dynamic_apps_request_limit",
 			"request method is invalid or exceeds limit",
 		);
 	}
@@ -1389,11 +1389,7 @@ async function serializeRequest(request: Request): Promise<RequestEnvelope> {
 	for (const name of [...HOP_BY_HOP_HEADERS, ...connectionTokens]) {
 		headers.delete(name);
 	}
-	for (const name of [
-		"x-rivet-token",
-		"x-agentos-app-region",
-		"x-agentos-app-registry-dispatch",
-	]) {
+	for (const name of ["x-rivet-token", "x-agentos-app-region"]) {
 		headers.delete(name);
 	}
 	const pairs = [...headers.entries()];
@@ -1429,7 +1425,7 @@ function responseFromEnvelope(
 		typeof envelope.bodyBase64 !== "string"
 	) {
 		throw new DynamicAppsError(
-			"agentos_apps_invalid_response",
+			"dynamic_apps_invalid_response",
 			"application returned an invalid response envelope",
 		);
 	}
@@ -1440,7 +1436,7 @@ function responseFromEnvelope(
 	const body = Buffer.from(envelope.bodyBase64, "base64");
 	if (body.byteLength > MAX_RESPONSE_BODY_BYTES) {
 		throw new DynamicAppsError(
-			"agentos_apps_response_limit",
+			"dynamic_apps_response_limit",
 			"application response exceeds limit",
 		);
 	}
@@ -1459,8 +1455,8 @@ function validateHeaderPairs(
 	if (pairs.length > MAX_HEADER_PAIRS) {
 		throw new DynamicAppsError(
 			kind === "request"
-				? "agentos_apps_request_limit"
-				: "agentos_apps_response_header_limit",
+				? "dynamic_apps_request_limit"
+				: "dynamic_apps_response_header_limit",
 			`${kind} headers exceed pair limit`,
 		);
 	}
@@ -1473,7 +1469,7 @@ function validateHeaderPairs(
 			typeof pair[1] !== "string"
 		) {
 			throw new DynamicAppsError(
-				"agentos_apps_invalid_response",
+				"dynamic_apps_invalid_response",
 				`${kind} contains an invalid header pair`,
 			);
 		}
@@ -1482,8 +1478,8 @@ function validateHeaderPairs(
 	if (bytes > MAX_HEADER_BYTES) {
 		throw new DynamicAppsError(
 			kind === "request"
-				? "agentos_apps_request_limit"
-				: "agentos_apps_response_header_limit",
+				? "dynamic_apps_request_limit"
+				: "dynamic_apps_response_header_limit",
 			`${kind} headers exceed byte limit`,
 		);
 	}
@@ -1504,7 +1500,7 @@ async function readBoundedBody(
 			if (bytes > limit) {
 				await reader.cancel();
 				throw new DynamicAppsError(
-					"agentos_apps_request_limit",
+					"dynamic_apps_request_limit",
 					"request body exceeds limit",
 				);
 			}
@@ -1551,7 +1547,7 @@ function integerEnv(
 	const value = Number(env[name] ?? fallback);
 	if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
 		throw new DynamicAppsError(
-			"agentos_apps_invalid_config",
+			"dynamic_apps_invalid_config",
 			`${name} must be an integer between ${minimum} and ${maximum}`,
 		);
 	}
@@ -1609,7 +1605,7 @@ class Semaphore {
 		}
 		if (this.#queue.length >= this.#maxQueued) {
 			throw new DynamicAppsError(
-				"agentos_apps_no_capacity",
+				"dynamic_apps_no_capacity",
 				"Dynamic Apps execution queue is full",
 			);
 		}
@@ -1635,7 +1631,7 @@ class Semaphore {
 				if (offset >= 0) this.#queue.splice(offset, 1);
 				item.reject(
 					new DynamicAppsError(
-						"agentos_apps_no_capacity",
+						"dynamic_apps_no_capacity",
 						`Dynamic Apps execution queue exceeded ${this.#waitMs}ms`,
 					),
 				);

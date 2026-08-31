@@ -107,7 +107,7 @@ class FakeStatePlane {
 	}
 
 	readonly client = {
-		agentOSAppsApp: {
+		dynamicAppsApp: {
 			getOrCreate: (key: string[]) => this.#handle(key[0] ?? ""),
 		},
 	};
@@ -641,7 +641,7 @@ async function admissionStress(
 				.then(
 					() => "ok" as const,
 					(error: unknown) =>
-						isErrorCode(error, "agentos_apps_no_capacity")
+						isErrorCode(error, "dynamic_apps_no_capacity")
 							? ("rejected" as const)
 							: Promise.reject(error),
 				),
@@ -841,7 +841,7 @@ async function actorChurnStress(
 				await response.arrayBuffer();
 				completed += 1;
 			} catch (error) {
-				if (!isErrorCode(error, "agentos_apps_no_capacity")) throw error;
+				if (!isErrorCode(error, "dynamic_apps_no_capacity")) throw error;
 				rejected += 1;
 			}
 		});
@@ -1204,7 +1204,7 @@ async function actorMemoryStress(
 				assert.equal(Number(await response.text()), allocationBytes);
 				completed += 1;
 			} catch (error) {
-				if (!isErrorCode(error, "agentos_apps_no_capacity")) throw error;
+				if (!isErrorCode(error, "dynamic_apps_no_capacity")) throw error;
 				rejected += 1;
 			}
 		});

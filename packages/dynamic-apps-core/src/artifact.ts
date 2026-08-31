@@ -11,7 +11,7 @@ export function extractAospkgTextFile(
 		buffer.subarray(1, 4).toString("ascii") !== "AOS"
 	) {
 		throw new DynamicAppsError(
-			"agentos_apps_artifact_format_invalid",
+			"dynamic_apps_artifact_format_invalid",
 			"application artifact is not an AOSP package",
 		);
 	}
@@ -36,7 +36,7 @@ export function extractAospkgTextFile(
 		offset = next;
 	}
 	throw new DynamicAppsError(
-		"agentos_apps_artifact_entry_missing",
+		"dynamic_apps_artifact_entry_missing",
 		`application artifact is missing ${target}`,
 	);
 }

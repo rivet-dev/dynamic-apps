@@ -147,7 +147,7 @@ export async function runLoadTest(
 						{
 							signal: AbortSignal.timeout(config.timeoutMs),
 							headers: {
-								"user-agent": "agentos-apps-load-test",
+								"user-agent": "dynamic-apps-load-test",
 								...(config.token ? { "x-rivet-token": config.token } : {}),
 							},
 						},

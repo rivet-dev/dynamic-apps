@@ -98,8 +98,8 @@ for (const path of await walk("examples/")) {
 
 const actors = await read("packages/dynamic-apps/src/actors.ts");
 for (const identity of [
-	"agentOSAppsApp: AnyActorDefinition;",
-	"const agentOSAppsApp = actor({",
+	"dynamicAppsApp: AnyActorDefinition;",
+	"const dynamicAppsApp = actor({",
 	"beginReleasePublish:",
 	"commitReleasePublish:",
 ]) {
@@ -112,7 +112,7 @@ for (const identity of [
 const runtime = await read("packages/dynamic-apps-core/src/runtime.ts");
 assert(
 	runtime.includes(
-		'hash.update("agentos-apps-release-v19-mounted-hono-router\\0")',
+		'hash.update("dynamic-apps-release-v19-mounted-hono-router\\0")',
 	),
 	"release hash domain changed",
 );

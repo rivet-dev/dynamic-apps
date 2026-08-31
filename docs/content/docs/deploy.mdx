@@ -38,8 +38,9 @@ await deployApp({
 The direct entrypoint must default-export a function or an object with
 `fetch(request)`. Code runs inside agentOS with filesystem, process,
 environment, and network permissions, and supported Node builtins are
-available. Static-only directories and native addons are not supported in this
-release candidate.
+available. Directories that contain only static files are rejected; see
+[Static Websites](/dynamic-apps/docs/static-websites). Native addons are not
+supported.
 
 ## Build repair and rollback
 
@@ -57,6 +58,10 @@ for (let attempt = 0; attempt < 3; attempt++) {
   }
 }
 ```
+
+Include `webServerSkill` and `rivetActorsSkill` from `@rivet-dev/dynamic-apps`
+in the model prompt. They describe the supported TypeScript server layout and
+Rivet actor integration. [View the complete AI App Builder example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-ai-builder).
 
 A failed build or incomplete artifact write never replaces the active release.
 A successful call returns only after the immutable artifact is persisted and
@@ -88,7 +93,7 @@ await deployApp({
 | Option | Default | Meaning |
 | --- | --- | --- |
 | `regions` | State actor's current region | Stored compatibility metadata; it does not move direct HTTP execution |
-| `createNamespace` | — | Deprecated compatibility option; every app always receives its own stable namespace |
+| `createNamespace` | none | Deprecated compatibility option; every app always receives its own stable namespace |
 | `scaling.minReplicas` | `0` | App-defined actor runner setting; compatibility metadata for direct HTTP |
 | `scaling.maxReplicas` | `128` | App-defined actor runner setting; compatibility metadata for direct HTTP |
 | `scaling.targetConcurrency` | `8` | App-defined actor runner setting; compatibility metadata for direct HTTP |

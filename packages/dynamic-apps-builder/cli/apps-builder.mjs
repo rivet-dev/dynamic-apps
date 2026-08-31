@@ -340,8 +340,10 @@ function nodeFileSystemPlugin() {
 				if (
 					config.usesRivetKit &&
 					(extension === ".js" ||
+						extension === ".cjs" ||
 						extension === ".mjs" ||
-						extension === ".ts")
+						extension === ".ts" ||
+						extension === ".cts")
 				) {
 					// RivetKit deliberately hides this optional dependency from
 					// ordinary bundlers. Apps always select the WASM runtime, so
@@ -349,10 +351,19 @@ function nodeFileSystemPlugin() {
 					// leaving the native and engine-CLI fallbacks unreachable.
 					const source = contents.toString("utf8");
 					contents = Buffer.from(
-						source.replaceAll(
-							'import(["@rivetkit", "rivetkit-wasm"].join("/"))',
-							'import("@rivetkit/rivetkit-wasm")',
-						),
+						source
+							.replace(
+								/import\(\s*\[\s*["']@rivetkit["']\s*,\s*["']rivetkit-wasm["']\s*\]\.join\(\s*["']\/["']\s*\)\s*\)/gu,
+								'import("@rivetkit/rivetkit-wasm")',
+							)
+							.replace(
+								/require\(\s*\[\s*["']@rivetkit["']\s*,\s*["']rivetkit-wasm["']\s*\]\.join\(\s*["']\/["']\s*\)\s*\)/gu,
+								'require("@rivetkit/rivetkit-wasm")',
+							)
+							.replace(
+								"const { getEnginePath } = await loadEngineCli();",
+								'if (!config.startEngine) throw new Error("local Engine disabled"); const { getEnginePath } = await loadEngineCli();',
+							),
 					);
 				}
 				return {

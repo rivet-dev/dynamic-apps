@@ -23,7 +23,7 @@ export type DeployAppInput =
 	  });
 
 export interface ReleaseArtifact {
-	format: "agentos-apps-direct-v2";
+	format: "dynamic-apps-direct-v2";
 	entrypoint: "direct-v2/main.mjs";
 	hash: string;
 	bytes: Uint8Array;
