@@ -42,6 +42,9 @@ importers:
       '@rivet-dev/dynamic-apps':
         specifier: workspace:*
         version: link:../../packages/dynamic-apps
+      '@rivet-dev/dynamic-apps-core':
+        specifier: workspace:*
+        version: link:../../packages/dynamic-apps-core
       hono:
         specifier: ^4.12.9
         version: 4.13.3
@@ -93,6 +96,28 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
 
+  examples/apps-core-quickstart:
+    dependencies:
+      '@hono/node-server':
+        specifier: ^2.0.11
+        version: 2.1.1(hono@4.13.3)
+      '@rivet-dev/dynamic-apps-core':
+        specifier: workspace:*
+        version: link:../../packages/dynamic-apps-core
+      hono:
+        specifier: ^4.12.9
+        version: 4.13.3
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.15
+        version: 22.20.1
+      tsx:
+        specifier: ^4.20.6
+        version: 4.23.12
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+
   examples/apps-hello-world:
     dependencies:
       '@hono/node-server':
@@ -117,21 +142,9 @@ importers:
 
   packages/dynamic-apps:
     dependencies:
-      '@agentos-software/sh':
-        specifier: 0.2.15
-        version: 0.2.15
-      '@agentos-software/tar':
-        specifier: 0.3.5
-        version: 0.3.5
-      '@rivet-dev/agentos-core':
-        specifier: 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
-        version: 0.0.0-fix-core-spawn-keep-stdin-open.242e11c(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(ws@8.21.3)
-      '@rivet-dev/agentos-toolchain':
-        specifier: 0.2.15
-        version: 0.2.15
-      '@rivet-dev/dynamic-apps-builder':
-        specifier: workspace:0.12.0-rc.1
-        version: link:../dynamic-apps-builder
+      '@rivet-dev/dynamic-apps-core':
+        specifier: workspace:0.12.0-rc.2
+        version: link:../dynamic-apps-core
       hono:
         specifier: ^4.7.0
         version: 4.13.3
@@ -139,6 +152,12 @@ importers:
         specifier: 2.3.11
         version: 2.3.11(better-sqlite3@12.11.1)(ws@8.21.3)
     devDependencies:
+      '@rivet-dev/agentos-core':
+        specifier: 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
+        version: 0.0.0-fix-core-spawn-keep-stdin-open.242e11c(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(ws@8.21.3)
+      '@rivet-dev/agentos-toolchain':
+        specifier: 0.2.15
+        version: 0.2.15
       '@types/node':
         specifier: ^22.19.15
         version: 22.20.1
@@ -175,6 +194,40 @@ importers:
         version: 5.9.3
       vitest:
         specifier: ^2.1.9
+        version: 2.1.9(@types/node@22.20.1)
+
+  packages/dynamic-apps-core:
+    dependencies:
+      '@agentos-software/sh':
+        specifier: 0.2.15
+        version: 0.2.15
+      '@agentos-software/tar':
+        specifier: 0.3.5
+        version: 0.3.5
+      '@rivet-dev/agentos-core':
+        specifier: 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
+        version: 0.0.0-fix-core-spawn-keep-stdin-open.242e11c(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(ws@8.21.3)
+      '@rivet-dev/agentos-toolchain':
+        specifier: 0.2.15
+        version: 0.2.15
+      '@rivet-dev/dynamic-apps-builder':
+        specifier: workspace:0.12.0-rc.2
+        version: link:../dynamic-apps-builder
+      hono:
+        specifier: ^4.7.0
+        version: 4.13.3
+    devDependencies:
+      '@types/node':
+        specifier: ^22.19.15
+        version: 22.20.1
+      tsup:
+        specifier: ^8.4.0
+        version: 8.5.1(postcss@8.5.26)(tsx@4.23.12)(typescript@5.9.3)(yaml@2.9.0)
+      typescript:
+        specifier: ^5.7.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
         version: 2.1.9(@types/node@22.20.1)
 
   tests/e2e/dynamic-apps:

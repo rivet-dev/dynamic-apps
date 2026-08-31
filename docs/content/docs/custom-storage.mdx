@@ -1,0 +1,46 @@
+---
+title: "Custom Storage"
+description: "Implement durable release publication, loading, and invalidation for Dynamic Apps Core."
+skill: true
+---
+
+Use `@rivet-dev/dynamic-apps-core` when your host owns release persistence and
+notifications:
+
+```ts
+import { createDynamicApps } from "@rivet-dev/dynamic-apps-core";
+
+const dynamicApps = createDynamicApps({
+  async publishRelease(input) {
+    // Persist input.artifact.bytes, then atomically make this release active.
+    await store.putArtifact(input.buildId, input.artifact.bytes);
+    await store.activate(input.appId, input.buildId, input);
+    return { appId: input.appId, release: input.buildId };
+  },
+  async loadActiveRelease(appId) {
+    // Return one coherent metadata + complete-artifact snapshot.
+    return store.loadActive(appId);
+  },
+  async watchActiveRelease(appId, invalidate) {
+    // Resolve only after the subscription is live.
+    return store.subscribe(appId, invalidate);
+  },
+});
+```
+
+## Hook guarantees
+
+- **Publish a release:** make the verified artifact durable before atomically
+  activating it. Do not resolve until a load can observe the new release. A
+  failed publish must leave the previous release active.
+- **Load the active release:** return coherent metadata and complete bytes in
+  one logical operation. Core copies and independently verifies the bytes.
+- **Watch for updates:** subscribe before resolving, invalidate after every
+  activation, and invalidate after a disconnect that may have missed events.
+  Duplicate invalidations are safe.
+
+The watcher is required. A no-op watcher is safe only when an app ID cannot
+change for the entire lifetime of every serving process.
+
+Call `await dynamicApps.dispose()` during shutdown to release subscriptions,
+build resources, cached runtimes, and agentOS contexts.

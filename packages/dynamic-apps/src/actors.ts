@@ -1,19 +1,14 @@
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
-import { chmod, mkdtemp, readFile, rm, stat } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import sh from "@agentos-software/sh";
-import tar from "@agentos-software/tar";
+import type {
+	AppScaling,
+	BuildArtifactCache,
+} from "@rivet-dev/dynamic-apps-core";
 import {
-	AgentOs,
-	type AgentOsOptions,
-	createHostDirBackend,
-} from "@rivet-dev/agentos-core";
-import { packAospkgFromTarBytes } from "@rivet-dev/agentos-toolchain";
-import appsBuilder, {
-	appBundleManifestVersion,
-	appsBuilderVersion,
-} from "@rivet-dev/dynamic-apps-builder";
+	buildAppRelease,
+	DIRECT_ENTRYPOINT,
+	DIRECT_RUNTIME_FORMAT,
+	DynamicAppsError,
+} from "@rivet-dev/dynamic-apps-core/internal";
 import { type AnyActorDefinition, actor, UserError } from "rivetkit";
 import { db, type RawAccess } from "rivetkit/db";
 import { getDefaultActorRuntime } from "./actor-runtime.js";
@@ -22,46 +17,28 @@ import {
 	provisionAppNamespace,
 	resolveDefaultRivetConnection,
 } from "./control-plane.js";
-import { DynamicAppsError } from "./errors.js";
-import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
-import {
-	APP_CALLBACK_SECRET_HEADER,
-	actorRunnerSource,
-	canonicalDeploymentHash,
-	DIRECT_BUNDLE_PATH,
-	DIRECT_ENTRYPOINT,
-	DIRECT_RUNTIME_FORMAT,
-	directRunnerSource,
-	normalizeAppPath,
-} from "./runtime.js";
+import { APP_CALLBACK_SECRET_HEADER } from "./runtime.js";
 import type {
 	AppReleaseInfo,
-	AppScaling,
+	AppRouteResolution,
 	Deployment,
 	PreparedDeployAppInput,
 } from "./types.js";
 
-const DEFAULT_MAX_SOURCE_BYTES = 4 * 1024 * 1024;
-const DEFAULT_MAX_FILES = 2_000;
 const DEFAULT_MAX_VERSIONS = 20;
 const DEFAULT_MAX_REGIONS = 8;
-const DEFAULT_MAX_DEPENDENCIES = 256;
-const DEFAULT_BUILD_TIMEOUT_MS = 15 * 60_000;
 const DEFAULT_MAX_REQUEST_BYTES = 1024 * 1024;
 const DEFAULT_MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
-const DEFAULT_MAX_BUILD_OUTPUT_BYTES = 2 * 1024 * 1024;
-const DEFAULT_MAX_BUILD_ARTIFACT_BYTES = 64 * 1024 * 1024;
-const DEFAULT_MAX_BUILD_ARTIFACT_FILES = 4_096;
-const DEFAULT_MAX_BUILD_ARTIFACT_FILE_BYTES = 32 * 1024 * 1024;
-const DEFAULT_MAX_BUILD_FILESYSTEM_BYTES = 2 * 1024 * 1024 * 1024;
 const MAX_REPLICAS = 128;
 export const ARTIFACT_CHUNK_BYTES = 512 * 1024;
+const MAX_ARTIFACT_BYTES = 64 * 1024 * 1024;
 const MAX_ARTIFACT_CHUNKS = Math.ceil(
-	DEFAULT_MAX_BUILD_ARTIFACT_BYTES / ARTIFACT_CHUNK_BYTES,
+	MAX_ARTIFACT_BYTES / ARTIFACT_CHUNK_BYTES,
 );
 const SOURCE_CHUNK_BYTES = 512 * 1024;
 const MAX_SOURCE_CHUNKS =
-	Math.ceil(DEFAULT_MAX_SOURCE_BYTES / SOURCE_CHUNK_BYTES) + DEFAULT_MAX_FILES;
+	Math.ceil((4 * 1024 * 1024) / SOURCE_CHUNK_BYTES) + 2_000;
+const RELEASE_PATTERN = /^[a-f0-9]{64}$/;
 
 type AnyActorContext = {
 	actorId: string;
@@ -76,40 +53,6 @@ type AnyActorContext = {
 		error(value: unknown): void;
 	};
 };
-
-interface ExecResult {
-	exitCode: number;
-	stdout: string;
-	stderr: string;
-}
-
-interface BuildHandle {
-	artifactGuestPath: string;
-	writeFiles(
-		entries: Array<{ path: string; content: string | Uint8Array }>,
-	): Promise<Array<{ path: string; success: boolean; error?: string }>>;
-	execArgv(
-		command: string,
-		args: string[],
-		options?: {
-			cwd?: string;
-			env?: Record<string, string>;
-			timeout?: number;
-			captureStdio?: boolean;
-		},
-	): Promise<ExecResult>;
-	artifactSize(): Promise<number>;
-	readArtifact(): Promise<Uint8Array>;
-	dispose(): Promise<void>;
-}
-
-interface BuildPlan {
-	entrypoint: string;
-	build: boolean;
-	dependencyCount: number;
-	hasLockfile: boolean;
-	usesRivetKit: boolean;
-}
 
 export interface StoredAppRelease extends AppReleaseInfo {
 	entrypoint: string;
@@ -127,25 +70,45 @@ export interface AppState {
 	cloudNamespace?: string | null;
 	runnerToken?: string | null;
 	publicToken?: string | null;
-}
-
-export interface AppRouteResolution {
-	appId: string;
-	release: string;
-	region: string;
-	regions: string[];
-	revision: number;
-	artifactHash: string;
-	artifactBytes: number;
-	entrypoint: typeof DIRECT_ENTRYPOINT;
-	namespace: string;
-	scaling: Required<AppScaling>;
-	maxRequestBytes: number;
-	maxResponseBytes: number;
+	publishSequence?: number;
+	latestPublishSequence?: number;
 }
 
 export interface DynamicAppsActors {
 	agentOSAppsApp: AnyActorDefinition;
+}
+
+interface BeginReleasePublishInput {
+	appId: string;
+	buildId: string;
+	format: typeof DIRECT_RUNTIME_FORMAT;
+	entrypoint: typeof DIRECT_ENTRYPOINT;
+	artifactHash: string;
+	artifactBytes: number;
+	usesRivetKit: boolean;
+	regions?: string[];
+	scaling?: AppScaling;
+	createdAt: number;
+}
+
+interface BeginReleasePublishResult {
+	release: string;
+	sequence: number;
+	uploadRequired: boolean;
+	chunkBytes: number;
+}
+
+interface WriteReleaseChunkInput {
+	release: string;
+	sequence: number;
+	index: number;
+	content: Uint8Array;
+}
+
+interface CommitReleasePublishInput {
+	release: string;
+	sequence: number;
+	chunks: number;
 }
 
 const locks = new Map<string, Promise<void>>();
@@ -175,6 +138,17 @@ function fail(
 	throw new UserError(message, { code, metadata });
 }
 
+async function actorBoundary<T>(run: () => Promise<T>): Promise<T> {
+	try {
+		return await run();
+	} catch (error) {
+		if (error instanceof DynamicAppsError) {
+			fail(error.code, error.message, error.metadata);
+		}
+		throw error;
+	}
+}
+
 function positiveInteger(value: number, name: string, maximum: number): number {
 	if (!Number.isInteger(value) || value < 1 || value > maximum) {
 		fail(
@@ -189,6 +163,12 @@ function positiveInteger(value: number, name: string, maximum: number): number {
 export function normalizeScaling(
 	input: AppScaling | undefined,
 ): Required<AppScaling> {
+	if (
+		input !== undefined &&
+		(typeof input !== "object" || input === null || Array.isArray(input))
+	) {
+		fail("agentos_apps_invalid_scaling", "scaling must be an object");
+	}
 	const minReplicas = input?.minReplicas ?? 0;
 	const maxReplicas = input?.maxReplicas ?? 128;
 	const targetConcurrency = input?.targetConcurrency ?? 8;
@@ -211,6 +191,31 @@ export function normalizeScaling(
 		);
 	}
 	return { minReplicas, maxReplicas, targetConcurrency };
+}
+
+function normalizeRegions(
+	regions: string[] | undefined,
+	fallbackRegion: string,
+): string[] {
+	if (regions !== undefined && !Array.isArray(regions)) {
+		fail("agentos_apps_invalid_regions", "regions must be an array");
+	}
+	const unique = [...new Set(regions ?? [fallbackRegion || "default"])];
+	if (unique.length === 0 || unique.length > DEFAULT_MAX_REGIONS) {
+		fail(
+			"agentos_apps_invalid_regions",
+			`an app must have between 1 and ${DEFAULT_MAX_REGIONS} regions`,
+		);
+	}
+	for (const region of unique) {
+		if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(region)) {
+			fail(
+				"agentos_apps_invalid_region",
+				`invalid region ${JSON.stringify(region)}`,
+			);
+		}
+	}
+	return unique;
 }
 
 export async function migrateAppsTables(database: RawAccess): Promise<void> {
@@ -418,7 +423,14 @@ async function readStoredArtifact(
 		 WHERE release_id = ? ORDER BY chunk_index ASC`,
 		release.release,
 	);
-	if (rows.length === 0 || rows.length > MAX_ARTIFACT_CHUNKS) {
+	const expectedChunks = Math.ceil(
+		release.artifactBytes / ARTIFACT_CHUNK_BYTES,
+	);
+	if (
+		rows.length !== expectedChunks ||
+		rows.length < 1 ||
+		rows.length > MAX_ARTIFACT_CHUNKS
+	) {
 		fail(
 			"agentos_apps_artifact_manifest_invalid",
 			`artifact ${release.release} has an invalid chunk count`,
@@ -429,11 +441,16 @@ async function readStoredArtifact(
 	for (let index = 0; index < rows.length; index += 1) {
 		const row = rows[index];
 		const content = row ? new Uint8Array(row.content) : undefined;
+		const expected =
+			index === rows.length - 1
+				? release.artifactBytes - index * ARTIFACT_CHUNK_BYTES
+				: ARTIFACT_CHUNK_BYTES;
 		if (
 			!row ||
 			!content ||
 			Number(row.chunk_index) !== index ||
-			content.byteLength !== Number(row.byte_length)
+			content.byteLength !== Number(row.byte_length) ||
+			content.byteLength !== expected
 		) {
 			fail(
 				"agentos_apps_artifact_manifest_invalid",
@@ -443,14 +460,9 @@ async function readStoredArtifact(
 		bytes += content.byteLength;
 		chunks.push(content);
 	}
-	if (bytes !== release.artifactBytes) {
-		fail(
-			"agentos_apps_artifact_manifest_invalid",
-			`artifact ${release.release} failed its byte count`,
-		);
-	}
 	const artifact = new Uint8Array(Buffer.concat(chunks, bytes));
 	if (
+		bytes !== release.artifactBytes ||
 		createHash("sha256").update(artifact).digest("hex") !== release.artifactHash
 	) {
 		fail(
@@ -511,703 +523,364 @@ function actorPublicEndpoint(
 	return endpoint.toString();
 }
 
-function textFile(
-	files: Record<string, Uint8Array>,
-	path: string,
-): string | undefined {
-	const content = files[path];
-	return content ? new TextDecoder().decode(content) : undefined;
+function validateBeginInput(
+	c: AnyActorContext,
+	input: BeginReleasePublishInput,
+): string {
+	const appId = c.key[0];
+	if (!appId || c.key.length !== 1 || input.appId !== appId) {
+		fail(
+			"agentos_apps_app_id_mismatch",
+			"deployApp appId must match the stable application actor key",
+			{ appId: input.appId, actorKey: c.key },
+		);
+	}
+	if (
+		input.format !== DIRECT_RUNTIME_FORMAT ||
+		input.entrypoint !== DIRECT_ENTRYPOINT ||
+		!RELEASE_PATTERN.test(input.buildId) ||
+		!RELEASE_PATTERN.test(input.artifactHash) ||
+		!Number.isSafeInteger(input.artifactBytes) ||
+		input.artifactBytes < 1 ||
+		input.artifactBytes > MAX_ARTIFACT_BYTES ||
+		typeof input.usesRivetKit !== "boolean" ||
+		!Number.isSafeInteger(input.createdAt) ||
+		input.createdAt < 0
+	) {
+		fail("agentos_apps_publish_invalid", "release publish metadata is invalid");
+	}
+	return appId;
 }
 
-function packageExport(value: unknown): string | undefined {
-	if (typeof value === "string") return value;
-	if (!value || typeof value !== "object" || Array.isArray(value)) return;
-	const object = value as Record<string, unknown>;
-	return (
-		packageExport(object["."]) ??
-		packageExport(object.import) ??
-		packageExport(object.default)
-	);
-}
-
-function installPackageJson(
-	files: Record<string, Uint8Array>,
-	plan: BuildPlan,
-): Uint8Array | undefined {
-	const source = textFile(files, "package.json");
-	if (!source || !plan.usesRivetKit) return files["package.json"];
-	const value = JSON.parse(source) as {
-		dependencies?: Record<string, unknown>;
-		devDependencies?: Record<string, unknown>;
-	};
-	for (const dependencies of [value.dependencies, value.devDependencies]) {
-		if (dependencies) delete dependencies.rivetkit;
-	}
-	return new TextEncoder().encode(JSON.stringify(value));
-}
-
-function validateDeployment(
-	input: PreparedDeployAppInput,
-	limits: { maxSourceBytes: number; maxFiles: number; maxDependencies: number },
-): BuildPlan {
-	if (!input || typeof input !== "object" || !input.files) {
-		fail(
-			"agentos_apps_invalid_files",
-			"deployApp files must contain the complete application tree",
-		);
-	}
-	const files = Object.entries(input.files);
-	if (files.length === 0 || files.length > limits.maxFiles) {
-		fail(
-			"agentos_apps_file_count_limit",
-			`deployment must contain between 1 and ${limits.maxFiles} files`,
-			{ observed: files.length, limit: limits.maxFiles },
-		);
-	}
-	let sourceBytes = 0;
-	const normalizedFiles: Record<string, Uint8Array> = {};
-	for (const [path, content] of files) {
-		const normalizedPath = normalizeAppPath(path);
-		if (normalizedFiles[normalizedPath]) {
-			fail(
-				"agentos_apps_duplicate_file_path",
-				`multiple deployment paths normalize to ${normalizedPath}`,
-			);
-		}
-		if (!(content instanceof Uint8Array)) {
-			fail(
-				"agentos_apps_invalid_file",
-				`deployment file ${path} must be a string or Uint8Array`,
-			);
-		}
-		normalizedFiles[normalizedPath] = content;
-		sourceBytes += content.byteLength;
-	}
-	if (sourceBytes > limits.maxSourceBytes) {
-		fail(
-			"agentos_apps_source_limit",
-			`deployment source is ${sourceBytes} bytes, exceeding maxSourceBytes ${limits.maxSourceBytes}`,
-			{ observed: sourceBytes, limit: limits.maxSourceBytes },
-		);
-	}
-	input.files = normalizedFiles;
-	const packageJsonSource = textFile(normalizedFiles, "package.json");
-	if (!packageJsonSource) {
-		fail(
-			"agentos_apps_entrypoint_not_found",
-			"direct applications must contain package.json and a server entrypoint",
-		);
-	}
-	let packageJson: {
-		dependencies?: unknown;
-		devDependencies?: unknown;
-		scripts?: { build?: unknown };
-		exports?: unknown;
-		main?: unknown;
-	};
-	try {
-		packageJson = JSON.parse(packageJsonSource);
-	} catch (error) {
-		fail(
-			"agentos_apps_invalid_package_json",
-			"package.json is not valid JSON",
-			{ error: String(error) },
-		);
-	}
-	const dependencyMaps = [
-		packageJson.dependencies,
-		packageJson.devDependencies,
-	].filter(
-		(value): value is Record<string, unknown> =>
-			typeof value === "object" && value !== null && !Array.isArray(value),
-	);
-	const dependencyCount = dependencyMaps.reduce(
-		(count, dependencies) => count + Object.keys(dependencies).length,
-		0,
-	);
-	if (dependencyCount > limits.maxDependencies) {
-		fail(
-			"agentos_apps_dependency_limit",
-			`deployment has ${dependencyCount} dependencies, exceeding maxDependencies ${limits.maxDependencies}`,
-			{ observed: dependencyCount, limit: limits.maxDependencies },
-		);
-	}
-	const usesRivetKit = dependencyMaps.some(
-		(dependencies) => typeof dependencies.rivetkit === "string",
-	);
-	const build = typeof packageJson.scripts?.build === "string";
-	const declared =
-		packageExport(packageJson.exports) ??
-		(typeof packageJson.main === "string" ? packageJson.main : undefined);
-	if (declared) {
-		return {
-			entrypoint: normalizeAppPath(declared),
-			build,
-			dependencyCount,
-			hasLockfile: Boolean(normalizedFiles["package-lock.json"]),
-			usesRivetKit,
-		};
-	}
-	for (const candidate of [
-		"src/index.mjs",
-		"src/index.js",
-		"index.mjs",
-		"index.js",
+function releaseIdFor(input: {
+	buildId: string;
+	artifactHash: string;
+	regions: string[];
+	scaling: Required<AppScaling>;
+	namespace: string;
+	endpoint: string;
+	pool: string;
+	usesRivetKit: boolean;
+}): string {
+	const hash = createHash("sha256");
+	hash.update("agentos-apps-rivet-release-v1\0");
+	for (const value of [
+		input.buildId,
+		input.artifactHash,
+		JSON.stringify(input.regions),
+		JSON.stringify(input.scaling),
+		input.namespace,
+		input.endpoint,
+		input.pool,
+		input.usesRivetKit ? "1" : "0",
 	]) {
-		if (normalizedFiles[candidate]) {
-			return {
-				entrypoint: candidate,
-				build,
-				dependencyCount,
-				hasLockfile: Boolean(normalizedFiles["package-lock.json"]),
-				usesRivetKit,
-			};
-		}
+		const bytes = Buffer.from(value);
+		const length = Buffer.allocUnsafe(8);
+		length.writeBigUInt64BE(BigInt(bytes.byteLength));
+		hash.update(length);
+		hash.update(bytes);
 	}
-	fail(
-		"agentos_apps_entrypoint_not_found",
-		"could not infer a direct server entrypoint",
-	);
+	return hash.digest("hex");
 }
 
-function normalizeRegions(
-	regions: string[] | undefined,
-	fallbackRegion: string,
-	maxRegions: number,
-): string[] {
-	const unique = [...new Set(regions ?? [fallbackRegion || "default"])];
-	if (unique.length === 0 || unique.length > maxRegions) {
-		fail(
-			"agentos_apps_invalid_regions",
-			`an app must have between 1 and ${maxRegions} regions`,
-			{ maxRegions },
-		);
-	}
-	for (const region of unique) {
-		if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(region)) {
-			fail(
-				"agentos_apps_invalid_region",
-				`invalid region ${JSON.stringify(region)}`,
-			);
-		}
-	}
-	return unique;
-}
-
-function boundedOutput(value: string, maximum: number): string {
-	const bytes = Buffer.from(value);
-	if (bytes.byteLength <= maximum) return value;
-	return `${bytes.subarray(0, maximum).toString("utf8")}\n[truncated at ${maximum} bytes]`;
-}
-
-function emitBuildOutput(
-	appId: string,
-	release: string,
-	result: Pick<ExecResult, "stdout" | "stderr">,
-): void {
-	for (const stream of ["stdout", "stderr"] as const) {
-		const decoder = new DynamicAppsLogLineDecoder((message, truncated) =>
-			emitDynamicAppsLog({
-				level: stream === "stdout" ? "info" : "error",
-				source: "build",
-				message,
-				appId,
-				release,
-				stream,
-				...(truncated ? { metadata: { truncated: true } } : {}),
-			}),
-		);
-		decoder.write(Buffer.from(result[stream]));
-		decoder.end();
-	}
-}
-
-function throwCommandFailure(
-	kind: "install" | "build" | "pack",
-	command: string,
-	result: ExecResult,
-	maxOutputBytes: number,
-): never {
-	fail(
-		`agentos_apps_${kind}_failed`,
-		`${command} failed with exit code ${result.exitCode}`,
+async function beginReleasePublishLocked(
+	c: AnyActorContext,
+	input: BeginReleasePublishInput,
+): Promise<BeginReleasePublishResult> {
+	const appId = validateBeginInput(c, input);
+	const state = c.state as AppState;
+	const regions = normalizeRegions(input.regions, c.region);
+	const scaling = normalizeScaling(input.scaling);
+	const runtime = await provisionAppNamespace(
+		appId,
+		resolveDefaultRivetConnection(),
 		{
-			exitCode: result.exitCode,
-			stdout: boundedOutput(result.stdout, maxOutputBytes),
-			stderr: boundedOutput(result.stderr, maxOutputBytes),
+			namespace: state.namespace,
+			cloudNamespace: state.cloudNamespace,
 		},
 	);
-}
-
-async function buildRelease(
-	c: AnyActorContext,
-	input: PreparedDeployAppInput,
-	plan: BuildPlan,
-	release: string,
-	config: {
-		createBuildVm: () => Promise<BuildHandle>;
-		buildTimeoutMs: number;
-		maxResponseBytes: number;
-		maxBuildOutputBytes: number;
-		maxBuildArtifactBytes: number;
-		artifactCache?: {
-			get(release: string): Promise<Uint8Array | undefined>;
-			put(release: string, artifact: Uint8Array): Promise<void>;
-		};
-	},
-): Promise<{ hash: string; size: number; bytes: Uint8Array }> {
-	const cached = await config.artifactCache?.get(release);
-	if (cached) {
-		if (cached.byteLength > config.maxBuildArtifactBytes) {
-			fail(
-				"agentos_apps_build_artifact_size_limit",
-				`cached artifact exceeds ${config.maxBuildArtifactBytes} bytes`,
-			);
-		}
+	state.namespace = runtime.namespace;
+	state.cloudNamespace = runtime.cloudNamespace ?? null;
+	state.runnerToken = runtime.runnerToken ?? null;
+	state.publicToken = runtime.publicToken ?? null;
+	const releaseId = releaseIdFor({
+		buildId: input.buildId,
+		artifactHash: input.artifactHash,
+		regions,
+		scaling,
+		namespace: runtime.namespace,
+		endpoint: runtime.endpoint,
+		pool: runtime.pool,
+		usesRivetKit: input.usesRivetKit,
+	});
+	const releases = await listStoredReleases(c.db);
+	const existing = await getStoredRelease(c.db, releaseId);
+	const callbackSecret = input.usesRivetKit
+		? existing?.callbackSecret ||
+			releases.find((candidate) => candidate.callbackSecret)?.callbackSecret ||
+			randomUUID()
+		: "";
+	const sequence = (state.publishSequence ?? 0) + 1;
+	state.publishSequence = sequence;
+	state.latestPublishSequence = sequence;
+	const metadataMatches =
+		existing?.status === "ready" &&
+		existing.entrypoint === DIRECT_ENTRYPOINT &&
+		existing.artifactHash === input.artifactHash &&
+		existing.artifactBytes === input.artifactBytes &&
+		JSON.stringify(existing.regions) === JSON.stringify(regions) &&
+		JSON.stringify(existing.scaling) === JSON.stringify(scaling) &&
+		existing.namespace === runtime.namespace &&
+		existing.runtimeEndpoint === runtime.endpoint &&
+		existing.runtimePool === runtime.pool &&
+		existing.usesRivetKit === input.usesRivetKit;
+	if (metadataMatches) {
 		return {
-			hash: createHash("sha256").update(cached).digest("hex"),
-			size: cached.byteLength,
-			bytes: cached,
+			release: releaseId,
+			sequence,
+			uploadRequired: false,
+			chunkBytes: ARTIFACT_CHUNK_BYTES,
 		};
 	}
-	const build = await config.createBuildVm();
-	const startedAt = performance.now();
-	const phase = (name: string) => {
-		const elapsedMs = performance.now() - startedAt;
-		c.log.info({
-			msg: "Dynamic Apps build phase completed",
-			release,
-			phase: name,
-			elapsedMs,
-		});
-		emitDynamicAppsLog({
-			level: "info",
-			source: "build",
-			message: "Dynamic Apps build phase completed",
-			appId: input.appId,
-			release,
-			metadata: { phase: name, elapsedMs },
-		});
+	await deleteArtifactChunksBatched(c.db, releaseId);
+	await c.db.execute(
+		`INSERT INTO agentos_apps_releases (
+			release_id, created_at, status, entrypoint,
+			artifact_hash, artifact_bytes, build_error,
+			regions_json, scaling_json, namespace, envoy_version,
+			runtime_endpoint, runtime_pool, callback_secret, uses_rivetkit
+		) VALUES (?, ?, 'building', ?, ?, ?, NULL, ?, ?, ?, 1, ?, ?, ?, ?)
+		ON CONFLICT(release_id) DO UPDATE SET
+			status = 'building', entrypoint = excluded.entrypoint,
+			artifact_hash = excluded.artifact_hash,
+			artifact_bytes = excluded.artifact_bytes, build_error = NULL,
+			regions_json = excluded.regions_json,
+			scaling_json = excluded.scaling_json,
+			namespace = excluded.namespace,
+			runtime_endpoint = excluded.runtime_endpoint,
+			runtime_pool = excluded.runtime_pool,
+			callback_secret = excluded.callback_secret,
+			uses_rivetkit = excluded.uses_rivetkit`,
+		releaseId,
+		existing?.createdAt ?? input.createdAt,
+		DIRECT_ENTRYPOINT,
+		input.artifactHash,
+		input.artifactBytes,
+		JSON.stringify(regions),
+		JSON.stringify(scaling),
+		runtime.namespace,
+		runtime.endpoint,
+		runtime.pool,
+		callbackSecret,
+		input.usesRivetKit ? 1 : 0,
+	);
+	return {
+		release: releaseId,
+		sequence,
+		uploadRequired: true,
+		chunkBytes: ARTIFACT_CHUNK_BYTES,
 	};
-	let buildError: unknown;
-	try {
-		const files = Object.entries(input.files).map(([path, content]) => ({
-			path: `/workspace/${normalizeAppPath(path)}`,
-			content:
-				path === "package.json"
-					? (installPackageJson(input.files, plan) ?? content)
-					: content,
-		}));
-		files.push({
-			path: "/workspace/direct-runner.mjs",
-			content: new TextEncoder().encode(
-				directRunnerSource({
-					entrypoint: plan.entrypoint,
-					release,
-					maxResponseBytes: config.maxResponseBytes,
-				}),
-			),
-		});
-		if (plan.usesRivetKit) {
-			files.push({
-				path: "/workspace/actor-runner.mjs",
-				content: new TextEncoder().encode(actorRunnerSource(plan.entrypoint)),
-			});
-		}
-		const writes = await build.writeFiles(files);
-		const failedWrite = writes.find((entry) => !entry.success);
-		if (failedWrite) {
-			fail(
-				"agentos_apps_build_write_failed",
-				`failed to write build input ${failedWrite.path}: ${failedWrite.error ?? "unknown error"}`,
-				{ path: failedWrite.path, error: failedWrite.error },
-			);
-		}
-		const installArgs = [
-			plan.hasLockfile && !plan.usesRivetKit ? "ci" : "install",
-			"--install-strategy=shallow",
-			"--include=dev",
-			"--omit=optional",
-			"--omit=peer",
-			"--legacy-peer-deps",
-			"--no-audit",
-			"--no-fund",
-			"--maxsockets=16",
-			"--loglevel=error",
-		];
-		const install = await build.execArgv("npm", installArgs, {
-			cwd: "/workspace",
-			env: { NODE_ENV: "development", NPM_CONFIG_PRODUCTION: "false" },
-			timeout: config.buildTimeoutMs,
-			captureStdio: true,
-		});
-		emitBuildOutput(input.appId, release, install);
-		if (install.exitCode !== 0) {
-			throwCommandFailure(
-				"install",
-				`npm ${installArgs[0]}`,
-				install,
-				config.maxBuildOutputBytes,
-			);
-		}
-		phase("dependencies_installed");
-		if (plan.build) {
-			const result = await build.execArgv("npm", ["run", "build"], {
-				cwd: "/workspace",
-				timeout: config.buildTimeoutMs,
-				captureStdio: true,
-			});
-			emitBuildOutput(input.appId, release, result);
-			if (result.exitCode !== 0) {
-				throwCommandFailure(
-					"build",
-					"npm run build",
-					result,
-					config.maxBuildOutputBytes,
-				);
-			}
-			phase("application_built");
-		}
-		const prune = await build.execArgv(
-			"npm",
-			[
-				"prune",
-				"--omit=dev",
-				"--omit=optional",
-				"--omit=peer",
-				"--legacy-peer-deps",
-			],
-			{
-				cwd: "/workspace",
-				timeout: config.buildTimeoutMs,
-				captureStdio: true,
-			},
+}
+
+async function writeReleaseChunk(
+	c: AnyActorContext,
+	input: WriteReleaseChunkInput,
+): Promise<void> {
+	const state = c.state as AppState;
+	if (
+		!RELEASE_PATTERN.test(input.release) ||
+		!Number.isSafeInteger(input.sequence) ||
+		input.sequence < 1 ||
+		input.sequence !== state.latestPublishSequence ||
+		!Number.isSafeInteger(input.index) ||
+		input.index < 0 ||
+		!(input.content instanceof Uint8Array)
+	) {
+		fail(
+			"agentos_apps_invalid_artifact_chunk",
+			"release chunk metadata is invalid or superseded",
 		);
-		emitBuildOutput(input.appId, release, prune);
-		if (prune.exitCode !== 0) {
-			throwCommandFailure(
-				"install",
-				"npm prune --omit=dev --omit=optional",
-				prune,
-				config.maxBuildOutputBytes,
-			);
-		}
-		const nativeAddonCheck = await build.execArgv(
-			"node",
-			[
-				"-e",
-				'const fs=require("node:fs"); const path=require("node:path"); const found=[]; const walk=(p)=>{if(!fs.existsSync(p))return; for(const e of fs.readdirSync(p,{withFileTypes:true})){const q=path.join(p,e.name); if(e.isDirectory())walk(q); else if(e.name.endsWith(".node"))found.push(q)}}; walk("node_modules"); if(found.length){console.error(found.slice(0,32).join("\\n")); process.exit(42)}',
-			],
-			{
-				cwd: "/workspace",
-				timeout: config.buildTimeoutMs,
-				captureStdio: true,
-			},
+	}
+	const release = await getStoredRelease(c.db, input.release);
+	if (!release || release.status !== "building") {
+		fail(
+			"agentos_apps_artifact_not_building",
+			`release ${input.release} is not accepting artifact chunks`,
 		);
-		emitBuildOutput(input.appId, release, nativeAddonCheck);
-		if (nativeAddonCheck.exitCode === 42) {
-			fail(
-				"agentos_apps_native_addon_unsupported",
-				"application contains native Node addons",
-				{
-					files: boundedOutput(
-						nativeAddonCheck.stderr,
-						config.maxBuildOutputBytes,
-					),
-				},
-			);
-		}
-		if (nativeAddonCheck.exitCode !== 0) {
-			throwCommandFailure(
-				"build",
-				"native addon scan",
-				nativeAddonCheck,
-				config.maxBuildOutputBytes,
-			);
-		}
-		const directConfigPath = "/workspace/.agentos-app-direct-build.json";
-		const configWrites = await build.writeFiles([
-			{
-				path: directConfigPath,
-				content: JSON.stringify({
-					version: release,
-					workspace: "/workspace",
-					release: "/release/direct",
-					entrypoint: "direct-runner.mjs",
-					sourceFiles: Object.keys(input.files),
-					usesRivetKit: plan.usesRivetKit,
-					directAgentOs: true,
-					maxOutputBytes: config.maxBuildArtifactBytes,
-					maxOutputFiles: DEFAULT_MAX_BUILD_ARTIFACT_FILES,
-					maxFileBytes: DEFAULT_MAX_BUILD_ARTIFACT_FILE_BYTES,
-				}),
-			},
-		]);
-		const failedConfigWrite = configWrites.find((entry) => !entry.success);
-		if (failedConfigWrite) {
-			fail(
-				"agentos_apps_build_write_failed",
-				`failed to write Apps builder input ${failedConfigWrite.path}`,
-			);
-		}
-		const directBundle = await build.execArgv(
-			"node",
-			["/opt/agentos/bin/apps-builder", directConfigPath],
-			{
-				cwd: "/workspace",
-				timeout: config.buildTimeoutMs,
-				captureStdio: true,
-			},
+	}
+	const chunks = Math.ceil(release.artifactBytes / ARTIFACT_CHUNK_BYTES);
+	const expected =
+		input.index === chunks - 1
+			? release.artifactBytes - input.index * ARTIFACT_CHUNK_BYTES
+			: ARTIFACT_CHUNK_BYTES;
+	if (input.index >= chunks || input.content.byteLength !== expected) {
+		fail(
+			"agentos_apps_invalid_artifact_chunk",
+			`artifact chunk ${input.index} has an invalid length`,
 		);
-		emitBuildOutput(input.appId, release, directBundle);
-		if (directBundle.exitCode !== 0) {
-			throwCommandFailure(
-				"build",
-				"apps-builder (direct)",
-				directBundle,
-				config.maxBuildOutputBytes,
-			);
-		}
-		if (plan.usesRivetKit) {
-			const actorConfigPath = "/workspace/.agentos-app-actor-build.json";
-			const actorConfigWrite = await build.writeFiles([
-				{
-					path: actorConfigPath,
-					content: JSON.stringify({
-						version: release,
-						workspace: "/workspace",
-						release: "/release/actor",
-						entrypoint: "actor-runner.mjs",
-						sourceFiles: Object.keys(input.files),
-						usesRivetKit: true,
-						platformRivetKit: true,
-						maxOutputBytes: config.maxBuildArtifactBytes,
-						maxOutputFiles: DEFAULT_MAX_BUILD_ARTIFACT_FILES,
-						maxFileBytes: DEFAULT_MAX_BUILD_ARTIFACT_FILE_BYTES,
-					}),
-				},
-			]);
-			if (actorConfigWrite.some((entry) => !entry.success)) {
-				fail(
-					"agentos_apps_build_write_failed",
-					"failed to write actor Apps builder input",
-				);
-			}
-			const actorBundle = await build.execArgv(
-				"node",
-				["/opt/agentos/bin/apps-builder", actorConfigPath],
-				{
-					cwd: "/workspace",
-					timeout: config.buildTimeoutMs,
-					captureStdio: true,
-				},
-			);
-			emitBuildOutput(input.appId, release, actorBundle);
-			if (actorBundle.exitCode !== 0) {
-				throwCommandFailure(
-					"build",
-					"apps-builder (actor)",
-					actorBundle,
-					config.maxBuildOutputBytes,
-				);
-			}
-		}
-		phase("release_bundled");
-		const validation = await build.execArgv(
-			"node",
-			[
-				"-e",
-				`import("/release/${DIRECT_BUNDLE_PATH}").then((module)=>{if(module.dynamicAppMetadata?.format!==${JSON.stringify(DIRECT_RUNTIME_FORMAT)}||typeof module.dispatch!=="function") throw new TypeError("invalid direct app handler")}).catch((error)=>{console.error(error);process.exitCode=1})`,
-			],
-			{
-				cwd: "/release",
-				timeout: config.buildTimeoutMs,
-				captureStdio: true,
-			},
+	}
+	const content = new Uint8Array(input.content);
+	await c.db.execute(
+		`INSERT INTO agentos_apps_artifact_chunks
+		 (release_id, chunk_index, content, byte_length)
+		 VALUES (?, ?, ?, ?)
+		 ON CONFLICT(release_id, chunk_index) DO UPDATE SET
+			content = excluded.content, byte_length = excluded.byte_length`,
+		input.release,
+		input.index,
+		content,
+		content.byteLength,
+	);
+}
+
+async function commitReleasePublishLocked(
+	c: AnyActorContext,
+	input: CommitReleasePublishInput,
+): Promise<Deployment & { appActorId: string; usesRivetKit: boolean }> {
+	const state = c.state as AppState;
+	if (
+		!RELEASE_PATTERN.test(input.release) ||
+		!Number.isSafeInteger(input.sequence) ||
+		input.sequence !== state.latestPublishSequence
+	) {
+		fail(
+			"agentos_apps_publish_superseded",
+			"a newer release publish superseded this upload",
 		);
-		emitBuildOutput(input.appId, release, validation);
-		if (validation.exitCode !== 0) {
-			fail(
-				"agentos_apps_invalid_handler",
-				"application entrypoint could not be imported as a direct fetch handler",
-				{
-					stderr: boundedOutput(validation.stderr, config.maxBuildOutputBytes),
-				},
-			);
-		}
-		const rootManifestWrite = await build.writeFiles([
-			{
-				path: "/release/agentos-package.json",
-				content: JSON.stringify({ name: "agentos-app", version: release }),
-			},
-		]);
-		if (rootManifestWrite.some((entry) => !entry.success)) {
-			fail(
-				"agentos_apps_build_write_failed",
-				"failed to write root application package manifest",
-			);
-		}
-		phase("release_validated");
-		const pack = await build.execArgv(
-			"tar",
-			[
-				"--sort=name",
-				"--mtime=@0",
-				"--owner=0",
-				"--group=0",
-				"--numeric-owner",
-				"-cf",
-				build.artifactGuestPath,
-				".",
-			],
-			{
-				cwd: "/release",
-				timeout: config.buildTimeoutMs,
-				captureStdio: true,
-			},
+	}
+	const release = await getStoredRelease(c.db, input.release);
+	if (
+		!release ||
+		(release.status !== "building" && release.status !== "ready")
+	) {
+		fail(
+			"agentos_apps_artifact_not_ready",
+			`release ${input.release} cannot be committed`,
 		);
-		emitBuildOutput(input.appId, release, pack);
-		if (pack.exitCode !== 0) {
-			throwCommandFailure("pack", "tar", pack, config.maxBuildOutputBytes);
-		}
-		phase("release_archived");
-		const archiveSize = await build.artifactSize();
+	}
+	const expectedChunks = Math.ceil(
+		release.artifactBytes / ARTIFACT_CHUNK_BYTES,
+	);
+	if (
+		!Number.isSafeInteger(input.chunks) ||
+		input.chunks !== expectedChunks ||
+		input.chunks < 1 ||
+		input.chunks > MAX_ARTIFACT_CHUNKS
+	) {
+		fail(
+			"agentos_apps_artifact_manifest_invalid",
+			"release commit has an invalid artifact chunk count",
+		);
+	}
+	await readStoredArtifact(c.db, release);
+	if (release.status === "ready" && state.activeRelease === release.release) {
+		return deploymentForRelease(c, state, release);
+	}
+	if (release.status !== "ready") {
+		await c.db.execute(
+			`UPDATE agentos_apps_releases SET status = 'ready', build_error = NULL
+			 WHERE release_id = ?`,
+			release.release,
+		);
+		release.status = "ready";
+	}
+	const appId = c.key[0];
+	if (!appId)
+		fail("agentos_apps_invalid_app_id", "application actor key is missing");
+	const runtime = await provisionAppNamespace(
+		appId,
+		resolveDefaultRivetConnection(),
+		{
+			namespace: state.namespace,
+			cloudNamespace: state.cloudNamespace,
+		},
+	);
+	state.namespace = runtime.namespace;
+	state.cloudNamespace = runtime.cloudNamespace ?? null;
+	state.runnerToken = runtime.runnerToken ?? null;
+	state.publicToken = runtime.publicToken ?? null;
+	if (release.usesRivetKit) {
+		actorPublicEndpoint(release, state);
 		if (
-			!Number.isSafeInteger(archiveSize) ||
-			archiveSize < 0 ||
-			archiveSize > config.maxBuildArtifactBytes
+			runtime.endpoint.replace(/\/$/, "") !==
+			release.runtimeEndpoint.replace(/\/$/, "")
 		) {
 			fail(
-				"agentos_apps_build_artifact_size_limit",
-				`built application archive is ${archiveSize} bytes, limit is ${config.maxBuildArtifactBytes}`,
+				"agentos_apps_runtime_changed",
+				"the app actor Rivet endpoint does not match the deployment runtime",
 			);
 		}
-		const sourceTar = Buffer.from(await build.readArtifact());
-		if (sourceTar.byteLength !== archiveSize) {
-			fail(
-				"agentos_apps_build_artifact_truncated",
-				`build artifact contained ${sourceTar.byteLength} bytes, expected ${archiveSize}`,
-			);
-		}
-		const packed = packAospkgFromTarBytes(sourceTar).bytes;
-		const artifactHash = createHash("sha256").update(packed).digest("hex");
-		await config.artifactCache?.put(release, new Uint8Array(packed));
-		return {
-			hash: artifactHash,
-			size: packed.byteLength,
-			bytes: new Uint8Array(packed),
-		};
-	} catch (error) {
-		buildError = error;
-		throw error;
-	} finally {
-		await build.dispose().catch((disposeError) => {
-			emitDynamicAppsLog({
-				level: "error",
-				source: "build",
-				message: "failed to dispose Dynamic Apps build VM",
-				appId: input.appId,
-				release,
-			});
-			if (!buildError) throw disposeError;
-			c.log.error({
-				msg: "failed to dispose Dynamic Apps build VM after build failure",
-				disposeError,
-			});
-		});
-	}
-}
-
-function createBuildVmFactory(
-	maxBuildArtifactBytes: number,
-): () => Promise<BuildHandle> {
-	const options: AgentOsOptions = {
-		defaultSoftware: false,
-		software: [sh, tar, appsBuilder],
-		permissions: {
-			fs: "allow",
-			childProcess: "allow",
-			process: "allow",
-			env: "allow",
-			network: "allow",
-		},
-		limits: {
-			tls: { maxBufferedBytes: 16 * 1024 * 1024 },
-			jsRuntime: { v8HeapLimitMb: 1_024 },
-			resources: {
-				maxProcesses: 64,
-				maxOpenFds: 2_048,
-				maxPreadBytes: 15 * 1024 * 1024,
-				maxFdWriteBytes: 16 * 1024 * 1024,
-				maxSocketBufferedBytes: 16 * 1024 * 1024,
-				maxFilesystemBytes: Math.max(
-					DEFAULT_MAX_BUILD_FILESYSTEM_BYTES,
-					maxBuildArtifactBytes * 2,
-				),
-			},
-		},
-	};
-	return async () => {
-		const outputDirectory = await mkdtemp(
-			join(tmpdir(), "agentos-apps-build-output-"),
-		);
-		await chmod(outputDirectory, 0o777);
-		const artifactGuestPath = "/agentos-app-output/agentos-app.tar";
-		const artifactHostPath = join(outputDirectory, "agentos-app.tar");
-		let vm: AgentOs;
 		try {
-			vm = await AgentOs.create({
-				...options,
-				mounts: [
-					{
-						path: "/agentos-app-output",
-						readOnly: false,
-						plugin: createHostDirBackend({
-							hostPath: outputDirectory,
-							readOnly: false,
-						}),
-					},
-				],
-			});
+			await configureAppNamespaceRunner(
+				c.actorId,
+				{
+					endpoint: release.runtimeEndpoint,
+					namespace: release.namespace,
+					pool: release.runtimePool,
+					controlToken: runtime.controlToken,
+				},
+				release.callbackSecret,
+			);
 		} catch (error) {
-			await rm(outputDirectory, { recursive: true, force: true });
+			c.log.error({
+				msg: "Dynamic App actor runner configuration failed",
+				release: release.release,
+				error: error instanceof Error ? error.stack : String(error),
+			});
 			throw error;
 		}
-		return {
-			artifactGuestPath,
-			writeFiles: (...args) => vm.writeFiles(...args),
-			execArgv: (...args) => vm.execArgv(...args),
-			artifactSize: async () => (await stat(artifactHostPath)).size,
-			readArtifact: async () =>
-				new Uint8Array(await readFile(artifactHostPath)),
-			dispose: async () => {
-				const results = await Promise.allSettled([
-					vm.dispose(),
-					rm(outputDirectory, { recursive: true, force: true }),
-				]);
-				const failures = results.flatMap((result) =>
-					result.status === "rejected" ? [result.reason] : [],
-				);
-				if (failures.length > 0) {
-					throw new AggregateError(
-						failures,
-						"failed to dispose Dynamic Apps build VM output",
-					);
-				}
-			},
-		};
+	}
+	state.activeRelease = release.release;
+	state.revision += 1;
+	c.broadcast("releaseActivated", {
+		revision: state.revision,
+		release: release.release,
+		artifactHash: release.artifactHash,
+		activatedAt: Date.now(),
+	});
+	const releases = await listStoredReleases(c.db);
+	const removable = releases
+		.filter((candidate) => candidate.release !== release.release)
+		.sort((a, b) => a.createdAt - b.createdAt);
+	let retained = releases.length;
+	while (retained > DEFAULT_MAX_VERSIONS) {
+		const candidate = removable.shift();
+		if (!candidate) break;
+		await deleteArtifactChunksBatched(c.db, candidate.release);
+		await deleteReleaseFilesBatched(c.db, candidate.release);
+		await c.db.execute(
+			"DELETE FROM agentos_apps_releases WHERE release_id = ?",
+			candidate.release,
+		);
+		retained -= 1;
+	}
+	return deploymentForRelease(c, state, release);
+}
+
+function deploymentForRelease(
+	c: AnyActorContext,
+	state: AppState,
+	release: StoredAppRelease,
+): Deployment & { appActorId: string; usesRivetKit: boolean } {
+	const appId = c.key[0];
+	if (!appId)
+		fail("agentos_apps_invalid_app_id", "application actor key is missing");
+	return {
+		appId,
+		release: release.release,
+		endpoint: release.runtimeEndpoint,
+		namespace: release.namespace,
+		pool: release.runtimePool,
+		...(state.publicToken ? { token: state.publicToken } : {}),
+		regions: [...release.regions],
+		appActorId: c.actorId,
+		usesRivetKit: release.usesRivetKit,
 	};
 }
 
 export function createAppsActors(
-	options: {
-		artifactCache?: {
-			get(release: string): Promise<Uint8Array | undefined>;
-			put(release: string, artifact: Uint8Array): Promise<void>;
-		};
-	} = {},
+	options: { artifactCache?: BuildArtifactCache } = {},
 ): DynamicAppsActors {
-	const createBuildVm = createBuildVmFactory(DEFAULT_MAX_BUILD_ARTIFACT_BYTES);
 	const forwardActorRequest = async (
 		c: AnyActorContext,
 		request: Request,
@@ -1229,7 +902,7 @@ export function createAppsActors(
 		try {
 			return await getDefaultActorRuntime().request({
 				key: `${release.release}:${release.artifactHash}`,
-				appId: c.key[0] ?? "unknown",
+				appId: c.key[0],
 				release: release.release,
 				loadArtifact: () => readStoredArtifact(c.db, release),
 				endpoint: actorPublicEndpoint(release, state),
@@ -1246,8 +919,9 @@ export function createAppsActors(
 			throw error;
 		}
 	};
+
 	const agentOSAppsApp = actor({
-		options: { actionTimeout: DEFAULT_BUILD_TIMEOUT_MS + 60_000 },
+		options: { actionTimeout: 16 * 60_000 },
 		db: db({ onMigrate: migrateAppsTables }),
 		onRequest: forwardActorRequest,
 		createState: (): AppState => ({
@@ -1257,279 +931,103 @@ export function createAppsActors(
 			cloudNamespace: null,
 			runnerToken: null,
 			publicToken: null,
+			publishSequence: 0,
+			latestPublishSequence: 0,
 		}),
 		actions: {
-			deploy: async (
+			beginReleasePublish: (
+				c: AnyActorContext,
+				input: BeginReleasePublishInput,
+			) =>
+				c.keepAwake(
+					actorBoundary(() =>
+						serialized(`app:${c.actorId}`, () =>
+							beginReleasePublishLocked(c, input),
+						),
+					),
+				),
+			writeReleaseChunk: (c: AnyActorContext, input: WriteReleaseChunkInput) =>
+				c.keepAwake(
+					actorBoundary(() =>
+						serialized(`app:${c.actorId}`, () => writeReleaseChunk(c, input)),
+					),
+				),
+			commitReleasePublish: (
+				c: AnyActorContext,
+				input: CommitReleasePublishInput,
+			) =>
+				c.keepAwake(
+					actorBoundary(() =>
+						serialized(`app:${c.actorId}`, () =>
+							commitReleasePublishLocked(c, input),
+						),
+					),
+				),
+			deploy: (
 				c: AnyActorContext,
 				input: PreparedDeployAppInput,
 			): Promise<Deployment & { appActorId: string; usesRivetKit: boolean }> =>
 				c.keepAwake(
-					serialized(`app:${c.actorId}`, async () => {
+					actorBoundary(async () => {
 						const appId = c.key[0];
 						if (!appId || c.key.length !== 1 || input.appId !== appId) {
 							fail(
 								"agentos_apps_app_id_mismatch",
 								"deployApp appId must match the stable application actor key",
-								{ appId: input.appId, actorKey: c.key },
 							);
 						}
-						const plan = validateDeployment(input, {
-							maxSourceBytes: DEFAULT_MAX_SOURCE_BYTES,
-							maxFiles: DEFAULT_MAX_FILES,
-							maxDependencies: DEFAULT_MAX_DEPENDENCIES,
-						});
-						const state = c.state as AppState;
-						const runtime = await provisionAppNamespace(
-							appId,
-							resolveDefaultRivetConnection(),
+						const built = await buildAppRelease(
+							{ appId, files: input.files },
 							{
-								namespace: state.namespace,
-								cloudNamespace: state.cloudNamespace,
+								artifactCache: options.artifactCache,
+								logger: {
+									info: (event) => c.log.info(event),
+									error: (event) => c.log.error(event),
+								},
 							},
 						);
-						state.namespace = runtime.namespace;
-						state.cloudNamespace = runtime.cloudNamespace ?? null;
-						state.runnerToken = runtime.runnerToken ?? null;
-						state.publicToken = runtime.publicToken ?? null;
-						const regions = normalizeRegions(
-							input.regions,
-							c.region,
-							DEFAULT_MAX_REGIONS,
-						);
-						const scaling = normalizeScaling(input.scaling);
-						const releaseId = canonicalDeploymentHash({
-							files: input.files,
-							entrypoint: plan.entrypoint,
-							build: plan.build,
-							packagingIdentity: [
-								`apps-builder@${appsBuilderVersion}`,
-								`manifest@${appBundleManifestVersion}`,
-								"direct@2",
-								`actors@${plan.usesRivetKit ? 1 : 0}`,
-								"esbuild-wasm@0.27.4",
-							].join(";"),
-							deploymentIdentity: JSON.stringify({
-								regions,
-								scaling,
-								namespace: runtime.namespace,
-								runtime: {
-									endpoint: runtime.endpoint,
-									pool: runtime.pool,
-								},
-								usesRivetKit: plan.usesRivetKit,
-							}),
-						});
-						const releasesBefore = await listStoredReleases(c.db);
-						let release = await getStoredRelease(c.db, releaseId);
-						const callbackSecret = plan.usesRivetKit
-							? release?.callbackSecret ||
-								releasesBefore.find((candidate) => candidate.callbackSecret)
-									?.callbackSecret ||
-								randomUUID()
-							: "";
-						if (!release || release.status !== "ready") {
-							const createdAt = release?.createdAt ?? Date.now();
-							await deleteArtifactChunksBatched(c.db, releaseId);
-							await c.db.execute(
-								`INSERT INTO agentos_apps_releases (
-									release_id, created_at, status, entrypoint,
-									artifact_hash, artifact_bytes, build_error,
-									regions_json, scaling_json, namespace, envoy_version,
-									runtime_endpoint, runtime_pool, callback_secret,
-									uses_rivetkit
-								) VALUES (?, ?, 'building', ?, '', 0, NULL, ?, ?, ?, 1, ?, ?, ?, ?)
-								ON CONFLICT(release_id) DO UPDATE SET
-									status = 'building', entrypoint = excluded.entrypoint,
-									artifact_hash = '', artifact_bytes = 0, build_error = NULL,
-									regions_json = excluded.regions_json,
-									scaling_json = excluded.scaling_json,
-									namespace = excluded.namespace,
-									runtime_endpoint = excluded.runtime_endpoint,
-									runtime_pool = excluded.runtime_pool,
-									callback_secret = excluded.callback_secret,
-									uses_rivetkit = excluded.uses_rivetkit`,
-								releaseId,
-								createdAt,
-								DIRECT_ENTRYPOINT,
-								JSON.stringify(regions),
-								JSON.stringify(scaling),
-								runtime.namespace,
-								runtime.endpoint,
-								runtime.pool,
-								callbackSecret,
-								plan.usesRivetKit ? 1 : 0,
+						return serialized(`app:${c.actorId}`, async () => {
+							const publishInput: BeginReleasePublishInput = {
+								appId,
+								buildId: built.buildId,
+								format: built.artifact.format,
+								entrypoint: built.artifact.entrypoint,
+								artifactHash: built.artifact.hash,
+								artifactBytes: built.artifact.byteLength,
+								usesRivetKit: built.artifact.usesRivetKit,
+								regions: input.regions,
+								scaling: input.scaling,
+								createdAt: Date.now(),
+							};
+							const begin = await beginReleasePublishLocked(c, publishInput);
+							await deleteReleaseFilesBatched(c.db, begin.release);
+							await persistReleaseFilesBatched(
+								c.db,
+								begin.release,
+								input.files,
 							);
-							await deleteReleaseFilesBatched(c.db, releaseId);
-							await persistReleaseFilesBatched(c.db, releaseId, input.files);
-							try {
-								const artifact = await buildRelease(c, input, plan, releaseId, {
-									createBuildVm,
-									buildTimeoutMs: DEFAULT_BUILD_TIMEOUT_MS,
-									maxResponseBytes: DEFAULT_MAX_RESPONSE_BYTES,
-									maxBuildOutputBytes: DEFAULT_MAX_BUILD_OUTPUT_BYTES,
-									maxBuildArtifactBytes: DEFAULT_MAX_BUILD_ARTIFACT_BYTES,
-									artifactCache: options.artifactCache,
-								});
-								const chunkCount = Math.ceil(
-									artifact.size / ARTIFACT_CHUNK_BYTES,
-								);
-								if (chunkCount > MAX_ARTIFACT_CHUNKS) {
-									fail(
-										"agentos_apps_artifact_chunk_limit",
-										`artifact requires ${chunkCount} chunks`,
-									);
-								}
-								await deleteArtifactChunksBatched(c.db, releaseId);
-								for (let index = 0; index < chunkCount; index += 1) {
-									const chunk = artifact.bytes.slice(
-										index * ARTIFACT_CHUNK_BYTES,
-										(index + 1) * ARTIFACT_CHUNK_BYTES,
-									);
-									await c.db.execute(
-										`INSERT INTO agentos_apps_artifact_chunks
-										 (release_id, chunk_index, content, byte_length)
-										 VALUES (?, ?, ?, ?)`,
-										releaseId,
+							const chunks = Math.ceil(
+								built.artifact.byteLength / ARTIFACT_CHUNK_BYTES,
+							);
+							if (begin.uploadRequired) {
+								for (let index = 0; index < chunks; index += 1) {
+									await writeReleaseChunk(c, {
+										release: begin.release,
+										sequence: begin.sequence,
 										index,
-										chunk,
-										chunk.byteLength,
-									);
+										content: built.artifact.bytes.slice(
+											index * ARTIFACT_CHUNK_BYTES,
+											(index + 1) * ARTIFACT_CHUNK_BYTES,
+										),
+									});
 								}
-								const totals = await c.db.execute<{
-									bytes: number;
-									chunks: number;
-								}>(
-									`SELECT COALESCE(SUM(byte_length), 0) AS bytes,
-									 COUNT(*) AS chunks FROM agentos_apps_artifact_chunks
-									 WHERE release_id = ?`,
-									releaseId,
-								);
-								if (
-									Number(totals[0]?.bytes ?? 0) !== artifact.size ||
-									Number(totals[0]?.chunks ?? 0) !== chunkCount
-								) {
-									fail(
-										"agentos_apps_artifact_persist_mismatch",
-										"persisted artifact chunks failed length verification",
-									);
-								}
-								await c.db.execute(
-									`UPDATE agentos_apps_releases SET status = 'ready',
-									 artifact_hash = ?, artifact_bytes = ?, build_error = NULL
-									 WHERE release_id = ?`,
-									artifact.hash,
-									artifact.size,
-									releaseId,
-								);
-							} catch (error) {
-								await deleteArtifactChunksBatched(c.db, releaseId);
-								await c.db.execute(
-									`UPDATE agentos_apps_releases SET status = 'failed',
-									 build_error = ? WHERE release_id = ?`,
-									error instanceof Error ? error.message : String(error),
-									releaseId,
-								);
-								throw error;
 							}
-							release = await getStoredRelease(c.db, releaseId);
-						} else {
-							await c.db.execute(
-								`UPDATE agentos_apps_releases SET regions_json = ?,
-									scaling_json = ?, runtime_endpoint = ?, runtime_pool = ?,
-									callback_secret = ?, uses_rivetkit = ?
-									WHERE release_id = ?`,
-								JSON.stringify(regions),
-								JSON.stringify(scaling),
-								runtime.endpoint,
-								runtime.pool,
-								callbackSecret,
-								plan.usesRivetKit ? 1 : 0,
-								releaseId,
-							);
-							release = await getStoredRelease(c.db, releaseId);
-						}
-						if (!release || release.status !== "ready") {
-							fail(
-								"agentos_apps_artifact_not_ready",
-								"built artifact was not ready for activation",
-							);
-						}
-						const previousRelease = state.activeRelease;
-						state.activeRelease = releaseId;
-						try {
-							if (release.usesRivetKit) {
-								actorPublicEndpoint(release, state);
-								if (
-									runtime.endpoint.replace(/\/$/, "") !==
-									release.runtimeEndpoint.replace(/\/$/, "")
-								) {
-									fail(
-										"agentos_apps_runtime_changed",
-										"the app actor Rivet endpoint does not match the deployment runtime",
-										{
-											expected: runtime.endpoint,
-											received: release.runtimeEndpoint,
-										},
-									);
-								}
-								await configureAppNamespaceRunner(
-									c.actorId,
-									{
-										endpoint: release.runtimeEndpoint,
-										namespace: release.namespace,
-										pool: release.runtimePool,
-										controlToken: runtime.controlToken,
-									},
-									release.callbackSecret,
-								);
-							}
-						} catch (error) {
-							state.activeRelease = previousRelease;
-							c.log.error({
-								msg: "Dynamic App actor runner configuration failed",
-								release: release.release,
-								error: error instanceof Error ? error.stack : String(error),
+							return commitReleasePublishLocked(c, {
+								release: begin.release,
+								sequence: begin.sequence,
+								chunks,
 							});
-							if (error instanceof DynamicAppsError) {
-								fail(error.code, error.message, error.metadata);
-							}
-							throw error;
-						}
-						state.revision += 1;
-						const activatedAt = Date.now();
-						c.broadcast("releaseActivated", {
-							revision: state.revision,
-							release: releaseId,
-							artifactHash: release.artifactHash,
-							activatedAt,
 						});
-						const releases = await listStoredReleases(c.db);
-						const removable = releases
-							.filter((candidate) => candidate.release !== releaseId)
-							.sort((a, b) => a.createdAt - b.createdAt);
-						let retained = releases.length;
-						while (retained > DEFAULT_MAX_VERSIONS) {
-							const candidate = removable.shift();
-							if (!candidate) break;
-							await deleteArtifactChunksBatched(c.db, candidate.release);
-							await deleteReleaseFilesBatched(c.db, candidate.release);
-							await c.db.execute(
-								"DELETE FROM agentos_apps_releases WHERE release_id = ?",
-								candidate.release,
-							);
-							retained -= 1;
-						}
-						return {
-							appId,
-							release: releaseId,
-							endpoint: runtime.endpoint,
-							namespace: runtime.namespace,
-							pool: runtime.pool,
-							...(runtime.publicToken ? { token: runtime.publicToken } : {}),
-							regions,
-							appActorId: c.actorId,
-							usesRivetKit: release.usesRivetKit,
-						};
 					}),
 				),
 			resolveDeployment: async (
@@ -1570,15 +1068,16 @@ export function createAppsActors(
 					appId,
 					release: release.release,
 					region,
-					regions: release.regions,
+					regions: [...release.regions],
 					revision: state.revision,
 					artifactHash: release.artifactHash,
 					artifactBytes: release.artifactBytes,
 					entrypoint: DIRECT_ENTRYPOINT,
 					namespace: release.namespace,
-					scaling: release.scaling,
+					scaling: { ...release.scaling },
 					maxRequestBytes: DEFAULT_MAX_REQUEST_BYTES,
 					maxResponseBytes: DEFAULT_MAX_RESPONSE_BYTES,
+					usesRivetKit: release.usesRivetKit,
 				};
 			},
 			getArtifactManifest: async (c: AnyActorContext, releaseId: string) => {
@@ -1601,7 +1100,11 @@ export function createAppsActors(
 				);
 				const chunks = Number(rows[0]?.chunks ?? 0);
 				const bytes = Number(rows[0]?.bytes ?? 0);
-				if (chunks > MAX_ARTIFACT_CHUNKS || bytes !== release.artifactBytes) {
+				if (
+					chunks !== Math.ceil(bytes / ARTIFACT_CHUNK_BYTES) ||
+					chunks > MAX_ARTIFACT_CHUNKS ||
+					bytes !== release.artifactBytes
+				) {
 					fail(
 						"agentos_apps_artifact_manifest_invalid",
 						`artifact ${releaseId} failed persisted manifest validation`,

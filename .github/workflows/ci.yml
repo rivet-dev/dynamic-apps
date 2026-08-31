@@ -27,10 +27,13 @@ jobs:
       - run: pnpm build
       - run: pnpm check-types
       - run: pnpm test
+      - run: pnpm test:core-quickstart
       - run: pnpm check-boundaries
       - run: pnpm lint
       - run: npm pack --dry-run
         working-directory: packages/dynamic-apps-builder
+      - run: npm pack --dry-run
+        working-directory: packages/dynamic-apps-core
       - run: npm pack --dry-run
         working-directory: packages/dynamic-apps
       - run: pnpm test:packed

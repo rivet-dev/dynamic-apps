@@ -27,33 +27,68 @@ function assert(condition, message) {
 const mainPackage = JSON.parse(
 	await read("packages/dynamic-apps/package.json"),
 );
-assert(
-	!mainPackage.dependencies?.["@rivet-dev/agentos"],
-	"Dynamic Apps must use agentOS core rather than the actor package",
+const corePackage = JSON.parse(
+	await read("packages/dynamic-apps-core/package.json"),
 );
 assert(
-	mainPackage.dependencies?.["@rivet-dev/agentos-core"] === "0.2.15",
-	"agentOS core must remain a pinned implementation dependency",
+	!corePackage.dependencies?.["@rivet-dev/agentos"] &&
+		corePackage.dependencies?.["@rivet-dev/agentos-core"] === "0.2.15" &&
+		corePackage.dependencies?.["@rivet-dev/agentos-toolchain"] === "0.2.15",
+	"core must use exact pinned agentOS Core implementation dependencies",
 );
 assert(
-	!mainPackage.dependencies?.["isolated-vm"],
-	"isolated-vm must not be a direct runtime dependency",
+	!corePackage.dependencies?.["isolated-vm"],
+	"core must use agentOS contexts rather than isolated-vm",
 );
 assert(
-	!mainPackage.peerDependencies?.["@rivet-dev/agentos-core"],
+	!corePackage.peerDependencies?.["@rivet-dev/agentos-core"],
 	"agentOS core must not be a peer dependency",
 );
 assert(
-	mainPackage.dependencies?.["@rivet-dev/dynamic-apps-builder"] ===
-		`workspace:${mainPackage.version}` ||
-		mainPackage.dependencies?.["@rivet-dev/dynamic-apps-builder"] ===
-			mainPackage.version,
-	"the builder must use the exact matching workspace version",
+	corePackage.dependencies?.["@rivet-dev/dynamic-apps-builder"] ===
+		`workspace:${corePackage.version}` ||
+		corePackage.dependencies?.["@rivet-dev/dynamic-apps-builder"] ===
+			corePackage.version,
+	"core must use the exact matching builder version",
 );
+assert(
+	mainPackage.dependencies?.["@rivet-dev/dynamic-apps-core"] ===
+		`workspace:${mainPackage.version}` ||
+		mainPackage.dependencies?.["@rivet-dev/dynamic-apps-core"] ===
+			mainPackage.version,
+	"the adapter must use the exact matching core version",
+);
+for (const dependency of [
+	"@agentos-software/sh",
+	"@agentos-software/tar",
+	"@rivet-dev/agentos",
+	"@rivet-dev/agentos-core",
+	"@rivet-dev/agentos-toolchain",
+	"@rivet-dev/dynamic-apps-builder",
+	"isolated-vm",
+]) {
+	assert(
+		!mainPackage.dependencies?.[dependency],
+		`adapter production dependency leaked from core: ${dependency}`,
+	);
+}
+assert(
+	!corePackage.dependencies?.rivetkit && !corePackage.devDependencies?.rivetkit,
+	"core must not depend on RivetKit",
+);
+for (const path of await walk("packages/dynamic-apps-core/src/")) {
+	if (!path.endsWith(".ts")) continue;
+	const source = await read(path);
+	assert(
+		!/^\s*import[^\n]*["']rivetkit(?:\/[^"']*)?["']/m.test(source),
+		`${path} imports RivetKit`,
+	);
+}
 
 for (const path of await walk("examples/")) {
 	if (!path.endsWith(".ts") && !path.endsWith("package.json")) continue;
 	const source = await read(path);
+	if (path.startsWith("examples/apps-core-quickstart/")) continue;
 	assert(
 		!source.includes('from "@rivet-dev/agentos"') &&
 			!source.includes('"@rivet-dev/agentos":'),
@@ -65,7 +100,8 @@ const actors = await read("packages/dynamic-apps/src/actors.ts");
 for (const identity of [
 	"agentOSAppsApp: AnyActorDefinition;",
 	"const agentOSAppsApp = actor({",
-	'"/opt/agentos/bin/apps-builder"',
+	"beginReleasePublish:",
+	"commitReleasePublish:",
 ]) {
 	assert(
 		actors.includes(identity),
@@ -73,9 +109,11 @@ for (const identity of [
 	);
 }
 
-const runtime = await read("packages/dynamic-apps/src/runtime.ts");
+const runtime = await read("packages/dynamic-apps-core/src/runtime.ts");
 assert(
-	runtime.includes('hash.update("agentos-apps-release-v17-direct-actors\\0")'),
+	runtime.includes(
+		'hash.update("agentos-apps-release-v19-mounted-hono-router\\0")',
+	),
 	"release hash domain changed",
 );
 
@@ -95,6 +133,13 @@ assert(
 		logging.includes("export interface DynamicAppsLogEvent"),
 	"structured logging public surface is missing",
 );
+const coreIndex = await read("packages/dynamic-apps-core/src/index.ts");
+assert(
+	coreIndex.includes("createDynamicApps") &&
+		!coreIndex.includes("buildAppRelease") &&
+		!coreIndex.includes("DynamicAppsExecutor"),
+	"core root must export the factory without internal build/executor values",
+);
 
 const builderManifest = JSON.parse(
 	await read("packages/dynamic-apps-builder/agentos-package.json"),
@@ -112,6 +157,22 @@ for (const [index, source] of (await Promise.all(declarations)).entries()) {
 		!source.includes('from "@rivet-dev/agentos') &&
 			!source.includes('from "@agentos-software/manifest"'),
 		`public declaration ${index + 1} leaks an implementation package`,
+	);
+}
+
+const coreDeclarations = (await walk("packages/dynamic-apps-core/dist/"))
+	.filter((path) => path.endsWith(".d.ts"))
+	.map((path) => read(path));
+for (const [index, source] of (await Promise.all(coreDeclarations)).entries()) {
+	assert(
+		!source.includes('from "rivetkit') && !source.includes("from 'rivetkit"),
+		`core declaration ${index + 1} leaks RivetKit`,
+	);
+}
+for (const [index, source] of (await Promise.all(declarations)).entries()) {
+	assert(
+		!source.includes("@rivet-dev/dynamic-apps-core/internal"),
+		`adapter declaration ${index + 1} leaks core internal types`,
 	);
 }
 

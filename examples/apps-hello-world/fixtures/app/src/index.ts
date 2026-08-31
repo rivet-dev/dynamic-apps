@@ -14,7 +14,7 @@ app.get("/", (c) => {
 	<body>
 		<main>
 			<h1>Hello from Dynamic Apps</h1>
-			<p>This HTML is served by an HTTP app running inside a V8 isolate.</p>
+			<p>This HTML is served by an HTTP app running inside agentOS.</p>
 			<p><a href="./api/hello">Call the JSON API</a></p>
 		</main>
 	</body>

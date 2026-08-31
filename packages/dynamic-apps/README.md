@@ -1,5 +1,9 @@
 # `@rivet-dev/dynamic-apps`
 
+This package is the batteries-included, **Rivet-backed adapter** for Dynamic
+Apps. For storage you control, use
+[`@rivet-dev/dynamic-apps-core`](../dynamic-apps-core/README.md).
+
 Dynamic Apps exposes three runtime values:
 
 - `deployApp(input, options?)` builds, persists, and activates an immutable app
@@ -9,11 +13,10 @@ Dynamic Apps exposes three runtime values:
 - `setDynamicAppsLogHandler(handler)` receives structured application, actor,
 	build, and runtime logs.
 
-Deployment still uses the existing resource-bounded agentOS build VM, builder
-package, AOSP artifact chunks, activation ordering, rollback behavior, and
-`releaseActivated` event. The serving path no longer uses scaler or execution
-actors. After the first resolve/download, a cache-hit request makes no actor
-call.
+Deployment builds through the storage-independent core, then the adapter stores
+the AOSP artifact through its per-app Rivet actor with atomic activation,
+rollback behavior, and a `releaseActivated` event. After the first load, a
+cache-hit request makes no actor or storage call.
 
 ## Direct HTTP contract
 

@@ -7,16 +7,15 @@ import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 import { promisify } from "node:util";
 import { packAospkgFromTarBytes } from "@rivet-dev/agentos-toolchain";
-import { DynamicActorRuntime } from "../../../packages/dynamic-apps/src/actor-runtime.js";
 import {
-	DynamicAppsExecutor,
-	readExecutorConfig,
-} from "../../../packages/dynamic-apps/src/executor.js";
-import { setDynamicAppsLogHandler } from "../../../packages/dynamic-apps/src/logging.js";
-import {
+	type ActiveRelease,
 	DIRECT_ENTRYPOINT,
 	DIRECT_RUNTIME_FORMAT,
-} from "../../../packages/dynamic-apps/src/runtime.js";
+	DynamicAppsExecutor,
+	readExecutorConfig,
+} from "@rivet-dev/dynamic-apps-core/internal";
+import { DynamicActorRuntime } from "../../../packages/dynamic-apps/src/actor-runtime.js";
+import { setDynamicAppsLogHandler } from "../../../packages/dynamic-apps/src/logging.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -69,6 +68,43 @@ class FakeStatePlane {
 	readonly listeners = new Map<string, Set<(event: unknown) => void>>();
 	readonly calls = { resolve: 0, manifest: 0, chunk: 0, connect: 0 };
 	beforeChunk?: () => Promise<void>;
+
+	async watchActiveRelease(
+		appId: string,
+		invalidate: () => void,
+	): Promise<() => void> {
+		this.calls.connect += 1;
+		const listeners = this.listeners.get(appId) ?? new Set();
+		listeners.add(invalidate);
+		this.listeners.set(appId, listeners);
+		return () => {
+			listeners.delete(invalidate);
+		};
+	}
+
+	async loadActiveRelease(appId: string): Promise<ActiveRelease> {
+		this.calls.resolve += 1;
+		this.calls.manifest += 1;
+		const state = this.#state(appId);
+		await this.beforeChunk?.();
+		this.calls.chunk += 1;
+		return {
+			appId,
+			release: state.artifact.release,
+			artifact: {
+				format: DIRECT_RUNTIME_FORMAT,
+				entrypoint: DIRECT_ENTRYPOINT,
+				hash: state.artifact.hash,
+				bytes: new Uint8Array(state.artifact.bytes),
+				byteLength: state.artifact.bytes.byteLength,
+				usesRivetKit: false,
+			},
+			regions: ["local"],
+			scaling: { minReplicas: 0, maxReplicas: 1, targetConcurrency: 32 },
+			maxRequestBytes: 1024 * 1024,
+			maxResponseBytes: 4 * 1024 * 1024,
+		};
+	}
 
 	readonly client = {
 		agentOSAppsApp: {
@@ -381,13 +417,13 @@ async function multiAppStress(
 		plane.set(`stress-app-${index}`, artifact);
 	}
 	const executor = new DynamicAppsExecutor(
+		plane,
 		executorConfig({
 			appEntries: artifacts.length,
 			concurrency,
 			poolMaxTotal,
 			poolSize,
 		}),
-		plane.client as never,
 	);
 	const rss = rssSampler();
 	const startedAt = performance.now();
@@ -440,8 +476,8 @@ async function payloadBurstStress(
 	const plane = new FakeStatePlane();
 	plane.set("payload", artifact);
 	const executor = new DynamicAppsExecutor(
+		plane,
 		executorConfig({ appEntries: 2, concurrency, poolMaxTotal, poolSize }),
-		plane.client as never,
 	);
 	const latencies: number[] = [];
 	const rss = rssSampler();
@@ -492,8 +528,8 @@ async function invalidationStress(
 	const plane = new FakeStatePlane();
 	plane.set("invalidate", before);
 	const executor = new DynamicAppsExecutor(
+		plane,
 		executorConfig({ appEntries: 2, concurrency, poolMaxTotal, poolSize }),
-		plane.client as never,
 	);
 	let activated = false;
 	let oldResponsesAfterActivation = 0;
@@ -540,8 +576,8 @@ async function coldFanoutStress(
 		{ length: count },
 		() =>
 			new DynamicAppsExecutor(
+				plane,
 				executorConfig({ appEntries: 1, concurrency: 1, poolMaxTotal: 0 }),
-				plane.client as never,
 			),
 	);
 	const startedAt = performance.now();
@@ -574,17 +610,14 @@ async function admissionStress(
 	plane.set("admission", artifact);
 	const active = Math.min(4, concurrency);
 	const queued = Math.min(8, Math.max(0, concurrency - active));
-	const executor = new DynamicAppsExecutor(
-		{
-			...executorConfig({
-				appEntries: 1,
-				concurrency: active,
-				poolMaxTotal: 2,
-			}),
-			executionQueueSize: queued,
-		},
-		plane.client as never,
-	);
+	const executor = new DynamicAppsExecutor(plane, {
+		...executorConfig({
+			appEntries: 1,
+			concurrency: active,
+			poolMaxTotal: 2,
+		}),
+		executionQueueSize: queued,
+	});
 	let release = () => {};
 	const gate = new Promise<void>((resolve) => {
 		release = resolve;
@@ -849,7 +882,7 @@ async function directStallStress(
 		}),
 		executionTimeoutMs: 50,
 	};
-	const executor = new DynamicAppsExecutor(config, plane.client as never);
+	const executor = new DynamicAppsExecutor(plane, config);
 	const startedAt = performance.now();
 	try {
 		await runConcurrent(requests, requests, async (index) => {
@@ -875,13 +908,13 @@ async function logFloodStress(artifact: Artifact): Promise<unknown> {
 	const plane = new FakeStatePlane();
 	plane.set("log-flood", artifact);
 	const executor = new DynamicAppsExecutor(
+		plane,
 		executorConfig({
 			appEntries: 1,
 			concurrency: 1,
 			poolMaxTotal: 1,
 			poolSize: 1,
 		}),
-		plane.client as never,
 	);
 	let delivered = 0;
 	try {
@@ -1103,13 +1136,13 @@ async function directShutdownStress(
 		await gate;
 	};
 	const executor = new DynamicAppsExecutor(
+		plane,
 		executorConfig({
 			appEntries: 1,
 			concurrency: requests,
 			poolMaxTotal: 8,
 			poolSize: 8,
 		}),
-		plane.client as never,
 	);
 	const outcomes = Array.from({ length: requests }, (_, index) =>
 		executor

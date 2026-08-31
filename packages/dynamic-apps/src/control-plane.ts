@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
+import { DynamicAppsError } from "@rivet-dev/dynamic-apps-core/internal";
 import { controlFetch } from "./control-request.js";
-import { DynamicAppsError } from "./errors.js";
 import { appRunnerPool, ensureServerlessRunnerConfig } from "./runtime.js";
 
 const DEFAULT_ENDPOINT = "http://localhost:6420";
@@ -137,7 +137,12 @@ async function provisionCloudNamespace(
 	existingCloudNamespace?: string,
 ): Promise<ProvisionedAppNamespace> {
 	const cloudToken = process.env.RIVET_CLOUD_TOKEN;
-	if (!cloudToken) throw new Error("RIVET_CLOUD_TOKEN is required");
+	if (!cloudToken) {
+		throw new DynamicAppsError(
+			"agentos_apps_cloud_token_required",
+			"RIVET_CLOUD_TOKEN is required",
+		);
+	}
 	const headers = controlHeaders(cloudToken);
 	const identity = await checkedJson<{
 		project: string;

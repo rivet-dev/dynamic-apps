@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
 	access,
 	mkdir,
@@ -21,6 +22,7 @@ await rm(packDirectory, { recursive: true, force: true });
 await mkdir(packDirectory, { recursive: true });
 for (const packagePath of [
 	"packages/dynamic-apps-builder",
+	"packages/dynamic-apps-core",
 	"packages/dynamic-apps",
 ]) {
 	await execFileAsync(
@@ -38,10 +40,18 @@ const builderTarball = join(
 const mainTarball = join(
 	packDirectory,
 	tarballs.find(
-		(name) => name.includes("dynamic-apps-") && !name.includes("builder"),
+		(name) =>
+			name.includes("dynamic-apps-") &&
+			!name.includes("builder") &&
+			!name.includes("core"),
 	) ?? "missing",
 );
+const coreTarball = join(
+	packDirectory,
+	tarballs.find((name) => name.includes("dynamic-apps-core")) ?? "missing",
+);
 await access(builderTarball);
+await access(coreTarball);
 await access(mainTarball);
 
 const fixture = await mkdtemp(join(tmpdir(), "dynamic-apps-packed-"));
@@ -53,6 +63,7 @@ await writeFile(
 		dependencies: {
 			"@rivet-dev/dynamic-apps": `file:${mainTarball}`,
 			"@rivet-dev/dynamic-apps-builder": `file:${builderTarball}`,
+			"@rivet-dev/dynamic-apps-core": `file:${coreTarball}`,
 		},
 	}),
 );
@@ -67,11 +78,22 @@ const builderRoot = join(
 	"node_modules/@rivet-dev/dynamic-apps-builder",
 );
 const mainRoot = join(fixture, "node_modules/@rivet-dev/dynamic-apps");
+const coreRoot = join(fixture, "node_modules/@rivet-dev/dynamic-apps-core");
 const builder = await import(pathToFileURL(join(builderRoot, "dist/index.js")));
 if (basename(builder.default.packagePath) !== "package.aospkg") {
 	throw new Error("packed builder did not export package.aospkg");
 }
 await access(builder.default.packagePath);
+
+const core = await import(pathToFileURL(join(coreRoot, "dist/index.js")));
+if (
+	JSON.stringify(Object.keys(core).sort()) !==
+	JSON.stringify(["createDynamicApps"])
+) {
+	throw new Error(
+		`packed core package has unexpected exports: ${Object.keys(core)}`,
+	);
+}
 
 const main = await import(pathToFileURL(join(mainRoot, "dist/index.js")));
 const exports = Object.keys(main).sort();
@@ -84,7 +106,7 @@ if (
 main.setDynamicAppsLogHandler(() => {});
 main.setDynamicAppsLogHandler(undefined);
 
-for (const packageRoot of [builderRoot, mainRoot]) {
+for (const packageRoot of [builderRoot, coreRoot, mainRoot]) {
 	const manifest = JSON.parse(
 		await readFile(join(packageRoot, "package.json"), "utf8"),
 	);
@@ -154,6 +176,80 @@ if (typeof directModule.dispatch !== "function") {
 	throw new Error("packed direct builder did not emit an ESM dispatcher");
 }
 
+const coreArtifactDirectory = join(fixture, "core-artifact");
+const coreArtifactArchive = join(fixture, "core-artifact.tar");
+await mkdir(join(coreArtifactDirectory, "direct"), { recursive: true });
+await writeFile(
+	join(coreArtifactDirectory, "direct/main.mjs"),
+	await readFile(join(release, "main.mjs"), "utf8"),
+);
+await writeFile(
+	join(coreArtifactDirectory, "agentos-package.json"),
+	JSON.stringify({ name: "packed-core-smoke", version: "1.0.0" }),
+);
+await execFileAsync(
+	"tar",
+	["-cf", coreArtifactArchive, "direct", "agentos-package.json"],
+	{ cwd: coreArtifactDirectory },
+);
+const { packAospkgFromTarBytes } = await import(
+	pathToFileURL(
+		join(
+			repositoryRoot,
+			"packages/dynamic-apps-core/node_modules/@rivet-dev/agentos-toolchain/dist/index.js",
+		),
+	)
+);
+const coreArtifact = new Uint8Array(
+	packAospkgFromTarBytes(await readFile(coreArtifactArchive)).bytes,
+);
+let activeRelease;
+const dynamicApps = core.createDynamicApps({
+	artifactCache: {
+		async get() {
+			return coreArtifact;
+		},
+		async put() {},
+	},
+	async publishRelease(input) {
+		activeRelease = {
+			appId: input.appId,
+			release: "packed-1",
+			artifact: {
+				...input.artifact,
+				bytes: new Uint8Array(input.artifact.bytes),
+				hash: createHash("sha256").update(input.artifact.bytes).digest("hex"),
+			},
+			regions: ["local"],
+			scaling: { minReplicas: 0, maxReplicas: 1, targetConcurrency: 1 },
+			maxRequestBytes: 1024 * 1024,
+			maxResponseBytes: 4 * 1024 * 1024,
+		};
+	},
+	async loadActiveRelease() {
+		return activeRelease;
+	},
+	async watchActiveRelease() {
+		return () => {};
+	},
+	executor: { executionMode: "ephemeral" },
+});
+try {
+	await dynamicApps.deployApp({
+		appId: "hello",
+		files: {
+			"package.json": JSON.stringify({ type: "module", main: "index.js" }),
+			"index.js": "export default { fetch() { return new Response('ok') } }",
+		},
+	});
+	const response = await dynamicApps.appsRouter.request("/hello/");
+	if (response.status !== 200) {
+		throw new Error(`packed core smoke returned HTTP ${response.status}`);
+	}
+} finally {
+	await dynamicApps.dispose();
+}
+
 const actorWorkspace = join(fixture, "actor-builder-smoke");
 const actorRelease = join(fixture, "actor-builder-release");
 await mkdir(actorWorkspace, { recursive: true });
@@ -193,5 +289,5 @@ if (typeof actorModule.registry?.handler !== "function") {
 }
 
 console.log(
-	`Verified ${basename(builderTarball)} and ${basename(mainTarball)}.`,
+	`Verified ${basename(builderTarball)}, ${basename(coreTarball)}, and ${basename(mainTarball)}.`,
 );

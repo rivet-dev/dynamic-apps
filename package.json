@@ -6,13 +6,14 @@
 		"node": ">=22.0.0"
 	},
 	"scripts": {
-		"build": "pnpm --filter @rivet-dev/dynamic-apps-builder build && pnpm --filter @rivet-dev/dynamic-apps build",
+		"build": "pnpm --filter @rivet-dev/dynamic-apps-builder build && pnpm --filter @rivet-dev/dynamic-apps-core build && pnpm --filter @rivet-dev/dynamic-apps build",
 		"check-types": "pnpm -r --if-present check-types",
-		"test": "pnpm --filter @rivet-dev/dynamic-apps-builder test && pnpm --filter @rivet-dev/dynamic-apps test && pnpm --filter @rivet-dev/dynamic-apps-benchmarks test",
+		"test": "pnpm --filter @rivet-dev/dynamic-apps-builder test && pnpm --filter @rivet-dev/dynamic-apps-core test && pnpm --filter @rivet-dev/dynamic-apps test && pnpm --filter @rivet-dev/dynamic-apps-benchmarks test",
 		"lint": "pnpm biome check .",
 		"fmt": "pnpm biome check --write --diagnostic-level=error .",
 		"check-boundaries": "node scripts/check-boundaries.mjs",
-		"test:packed": "node scripts/test-packed.mjs"
+		"test:packed": "node scripts/test-packed.mjs",
+		"test:core-quickstart": "node scripts/test-core-quickstart.mjs"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.4.10",

@@ -12,7 +12,11 @@ async function update(path, transform) {
 await update("packages/dynamic-apps-builder/package.json", (value) => {
 	value.version = version;
 });
-await update("packages/dynamic-apps/package.json", (value) => {
+await update("packages/dynamic-apps-core/package.json", (value) => {
 	value.version = version;
 	value.dependencies["@rivet-dev/dynamic-apps-builder"] = version;
+});
+await update("packages/dynamic-apps/package.json", (value) => {
+	value.version = version;
+	value.dependencies["@rivet-dev/dynamic-apps-core"] = version;
 });

@@ -1,0 +1,88 @@
+---
+title: "Core Quick Start"
+description: "Build and serve a Dynamic App with a development-only in-memory release store."
+skill: true
+---
+
+[View the complete Core Quick Start example on GitHub](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-core-quickstart).
+
+Use Core when your application owns release storage and deployment lifecycle.
+Use the standard [Dynamic Apps Quick Start](/dynamic-apps/docs/quickstart) when
+you want Rivet to provide those pieces.
+
+## Choosing between Core and the Rivet-backed package
+
+| | Core | Rivet-backed package |
+|-|---|---|
+| Package | `@rivet-dev/dynamic-apps-core` | `@rivet-dev/dynamic-apps` |
+| Build artifact storage | Provide upload and download handlers | Stored automatically |
+| Cache invalidation after updates | Manual notification with `watchActiveRelease` | Handled automatically |
+| Rivet namespace per app | Bring your own integration | Created and connected automatically |
+| Regions and scaling | Managed by your host | Managed through Rivet deployment options |
+| Lifecycle | Explicit `dispose()` | Managed by the package |
+| Best for | Custom infrastructure | Batteries included and scalable |
+
+<Note>
+This in-memory store is **development-only**. It loses releases on restart and
+cannot invalidate another process. Use durable storage and cross-process
+notifications in production.
+</Note>
+
+<Steps>
+
+<Step title="Install">
+
+Use Node.js 22 or newer:
+
+```sh
+npm add @rivet-dev/dynamic-apps-core @hono/node-server hono
+npm add --save-dev tsx
+npm pkg set type=module
+```
+
+</Step>
+
+<Step title="Create the host and release store">
+
+The example keeps a `Map` of active releases and a `Map` of update listeners.
+Its hooks atomically publish a complete copied artifact, load a copied active
+release, and register an update watcher that returns an unsubscribe function.
+It then mounts the router, deploys a complete generated two-file app, and
+disposes the instance during shutdown.
+
+<CodeSnippet file="examples/apps-core-quickstart/src/server.ts" title="src/server.ts" />
+
+</Step>
+
+<Step title="Run the server">
+
+Pass the listening host on the command line:
+
+```sh
+node --import tsx src/server.ts --host 0.0.0.0
+```
+
+</Step>
+
+<Step title="Call the generated app">
+
+```sh
+curl http://localhost:3000/apps/hello/
+# Hello from Dynamic Apps Core!
+```
+
+</Step>
+
+</Steps>
+
+The request lifecycle is compact:
+
+```text
+agentOS build -> publishRelease
+first request -> watchActiveRelease + loadActiveRelease
+warm request  -> cached agentOS VM (zero hooks)
+```
+
+Continue with [Custom Storage](/dynamic-apps/docs/custom-storage) for durable,
+multi-process hooks. Use the ordinary [Quick Start](/dynamic-apps/docs/quickstart)
+for the batteries-included Rivet actor-backed package.

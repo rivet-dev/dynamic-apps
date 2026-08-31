@@ -62,6 +62,11 @@ A failed build or incomplete artifact write never replaces the active release.
 A successful call returns only after the immutable artifact is persisted and
 activated; it does not mean a request-serving replica was warmed.
 
+With core, this is the `publishRelease` guarantee: make the complete artifact
+durable first, atomically replace the active release second, and resolve only
+when `loadActiveRelease` can read it. The default adapter provides those
+semantics through its per-app Rivet actor.
+
 `appId` must contain 1–63 lowercase letters, numbers, or hyphens. Pass exactly
 one of `source` or `files`.
 

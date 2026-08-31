@@ -5,8 +5,9 @@ skill: true
 ---
 
 Dynamic Apps builds user-generated HTTP applications in a sandboxed deployment
-VM, stores immutable releases in a per-app Rivet actor, and serves ordinary HTTP
-through agentOS in your own server process.
+VM and serves ordinary HTTP through agentOS in your own server process. The
+default `@rivet-dev/dynamic-apps` package stores releases in a per-app Rivet
+actor; `@rivet-dev/dynamic-apps-core` lets you supply another store.
 
 <Note>
 Dynamic Apps is in preview and its API is subject to change.
@@ -20,11 +21,15 @@ Hono server, its authentication, and the URL on which applications are mounted.
 Deployment and request serving are deliberately separate:
 
 ```text
-deployApp -> per-app state actor -> AgentOS build VM -> immutable AOSP release
+deployApp -> Dynamic Apps Core -> agentOS build VM -> publish release
+                                                    -> Rivet actor (default adapter)
 
-first HTTP request -> state actor -> verified artifact -> cached agentOS VM
-cache-hit HTTP request -> headless JavaScript evaluation -> response (zero actor calls)
+first HTTP request -> watch + load active release -> verified artifact -> cached agentOS VM
+warm HTTP request  -> headless JavaScript evaluation -> response (zero storage/actor calls)
 ```
+
+The Rivet actor is the default storage and control plane, not a serving hop for
+warm requests.
 
 `appsRouter` executes each request in a clean JavaScript context. The default
 mode keeps a small bounded pool of retained agentOS contexts, resetting and

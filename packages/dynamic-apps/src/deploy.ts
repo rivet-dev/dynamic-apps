@@ -1,7 +1,8 @@
-import { createClient } from "rivetkit/client";
-import { DynamicAppsError } from "./errors.js";
-import { ensurePrivateAppsRegistry } from "./registry.js";
-import { prepareSource } from "./source.js";
+import {
+	DynamicAppsError,
+	prepareSource,
+} from "@rivet-dev/dynamic-apps-core/internal";
+import { defaultDynamicApps } from "./default.js";
 import type {
 	DeployAppInput,
 	Deployment,
@@ -27,24 +28,17 @@ export interface DeployAppOptions {
 	};
 }
 
-let defaultClient: NonNullable<DeployAppOptions["client"]> | undefined;
 const HOST_REGISTRY_READY_TIMEOUT_MS = 15_000;
 const HOST_REGISTRY_RETRY_DELAY_MS = 50;
-
-function getDefaultClient(): NonNullable<DeployAppOptions["client"]> {
-	defaultClient ??= createClient() as unknown as NonNullable<
-		DeployAppOptions["client"]
-	>;
-	return defaultClient;
-}
 
 export async function deployApp(
 	input: DeployAppInput,
 	options: DeployAppOptions = {},
 ): Promise<Deployment> {
+	// The ordinary path uses core's build + release hooks. An injected structural
+	// client must keep calling the legacy actor action for declaration compatibility.
+	if (!options.client) return defaultDynamicApps.deployApp(input);
 	const files = await prepareSource(input);
-	if (!options.client) await ensurePrivateAppsRegistry();
-	const client = options.client ?? getDefaultClient();
 	const prepared: PreparedDeployAppInput = {
 		appId: input.appId,
 		files,
@@ -52,7 +46,7 @@ export async function deployApp(
 		scaling: input.scaling,
 	};
 	const result = await deployThroughStableActor(
-		client.agentOSAppsApp,
+		options.client.agentOSAppsApp,
 		input.appId,
 		prepared,
 	);
@@ -125,9 +119,4 @@ function getErrorCode(error: unknown): string | undefined {
 		return undefined;
 	}
 	return typeof error.code === "string" ? error.code : undefined;
-}
-
-/** @internal Test-only reset for verifying lazy client creation. */
-export function resetDefaultAppsClientForTest(): void {
-	defaultClient = undefined;
 }

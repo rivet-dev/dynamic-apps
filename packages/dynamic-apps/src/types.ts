@@ -1,29 +1,7 @@
-export interface AppScaling {
-	minReplicas?: number;
-	maxReplicas?: number;
-	targetConcurrency?: number;
-}
+import type { AppScaling, DeployAppInput } from "@rivet-dev/dynamic-apps-core";
+import type { DIRECT_ENTRYPOINT } from "@rivet-dev/dynamic-apps-core/internal";
 
-interface DeployAppBase {
-	/** Stable URL-safe identifier used for routing and namespace isolation. */
-	appId: string;
-	/** @deprecated Every application is now isolated in its own namespace. */
-	createNamespace?: boolean;
-	regions?: string[];
-	scaling?: AppScaling;
-}
-
-export type DeployAppInput =
-	| (DeployAppBase & {
-			/** Local application directory. */
-			source: URL;
-			files?: never;
-	  })
-	| (DeployAppBase & {
-			/** Complete generated application tree. */
-			files: Record<string, string | Uint8Array>;
-			source?: never;
-	  });
+export type { AppScaling, DeployAppInput };
 
 export interface Deployment {
 	appId: string;
@@ -53,4 +31,20 @@ export interface PreparedDeployAppInput {
 	files: Record<string, Uint8Array>;
 	regions?: string[];
 	scaling?: AppScaling;
+}
+
+export interface AppRouteResolution {
+	appId: string;
+	release: string;
+	region: string;
+	regions: string[];
+	revision: number;
+	artifactHash: string;
+	artifactBytes: number;
+	entrypoint: typeof DIRECT_ENTRYPOINT;
+	namespace: string;
+	scaling: Required<AppScaling>;
+	maxRequestBytes: number;
+	maxResponseBytes: number;
+	usesRivetKit: boolean;
 }
