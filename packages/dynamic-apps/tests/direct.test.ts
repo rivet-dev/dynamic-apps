@@ -546,6 +546,49 @@ describe("direct V8 execution", () => {
 });
 
 describe("actor callback resource limits", () => {
+	test("times out an actor handler that blocks its worker", async () => {
+		const artifact = await makeActorArtifact(`
+export const registry = {
+  handler() {
+    while (true) {}
+  },
+};
+`);
+		const runtime = new DynamicActorRuntime({
+			DYNAMIC_APPS_ACTOR_REQUEST_TIMEOUT_MS: "50",
+			DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS: "1000",
+		});
+		try {
+			const outcome = await Promise.race([
+				runtime
+					.request({
+						key: "handler-stall",
+						loadArtifact: async () => artifact.bytes,
+						endpoint: "http://example.test",
+						namespace: "test",
+						pool: "default",
+						request: new Request("http://example.test/stall", {
+							method: "POST",
+						}),
+					})
+					.then(
+						() => "response" as const,
+						(error: unknown) =>
+							String(error).includes("request exceeded")
+								? ("timeout" as const)
+								: Promise.reject(error),
+					),
+				new Promise<"hung">((resolve) =>
+					setTimeout(() => resolve("hung"), 250),
+				),
+			]);
+			expect(outcome).toBe("timeout");
+		} finally {
+			await runtime.dispose();
+			await artifact.dispose();
+		}
+	}, 5_000);
+
 	test("forwards actor callback bodies without eager buffering", async () => {
 		let pulls = 0;
 		const source = streamingRequest("http://example.test/api/rivet/start", {

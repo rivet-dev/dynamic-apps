@@ -53,6 +53,7 @@ const STRESS_CASES = [
 	"actorChurn",
 	"directStall",
 	"actorAdmission",
+	"actorHandlerStall",
 ] as const;
 
 type StressCase = (typeof STRESS_CASES)[number];
@@ -195,6 +196,14 @@ async function main(): Promise<void> {
   return new Promise(() => {});
 };`,
 	);
+	const actorHandlerStallArtifact = await createActorArtifact(
+		"actor-handler-stall",
+		`export const registry = {
+  handler() {
+    while (true) {}
+  },
+};`,
+	);
 	const result: StressResult = {
 		config: {
 			appCount,
@@ -266,12 +275,16 @@ async function main(): Promise<void> {
 		await runStressCase(result, selectedCases, "actorAdmission", () =>
 			actorAdmissionStress(actorTrafficArtifact, concurrency),
 		);
+		await runStressCase(result, selectedCases, "actorHandlerStall", () =>
+			actorHandlerStallStress(actorHandlerStallArtifact, concurrency),
+		);
 	} finally {
 		await Promise.allSettled([
 			...artifacts.map((artifact) => artifact.dispose()),
 			actorStartupArtifact.dispose(),
 			actorTrafficArtifact.dispose(),
 			directStallArtifact.dispose(),
+			actorHandlerStallArtifact.dispose(),
 		]);
 	}
 
@@ -867,6 +880,43 @@ async function actorAdmissionStress(
 		};
 	} finally {
 		release();
+		await runtime.dispose();
+	}
+}
+
+async function actorHandlerStallStress(
+	artifact: Artifact,
+	concurrency: number,
+): Promise<unknown> {
+	const requests = Math.min(concurrency, 16);
+	const runtime = new DynamicActorRuntime({
+		DYNAMIC_APPS_ACTOR_REQUEST_CONCURRENCY: String(requests),
+		DYNAMIC_APPS_ACTOR_REQUEST_TIMEOUT_MS: "50",
+		DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS: "10000",
+	});
+	const startedAt = performance.now();
+	try {
+		await runConcurrent(requests, requests, async (index) => {
+			await assert.rejects(
+				runtime.request({
+					key: "handler-stall",
+					loadArtifact: async () => artifact.bytes,
+					endpoint: "http://stress.test",
+					namespace: "stress",
+					pool: "default",
+					request: new Request(`http://stress.test/stall/${index}`, {
+						method: "POST",
+					}),
+				}),
+				/request exceeded/,
+			);
+		});
+		return {
+			requests,
+			elapsedMs: round(performance.now() - startedAt),
+			diagnostics: runtime.diagnostics(),
+		};
+	} finally {
 		await runtime.dispose();
 	}
 }
