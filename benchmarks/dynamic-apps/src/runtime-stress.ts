@@ -54,6 +54,7 @@ const STRESS_CASES = [
 	"directStall",
 	"actorAdmission",
 	"actorHandlerStall",
+	"actorShutdown",
 ] as const;
 
 type StressCase = (typeof STRESS_CASES)[number];
@@ -277,6 +278,9 @@ async function main(): Promise<void> {
 		);
 		await runStressCase(result, selectedCases, "actorHandlerStall", () =>
 			actorHandlerStallStress(actorHandlerStallArtifact, concurrency),
+		);
+		await runStressCase(result, selectedCases, "actorShutdown", () =>
+			actorShutdownStress(actorTrafficArtifact, concurrency),
 		);
 	} finally {
 		await Promise.allSettled([
@@ -938,6 +942,66 @@ async function actorHandlerStallStress(
 			diagnostics: runtime.diagnostics(),
 		};
 	} finally {
+		await runtime.dispose();
+	}
+}
+
+async function actorShutdownStress(
+	artifact: Artifact,
+	concurrency: number,
+): Promise<unknown> {
+	const requests = Math.min(concurrency, 16);
+	const runtime = new DynamicActorRuntime({
+		DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES: String(requests),
+	});
+	let release = () => {};
+	const gate = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	let artifactLoads = 0;
+	const outcomes = Array.from({ length: requests }, (_, index) =>
+		runtime
+			.request({
+				key: `shutdown-${index}`,
+				loadArtifact: async () => {
+					artifactLoads += 1;
+					await gate;
+					return artifact.bytes;
+				},
+				endpoint: "http://stress.test",
+				namespace: "stress",
+				pool: "default",
+				request: new Request(`http://stress.test/shutdown/${index}`, {
+					method: "POST",
+				}),
+			})
+			.then(
+				async (response) => {
+					await response.arrayBuffer();
+					return "response" as const;
+				},
+				() => "rejected" as const,
+			),
+	);
+	try {
+		await waitFor(() => artifactLoads === requests);
+		const dispose = runtime.dispose();
+		release();
+		await dispose;
+		const settled = await Promise.all(outcomes);
+		assert(settled.every((value) => value === "rejected"));
+		assert.deepEqual(runtime.diagnostics(), {
+			entries: 0,
+			creating: 0,
+			workerReservations: 0,
+			activeRequests: 0,
+			pendingRequests: 0,
+			admittedRequests: 0,
+			queuedRequests: 0,
+		});
+		return { requests, artifactLoads, diagnostics: runtime.diagnostics() };
+	} finally {
+		release();
 		await runtime.dispose();
 	}
 }

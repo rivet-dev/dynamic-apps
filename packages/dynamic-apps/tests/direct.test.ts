@@ -546,6 +546,56 @@ describe("direct V8 execution", () => {
 });
 
 describe("actor callback resource limits", () => {
+	test("does not publish a worker that finishes creating during shutdown", async () => {
+		const artifact = await makeActorArtifact(`
+export const registry = { handler: () => new Response("ok") };
+`);
+		const runtime = new DynamicActorRuntime();
+		let releaseArtifact = () => {};
+		const artifactGate = new Promise<void>((resolve) => {
+			releaseArtifact = resolve;
+		});
+		let markLoadStarted = () => {};
+		const loadStarted = new Promise<void>((resolve) => {
+			markLoadStarted = resolve;
+		});
+		const outcome = runtime
+			.request({
+				key: "shutdown-create",
+				loadArtifact: async () => {
+					markLoadStarted();
+					await artifactGate;
+					return artifact.bytes;
+				},
+				endpoint: "http://example.test",
+				namespace: "test",
+				pool: "default",
+				request: new Request("http://example.test/shutdown", {
+					method: "POST",
+				}),
+			})
+			.then(
+				() => "response" as const,
+				() => "rejected" as const,
+			);
+		try {
+			await loadStarted;
+			const dispose = runtime.dispose();
+			releaseArtifact();
+			await dispose;
+			expect(await outcome).toBe("rejected");
+			expect(runtime.diagnostics()).toMatchObject({
+				entries: 0,
+				creating: 0,
+				workerReservations: 0,
+			});
+		} finally {
+			releaseArtifact();
+			await runtime.dispose();
+			await artifact.dispose();
+		}
+	});
+
 	test("bounds concurrent actor workers as well as idle cache entries", async () => {
 		const artifact = await makeActorArtifact(`
 export const registry = {
