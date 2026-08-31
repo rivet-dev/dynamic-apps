@@ -1372,10 +1372,28 @@ packages:
     cpu: [x64]
     os: [darwin]
 
+  '@rivetkit/rivetkit-napi-linux-arm64-gnu@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-1f1ral9ZGIse2gbiyFwvduGmBxHfL2Iwh50mHGx0fbjhdQ3DOHCK+S7RN2VzuviJT+k2L6ZhLLJcsssng8dZkg==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [arm64]
+    os: [linux]
+
   '@rivetkit/rivetkit-napi-linux-arm64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     resolution: {integrity: sha512-yhYZzWqx5egBGgjChWuHjcNVXLjUJ90RLtZOE/dBNHVV/YhKbor7j2n5KCpyKoFSzCyWndLRuuVq0ictpoy/nw==}
     engines: {node: '>= 20.0.0'}
     cpu: [arm64]
+    os: [linux]
+
+  '@rivetkit/rivetkit-napi-linux-x64-gnu@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-ahfHq033jS3Mkp1JVnfYwiHqSHLsOEkHy0AeuJNYPfjegehI0y5iYuYm6FKvVSbomp3Pw1Gadok5UTbiDT0zWA==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [x64]
+    os: [linux]
+
+  '@rivetkit/rivetkit-napi-linux-x64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-Q9vYUl9Xz/6cyzY0rrovy2V/gBTmJObjCFT2x5Iw+XQq5RDaXuxRrJsI2rs/n2x2GUGtvQtO/nZMnn4B85lApQ==}
+    engines: {node: '>= 20.0.0'}
+    cpu: [x64]
     os: [linux]
 
   '@rivetkit/rivetkit-napi@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
@@ -4754,7 +4772,16 @@ snapshots:
   '@rivetkit/rivetkit-napi-darwin-x64@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optional: true
 
+  '@rivetkit/rivetkit-napi-linux-arm64-gnu@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    optional: true
+
   '@rivetkit/rivetkit-napi-linux-arm64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    optional: true
+
+  '@rivetkit/rivetkit-napi-linux-x64-gnu@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    optional: true
+
+  '@rivetkit/rivetkit-napi-linux-x64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optional: true
 
   '@rivetkit/rivetkit-napi@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
@@ -4764,7 +4791,10 @@ snapshots:
     optionalDependencies:
       '@rivetkit/rivetkit-napi-darwin-arm64': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
       '@rivetkit/rivetkit-napi-darwin-x64': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/rivetkit-napi-linux-arm64-gnu': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
       '@rivetkit/rivetkit-napi-linux-arm64-musl': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/rivetkit-napi-linux-x64-gnu': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/rivetkit-napi-linux-x64-musl': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
 
   '@rivetkit/rivetkit-wasm@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9': {}
 
