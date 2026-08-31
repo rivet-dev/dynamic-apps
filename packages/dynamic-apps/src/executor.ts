@@ -726,14 +726,13 @@ export class DynamicAppsExecutor {
 		try {
 			if (!slot.dispatch)
 				throw new Error("application isolate has no active dispatcher");
-			const output = await slot.dispatch.apply(
-				undefined,
-				[JSON.stringify(envelope)],
-				{
+			const output = await withDeadline(
+				slot.dispatch.apply(undefined, [JSON.stringify(envelope)], {
 					arguments: { copy: true },
 					result: { copy: true, promise: true },
 					timeout: this.config.executionTimeoutMs,
-				},
+				}),
+				this.config.executionTimeoutMs,
 			);
 			if (typeof output !== "string")
 				throw new Error("dispatcher returned non-text");
@@ -1299,6 +1298,23 @@ async function measure<T>(
 		return await operation();
 	} finally {
 		trace.phases.set(name, performance.now() - startedAt);
+	}
+}
+
+async function withDeadline<T>(operation: Promise<T>, timeoutMs: number) {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	try {
+		return await Promise.race([
+			operation,
+			new Promise<never>((_, reject) => {
+				timer = setTimeout(
+					() => reject(new Error("isolate promise timed out")),
+					timeoutMs,
+				);
+			}),
+		]);
+	} finally {
+		if (timer) clearTimeout(timer);
 	}
 }
 
