@@ -1,7 +1,11 @@
 import { strict as assert } from "node:assert";
 import { createServer } from "node:http";
 import { describe, it } from "node:test";
-import { ensureCloudSetup } from "./cloud-stress.js";
+import {
+	CloudStressFailure,
+	ensureCloudSetup,
+	runCloudStress,
+} from "./cloud-stress.js";
 import { actorApplicationClientConfig, benchmarkErrorDetails } from "./edge.js";
 import { readLoadConfig, runLoadTest } from "./load.js";
 
@@ -187,6 +191,62 @@ describe("Dynamic Apps load driver", () => {
 
 		assert.deepEqual(result, { status: "ready" });
 		assert.equal(attempts, 3);
+	});
+
+	it("preserves the failed window when a soak aborts early", async () => {
+		const server = createServer((request, response) => {
+			const url = new URL(request.url ?? "/", "http://load.test");
+			response.setHeader("content-type", "application/json");
+			if (url.pathname === "/bench/actor-app/action") {
+				response.statusCode = 500;
+				response.end(JSON.stringify({ ok: false }));
+				return;
+			}
+			response.end(
+				JSON.stringify({
+					ok: true,
+					requestId: url.searchParams.get("requestId"),
+				}),
+			);
+		});
+		await new Promise<void>((resolve) =>
+			server.listen(0, "127.0.0.1", resolve),
+		);
+
+		try {
+			const address = server.address();
+			assert(address && typeof address !== "string");
+			await assert.rejects(
+				runCloudStress({
+					baseUrl: `http://127.0.0.1:${address.port}`,
+					mode: "soak",
+					rampConcurrencies: [1],
+					rampStageSeconds: 1,
+					soakDurationSeconds: 5,
+					soakWindowSeconds: 1,
+					soakConcurrency: 3,
+					timeoutMs: 1_000,
+					minimumSuccessRate: 1,
+					maxSamples: 10_000,
+				}),
+				(error: unknown) => {
+					assert(error instanceof CloudStressFailure);
+					assert.equal(error.result.soak?.windows.length, 1);
+					assert.equal(error.result.soak?.windows[0]?.passed, false);
+					assert.equal(
+						error.result.soak?.windows[0]?.cases.actor?.statuses["500"],
+						error.result.soak?.windows[0]?.cases.actor?.completed ?? 0,
+					);
+					assert.match(error.result.failure ?? "", /aborting early/);
+					assert(error.result.finishedAt);
+					return true;
+				},
+			);
+		} finally {
+			await new Promise<void>((resolve, reject) =>
+				server.close((error) => (error ? reject(error) : resolve())),
+			);
+		}
 	});
 
 	it("fails a request instead of buffering an oversized response", async () => {

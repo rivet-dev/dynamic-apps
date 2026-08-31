@@ -33,6 +33,17 @@ interface RampResult {
 	observedInstances: string[];
 }
 
+interface SoakResult {
+	requestedDurationSeconds: number;
+	completedDurationSeconds: number;
+	concurrency: number;
+	windows: StageResult[];
+	observedInstances: string[];
+	completed: number;
+	minimumSuccessRate: number;
+	failure?: string;
+}
+
 interface CloudStressResult {
 	baseUrl: string;
 	mode: StressMode;
@@ -40,16 +51,9 @@ interface CloudStressResult {
 	finishedAt?: string;
 	setup: unknown;
 	ramps: RampResult[];
-	soak?: {
-		requestedDurationSeconds: number;
-		completedDurationSeconds: number;
-		concurrency: number;
-		windows: StageResult[];
-		observedInstances: string[];
-		completed: number;
-		minimumSuccessRate: number;
-	};
+	soak?: SoakResult;
 	diagnostics: { before: unknown; after?: unknown };
+	failure?: string;
 }
 
 interface StressConfig {
@@ -66,6 +70,16 @@ interface StressConfig {
 }
 
 const DEFAULT_RAMP_CONCURRENCIES = [1, 4, 16, 32, 64, 128, 256, 512, 1_000];
+
+export class CloudStressFailure extends Error {
+	readonly result: CloudStressResult;
+
+	constructor(cause: unknown, result: CloudStressResult) {
+		super(errorMessage(cause), { cause });
+		this.name = "CloudStressFailure";
+		this.result = result;
+	}
+}
 
 export async function runCloudStress(
 	config: StressConfig,
@@ -85,6 +99,7 @@ export async function runCloudStress(
 		rampConcurrencies: config.rampConcurrencies,
 	});
 
+	let failure: unknown;
 	try {
 		if (config.mode === "ramp" || config.mode === "both") {
 			result.ramps.push(
@@ -104,14 +119,27 @@ export async function runCloudStress(
 			const sustainable = lastPassingConcurrency(result.ramps);
 			const soakConcurrency =
 				config.soakConcurrency ?? Math.max(1, Math.floor(sustainable * 0.7));
-			result.soak = await runSoak(config, soakConcurrency);
+			result.soak = {
+				requestedDurationSeconds: config.soakDurationSeconds,
+				completedDurationSeconds: 0,
+				concurrency: soakConcurrency,
+				windows: [],
+				observedInstances: [],
+				completed: 0,
+				minimumSuccessRate: 1,
+			};
+			await runSoak(config, result.soak);
 		}
+	} catch (error) {
+		failure = error;
+		result.failure = errorMessage(error);
 	} finally {
 		result.diagnostics.after = await readJson(baseUrl, "/bench/info").catch(
 			(error: unknown) => ({ error: errorMessage(error) }),
 		);
 		result.finishedAt = new Date().toISOString();
 	}
+	if (failure !== undefined) throw new CloudStressFailure(failure, result);
 
 	return result;
 }
@@ -157,14 +185,11 @@ async function runRamp(
 
 async function runSoak(
 	config: StressConfig,
-	concurrency: number,
-): Promise<NonNullable<CloudStressResult["soak"]>> {
+	result: SoakResult,
+): Promise<void> {
 	const startedAt = Date.now();
 	const deadline = startedAt + config.soakDurationSeconds * 1_000;
-	const windows: StageResult[] = [];
 	const instances = new Set<string>();
-	let completed = 0;
-	let minimumSuccessRate = 1;
 	for (let window = 1; Date.now() < deadline; window += 1) {
 		const remainingSeconds = Math.max(
 			1,
@@ -177,29 +202,28 @@ async function runSoak(
 		const stage = await runStage(
 			config,
 			`soak-${window}`,
-			concurrency,
+			result.concurrency,
 			durationSeconds,
-			mixedCases(concurrency),
+			mixedCases(result.concurrency),
 		);
-		windows.push(stage);
+		result.windows.push(stage);
 		observeStage(stage, instances);
 		for (const value of Object.values(stage.cases)) {
-			completed += value.completed;
-			minimumSuccessRate = Math.min(minimumSuccessRate, value.successRate);
+			result.completed += value.completed;
+			result.minimumSuccessRate = Math.min(
+				result.minimumSuccessRate,
+				value.successRate,
+			);
 		}
+		result.completedDurationSeconds = Math.round(
+			(Date.now() - startedAt) / 1_000,
+		);
+		result.observedInstances = [...instances].sort();
 		if (!stage.passed) {
-			throw new Error(`soak failed in window ${window}; aborting early`);
+			result.failure = `soak failed in window ${window}; aborting early`;
+			throw new Error(result.failure);
 		}
 	}
-	return {
-		requestedDurationSeconds: config.soakDurationSeconds,
-		completedDurationSeconds: Math.round((Date.now() - startedAt) / 1_000),
-		concurrency,
-		windows,
-		observedInstances: [...instances].sort(),
-		completed,
-		minimumSuccessRate,
-	};
 }
 
 async function runStage(
@@ -575,13 +599,15 @@ function errorMessage(error: unknown): string {
 
 async function main(): Promise<void> {
 	const config = readStressConfig();
-	let result: CloudStressResult | undefined;
 	try {
-		result = await runCloudStress(config);
+		const result = await runCloudStress(config);
 		console.log(JSON.stringify(result, null, 2));
 	} catch (error) {
-		progress("cloud-stress-failed", { message: errorMessage(error), result });
-		throw error;
+		const result =
+			error instanceof CloudStressFailure ? error.result : undefined;
+		if (result) console.log(JSON.stringify(result, null, 2));
+		progress("cloud-stress-failed", { message: errorMessage(error) });
+		process.exitCode = 1;
 	}
 }
 
