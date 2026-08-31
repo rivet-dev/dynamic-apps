@@ -805,7 +805,6 @@ async function buildRelease(
 					entrypoint: plan.entrypoint,
 					release,
 					maxResponseBytes: config.maxResponseBytes,
-					usesRivetKit: plan.usesRivetKit,
 				}),
 			),
 		});

@@ -49,7 +49,7 @@ export function canonicalDeploymentHash(input: {
 	deploymentIdentity?: string;
 }): string {
 	const hash = createHash("sha256");
-	hash.update("agentos-apps-release-v17-direct-actors\0");
+	hash.update("agentos-apps-release-v19-mounted-hono-router\0");
 	const field = (value: string | Uint8Array) => {
 		const bytes = typeof value === "string" ? Buffer.from(value) : value;
 		const length = Buffer.allocUnsafe(8);
@@ -78,23 +78,10 @@ export function directRunnerSource(input: {
 	entrypoint: string;
 	release: string;
 	maxResponseBytes: number;
-	usesRivetKit?: boolean;
 }): string {
 	const entrypoint = `./${normalizeAppPath(input.entrypoint)}`;
-	const importApplication = input.usesRivetKit
-		? `const dynamicAppsModuleImportStartedAt = performance.now();
-import { Registry } from "rivetkit";
-const originalStart = Registry.prototype.start;
-Registry.prototype.start = function dynamicAppsManagedStart() {};
-let application;
-try {
-  application = await import(${JSON.stringify(entrypoint)});
-} finally {
-  Registry.prototype.start = originalStart;
-}`
-		: `const dynamicAppsModuleImportStartedAt = performance.now();
-const application = await import(${JSON.stringify(entrypoint)});`;
-	return `${importApplication}
+	return `const dynamicAppsModuleImportStartedAt = performance.now();
+const application = await import(${JSON.stringify(entrypoint)});
 const dynamicAppsModuleImportMs = performance.now() - dynamicAppsModuleImportStartedAt;
 const exported = application.default;
 const appFetch = typeof exported === "function"
@@ -162,22 +149,19 @@ export async function dispatch(input) {
 `;
 }
 
-/** Host-owned wrapper for the optional app-defined RivetKit registry. */
+/** Host-owned wrapper for the app's mounted actor callback handler. */
 export function actorRunnerSource(entrypointInput: string): string {
 	const entrypoint = `./${normalizeAppPath(entrypointInput)}`;
-	return `import { Registry } from "rivetkit";
-const originalStart = Registry.prototype.start;
-Registry.prototype.start = function dynamicAppsManagedStart() {};
-let application;
-try {
-  application = await import(${JSON.stringify(entrypoint)});
-} finally {
-  Registry.prototype.start = originalStart;
+	return `import application from ${JSON.stringify(entrypoint)};
+const appFetch = typeof application === "function"
+  ? application
+  : typeof application?.fetch === "function"
+    ? application.fetch.bind(application)
+    : undefined;
+if (!appFetch) {
+  throw new TypeError("Dynamic App using RivetKit must default export a fetch handler with registry.handler() mounted under /api/rivet");
 }
-if (typeof application.registry?.handler !== "function") {
-  throw new TypeError("Dynamic App using RivetKit must export const registry = setup(...)");
-}
-export const registry = application.registry;
+export const handler = appFetch;
 `;
 }
 
@@ -218,6 +202,7 @@ export async function ensureServerlessRunnerConfig(input: {
 	url: string;
 	pool: string;
 	token?: string;
+	callbackToken?: string;
 	callbackSecret: string;
 }): Promise<void> {
 	const headers = {
@@ -253,7 +238,12 @@ export async function ensureServerlessRunnerConfig(input: {
 		datacenters[datacenter.name] = {
 			serverless: {
 				url: input.url,
-				headers: { [APP_CALLBACK_SECRET_HEADER]: input.callbackSecret },
+				headers: {
+					[APP_CALLBACK_SECRET_HEADER]: input.callbackSecret,
+					...(input.callbackToken
+						? { "x-rivet-token": input.callbackToken }
+						: {}),
+				},
 				request_lifespan: 60 * 60,
 				metadata_poll_interval: 1_000,
 				max_runners: 1_024,
@@ -273,6 +263,23 @@ export async function ensureServerlessRunnerConfig(input: {
 	if (!response.ok) {
 		throw new Error(
 			`Rivet runner config upsert failed with HTTP ${response.status}: ${body}`,
+		);
+	}
+
+	// Publish the registry protocol synchronously so the first actor allocation
+	// cannot race the background metadata poller into the legacy runner path.
+	const refreshResponse = await controlFetch(
+		engineUrl(
+			input.endpoint,
+			["runner-configs", input.pool, "refresh-metadata"],
+			input.namespace,
+		),
+		{ method: "POST", headers, body: "{}" },
+	);
+	const refreshBody = await readBoundedText(refreshResponse);
+	if (!refreshResponse.ok) {
+		throw new Error(
+			`Rivet runner metadata refresh failed with HTTP ${refreshResponse.status}: ${refreshBody}`,
 		);
 	}
 }

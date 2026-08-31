@@ -198,6 +198,15 @@ export class DynamicActorRuntime {
 					status: 413,
 				});
 			}
+			console.info(
+				JSON.stringify({
+					msg: "Dynamic App actor callback received",
+					method: input.request.method,
+					path: new URL(input.request.url).pathname,
+					bodyBytes: body.byteLength,
+					contentLength: input.request.headers.get("content-length"),
+				}),
+			);
 			const entry = await this.#entry(input);
 			try {
 				await entry.ready;
@@ -396,10 +405,10 @@ export class DynamicActorRuntime {
 				await mkdir(dirname(target), { recursive: true });
 				await writeFile(target, bytes, { mode: 0o600 });
 			}
-			const platformPackages = await resolvePlatformActorPackages();
+			const rivetkitPackage = await resolvePlatformRivetKitPackage();
 			await mkdir(join(directory, "node_modules"), { recursive: true });
 			await symlink(
-				platformPackages.rivetkit,
+				rivetkitPackage,
 				join(directory, "node_modules", "rivetkit"),
 				"dir",
 			);
@@ -415,10 +424,7 @@ export class DynamicActorRuntime {
 					`data:text/javascript,${encodeURIComponent(ACTOR_WORKER_SOURCE)}`,
 				),
 				{
-					workerData: {
-						entrypoint,
-						wasmPath: platformPackages.wasmPath,
-					},
+					workerData: { entrypoint },
 					env: actorWorkerEnvironment(input),
 					resourceLimits: {
 						maxOldGenerationSizeMb: this.config.heapLimitMb,
@@ -711,24 +717,15 @@ async function readBoundedBody(
 	}
 }
 
-let platformActorPackages:
-	| Promise<{ rivetkit: string; wasmPath: string }>
-	| undefined;
+let platformRivetKitPackage: Promise<string> | undefined;
 
-function resolvePlatformActorPackages(): Promise<{
-	rivetkit: string;
-	wasmPath: string;
-}> {
-	platformActorPackages ??= (async () => {
+function resolvePlatformRivetKitPackage(): Promise<string> {
+	platformRivetKitPackage ??= (async () => {
 		const hostRequire = createRequire(import.meta.url);
 		const rivetkitEntry = hostRequire.resolve("rivetkit");
-		const rivetkit = await findPackageRoot(rivetkitEntry);
-		const wasmPath = createRequire(rivetkitEntry).resolve(
-			"@rivetkit/rivetkit-wasm/rivetkit_wasm_bg.wasm",
-		);
-		return { rivetkit, wasmPath };
+		return findPackageRoot(rivetkitEntry);
 	})();
-	return platformActorPackages;
+	return platformRivetKitPackage;
 }
 
 async function findPackageRoot(entrypoint: string): Promise<string> {
@@ -777,7 +774,7 @@ export function actorWorkerEnvironment(
 	endpoint.password = "";
 	return {
 		NODE_ENV: "production",
-		RIVETKIT_RUNTIME: "wasm",
+		RIVETKIT_RUNTIME: "native",
 		RIVETKIT_RUNTIME_MODE: "serverless",
 		RIVET_ENDPOINT: endpoint.toString().replace(/\/$/u, ""),
 		RIVET_NAMESPACE: input.namespace,
@@ -958,17 +955,10 @@ class ActorAdmission {
 }
 
 const ACTOR_WORKER_SOURCE = `
-import { readFile } from "node:fs/promises";
 import { parentPort, workerData } from "node:worker_threads";
 if (!parentPort) throw new Error("Dynamic App actor worker has no parent port");
-const { registry } = await import(workerData.entrypoint);
-if (typeof registry?.handler !== "function") throw new TypeError("Dynamic App actor registry is invalid");
-if (process.env.RIVETKIT_RUNTIME === "wasm" && registry.config) {
-  registry.config.wasm = {
-    ...registry.config.wasm,
-    initInput: await readFile(workerData.wasmPath),
-  };
-}
+const { handler } = await import(workerData.entrypoint);
+if (typeof handler !== "function") throw new TypeError("Dynamic App actor fetch handler is invalid");
 const requests = new Map();
 const acknowledgements = new Map();
 const waitForAck = (id) => new Promise((resolve) => acknowledgements.set(id, resolve));
@@ -995,7 +985,7 @@ parentPort.on("message", (message) => {
     const controller = new AbortController();
     requests.set(message.id, controller);
     try {
-      const response = await registry.handler(new Request(message.url, {
+      const response = await handler(new Request(message.url, {
         method: message.method,
         headers: message.headers,
         body: message.method === "GET" || message.method === "HEAD" ? undefined : message.body,

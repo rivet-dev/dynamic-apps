@@ -342,10 +342,10 @@ part of the retained API.
 
 ## App-defined RivetKit actor contract
 
-An application that declares `rivetkit` may export
-`const registry = setup(...)` and may retain its `registry.start()` call. The
-platform suppresses that call while importing the managed actor bundle. The
-same app must still provide a valid direct default fetch handler.
+An application that declares `rivetkit` mounts `registry.handler()` at
+`/api/rivet` and `/api/rivet/*` in its default exported fetch router. It must
+not call `registry.start()` or `serve()` because Dynamic Apps owns the HTTP
+listener. The same mounted router serves ordinary direct requests.
 
 On activation, deployment configures the returned `namespace` and `pool` with
 an authenticated serverless callback to the private `agentOSAppsApp` actor.
@@ -355,7 +355,7 @@ actor-enabled release.
 
 The callback lazily verifies and extracts `actor/main.mjs`, then caches one
 worker thread per active release. The worker uses the platform's pinned
-RivetKit WebAssembly runtime and the app namespace/pool connection. Actor
+RivetKit native runtime and the app namespace/pool connection. Actor
 state, actions, events, connections, request/response streaming, backpressure,
 and cancellation use the ordinary RivetKit protocol. Worker entries are
 bounded by count, V8 heap, idle TTL, callback body size, and container memory

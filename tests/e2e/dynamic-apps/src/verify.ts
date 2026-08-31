@@ -149,10 +149,12 @@ async function deployActorFixture() {
 				type: "module",
 				main: "index.js",
 				dependencies: {
+					hono: "4.13.3",
 					rivetkit: "2.3.11",
 				},
 			}),
 			"index.js": `
+import { Hono } from "hono";
 import { actor, event, setup } from "rivetkit";
 
 const counter = actor({
@@ -170,12 +172,11 @@ const counter = actor({
   },
 });
 
-export const registry = setup({ use: { counter } });
-registry.start();
-
-export default function fetch() {
-  return Response.json({ ok: true, workload: "actor-and-direct-http" });
-}
+const registry = setup({ use: { counter } });
+const app = new Hono();
+app.all("/api/rivet/*", (c) => registry.handler(c.req.raw));
+app.all("*", () => Response.json({ ok: true, workload: "actor-and-direct-http" }));
+export default app;
 `,
 		},
 		scaling: {

@@ -7,6 +7,7 @@ import getPort from "get-port";
 
 const fast = process.argv.includes("--fast");
 const buildOnly = process.argv.includes("--build-only");
+const sanity = process.argv.includes("--sanity");
 const root = await mkdtemp(join(tmpdir(), "agentos-apps-e2e-"));
 const databasePath = join(root, "db");
 await mkdir(databasePath, { recursive: true });
@@ -59,7 +60,7 @@ try {
 	}
 	delete process.env.RIVET_ENGINE;
 	delete process.env.RIVET_RUN_ENGINE;
-	await import("./verify.js");
+	await import(sanity ? "./sanity.js" : "./verify.js");
 } finally {
 	await stopEngine(engine);
 	await rm(root, { recursive: true, force: true });

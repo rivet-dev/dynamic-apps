@@ -211,11 +211,9 @@ async function main(): Promise<void> {
 	);
 	const actorHandlerStallArtifact = await createActorArtifact(
 		"actor-handler-stall",
-		`export const registry = {
-  handler() {
+		`export function handler() {
     while (true) {}
-  },
-};`,
+}`,
 	);
 	const actorMemoryArtifact = await createActorArtifact(
 		"actor-memory",
@@ -1274,26 +1272,22 @@ function createActorArtifact(
 function actorTrafficSource(): string {
 	return `
 let counter = 0;
-export const registry = {
-  async handler(request) {
+export async function handler(request) {
     counter += 1;
     const requestBytes = (await request.arrayBuffer()).byteLength;
     return Response.json({ counter, requestBytes });
-  },
-};
+}
 `;
 }
 
 function actorMemorySource(allocationBytes: number): string {
 	return `
 let retained;
-export const registry = {
-  handler() {
+export function handler() {
     retained = new Uint8Array(${allocationBytes});
     retained.fill(1);
     return new Response(String(retained.byteLength));
-  },
-};
+}
 `;
 }
 

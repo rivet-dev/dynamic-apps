@@ -34,11 +34,13 @@ bodies are not supported.
 
 ## App-defined actors
 
-An app that declares `rivetkit` may also export a registry. The platform owns
-the runner lifecycle, so the existing `registry.start()` call remains valid:
+An app that declares `rivetkit` mounts the registry handler in its normal fetch
+router. Dynamic Apps owns the listener, so the application must not call
+`registry.start()` or `serve()`:
 
 ```ts
 import { actor, setup } from "rivetkit";
+import { Hono } from "hono";
 
 const counter = actor({
 	state: { value: 0 },
@@ -49,10 +51,11 @@ const counter = actor({
 	},
 });
 
-export const registry = setup({ use: { counter } });
-registry.start();
-
-export default () => new Response("ok");
+const registry = setup({ use: { counter } });
+const app = new Hono();
+app.all("/api/rivet/*", (c) => registry.handler(c.req.raw));
+app.all("*", () => new Response("ok"));
+export default app;
 ```
 
 Use the unchanged `deployApp` result to create the app client:
@@ -74,13 +77,27 @@ Every app is deployed to its own stable Rivet namespace. On Rivet Cloud, set
 uses it to provision the namespace and namespace-scoped access, secret, and
 publishable credentials. The management credential is never returned or passed
 to app code; `deployApp()` returns only the app's publishable token.
-Rivet Compute derives the app actor callback from its `.rivet.run` hostname.
-Set `DYNAMIC_APPS_CALLBACK_URL` only when the host is exposed at a different
-public origin; Dynamic Apps appends `/api/rivet`.
+
+The deploy CLI's cached management credential is not injected into the app.
+Pass the token as a server-side Compute environment variable:
+
+```sh
+npx @rivetkit/cli deploy \
+  --namespace <namespace> \
+  --env PORT=3000 \
+  --env RIVET_CLOUD_TOKEN="$RIVET_CLOUD_TOKEN"
+```
+
+By default, the app actor callback enters through the host app actor's Rivet
+gateway and authenticates with the publishable credential from
+`RIVET_PUBLIC_ENDPOINT`. This keeps the child app namespace separate from the
+host registry namespace. `DYNAMIC_APPS_CALLBACK_URL` is only for a custom
+receiver that accepts child-namespace lifecycle callbacks; Dynamic Apps appends
+`/api/rivet` to that origin.
 
 Actor requests follow the normal Rivet Engine path. The app's serverless
 callback loads its verified actor bundle into a bounded process-local worker
-thread and uses the host's pinned RivetKit WebAssembly runtime. State, actions,
+thread and uses the host's pinned RivetKit native runtime. State, actions,
 events, connections, and streaming actor responses are handled by RivetKit;
 ordinary HTTP for the same app still uses the agentOS evaluation path.
 

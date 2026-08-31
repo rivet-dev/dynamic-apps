@@ -247,7 +247,7 @@ describe("retained public surface", () => {
 				pool: "app-pool",
 			}),
 		).toMatchObject({
-			RIVETKIT_RUNTIME: "wasm",
+			RIVETKIT_RUNTIME: "native",
 			RIVET_ENDPOINT: "https://api.rivet.dev",
 			RIVET_NAMESPACE: "app-namespace",
 			RIVET_TOKEN: "pk_example",
@@ -690,7 +690,7 @@ export async function dispatch(input) {
 describe("actor callback resource limits", () => {
 	test("does not publish a worker that finishes creating during shutdown", async () => {
 		const artifact = await makeActorArtifact(`
-export const registry = { handler: () => new Response("ok") };
+export default { fetch: () => new Response("ok") };
 `);
 		const runtime = new DynamicActorRuntime();
 		let releaseArtifact = () => {};
@@ -740,8 +740,8 @@ export const registry = { handler: () => new Response("ok") };
 
 	test("bounds concurrent actor workers as well as idle cache entries", async () => {
 		const artifact = await makeActorArtifact(`
-export const registry = {
-  async handler() {
+export default {
+  async fetch() {
     await new Promise((resolve) => setTimeout(resolve, 100));
     return new Response("ok");
   },
@@ -780,8 +780,8 @@ export const registry = {
 
 	test("times out an actor handler that blocks its worker", async () => {
 		const artifact = await makeActorArtifact(`
-export const registry = {
-  handler() {
+export default {
+  fetch() {
     while (true) {}
   },
 };
@@ -823,8 +823,8 @@ export const registry = {
 
 	test("allows an actor response stream to outlive the handler timeout", async () => {
 		const artifact = await makeActorArtifact(`
-export const registry = {
-  handler() {
+export default {
+  fetch() {
     return new Response(new ReadableStream({
       async start(controller) {
         controller.enqueue(new TextEncoder().encode("started-"));
@@ -877,8 +877,8 @@ export const registry = {
 
 	test("preserves actor worker error stacks and causes", async () => {
 		const artifact = await makeActorArtifact(`
-export const registry = {
-  async handler() {
+export default {
+  async fetch() {
     throw new Error("outer failure", { cause: new Error("inner failure") });
   },
 };
@@ -905,8 +905,8 @@ export const registry = {
 
 	test("admits actor callback bodies before reading them", async () => {
 		const artifact = await makeActorArtifact(`
-export const registry = {
-  async handler() {
+export default {
+  async fetch() {
     return new Response("ok");
   },
 };
@@ -1027,8 +1027,8 @@ export const registry = {
 
 	test("serves concurrent actor worker cache churn without losing requests", async () => {
 		const artifact = await makeActorArtifact(`
-export const registry = {
-  async handler() {
+export default {
+  async fetch() {
     return new Response("ok");
   },
 };
@@ -1082,7 +1082,7 @@ export const registry = {
 		const artifact = await makeActorArtifact(`
 console.log("actor stdout");
 console.error("actor stderr");
-export const registry = { handler: () => new Response("ok") };
+export default { fetch: () => new Response("ok") };
 `);
 		const runtime = new DynamicActorRuntime();
 		try {
@@ -1235,7 +1235,17 @@ async function makeActorArtifact(source: string): Promise<TestArtifact> {
 	const directory = await mkdtemp(join(tmpdir(), "dynamic-apps-actor-test-"));
 	const archive = join(directory, "app.tar");
 	await mkdir(join(directory, "actor"));
-	await writeFile(join(directory, "actor", "main.mjs"), source);
+	await writeFile(join(directory, "actor", "application.mjs"), source);
+	await writeFile(
+		join(directory, "actor", "main.mjs"),
+		`const { default: application } = await import("./application.mjs");
+const fetch = typeof application === "function"
+  ? application
+  : application?.fetch?.bind(application);
+if (typeof fetch !== "function") throw new TypeError("invalid test fetch handler");
+export const handler = fetch;
+`,
+	);
 	await writeFile(
 		join(directory, "agentos-package.json"),
 		JSON.stringify({ name: "dynamic-actor-test", version: "1.0.0" }),

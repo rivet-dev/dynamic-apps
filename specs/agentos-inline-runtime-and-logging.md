@@ -284,9 +284,9 @@ The direct release must be a Node-targeted ESM bundle, not a browser IIFE.
 - Continue rejecting native `.node` addons.
 - Delete the Dynamic Apps RivetKit stub entirely.
 - For an app importing RivetKit, build the direct bundle with the real RivetKit
-  WASM runtime and its WASM asset. Suppress the application's `registry.start()`
-  only while importing the direct entrypoint, then restore it. Actor definitions
-  remain real objects; only actor startup is host-managed.
+  runtime. The app mounts `registry.handler()` in its exported fetch router and
+  does not call `registry.start()` or `serve()`; actor startup remains
+  host-managed.
 - Keep the separate platform-linked actor bundle used by the existing bounded
   actor worker.
 - Continue validating both bundles before activating a release.
@@ -362,8 +362,8 @@ The file must contain no import from `isolated-vm`, no custom `Request` or
   Node-targeted ESM dispatcher export;
 - reconstruct requests with Node's real Web APIs;
 - use `Buffer` for bounded Base64 conversion;
-- temporarily suppress `Registry.prototype.start` while importing an
-  actor-enabled app for direct serving;
+- import the actor-enabled app's mounted fetch router without patching RivetKit
+  lifecycle methods;
 - preserve response status, status text, ordered headers, repeated
   `set-cookie`, body limits, and phase timing; and
 - leave `actorRunnerSource()` and authenticated callback configuration intact.

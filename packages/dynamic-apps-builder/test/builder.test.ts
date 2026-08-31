@@ -84,7 +84,6 @@ describe("apps-builder", () => {
 				entrypoint: "app.ts",
 				release: "rivetkit-direct-test",
 				maxResponseBytes: 1024 * 1024,
-				usesRivetKit: true,
 			}),
 		);
 		await writeFile(
@@ -92,10 +91,10 @@ describe("apps-builder", () => {
 			[
 				'import { actor, setup } from "rivetkit";',
 				"const counter = actor({ state: { count: 0 } });",
-				"export const registry = setup({ use: { counter } });",
-				"registry.start();",
+				"const registry = setup({ use: { counter } });",
 				"export default {",
-				"  fetch() {",
+				"  fetch(request) {",
+				'    if (new URL(request.url).pathname.startsWith("/api/rivet")) return registry.handler(request);',
 				'    return new Response(typeof registry.handler + ":" + typeof counter);',
 				"  },",
 				"};",
@@ -283,7 +282,7 @@ describe("apps-builder", () => {
 		});
 	});
 
-	test("emits a small platform-linked actor registry bundle", async () => {
+	test("emits a small platform-linked actor fetch bundle", async () => {
 		const root = await mkdtemp(join(tmpdir(), "agentos-apps-actor-builder-"));
 		const workspace = join(root, "workspace");
 		const release = join(root, "release");
@@ -297,8 +296,8 @@ describe("apps-builder", () => {
 			[
 				'import { actor, setup } from "rivetkit";',
 				"const counter = actor({ state: { count: 0 } });",
-				"export const registry = setup({ use: { counter } });",
-				"registry.start();",
+				"const registry = setup({ use: { counter } });",
+				"export default { fetch: (request) => registry.handler(request) };",
 			].join("\n"),
 		);
 		const configPath = join(root, "config.json");

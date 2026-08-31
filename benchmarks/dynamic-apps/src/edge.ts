@@ -105,7 +105,6 @@ export function createBenchmarkApplication(): Hono {
 		headers.set("x-agentos-app-registry-dispatch", "1");
 		return appsRouter.fetch(new Request(request, { headers }));
 	};
-	app.all("/api/rivet", (c) => privateRegistry(c.req.raw));
 	app.all("/api/rivet/*", (c) => privateRegistry(c.req.raw));
 
 	app.all("/bench/noop", () => {

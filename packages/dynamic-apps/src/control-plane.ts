@@ -299,19 +299,41 @@ export async function provisionAppNamespace(
 	};
 }
 
-function serverlessAppUrl(
+function serverlessAppCallback(
 	appActorId: string,
 	connection: ResolvedRivetConnection,
-): string {
+): { url: string; token?: string } {
 	const configured = process.env.DYNAMIC_APPS_CALLBACK_URL;
-	if (configured) return new URL("/api/rivet", configured).toString();
-	if (process.env._RIVET_COMPUTE) {
-		return `https://${connection.namespace}.rivet.run/api/rivet`;
+	if (configured) {
+		return { url: new URL("/api/rivet", configured).toString() };
 	}
-	return new URL(
-		`/gateway/${encodeURIComponent(appActorId)}/request/.agentos/apps/rivet`,
-		connection.endpoint,
-	).toString();
+
+	const publicEndpoint = process.env.RIVET_PUBLIC_ENDPOINT;
+	const callbackConnection = publicEndpoint
+		? resolveRivetConnection(publicEndpoint)
+		: connection;
+	return {
+		url: new URL(
+			`/gateway/${encodeURIComponent(appActorId)}/request/.agentos/apps/rivet`,
+			callbackConnection.endpoint,
+		).toString(),
+		...(callbackConnection.token ? { token: callbackConnection.token } : {}),
+	};
+}
+
+function resolveRivetConnection(rawEndpoint: string): ResolvedRivetConnection {
+	const url = new URL(rawEndpoint);
+	const namespace = url.username
+		? decodeURIComponent(url.username)
+		: (process.env.RIVET_NAMESPACE ?? "default");
+	const token = url.password ? decodeURIComponent(url.password) : undefined;
+	url.username = "";
+	url.password = "";
+	return {
+		endpoint: url.toString().replace(/\/$/, ""),
+		namespace,
+		...(token ? { token } : {}),
+	};
 }
 
 /** Configure the nested actor pool only after its release is ready. */
@@ -327,12 +349,14 @@ export async function configureAppNamespaceRunner(
 	callbackConnection = resolveDefaultRivetConnection(),
 ): Promise<void> {
 	try {
+		const callback = serverlessAppCallback(appActorId, callbackConnection);
 		await ensureServerlessRunnerConfig({
 			endpoint: runtime.endpoint,
 			namespace: runtime.namespace,
-			url: serverlessAppUrl(appActorId, callbackConnection),
+			url: callback.url,
 			pool: runtime.pool,
 			token: runtime.controlToken,
+			callbackToken: callback.token,
 			callbackSecret,
 		});
 	} catch (error) {
