@@ -99,7 +99,13 @@ const main = await import(pathToFileURL(join(mainRoot, "dist/index.js")));
 const exports = Object.keys(main).sort();
 if (
 	JSON.stringify(exports) !==
-	JSON.stringify(["appsRouter", "deployApp", "setDynamicAppsLogHandler"])
+	JSON.stringify([
+		"appsRouter",
+		"deployApp",
+		"rivetActorsSkill",
+		"setDynamicAppsLogHandler",
+		"webServerSkill",
+	])
 ) {
 	throw new Error(`packed main package has unexpected exports: ${exports}`);
 }
