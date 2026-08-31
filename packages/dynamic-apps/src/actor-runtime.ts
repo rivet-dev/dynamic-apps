@@ -13,6 +13,7 @@ import { dirname, join, posix } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Worker } from "node:worker_threads";
 import { DynamicAppsError } from "./errors.js";
+import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
 import { capConcurrencyForMemory, readCgroupMemory } from "./memory.js";
 import { ACTOR_BUNDLE_PATH } from "./runtime.js";
 
@@ -35,6 +36,8 @@ interface ActorRuntimeConfig {
 
 export interface ActorRuntimeRequest {
 	key: string;
+	appId?: string;
+	release?: string;
 	loadArtifact: () => Promise<Uint8Array>;
 	endpoint: string;
 	namespace: string;
@@ -55,6 +58,8 @@ interface PendingRequest {
 
 interface RuntimeEntry {
 	key: string;
+	appId: string;
+	release: string;
 	directory: string;
 	worker: Worker;
 	ready: Promise<void>;
@@ -63,6 +68,7 @@ interface RuntimeEntry {
 	lastUsedAt: number;
 	disposed: boolean;
 	nextRequestId: number;
+	logDisposers: Array<() => void>;
 }
 
 type WorkerMessage =
@@ -109,7 +115,7 @@ export class DynamicActorRuntime {
 			maxEntries: cgroupMemory
 				? capConcurrencyForMemory({
 						requested: requestedMaxEntries,
-						heapLimitMb,
+						contextAndVmLimitMb: heapLimitMb,
 						memoryHighWaterPercent,
 						currentBytes: cgroupMemory.currentBytes,
 						maxBytes: cgroupMemory.maxBytes,
@@ -215,6 +221,13 @@ export class DynamicActorRuntime {
 				entry.pending.set(id, pending);
 				admissionHandedOff = true;
 				pending.timeout = setTimeout(() => {
+					emitDynamicAppsLog({
+						level: "error",
+						source: "runtime",
+						message: "Dynamic App actor request timed out",
+						appId: entry.appId,
+						release: entry.release,
+					});
 					this.#failEntry(
 						entry,
 						new Error(
@@ -236,6 +249,13 @@ export class DynamicActorRuntime {
 					});
 					if (input.request.signal.aborted) cancel();
 				} catch (error) {
+					emitDynamicAppsLog({
+						level: "error",
+						source: "runtime",
+						message: "Dynamic App actor worker transport failed",
+						appId: entry.appId,
+						release: entry.release,
+					});
 					this.#settle(entry, id);
 					reject(error);
 				}
@@ -407,10 +427,14 @@ export class DynamicActorRuntime {
 							Math.min(32, Math.floor(this.config.heapLimitMb / 4)),
 						),
 					},
+					stdout: true,
+					stderr: true,
 				},
 			);
 			const entry: RuntimeEntry = {
 				key: input.key,
+				appId: input.appId ?? "unknown",
+				release: input.release ?? "unknown",
 				directory,
 				worker,
 				ready,
@@ -419,7 +443,28 @@ export class DynamicActorRuntime {
 				lastUsedAt: Date.now(),
 				disposed: false,
 				nextRequestId: 0,
+				logDisposers: [],
 			};
+			for (const stream of ["stdout", "stderr"] as const) {
+				const output = worker[stream];
+				const decoder = new DynamicAppsLogLineDecoder((message, truncated) =>
+					emitDynamicAppsLog({
+						level: stream === "stdout" ? "info" : "error",
+						source: "actor",
+						message,
+						appId: input.appId ?? "unknown",
+						release: input.release ?? "unknown",
+						stream,
+						...(truncated ? { metadata: { truncated: true } } : {}),
+					}),
+				);
+				const onData = (chunk: Uint8Array) => decoder.write(chunk);
+				output.on("data", onData);
+				entry.logDisposers.push(() => {
+					output.off("data", onData);
+					decoder.end();
+				});
+			}
 			let startupSettled = false;
 			const startupTimer = setTimeout(() => {
 				if (startupSettled || entry.disposed) return;
@@ -427,6 +472,13 @@ export class DynamicActorRuntime {
 				const error = new Error(
 					`Dynamic App actor worker startup exceeded ${this.config.startTimeoutMs}ms`,
 				);
+				emitDynamicAppsLog({
+					level: "error",
+					source: "runtime",
+					message: "Dynamic App actor worker startup timed out",
+					appId: entry.appId,
+					release: entry.release,
+				});
 				readyReject(error);
 				this.#failEntry(entry, error);
 			}, this.config.startTimeoutMs);
@@ -443,6 +495,13 @@ export class DynamicActorRuntime {
 					return;
 				}
 				if (message.type === "error" && !message.id) {
+					emitDynamicAppsLog({
+						level: "error",
+						source: "runtime",
+						message: "Dynamic App actor worker reported a transport error",
+						appId: entry.appId,
+						release: entry.release,
+					});
 					finishStartup();
 					readyReject(new Error(message.message));
 					this.#failEntry(entry, new Error(message.message));
@@ -451,6 +510,13 @@ export class DynamicActorRuntime {
 				if (message.id) this.#handleMessage(entry, message);
 			});
 			worker.once("error", (error) => {
+				emitDynamicAppsLog({
+					level: "error",
+					source: "runtime",
+					message: "Dynamic App actor worker failed",
+					appId: entry.appId,
+					release: entry.release,
+				});
 				finishStartup();
 				readyReject(error);
 				this.#failEntry(entry, error);
@@ -458,6 +524,14 @@ export class DynamicActorRuntime {
 			worker.once("exit", (code) => {
 				finishStartup();
 				if (!entry.disposed) {
+					emitDynamicAppsLog({
+						level: "error",
+						source: "runtime",
+						message: "Dynamic App actor worker exited",
+						appId: entry.appId,
+						release: entry.release,
+						metadata: { exitCode: code },
+					});
 					const error = new Error(
 						`Dynamic App actor worker exited with ${code}`,
 					);
@@ -596,10 +670,20 @@ export class DynamicActorRuntime {
 			pending.controller?.error(new Error("Dynamic App actor worker disposed"));
 			this.#settle(entry, id);
 		}
-		await Promise.allSettled([
+		for (const dispose of entry.logDisposers.splice(0)) dispose();
+		const results = await Promise.allSettled([
 			entry.worker.terminate(),
 			rm(entry.directory, { recursive: true, force: true }),
 		]);
+		if (results.some((result) => result.status === "rejected")) {
+			emitDynamicAppsLog({
+				level: "error",
+				source: "runtime",
+				message: "Dynamic App actor worker disposal failed",
+				appId: entry.appId,
+				release: entry.release,
+			});
+		}
 	}
 }
 

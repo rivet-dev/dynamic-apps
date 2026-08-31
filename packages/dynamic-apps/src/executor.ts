@@ -1,9 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
-import { availableParallelism } from "node:os";
-import ivm from "isolated-vm";
+import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { availableParallelism, tmpdir } from "node:os";
+import { join } from "node:path";
+import { AgentOs } from "@rivet-dev/agentos-core";
 import { createClient } from "rivetkit/client";
 import type { AppRouteResolution } from "./actors.js";
 import { DynamicAppsError } from "./errors.js";
+import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
 import { capConcurrencyForMemory, readCgroupMemory } from "./memory.js";
 import { ensurePrivateAppsRegistry } from "./registry.js";
 import { DIRECT_BUNDLE_PATH, DIRECT_RUNTIME_FORMAT } from "./runtime.js";
@@ -15,6 +18,7 @@ const MAX_HEADER_BYTES = 64 * 1024;
 const MAX_RESPONSE_STATUS_TEXT_BYTES = 1024;
 const MAX_REQUEST_BODY_BYTES = 1024 * 1024;
 const MAX_RESPONSE_BODY_BYTES = 4 * 1024 * 1024;
+const AGENTOS_VM_OVERHEAD_MB = 64;
 
 const HOP_BY_HOP_HEADERS = [
 	"connection",
@@ -27,14 +31,14 @@ const HOP_BY_HOP_HEADERS = [
 	"upgrade",
 ] as const;
 
-export type IsolateMode = "fresh" | "snapshot" | "prewarm";
+export type ExecutionMode = "ephemeral" | "pooled";
 
 export interface ExecutorConfig {
-	isolateMode: IsolateMode;
-	isolatePoolSize: number;
-	isolatePoolMaxTotal: number;
-	isolateIdleTtlMs: number;
-	isolateHeapLimitMb: number;
+	executionMode: ExecutionMode;
+	contextPoolSize: number;
+	contextPoolMaxTotal: number;
+	contextIdleTtlMs: number;
+	contextHeapLimitMb: number;
 	runtimeCacheMaxEntries: number;
 	runtimeCacheMaxBytes: number;
 	runtimeCacheIdleTtlMs: number;
@@ -100,29 +104,32 @@ interface ResponseEnvelope {
 }
 
 interface RequestTrace {
+	appId: string;
+	requestId: string;
 	startedAt: number;
 	phases: Map<string, number>;
 	cacheOutcome: string;
-	isolateMode: IsolateMode;
+	executionMode: ExecutionMode;
 	release?: string;
 }
 
-interface IsolateSlot {
-	isolate: ivm.Isolate;
+interface ContextSlot {
+	id: string;
 	pooled: boolean;
-	context?: ivm.Context;
-	dispatch?: ivm.Reference<(input: string) => Promise<string>>;
 	lastUsedAt: number;
 }
 
 interface PreparedRuntime {
 	key: string;
+	appId: string;
 	release: string;
 	artifactHash: string;
 	artifactBytes: number;
-	source: string;
-	snapshot?: ivm.ExternalCopy<ArrayBuffer>;
-	cleanSlots: IsolateSlot[];
+	artifact: Uint8Array;
+	directory: string;
+	artifactPath: string;
+	vm: AgentOs;
+	cleanContexts: ContextSlot[];
 	inUse: number;
 	refilling: number;
 	refs: number;
@@ -130,14 +137,17 @@ interface PreparedRuntime {
 	disposing: boolean;
 	lastUsedAt: number;
 	backgroundTasks: Set<Promise<unknown>>;
-	isolateCreates: number;
-	isolateDisposes: number;
+	activeControllers: Set<AbortController>;
+	activeEvaluations: Set<Promise<unknown>>;
+	disposePromise?: Promise<void>;
+	vmCreates: number;
+	vmDisposes: number;
 	contextCreates: number;
 	contextDisposes: number;
 	contextResetFailures: number;
-	prewarmOverflowCreates: number;
+	contextOverflowEvaluations: number;
 	lastContextResetError?: string;
-	dispatches: number;
+	evaluations: number;
 }
 
 interface AppMapping {
@@ -158,20 +168,32 @@ interface AppCacheEntry {
 	refs: number;
 }
 
+interface EvaluationResult<T> {
+	outcome: "succeeded" | "failed" | "cancelled" | "timed_out";
+	value?: T;
+	error?: { message?: string };
+}
+
 export function readExecutorConfig(
 	env: NodeJS.ProcessEnv = process.env,
 ): ExecutorConfig {
-	const mode = env.DYNAMIC_APPS_ISOLATE_MODE ?? "prewarm";
-	if (mode !== "fresh" && mode !== "snapshot" && mode !== "prewarm") {
+	const executionMode = env.DYNAMIC_APPS_EXECUTION_MODE ?? "pooled";
+	if (executionMode !== "ephemeral" && executionMode !== "pooled") {
 		throw new DynamicAppsError(
 			"agentos_apps_invalid_config",
-			"DYNAMIC_APPS_ISOLATE_MODE must be fresh, snapshot, or prewarm",
+			"DYNAMIC_APPS_EXECUTION_MODE must be ephemeral or pooled",
 		);
 	}
-	const poolSize = integerEnv(env, "DYNAMIC_APPS_ISOLATE_POOL_SIZE", 2, 0, 128);
-	const isolateHeapLimitMb = integerEnv(
+	const requestedPoolSize = integerEnv(
 		env,
-		"DYNAMIC_APPS_ISOLATE_HEAP_LIMIT_MB",
+		"DYNAMIC_APPS_CONTEXT_POOL_SIZE",
+		2,
+		0,
+		128,
+	);
+	const contextHeapLimitMb = integerEnv(
+		env,
+		"DYNAMIC_APPS_CONTEXT_HEAP_LIMIT_MB",
 		64,
 		8,
 		2_048,
@@ -192,42 +214,39 @@ export function readExecutorConfig(
 	);
 	const requestedPoolMaxTotal = integerEnv(
 		env,
-		"DYNAMIC_APPS_ISOLATE_POOL_MAX_TOTAL",
+		"DYNAMIC_APPS_CONTEXT_POOL_MAX_TOTAL",
 		8,
 		0,
 		1_024,
 	);
 	const cgroupMemory = readCgroupMemory();
-	const memoryIsolateCap = cgroupMemory
+	const memoryContextCap = cgroupMemory
 		? capConcurrencyForMemory({
 				requested: 1_024,
-				heapLimitMb: isolateHeapLimitMb,
+				contextAndVmLimitMb: contextHeapLimitMb + AGENTOS_VM_OVERHEAD_MB,
 				memoryHighWaterPercent,
 				currentBytes: cgroupMemory.currentBytes,
 				maxBytes: cgroupMemory.maxBytes,
 			})
 		: undefined;
-	const executionConcurrency = Math.min(
-		requestedExecutionConcurrency,
-		memoryIsolateCap ?? requestedExecutionConcurrency,
-	);
-	const isolatePoolSize = Math.min(poolSize, memoryIsolateCap ?? poolSize);
 	return {
-		isolateMode:
-			mode === "prewarm" && isolatePoolSize === 0 ? "snapshot" : mode,
-		isolatePoolSize,
-		isolatePoolMaxTotal: Math.min(
-			requestedPoolMaxTotal,
-			memoryIsolateCap ?? requestedPoolMaxTotal,
+		executionMode,
+		contextPoolSize: Math.min(
+			requestedPoolSize,
+			memoryContextCap ?? requestedPoolSize,
 		),
-		isolateIdleTtlMs: integerEnv(
+		contextPoolMaxTotal: Math.min(
+			requestedPoolMaxTotal,
+			memoryContextCap ?? requestedPoolMaxTotal,
+		),
+		contextIdleTtlMs: integerEnv(
 			env,
-			"DYNAMIC_APPS_ISOLATE_IDLE_TTL_MS",
+			"DYNAMIC_APPS_CONTEXT_IDLE_TTL_MS",
 			30_000,
 			1_000,
 			60 * 60_000,
 		),
-		isolateHeapLimitMb,
+		contextHeapLimitMb,
 		runtimeCacheMaxEntries: integerEnv(
 			env,
 			"DYNAMIC_APPS_RUNTIME_CACHE_MAX_ENTRIES",
@@ -250,7 +269,10 @@ export function readExecutorConfig(
 			24 * 60 * 60_000,
 		),
 		memoryHighWaterPercent,
-		executionConcurrency,
+		executionConcurrency: Math.min(
+			requestedExecutionConcurrency,
+			memoryContextCap ?? requestedExecutionConcurrency,
+		),
 		executionQueueSize: integerEnv(
 			env,
 			"DYNAMIC_APPS_EXECUTION_QUEUE_SIZE",
@@ -286,7 +308,7 @@ export class DynamicAppsExecutor {
 	readonly #runtimes = new Map<string, PreparedRuntime>();
 	readonly #runtimePromises = new Map<string, Promise<PreparedRuntime>>();
 	readonly #cleanupTimer: ReturnType<typeof setInterval>;
-	#pooledIsolates = 0;
+	#pooledContexts = 0;
 	#poolReservations = 0;
 	#disposed = false;
 	#disposePromise?: Promise<void>;
@@ -305,12 +327,16 @@ export class DynamicAppsExecutor {
 		);
 		this.#cleanupTimer = setInterval(
 			() => void this.#pruneCaches(true),
-			Math.min(config.isolateIdleTtlMs, config.runtimeCacheIdleTtlMs, 30_000),
+			Math.min(config.contextIdleTtlMs, config.runtimeCacheIdleTtlMs, 30_000),
 		);
 		this.#cleanupTimer.unref?.();
 	}
 
-	async request(appId: string, request: Request): Promise<Response> {
+	async request(
+		appId: string,
+		request: Request,
+		requestId: string = randomUUID(),
+	): Promise<Response> {
 		if (this.#disposed) {
 			throw new DynamicAppsError(
 				"agentos_apps_executor_disposed",
@@ -318,10 +344,12 @@ export class DynamicAppsExecutor {
 			);
 		}
 		const trace: RequestTrace = {
+			appId,
+			requestId,
 			startedAt: performance.now(),
 			phases: new Map(),
 			cacheOutcome: "app-hit",
-			isolateMode: this.config.isolateMode,
+			executionMode: this.config.executionMode,
 		};
 		let admitted = false;
 		try {
@@ -361,6 +389,7 @@ export class DynamicAppsExecutor {
 						mapping.runtime,
 						envelope,
 						trace,
+						request.signal,
 					);
 					this.#finishTrace(response.headers, trace);
 					return response;
@@ -389,28 +418,21 @@ export class DynamicAppsExecutor {
 			),
 			activeEvaluations: this.#semaphore.active,
 			queuedEvaluations: this.#semaphore.queued,
-			cleanIsolates: runtimes.reduce(
-				(sum, item) => sum + item.cleanSlots.length,
+			cleanContexts: runtimes.reduce(
+				(sum, item) => sum + item.cleanContexts.length,
 				0,
 			),
-			pooledIsolates: this.#pooledIsolates,
+			pooledContexts: this.#pooledContexts,
 			poolReservations: this.#poolReservations,
-			isolatePoolMaxTotal: this.config.isolatePoolMaxTotal,
-			inUseIsolates: runtimes.reduce((sum, item) => sum + item.inUse, 0),
-			refillingIsolates: runtimes.reduce(
+			contextPoolMaxTotal: this.config.contextPoolMaxTotal,
+			inUseContexts: runtimes.reduce((sum, item) => sum + item.inUse, 0),
+			refillingContexts: runtimes.reduce(
 				(sum, item) => sum + item.refilling,
 				0,
 			),
 			rssBytes: process.memoryUsage().rss,
-			isolatedVmExternalBytes: ivm.ExternalCopy.totalExternalSize,
-			isolateCreates: runtimes.reduce(
-				(sum, item) => sum + item.isolateCreates,
-				0,
-			),
-			isolateDisposes: runtimes.reduce(
-				(sum, item) => sum + item.isolateDisposes,
-				0,
-			),
+			vmCreates: runtimes.reduce((sum, item) => sum + item.vmCreates, 0),
+			vmDisposes: runtimes.reduce((sum, item) => sum + item.vmDisposes, 0),
 			contextCreates: runtimes.reduce(
 				(sum, item) => sum + item.contextCreates,
 				0,
@@ -423,14 +445,14 @@ export class DynamicAppsExecutor {
 				(sum, item) => sum + item.contextResetFailures,
 				0,
 			),
-			prewarmOverflowCreates: runtimes.reduce(
-				(sum, item) => sum + item.prewarmOverflowCreates,
+			contextOverflowEvaluations: runtimes.reduce(
+				(sum, item) => sum + item.contextOverflowEvaluations,
 				0,
 			),
 			lastContextResetError: runtimes
 				.filter((item) => item.lastContextResetError !== undefined)
 				.at(-1)?.lastContextResetError,
-			dispatches: runtimes.reduce((sum, item) => sum + item.dispatches, 0),
+			evaluations: runtimes.reduce((sum, item) => sum + item.evaluations, 0),
 		};
 	}
 
@@ -477,23 +499,33 @@ export class DynamicAppsExecutor {
 			if (!validReleaseEvent(event) || event.revision <= entry.highestRevision)
 				return;
 			entry.highestRevision = event.revision;
-			entry.epoch += 1;
-			entry.mapping = undefined;
+			this.#invalidateMapping(entry);
 			void this.#resolveAndPrepare(entry).catch(() => {});
 		});
-		connection.onClose(() => {
-			entry.epoch += 1;
-			entry.mapping = undefined;
-		});
+		connection.onClose(() => this.#invalidateMapping(entry));
 		connection.onOpen(() => {
 			if (entry.mapping || entry.highestRevision > 0) {
-				entry.epoch += 1;
-				entry.mapping = undefined;
+				this.#invalidateMapping(entry);
 				void this.#resolveAndPrepare(entry).catch(() => {});
 			}
 		});
 		this.#apps.set(appId, entry);
 		return { entry, hit: false };
+	}
+
+	#invalidateMapping(entry: AppCacheEntry): void {
+		entry.epoch += 1;
+		const runtime = entry.mapping?.runtime;
+		entry.mapping = undefined;
+		if (runtime) this.#invalidateRuntime(runtime);
+	}
+
+	#invalidateRuntime(runtime: PreparedRuntime): void {
+		runtime.stale = true;
+		if (this.#runtimes.get(runtime.key) === runtime) {
+			this.#runtimes.delete(runtime.key);
+		}
+		void this.#maybeDisposeRuntime(runtime);
 	}
 
 	async #resolveAndPrepare(
@@ -519,6 +551,7 @@ export class DynamicAppsExecutor {
 					resolution.revision,
 				);
 				const runtime = await this.#prepareRuntime(
+					entry.appId,
 					entry.handle,
 					resolution,
 					trace,
@@ -526,8 +559,10 @@ export class DynamicAppsExecutor {
 				if (
 					entry.epoch !== epoch ||
 					resolution.revision < entry.highestRevision
-				)
+				) {
+					this.#invalidateRuntime(runtime);
 					continue;
+				}
 				const mapping = { resolution, runtime };
 				entry.mapping = mapping;
 				return mapping;
@@ -542,6 +577,7 @@ export class DynamicAppsExecutor {
 	}
 
 	async #prepareRuntime(
+		appId: string,
 		handle: AppHandle,
 		resolution: AppRouteResolution,
 		trace?: RequestTrace,
@@ -552,7 +588,7 @@ export class DynamicAppsExecutor {
 				"Dynamic Apps executor is shutting down",
 			);
 		}
-		const key = `${resolution.artifactHash}:${DIRECT_RUNTIME_FORMAT}`;
+		const key = `${appId}:${resolution.release}:${resolution.artifactHash}:${DIRECT_RUNTIME_FORMAT}`;
 		const existing = this.#runtimes.get(key);
 		if (existing && !existing.stale) {
 			existing.lastUsedAt = Date.now();
@@ -560,7 +596,7 @@ export class DynamicAppsExecutor {
 		}
 		const pending = this.#runtimePromises.get(key);
 		if (pending) return pending;
-		const promise = this.#createRuntime(key, handle, resolution, trace);
+		const promise = this.#createRuntime(key, appId, handle, resolution, trace);
 		this.#runtimePromises.set(key, promise);
 		try {
 			return await promise;
@@ -573,6 +609,7 @@ export class DynamicAppsExecutor {
 
 	async #createRuntime(
 		key: string,
+		appId: string,
 		handle: AppHandle,
 		resolution: AppRouteResolution,
 		trace?: RequestTrace,
@@ -624,55 +661,74 @@ export class DynamicAppsExecutor {
 				return new Uint8Array(Buffer.concat(chunks, bytes));
 			},
 		);
-		const source = await measureOptional(trace, "artifact-parse", async () =>
-			extractAospkgTextFile(artifact, DIRECT_BUNDLE_PATH),
-		);
-		const runtime: PreparedRuntime = {
-			key,
-			release: resolution.release,
-			artifactHash: resolution.artifactHash,
-			artifactBytes: resolution.artifactBytes,
-			source,
-			cleanSlots: [],
-			inUse: 0,
-			refilling: 0,
-			refs: 0,
-			stale: false,
-			disposing: false,
-			lastUsedAt: Date.now(),
-			backgroundTasks: new Set(),
-			isolateCreates: 0,
-			isolateDisposes: 0,
-			contextCreates: 0,
-			contextDisposes: 0,
-			contextResetFailures: 0,
-			prewarmOverflowCreates: 0,
-			dispatches: 0,
-		};
-		if (this.config.isolateMode !== "fresh") {
-			runtime.snapshot = await measureOptional(
-				trace,
-				"snapshot-create",
-				async () =>
-					ivm.Isolate.createSnapshot([
-						{
-							code: ISOLATE_BOOTSTRAP_SOURCE,
-							filename: "dynamic-apps:bootstrap",
-						},
-						{ code: source, filename: "dynamic-apps:application" },
-					]),
-			);
-		}
-		this.#runtimes.set(key, runtime);
+		const directory = await mkdtemp(join(tmpdir(), "dynamic-app-runtime-"));
+		const artifactPath = join(directory, "release.aospkg");
+		let vm: AgentOs | undefined;
 		try {
-			if (this.#disposed) {
-				throw new DynamicAppsError(
-					"agentos_apps_executor_disposed",
-					"Dynamic Apps executor is shutting down",
-				);
-			}
-			if (this.config.isolateMode === "prewarm") {
-				await measureOptional(trace, "isolate-prewarm", () =>
+			await chmod(directory, 0o700);
+			await writeFile(artifactPath, artifact, { mode: 0o600 });
+			vm = await measureOptional(trace, "vm-prepare", () =>
+				AgentOs.create({
+					sidecar: { kind: "shared", pool: "dynamic-apps-direct" },
+					defaultSoftware: false,
+					mounts: [
+						{
+							path: "/app",
+							readOnly: true,
+							plugin: {
+								id: "agentos_packages",
+								config: {
+									kind: "tar",
+									tarPath: artifactPath,
+									root: "/",
+									readOnly: true,
+								},
+							},
+						},
+					],
+					permissions: {
+						fs: "allow",
+						childProcess: "allow",
+						process: "allow",
+						env: "allow",
+						network: "allow",
+					},
+					limits: {
+						jsRuntime: { v8HeapLimitMb: this.config.contextHeapLimitMb },
+					},
+				}),
+			);
+			const runtime: PreparedRuntime = {
+				key,
+				appId,
+				release: resolution.release,
+				artifactHash: resolution.artifactHash,
+				artifactBytes: resolution.artifactBytes,
+				artifact,
+				directory,
+				artifactPath,
+				vm,
+				cleanContexts: [],
+				inUse: 0,
+				refilling: 0,
+				refs: 0,
+				stale: false,
+				disposing: false,
+				lastUsedAt: Date.now(),
+				backgroundTasks: new Set(),
+				activeControllers: new Set(),
+				activeEvaluations: new Set(),
+				vmCreates: 1,
+				vmDisposes: 0,
+				contextCreates: 0,
+				contextDisposes: 0,
+				contextResetFailures: 0,
+				contextOverflowEvaluations: 0,
+				evaluations: 0,
+			};
+			this.#runtimes.set(key, runtime);
+			if (this.config.executionMode === "pooled") {
+				await measureOptional(trace, "context-prewarm", () =>
 					this.#fillPool(runtime),
 				);
 			}
@@ -682,11 +738,25 @@ export class DynamicAppsExecutor {
 					"Dynamic Apps executor is shutting down",
 				);
 			}
+			emitDynamicAppsLog({
+				level: "debug",
+				source: "runtime",
+				message: "Dynamic Apps release runtime prepared",
+				appId,
+				release: resolution.release,
+			});
 			return runtime;
 		} catch (error) {
-			runtime.stale = true;
+			if (vm) await vm.dispose().catch(() => {});
+			await rm(directory, { recursive: true, force: true }).catch(() => {});
 			this.#runtimes.delete(key);
-			await this.#disposeRuntime(runtime);
+			emitDynamicAppsLog({
+				level: "error",
+				source: "runtime",
+				message: "Dynamic Apps release runtime preparation failed",
+				appId,
+				release: resolution.release,
+			});
 			throw error;
 		}
 	}
@@ -695,28 +765,32 @@ export class DynamicAppsExecutor {
 		runtime: PreparedRuntime,
 		envelope: RequestEnvelope,
 		trace: RequestTrace,
+		requestSignal: AbortSignal,
 	): Promise<Response> {
-		let slot: IsolateSlot | undefined;
-		let prewarmActive = false;
+		let slot: ContextSlot | undefined;
+		let pooledActive = false;
 		let completedSuccessfully = false;
 		try {
-			if (this.config.isolateMode === "prewarm") {
-				slot = await measure(trace, "isolate-lease", () =>
-					this.#acquireSlot(runtime),
+			if (this.config.executionMode === "pooled") {
+				slot = await measure(trace, "context-lease", () =>
+					this.#acquireContext(runtime),
 				);
-				prewarmActive = true;
+				pooledActive = true;
+				if (!slot) runtime.contextOverflowEvaluations += 1;
 			}
-			if (!slot) {
-				if (prewarmActive) runtime.prewarmOverflowCreates += 1;
-				slot = await measure(trace, "isolate-create", () =>
-					this.#createSlot(runtime),
-				);
-			}
-			const executionSlot = slot;
-			const output = await measure(trace, "evaluation", () =>
-				this.#dispatch(executionSlot, envelope),
+			const expression = slot
+				? "await globalThis.__dynamicAppsDispatch(inputs.request)"
+				: `await (await import("/app/${DIRECT_BUNDLE_PATH}")).dispatch(inputs.request)`;
+			const result = await measure(trace, "evaluation", () =>
+				this.#evaluate<ResponseEnvelope>(runtime, expression, {
+					...(slot ? { contextId: slot.id } : {}),
+					inputs: { request: envelope as never },
+					trace,
+					signal: requestSignal,
+				}),
 			);
-			runtime.dispatches += 1;
+			const output = evaluationValue(result, this.config.executionTimeoutMs);
+			runtime.evaluations += 1;
 			if (output.timing) {
 				for (const [name, value] of Object.entries(output.timing)) {
 					if (Number.isFinite(value))
@@ -727,178 +801,198 @@ export class DynamicAppsExecutor {
 			completedSuccessfully = true;
 			return response;
 		} finally {
-			if (slot) {
-				const startedAt = performance.now();
-				if (prewarmActive && completedSuccessfully) {
-					this.#releaseSlotContext(runtime, slot);
-				} else {
-					this.#disposeSlot(runtime, slot);
-				}
-				trace.phases.set(
-					prewarmActive ? "context-destroy" : "isolate-destroy",
-					performance.now() - startedAt,
-				);
-			}
-			if (prewarmActive) {
-				const shouldCache =
-					slot !== undefined &&
-					completedSuccessfully &&
-					!runtime.stale &&
-					!this.#disposed &&
-					runtime.cleanSlots.length + runtime.inUse - 1 + runtime.refilling <
-						this.config.isolatePoolSize;
-				if (shouldCache && slot) {
+			if (pooledActive) {
+				if (slot) {
 					const startedAt = performance.now();
-					try {
-						await this.#initializeSlot(runtime, slot);
-						this.#offerSlot(runtime, slot);
-					} catch (error) {
-						runtime.contextResetFailures += 1;
-						runtime.lastContextResetError =
-							error instanceof Error ? error.message : String(error);
-						this.#disposeSlot(runtime, slot);
+					if (completedSuccessfully && !runtime.stale && !this.#disposed) {
+						try {
+							await runtime.vm.contexts.reset(slot.id);
+							await this.#initializeContext(runtime, slot, trace);
+							this.#offerContext(runtime, slot);
+						} catch (error) {
+							runtime.contextResetFailures += 1;
+							runtime.lastContextResetError = errorMessage(error);
+							emitDynamicAppsLog({
+								level: "error",
+								source: "runtime",
+								message: "Dynamic Apps context reset failed",
+								appId: runtime.appId,
+								release: runtime.release,
+								requestId: trace.requestId,
+							});
+							await this.#deleteContext(runtime, slot);
+						}
+					} else {
+						await this.#deleteContext(runtime, slot);
 					}
 					trace.phases.set("context-reset", performance.now() - startedAt);
-				} else if (slot && completedSuccessfully) {
-					this.#disposeSlot(runtime, slot);
 				}
-				runtime.inUse -= 1;
+				runtime.inUse = Math.max(0, runtime.inUse - 1);
 				this.#ensurePool(runtime);
 			}
 		}
 	}
 
-	async #dispatch(
-		slot: IsolateSlot,
-		envelope: RequestEnvelope,
-	): Promise<ResponseEnvelope> {
+	async #evaluate<T>(
+		runtime: PreparedRuntime,
+		expression: string,
+		options: {
+			contextId?: string;
+			inputs?: Record<string, never>;
+			trace?: RequestTrace;
+			signal?: AbortSignal;
+		},
+	): Promise<EvaluationResult<T>> {
+		const controller = new AbortController();
+		runtime.activeControllers.add(controller);
+		const signal = options.signal
+			? AbortSignal.any([options.signal, controller.signal])
+			: controller.signal;
+		const stdout = this.#executionLogDecoder(runtime, options.trace, "stdout");
+		const stderr = this.#executionLogDecoder(runtime, options.trace, "stderr");
+		const evaluation = runtime.vm.javascript.evaluate<T>(expression, {
+			...(options.contextId ? { contextId: options.contextId } : {}),
+			...(options.inputs ? { inputs: options.inputs } : {}),
+			format: "module",
+			timeoutMs: this.config.executionTimeoutMs,
+			signal,
+			onStdout: (chunk) => stdout.write(chunk),
+			onStderr: (chunk) => stderr.write(chunk),
+		}) as Promise<EvaluationResult<T>>;
+		runtime.activeEvaluations.add(evaluation);
 		try {
-			if (!slot.dispatch)
-				throw new Error("application isolate has no active dispatcher");
-			const output = await withDeadline(
-				slot.dispatch.apply(undefined, [JSON.stringify(envelope)], {
-					arguments: { copy: true },
-					result: { copy: true, promise: true },
-					timeout: this.config.executionTimeoutMs,
-				}),
-				this.config.executionTimeoutMs,
-			);
-			if (typeof output !== "string")
-				throw new Error("dispatcher returned non-text");
-			return JSON.parse(output) as ResponseEnvelope;
+			return await evaluation;
 		} catch (error) {
-			if (error instanceof Error && /timed out/i.test(error.message)) {
+			if (error instanceof Error && error.name === "AbortError") {
 				throw new DynamicAppsError(
-					"agentos_apps_execution_timeout",
-					`application execution exceeded ${this.config.executionTimeoutMs}ms`,
+					"agentos_apps_execution_cancelled",
+					"application execution was cancelled",
 				);
 			}
-			throw new ApplicationHandlerError(
-				error instanceof Error ? error.message : String(error),
-			);
+			throw error;
+		} finally {
+			stdout.end();
+			stderr.end();
+			runtime.activeEvaluations.delete(evaluation);
+			runtime.activeControllers.delete(controller);
 		}
 	}
 
-	async #createSlot(runtime: PreparedRuntime): Promise<IsolateSlot> {
-		const isolate = new ivm.Isolate({
-			memoryLimit: this.config.isolateHeapLimitMb,
-			...(runtime.snapshot ? { snapshot: runtime.snapshot } : {}),
+	#executionLogDecoder(
+		runtime: PreparedRuntime,
+		trace: RequestTrace | undefined,
+		stream: "stdout" | "stderr",
+	): DynamicAppsLogLineDecoder {
+		return new DynamicAppsLogLineDecoder((message, truncated) => {
+			const startedAt = performance.now();
+			emitDynamicAppsLog({
+				level: stream === "stdout" ? "info" : "error",
+				source: "application",
+				message,
+				appId: runtime.appId,
+				release: runtime.release,
+				...(trace ? { requestId: trace.requestId } : {}),
+				stream,
+				...(truncated ? { metadata: { truncated: true } } : {}),
+			});
+			if (trace) {
+				trace.phases.set(
+					"log-dispatch",
+					(trace.phases.get("log-dispatch") ?? 0) +
+						(performance.now() - startedAt),
+				);
+			}
 		});
-		const slot: IsolateSlot = {
-			isolate,
+	}
+
+	async #initializeContext(
+		runtime: PreparedRuntime,
+		slot: ContextSlot,
+		trace?: RequestTrace,
+	): Promise<void> {
+		const result = await this.#evaluate<boolean>(
+			runtime,
+			`await import("/app/${DIRECT_BUNDLE_PATH}").then((module) => { globalThis.__dynamicAppsDispatch = module.dispatch; return typeof module.dispatch === "function"; })`,
+			{ contextId: slot.id, trace },
+		);
+		if (evaluationValue(result, this.config.executionTimeoutMs) !== true) {
+			throw new Error("application bundle did not export a dispatcher");
+		}
+	}
+
+	async #createContext(runtime: PreparedRuntime): Promise<ContextSlot> {
+		const slot: ContextSlot = {
+			id: randomUUID(),
 			pooled: false,
 			lastUsedAt: Date.now(),
 		};
+		await runtime.vm.createContext(slot.id);
 		try {
-			await this.#initializeSlot(runtime, slot);
-			runtime.isolateCreates += 1;
+			await this.#initializeContext(runtime, slot);
+			runtime.contextCreates += 1;
 			return slot;
 		} catch (error) {
-			isolate.dispose();
-			throw error;
-		}
-	}
-
-	async #initializeSlot(
-		runtime: PreparedRuntime,
-		slot: IsolateSlot,
-	): Promise<void> {
-		const context = await slot.isolate.createContext();
-		try {
-			if (!runtime.snapshot) {
-				const script = await slot.isolate.compileScript(
-					`${ISOLATE_BOOTSTRAP_SOURCE}\n${runtime.source}`,
-					{ filename: "dynamic-apps:application" },
-				);
-				await script.run(context, { timeout: this.config.executionTimeoutMs });
-			}
-			const dispatch = await context.global.get("__dynamicAppDispatch", {
-				reference: true,
-			});
-			if (!(dispatch instanceof ivm.Reference)) {
-				throw new Error("application bundle did not install a dispatcher");
-			}
-			slot.context = context;
-			slot.dispatch = dispatch as NonNullable<IsolateSlot["dispatch"]>;
-			slot.lastUsedAt = Date.now();
-			runtime.contextCreates += 1;
-		} catch (error) {
-			context.release();
+			await runtime.vm.contexts.delete(slot.id).catch(() => {});
 			throw error;
 		}
 	}
 
 	async #fillPool(runtime: PreparedRuntime): Promise<void> {
 		if (await this.#memoryPressure()) return;
-		const reserved = this.#reservePoolSlots(this.config.isolatePoolSize);
+		const reserved = this.#reservePoolContexts(this.config.contextPoolSize);
 		const outcomes = await Promise.allSettled(
-			Array.from({ length: reserved }, () => this.#createSlot(runtime)),
+			Array.from({ length: reserved }, () => this.#createContext(runtime)),
 		);
 		const failed = outcomes.find(
 			(outcome): outcome is PromiseRejectedResult =>
 				outcome.status === "rejected",
 		);
-		if (failed) {
-			for (const outcome of outcomes) {
-				this.#poolReservations -= 1;
-				if (outcome.status === "fulfilled") {
-					this.#disposeSlot(runtime, outcome.value);
-				}
-			}
-			throw failed.reason;
-		}
 		for (const outcome of outcomes) {
-			this.#poolReservations -= 1;
-			if (outcome.status === "fulfilled")
-				this.#offerSlot(runtime, outcome.value);
+			this.#poolReservations = Math.max(0, this.#poolReservations - 1);
+			if (outcome.status === "fulfilled") {
+				if (failed) await this.#deleteContext(runtime, outcome.value);
+				else this.#offerContext(runtime, outcome.value);
+			}
 		}
+		if (failed) throw failed.reason;
 	}
 
 	#ensurePool(runtime: PreparedRuntime): void {
 		if (
-			this.config.isolateMode !== "prewarm" ||
+			this.config.executionMode !== "pooled" ||
 			runtime.stale ||
 			this.#disposed
 		)
 			return;
 		const missingForRuntime =
-			this.config.isolatePoolSize -
-			(runtime.cleanSlots.length + runtime.inUse + runtime.refilling);
-		const missing = this.#reservePoolSlots(missingForRuntime);
+			this.config.contextPoolSize -
+			(runtime.cleanContexts.length + runtime.inUse + runtime.refilling);
+		const missing = this.#reservePoolContexts(missingForRuntime);
 		for (let index = 0; index < missing; index += 1) {
 			runtime.refilling += 1;
 			let reserved = true;
 			const task = this.#memoryPressure()
 				.then(async (pressure) => {
 					if (pressure || runtime.stale) return;
-					const slot = await this.#createSlot(runtime);
-					this.#poolReservations -= 1;
+					const slot = await this.#createContext(runtime);
+					this.#poolReservations = Math.max(0, this.#poolReservations - 1);
 					reserved = false;
-					this.#offerSlot(runtime, slot);
+					this.#offerContext(runtime, slot);
 				})
-				.catch(() => {})
+				.catch((error) => {
+					emitDynamicAppsLog({
+						level: "error",
+						source: "runtime",
+						message: "Dynamic Apps context replenishment failed",
+						appId: runtime.appId,
+						release: runtime.release,
+						metadata: { error: errorMessage(error) },
+					});
+				})
 				.finally(() => {
-					if (reserved) this.#poolReservations -= 1;
+					if (reserved) {
+						this.#poolReservations = Math.max(0, this.#poolReservations - 1);
+					}
 					runtime.refilling -= 1;
 					void this.#maybeDisposeRuntime(runtime);
 				});
@@ -906,69 +1000,64 @@ export class DynamicAppsExecutor {
 		}
 	}
 
-	async #acquireSlot(
+	async #acquireContext(
 		runtime: PreparedRuntime,
-	): Promise<IsolateSlot | undefined> {
-		const slot = runtime.cleanSlots.shift();
-		// Account for the lease before this async method resolves. Otherwise a
-		// concurrent refill can observe the slot missing from both cleanSlots and
-		// inUse and overfill the bounded pool.
+	): Promise<ContextSlot | undefined> {
+		const slot = runtime.cleanContexts.shift();
 		runtime.inUse += 1;
-		if (slot) {
-			slot.lastUsedAt = Date.now();
-			return slot;
-		}
-		return undefined;
+		if (slot) slot.lastUsedAt = Date.now();
+		return slot;
 	}
 
-	#offerSlot(runtime: PreparedRuntime, slot: IsolateSlot): void {
+	#offerContext(runtime: PreparedRuntime, slot: ContextSlot): void {
 		if (runtime.stale || this.#disposed) {
-			this.#disposeSlot(runtime, slot);
+			void this.#deleteContext(runtime, slot);
 			return;
 		}
 		if (!slot.pooled) {
 			if (
-				this.#pooledIsolates + this.#poolReservations >=
-				this.config.isolatePoolMaxTotal
+				this.#pooledContexts + this.#poolReservations >=
+				this.config.contextPoolMaxTotal
 			) {
-				this.#disposeSlot(runtime, slot);
+				void this.#deleteContext(runtime, slot);
 				return;
 			}
 			slot.pooled = true;
-			this.#pooledIsolates += 1;
+			this.#pooledContexts += 1;
 		}
-		runtime.cleanSlots.push(slot);
+		slot.lastUsedAt = Date.now();
+		runtime.cleanContexts.push(slot);
 	}
 
-	#disposeSlot(runtime: PreparedRuntime, slot: IsolateSlot): void {
+	async #deleteContext(
+		runtime: PreparedRuntime,
+		slot: ContextSlot,
+	): Promise<void> {
 		if (slot.pooled) {
 			slot.pooled = false;
-			this.#pooledIsolates = Math.max(0, this.#pooledIsolates - 1);
+			this.#pooledContexts = Math.max(0, this.#pooledContexts - 1);
 		}
-		this.#releaseSlotContext(runtime, slot);
 		try {
-			slot.isolate.dispose();
-		} catch {}
-		runtime.isolateDisposes += 1;
+			await runtime.vm.contexts.delete(slot.id);
+		} catch (error) {
+			emitDynamicAppsLog({
+				level: "error",
+				source: "runtime",
+				message: "Dynamic Apps context disposal failed",
+				appId: runtime.appId,
+				release: runtime.release,
+				metadata: { error: errorMessage(error) },
+			});
+		} finally {
+			runtime.contextDisposes += 1;
+		}
 	}
 
-	#releaseSlotContext(runtime: PreparedRuntime, slot: IsolateSlot): void {
-		try {
-			slot.dispatch?.release();
-		} catch {}
-		try {
-			slot.context?.release();
-		} catch {}
-		if (slot.dispatch || slot.context) runtime.contextDisposes += 1;
-		slot.dispatch = undefined;
-		slot.context = undefined;
-	}
-
-	#reservePoolSlots(requested: number): number {
+	#reservePoolContexts(requested: number): number {
 		const available = Math.max(
 			0,
-			this.config.isolatePoolMaxTotal -
-				this.#pooledIsolates -
+			this.config.contextPoolMaxTotal -
+				this.#pooledContexts -
 				this.#poolReservations,
 		);
 		const reserved = Math.max(0, Math.min(requested, available));
@@ -980,15 +1069,15 @@ export class DynamicAppsExecutor {
 		if (this.#disposed) return;
 		const now = Date.now();
 		for (const runtime of this.#runtimes.values()) {
-			const keep: IsolateSlot[] = [];
-			for (const slot of runtime.cleanSlots) {
-				if (now - slot.lastUsedAt >= this.config.isolateIdleTtlMs) {
-					this.#disposeSlot(runtime, slot);
+			const keep: ContextSlot[] = [];
+			for (const slot of runtime.cleanContexts) {
+				if (now - slot.lastUsedAt >= this.config.contextIdleTtlMs) {
+					await this.#deleteContext(runtime, slot);
 				} else {
 					keep.push(slot);
 				}
 			}
-			runtime.cleanSlots = keep;
+			runtime.cleanContexts = keep;
 		}
 		for (const entry of [...this.#apps.values()].sort(
 			(a, b) => a.lastUsedAt - b.lastUsedAt,
@@ -1019,13 +1108,11 @@ export class DynamicAppsExecutor {
 				runtime.refs === 0 &&
 				(now - runtime.lastUsedAt >= this.config.runtimeCacheIdleTtlMs || over)
 			) {
-				runtime.stale = true;
-				this.#runtimes.delete(runtime.key);
+				this.#invalidateRuntime(runtime);
 				for (const app of this.#apps.values()) {
 					if (app.mapping?.runtime === runtime) app.mapping = undefined;
 				}
 				bytes -= runtime.artifactBytes;
-				void this.#maybeDisposeRuntime(runtime);
 			}
 		}
 	}
@@ -1043,12 +1130,45 @@ export class DynamicAppsExecutor {
 	}
 
 	async #disposeRuntime(runtime: PreparedRuntime): Promise<void> {
-		if (runtime.disposing) return;
+		if (runtime.disposePromise !== undefined) return runtime.disposePromise;
 		runtime.disposing = true;
-		await Promise.allSettled([...runtime.backgroundTasks]);
-		for (const slot of runtime.cleanSlots.splice(0))
-			this.#disposeSlot(runtime, slot);
-		runtime.snapshot?.release();
+		runtime.stale = true;
+		runtime.disposePromise = (async () => {
+			for (const controller of runtime.activeControllers) controller.abort();
+			await Promise.allSettled([...runtime.activeEvaluations]);
+			await Promise.allSettled([...runtime.backgroundTasks]);
+			await Promise.allSettled(
+				runtime.cleanContexts
+					.splice(0)
+					.map((slot) => this.#deleteContext(runtime, slot)),
+			);
+			try {
+				await runtime.vm.dispose();
+				runtime.vmDisposes += 1;
+			} catch (error) {
+				emitDynamicAppsLog({
+					level: "error",
+					source: "runtime",
+					message: "Dynamic Apps VM disposal failed",
+					appId: runtime.appId,
+					release: runtime.release,
+					metadata: { error: errorMessage(error) },
+				});
+			}
+			await rm(runtime.directory, { recursive: true, force: true }).catch(
+				(error) =>
+					emitDynamicAppsLog({
+						level: "error",
+						source: "runtime",
+						message: "Dynamic Apps artifact cleanup failed",
+						appId: runtime.appId,
+						release: runtime.release,
+						metadata: { error: errorMessage(error) },
+					}),
+			);
+			runtime.artifact = new Uint8Array();
+		})();
+		return runtime.disposePromise;
 	}
 
 	#track(runtime: PreparedRuntime, task: Promise<unknown>): void {
@@ -1067,7 +1187,7 @@ export class DynamicAppsExecutor {
 	}
 
 	#finishTrace(headers: Headers, trace: RequestTrace): void {
-		const total = performance.now() - trace.startedAt;
+		const totalMs = performance.now() - trace.startedAt;
 		headers.set("x-agentos-app-release", trace.release ?? "unknown");
 		headers.set(
 			"x-agentos-app-cold-start",
@@ -1075,29 +1195,52 @@ export class DynamicAppsExecutor {
 		);
 		if (this.config.timingHeaders) {
 			headers.set("x-agentos-app-cache", trace.cacheOutcome);
-			headers.set("x-agentos-app-isolate-mode", trace.isolateMode);
+			headers.set("x-agentos-app-execution-mode", trace.executionMode);
 			for (const [name, value] of trace.phases) {
 				headers.set(`x-agentos-bench-${name}-ms`, value.toFixed(2));
 			}
-			headers.set("x-agentos-bench-server-total-ms", total.toFixed(2));
+			headers.set("x-agentos-bench-server-total-ms", totalMs.toFixed(2));
 		}
 		if (this.config.logRequests) {
-			console.log(
-				JSON.stringify({
-					event: "dynamic_apps_request",
-					requestId: randomUUID(),
-					release: trace.release,
+			emitDynamicAppsLog({
+				level: "info",
+				source: "runtime",
+				message: "Dynamic Apps request completed",
+				appId: trace.appId,
+				release: trace.release,
+				requestId: trace.requestId,
+				metadata: {
 					cache: trace.cacheOutcome,
-					isolateMode: trace.isolateMode,
-					totalMs: total,
-					phases: Object.fromEntries(trace.phases),
-				}),
-			);
+					executionMode: trace.executionMode,
+					totalMs,
+				},
+			});
 		}
 	}
 }
 
 export class ApplicationHandlerError extends Error {}
+
+function evaluationValue<T>(result: EvaluationResult<T>, timeoutMs: number): T {
+	if (result.outcome === "succeeded" && result.value !== undefined) {
+		return result.value;
+	}
+	if (result.outcome === "timed_out") {
+		throw new DynamicAppsError(
+			"agentos_apps_execution_timeout",
+			`application execution exceeded ${timeoutMs}ms`,
+		);
+	}
+	if (result.outcome === "cancelled") {
+		throw new DynamicAppsError(
+			"agentos_apps_execution_cancelled",
+			"application execution was cancelled",
+		);
+	}
+	throw new ApplicationHandlerError(
+		result.error?.message ?? "application evaluation failed",
+	);
+}
 
 function validReleaseEvent(event: unknown): event is ReleaseActivatedEvent {
 	if (!event || typeof event !== "object") return false;
@@ -1132,49 +1275,6 @@ function validateManifest(
 	}
 }
 
-function extractAospkgTextFile(bytes: Uint8Array, target: string): string {
-	const buffer = Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-	if (
-		buffer.byteLength < 16 ||
-		buffer[0] !== 137 ||
-		buffer.subarray(1, 4).toString("ascii") !== "AOS"
-	) {
-		throw new DynamicAppsError(
-			"agentos_apps_artifact_format_invalid",
-			"application artifact is not an AOSP package",
-		);
-	}
-	let offset = 16 + buffer.readUInt32LE(8) + buffer.readUInt32LE(12);
-	while (offset + 512 <= buffer.byteLength) {
-		const header = buffer.subarray(offset, offset + 512);
-		if (header.every((value) => value === 0)) break;
-		const name = tarString(header.subarray(0, 100));
-		const prefix = tarString(header.subarray(345, 500));
-		const path = `${prefix ? `${prefix}/` : ""}${name}`.replace(/^\.\//, "");
-		const sizeText = tarString(header.subarray(124, 136)).trim();
-		const size = Number.parseInt(sizeText || "0", 8);
-		if (!Number.isSafeInteger(size) || size < 0) break;
-		const dataOffset = offset + 512;
-		const next = dataOffset + Math.ceil(size / 512) * 512;
-		if (next > buffer.byteLength) break;
-		if (path === target || path === `/${target}`) {
-			return new TextDecoder("utf-8", { fatal: true }).decode(
-				buffer.subarray(dataOffset, dataOffset + size),
-			);
-		}
-		offset = next;
-	}
-	throw new DynamicAppsError(
-		"agentos_apps_artifact_entry_missing",
-		`application artifact is missing ${target}`,
-	);
-}
-
-function tarString(bytes: Uint8Array): string {
-	const end = bytes.indexOf(0);
-	return Buffer.from(end < 0 ? bytes : bytes.subarray(0, end)).toString("utf8");
-}
-
 async function serializeRequest(request: Request): Promise<RequestEnvelope> {
 	if (Buffer.byteLength(request.url) > MAX_URL_BYTES) {
 		throw new DynamicAppsError(
@@ -1196,8 +1296,9 @@ async function serializeRequest(request: Request): Promise<RequestEnvelope> {
 		.split(",")
 		.map((value) => value.trim().toLowerCase())
 		.filter(Boolean);
-	for (const name of [...HOP_BY_HOP_HEADERS, ...connectionTokens])
+	for (const name of [...HOP_BY_HOP_HEADERS, ...connectionTokens]) {
 		headers.delete(name);
+	}
 	for (const name of [
 		"x-rivet-token",
 		"x-agentos-app-region",
@@ -1338,23 +1439,6 @@ async function measure<T>(
 	}
 }
 
-async function withDeadline<T>(operation: Promise<T>, timeoutMs: number) {
-	let timer: ReturnType<typeof setTimeout> | undefined;
-	try {
-		return await Promise.race([
-			operation,
-			new Promise<never>((_, reject) => {
-				timer = setTimeout(
-					() => reject(new Error("isolate promise timed out")),
-					timeoutMs,
-				);
-			}),
-		]);
-	} finally {
-		if (timer) clearTimeout(timer);
-	}
-}
-
 function measureOptional<T>(
 	trace: RequestTrace | undefined,
 	name: string,
@@ -1384,17 +1468,21 @@ function integerEnv(
 	return value;
 }
 
-/** @internal Computes the safe active-isolate cap for a finite cgroup. */
+function errorMessage(error: unknown): string {
+	return error instanceof Error ? error.message : String(error);
+}
+
+/** @internal Computes the safe active-context cap for a finite cgroup. */
 export function capExecutionConcurrencyForMemory(input: {
 	requested: number;
-	isolateHeapLimitMb: number;
+	contextHeapLimitMb: number;
 	memoryHighWaterPercent: number;
 	currentBytes: number;
 	maxBytes: number;
 }): number {
 	return capConcurrencyForMemory({
 		requested: input.requested,
-		heapLimitMb: input.isolateHeapLimitMb,
+		contextAndVmLimitMb: input.contextHeapLimitMb + AGENTOS_VM_OVERHEAD_MB,
 		memoryHighWaterPercent: input.memoryHighWaterPercent,
 		currentBytes: input.currentBytes,
 		maxBytes: input.maxBytes,
@@ -1424,22 +1512,6 @@ class Semaphore {
 	}
 
 	async acquire(): Promise<void> {
-		await this.#acquire();
-	}
-
-	release(): void {
-		if (this.#active <= 0) return;
-		this.#active -= 1;
-		this.#wake();
-	}
-
-	dispose(): void {
-		this.#disposed = true;
-		for (const item of this.#queue.splice(0))
-			item.reject(new Error("disposed"));
-	}
-
-	async #acquire(): Promise<void> {
 		if (this.#disposed) throw new Error("semaphore disposed");
 		if (this.#active < this.capacity) {
 			this.#active += 1;
@@ -1482,139 +1554,19 @@ class Semaphore {
 		});
 	}
 
-	#wake(): void {
-		if (this.#active >= this.capacity) return;
-		this.#queue.shift()?.resolve();
+	release(): void {
+		if (this.#active <= 0) return;
+		this.#active -= 1;
+		if (this.#active < this.capacity) this.#queue.shift()?.resolve();
+	}
+
+	dispose(): void {
+		this.#disposed = true;
+		for (const item of this.#queue.splice(0)) {
+			item.reject(new Error("disposed"));
+		}
 	}
 }
-
-const ISOLATE_BOOTSTRAP_SOURCE = String.raw`
-(() => {
-  const utf8Encode = (text) => {
-    const escaped = unescape(encodeURIComponent(String(text)));
-    const bytes = new Uint8Array(escaped.length);
-    for (let i = 0; i < escaped.length; i++) bytes[i] = escaped.charCodeAt(i);
-    return bytes;
-  };
-  const utf8Decode = (bytes) => {
-    let binary = "";
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    return decodeURIComponent(escape(binary));
-  };
-  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  globalThis.__dynamicAppsBase64Encode = (bytes) => {
-		const chunks = [];
-		let out = "";
-    for (let i = 0; i < bytes.length; i += 3) {
-      const n = (bytes[i] << 16) | ((bytes[i + 1] ?? 0) << 8) | (bytes[i + 2] ?? 0);
-      out += alphabet[(n >> 18) & 63] + alphabet[(n >> 12) & 63] +
-        (i + 1 < bytes.length ? alphabet[(n >> 6) & 63] : "=") +
-        (i + 2 < bytes.length ? alphabet[n & 63] : "=");
-			if (out.length >= 16384) { chunks.push(out); out = ""; }
-    }
-		chunks.push(out);
-		return chunks.join("");
-  };
-  globalThis.__dynamicAppsBase64Decode = (text) => {
-    const clean = String(text).replace(/=+$/, "");
-		const out = new Uint8Array(Math.floor(clean.length * 3 / 4));
-		let offset = 0;
-    let bits = 0, count = 0;
-    for (const char of clean) {
-      const value = alphabet.indexOf(char);
-      if (value < 0) continue;
-      bits = (bits << 6) | value;
-      count += 6;
-			if (count >= 8) {
-				count -= 8;
-				out[offset++] = (bits >> count) & 255;
-				bits &= count === 0 ? 0 : (1 << count) - 1;
-			}
-    }
-		return offset === out.length ? out : out.slice(0, offset);
-  };
-  class TextEncoder { encode(value = "") { return utf8Encode(value); } }
-  class TextDecoder { decode(value = new Uint8Array()) { return utf8Decode(new Uint8Array(value)); } }
-  class Headers {
-    constructor(init) {
-      this._items = [];
-      if (init instanceof Headers) init = init._items;
-      if (Array.isArray(init)) for (const pair of init) this.append(pair[0], pair[1]);
-      else if (init) for (const key of Object.keys(init)) this.append(key, init[key]);
-    }
-    append(name, value) { this._items.push([String(name).toLowerCase(), String(value)]); }
-    set(name, value) { this.delete(name); this.append(name, value); }
-    get(name) { const values = this._items.filter(x => x[0] === String(name).toLowerCase()).map(x => x[1]); return values.length ? values.join(", ") : null; }
-    has(name) { return this._items.some(x => x[0] === String(name).toLowerCase()); }
-    delete(name) { name = String(name).toLowerCase(); this._items = this._items.filter(x => x[0] !== name); }
-    forEach(fn, self) { for (const [name, value] of this.entries()) fn.call(self, value, name, this); }
-    *entries() { const seen = new Set(); for (const [name] of this._items) if (!seen.has(name)) { seen.add(name); yield [name, this.get(name)]; } }
-    *keys() { for (const [name] of this.entries()) yield name; }
-    *values() { for (const [, value] of this.entries()) yield value; }
-    [Symbol.iterator]() { return this.entries(); }
-    getSetCookie() { return this._items.filter(x => x[0] === "set-cookie").map(x => x[1]); }
-  }
-  const bodyBytes = (body) => body == null ? new Uint8Array() : body instanceof Uint8Array ? body.slice() : body instanceof ArrayBuffer ? new Uint8Array(body.slice(0)) : utf8Encode(body);
-  class Body {
-    constructor(body) { this._body = bodyBytes(body); this.bodyUsed = false; }
-    async arrayBuffer() { this.bodyUsed = true; return this._body.slice().buffer; }
-    async text() { this.bodyUsed = true; return utf8Decode(this._body); }
-    async json() { return JSON.parse(await this.text()); }
-  }
-  class Request extends Body {
-    constructor(input, init = {}) {
-      const prior = input instanceof Request ? input : null;
-      super(init.body ?? prior?._body);
-      this.url = prior ? prior.url : String(input);
-      this.method = String(init.method ?? prior?.method ?? "GET").toUpperCase();
-      this.headers = new Headers(init.headers ?? prior?.headers);
-    }
-    clone() { return new Request(this); }
-  }
-  const statusText = { 200: "OK", 201: "Created", 204: "No Content", 301: "Moved Permanently", 302: "Found", 304: "Not Modified", 400: "Bad Request", 404: "Not Found", 500: "Internal Server Error" };
-  class Response extends Body {
-    constructor(body = null, init = {}) {
-      super(body);
-      this.status = Number(init.status ?? 200);
-      this.statusText = String(init.statusText ?? statusText[this.status] ?? "");
-      this.headers = new Headers(init.headers);
-      this.ok = this.status >= 200 && this.status < 300;
-    }
-    clone() { return new Response(this._body, { status: this.status, statusText: this.statusText, headers: this.headers }); }
-    static json(value, init = {}) { const headers = new Headers(init.headers); if (!headers.has("content-type")) headers.set("content-type", "application/json"); return new Response(JSON.stringify(value), { ...init, headers }); }
-    static redirect(url, status = 302) { return new Response(null, { status, headers: { location: String(url) } }); }
-  }
-  class URLSearchParams {
-    constructor(input = "") { this._items = []; for (const item of String(input).replace(/^\?/, "").split("&")) { if (!item) continue; const [key, ...rest] = item.split("="); this.append(decodeURIComponent(key.replace(/\+/g, " ")), decodeURIComponent(rest.join("=").replace(/\+/g, " "))); } }
-    append(key, value) { this._items.push([String(key), String(value)]); }
-    get(key) { const item = this._items.find(x => x[0] === String(key)); return item ? item[1] : null; }
-    getAll(key) { return this._items.filter(x => x[0] === String(key)).map(x => x[1]); }
-    has(key) { return this._items.some(x => x[0] === String(key)); }
-    set(key, value) { this.delete(key); this.append(key, value); }
-    delete(key) { key = String(key); this._items = this._items.filter(x => x[0] !== key); }
-    entries() { return this._items[Symbol.iterator](); }
-    [Symbol.iterator]() { return this.entries(); }
-    toString() { return this._items.map(x => encodeURIComponent(x[0]).replace(/%20/g, "+") + "=" + encodeURIComponent(x[1]).replace(/%20/g, "+")).join("&"); }
-  }
-  class URL {
-    constructor(input, base) {
-      input = String(input);
-      if (base && !/^[a-z][a-z0-9+.-]*:/i.test(input)) input = String(base).replace(/\/[^/]*$/, "/") + input;
-      const match = /^([a-z][a-z0-9+.-]*:)(?:\/\/([^/?#]*))?([^?#]*)(\?[^#]*)?(#.*)?$/i.exec(input);
-      if (!match) throw new TypeError("Invalid URL");
-      this.protocol = match[1]; this.host = match[2] ?? ""; this.hostname = this.host.split(":")[0];
-      this.pathname = match[3] || "/"; this.search = match[4] ?? ""; this.hash = match[5] ?? "";
-      this.origin = this.host ? this.protocol + "//" + this.host : "null";
-      this.searchParams = new URLSearchParams(this.search);
-    }
-    toString() { const query = this.searchParams.toString(); return (this.host ? this.protocol + "//" + this.host : this.protocol) + this.pathname + (query ? "?" + query : "") + this.hash; }
-    get href() { return this.toString(); }
-  }
-  globalThis.TextEncoder = TextEncoder; globalThis.TextDecoder = TextDecoder;
-  globalThis.Headers = Headers; globalThis.Request = Request; globalThis.Response = Response;
-  globalThis.URL = URL; globalThis.URLSearchParams = URLSearchParams;
-  globalThis.performance = { now: () => Date.now() };
-})();`;
 
 let defaultExecutor: DynamicAppsExecutor | undefined;
 

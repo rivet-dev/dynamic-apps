@@ -149,7 +149,7 @@ async function deployActorFixture() {
 				type: "module",
 				main: "index.js",
 				dependencies: {
-					rivetkit: "0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9",
+					rivetkit: "2.3.11",
 				},
 			}),
 			"index.js": `

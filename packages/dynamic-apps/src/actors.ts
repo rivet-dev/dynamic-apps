@@ -23,6 +23,7 @@ import {
 	resolveDefaultRivetConnection,
 } from "./control-plane.js";
 import { DynamicAppsError } from "./errors.js";
+import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
 import {
 	APP_CALLBACK_SECRET_HEADER,
 	actorRunnerSource,
@@ -699,6 +700,28 @@ function boundedOutput(value: string, maximum: number): string {
 	return `${bytes.subarray(0, maximum).toString("utf8")}\n[truncated at ${maximum} bytes]`;
 }
 
+function emitBuildOutput(
+	appId: string,
+	release: string,
+	result: Pick<ExecResult, "stdout" | "stderr">,
+): void {
+	for (const stream of ["stdout", "stderr"] as const) {
+		const decoder = new DynamicAppsLogLineDecoder((message, truncated) =>
+			emitDynamicAppsLog({
+				level: stream === "stdout" ? "info" : "error",
+				source: "build",
+				message,
+				appId,
+				release,
+				stream,
+				...(truncated ? { metadata: { truncated: true } } : {}),
+			}),
+		);
+		decoder.write(Buffer.from(result[stream]));
+		decoder.end();
+	}
+}
+
 function throwCommandFailure(
 	kind: "install" | "build" | "pack",
 	command: string,
@@ -749,13 +772,23 @@ async function buildRelease(
 	}
 	const build = await config.createBuildVm();
 	const startedAt = performance.now();
-	const phase = (name: string) =>
+	const phase = (name: string) => {
+		const elapsedMs = performance.now() - startedAt;
 		c.log.info({
 			msg: "Dynamic Apps build phase completed",
 			release,
 			phase: name,
-			elapsedMs: performance.now() - startedAt,
+			elapsedMs,
 		});
+		emitDynamicAppsLog({
+			level: "info",
+			source: "build",
+			message: "Dynamic Apps build phase completed",
+			appId: input.appId,
+			release,
+			metadata: { phase: name, elapsedMs },
+		});
+	};
 	let buildError: unknown;
 	try {
 		const files = Object.entries(input.files).map(([path, content]) => ({
@@ -772,6 +805,7 @@ async function buildRelease(
 					entrypoint: plan.entrypoint,
 					release,
 					maxResponseBytes: config.maxResponseBytes,
+					usesRivetKit: plan.usesRivetKit,
 				}),
 			),
 		});
@@ -808,6 +842,7 @@ async function buildRelease(
 			timeout: config.buildTimeoutMs,
 			captureStdio: true,
 		});
+		emitBuildOutput(input.appId, release, install);
 		if (install.exitCode !== 0) {
 			throwCommandFailure(
 				"install",
@@ -823,6 +858,7 @@ async function buildRelease(
 				timeout: config.buildTimeoutMs,
 				captureStdio: true,
 			});
+			emitBuildOutput(input.appId, release, result);
 			if (result.exitCode !== 0) {
 				throwCommandFailure(
 					"build",
@@ -848,6 +884,7 @@ async function buildRelease(
 				captureStdio: true,
 			},
 		);
+		emitBuildOutput(input.appId, release, prune);
 		if (prune.exitCode !== 0) {
 			throwCommandFailure(
 				"install",
@@ -868,6 +905,7 @@ async function buildRelease(
 				captureStdio: true,
 			},
 		);
+		emitBuildOutput(input.appId, release, nativeAddonCheck);
 		if (nativeAddonCheck.exitCode === 42) {
 			fail(
 				"agentos_apps_native_addon_unsupported",
@@ -898,9 +936,8 @@ async function buildRelease(
 					release: "/release/direct",
 					entrypoint: "direct-runner.mjs",
 					sourceFiles: Object.keys(input.files),
-					usesRivetKit: false,
-					directIsolate: true,
-					stubRivetKit: plan.usesRivetKit,
+					usesRivetKit: plan.usesRivetKit,
+					directAgentOs: true,
 					maxOutputBytes: config.maxBuildArtifactBytes,
 					maxOutputFiles: DEFAULT_MAX_BUILD_ARTIFACT_FILES,
 					maxFileBytes: DEFAULT_MAX_BUILD_ARTIFACT_FILE_BYTES,
@@ -923,6 +960,7 @@ async function buildRelease(
 				captureStdio: true,
 			},
 		);
+		emitBuildOutput(input.appId, release, directBundle);
 		if (directBundle.exitCode !== 0) {
 			throwCommandFailure(
 				"build",
@@ -943,7 +981,6 @@ async function buildRelease(
 						entrypoint: "actor-runner.mjs",
 						sourceFiles: Object.keys(input.files),
 						usesRivetKit: true,
-						directIsolate: false,
 						platformRivetKit: true,
 						maxOutputBytes: config.maxBuildArtifactBytes,
 						maxOutputFiles: DEFAULT_MAX_BUILD_ARTIFACT_FILES,
@@ -966,6 +1003,7 @@ async function buildRelease(
 					captureStdio: true,
 				},
 			);
+			emitBuildOutput(input.appId, release, actorBundle);
 			if (actorBundle.exitCode !== 0) {
 				throwCommandFailure(
 					"build",
@@ -980,7 +1018,7 @@ async function buildRelease(
 			"node",
 			[
 				"-e",
-				`import("/release/${DIRECT_BUNDLE_PATH}").then(()=>{if(globalThis.__dynamicAppMetadata?.format!==${JSON.stringify(DIRECT_RUNTIME_FORMAT)}||typeof globalThis.__dynamicAppDispatch!=="function") throw new TypeError("invalid direct app handler")}).catch((error)=>{console.error(error);process.exitCode=1})`,
+				`import("/release/${DIRECT_BUNDLE_PATH}").then((module)=>{if(module.dynamicAppMetadata?.format!==${JSON.stringify(DIRECT_RUNTIME_FORMAT)}||typeof module.dispatch!=="function") throw new TypeError("invalid direct app handler")}).catch((error)=>{console.error(error);process.exitCode=1})`,
 			],
 			{
 				cwd: "/release",
@@ -988,6 +1026,7 @@ async function buildRelease(
 				captureStdio: true,
 			},
 		);
+		emitBuildOutput(input.appId, release, validation);
 		if (validation.exitCode !== 0) {
 			fail(
 				"agentos_apps_invalid_handler",
@@ -1028,6 +1067,7 @@ async function buildRelease(
 				captureStdio: true,
 			},
 		);
+		emitBuildOutput(input.appId, release, pack);
 		if (pack.exitCode !== 0) {
 			throwCommandFailure("pack", "tar", pack, config.maxBuildOutputBytes);
 		}
@@ -1063,6 +1103,13 @@ async function buildRelease(
 		throw error;
 	} finally {
 		await build.dispose().catch((disposeError) => {
+			emitDynamicAppsLog({
+				level: "error",
+				source: "build",
+				message: "failed to dispose Dynamic Apps build VM",
+				appId: input.appId,
+				release,
+			});
 			if (!buildError) throw disposeError;
 			c.log.error({
 				msg: "failed to dispose Dynamic Apps build VM after build failure",
@@ -1183,6 +1230,8 @@ export function createAppsActors(
 		try {
 			return await getDefaultActorRuntime().request({
 				key: `${release.release}:${release.artifactHash}`,
+				appId: c.key[0] ?? "unknown",
+				release: release.release,
 				loadArtifact: () => readStoredArtifact(c.db, release),
 				endpoint: actorPublicEndpoint(release, state),
 				namespace: release.namespace,
@@ -1477,9 +1526,7 @@ export function createAppsActors(
 							endpoint: runtime.endpoint,
 							namespace: runtime.namespace,
 							pool: runtime.pool,
-							...(runtime.publicToken
-								? { token: runtime.publicToken }
-								: {}),
+							...(runtime.publicToken ? { token: runtime.publicToken } : {}),
 							regions,
 							appActorId: c.actorId,
 							usesRivetKit: release.usesRivetKit,

@@ -1,11 +1,13 @@
 # `@rivet-dev/dynamic-apps`
 
-Dynamic Apps exposes two runtime values:
+Dynamic Apps exposes three runtime values:
 
 - `deployApp(input, options?)` builds, persists, and activates an immutable app
   release through the per-app Rivet state actor.
 - `appsRouter` is a Hono router that serves the active release at
-  `/:appId/*` from process-local V8 isolates.
+	`/:appId/*` through cached agentOS VMs.
+- `setDynamicAppsLogHandler(handler)` receives structured application, actor,
+	build, and runtime logs.
 
 Deployment still uses the existing resource-bounded agentOS build VM, builder
 package, AOSP artifact chunks, activation ordering, rollback behavior, and
@@ -25,10 +27,10 @@ export default {
 };
 ```
 
-The first preview buffers request and response bodies, rejects Node builtins,
-and supports the host-provided Fetch subset documented by the tests. It does
-not support WebSockets, streaming ordinary HTTP bodies, or Node APIs inside the
-direct app isolate.
+The first preview buffers request and response bodies. Direct apps run in a
+Node 22 agentOS sandbox, so supported Node builtins and the standard Node Web
+APIs are available. Native addons, WebSockets, and streaming ordinary HTTP
+bodies are not supported.
 
 ## App-defined actors
 
@@ -80,7 +82,7 @@ Actor requests follow the normal Rivet Engine path. The app's serverless
 callback loads its verified actor bundle into a bounded process-local worker
 thread and uses the host's pinned RivetKit WebAssembly runtime. State, actions,
 events, connections, and streaming actor responses are handled by RivetKit;
-ordinary HTTP for the same app still uses the direct isolate path.
+ordinary HTTP for the same app still uses the agentOS evaluation path.
 
 Callback admission happens before the request body is read. The worker cache
 is a strict process limit across active and idle app bundles; a new bundle is
@@ -112,10 +114,10 @@ server.route("/apps", appsRouter);
 serve({ fetch: server.fetch, port: 3000 });
 ```
 
-Run Node 22 or newer with `--no-node-snapshot`, as required by `isolated-vm`:
+Run Node 22 or newer normally:
 
 ```sh
-node --no-node-snapshot dist/server.js
+node dist/server.js
 ```
 
 Deploying an app keeps the existing call shape:
@@ -131,25 +133,23 @@ const deployment = await deployApp({
 
 ## Execution modes
 
-`DYNAMIC_APPS_ISOLATE_MODE` selects the request isolation strategy:
+`DYNAMIC_APPS_EXECUTION_MODE` selects the request execution strategy:
 
 | Mode | Cached object | Cache-hit request |
 | --- | --- | --- |
-| `prewarm` (default) | artifact, V8 heap snapshot, and up to N reusable clean isolates | lease an isolate, run once, destroy its context, restore a clean context from the snapshot, return the isolate to the pool |
-| `snapshot` | artifact and V8 heap snapshot | create one isolate from the snapshot, run once, destroy it |
-| `fresh` | verified artifact source | create an empty isolate, compile/evaluate the bundle, run once, destroy it |
+| `pooled` (default) | verified artifact, one agentOS VM, and up to N retained contexts | lease a context, evaluate once, reset and reinitialize it, then return it to the pool |
+| `ephemeral` | verified artifact and one agentOS VM | evaluate in a fresh context managed by agentOS |
 
-The prewarm pool is a cache, not a capacity limit. A burst beyond the pool uses
-snapshot-restored overflow isolates under the global execution limit; only the
-configured number remain idle afterward. Setting the pool size to zero selects
-`snapshot` mode.
+The context pool is a cache, not a capacity limit. A burst beyond the pool uses
+ephemeral evaluations under the global execution limit; only the configured
+number of retained contexts remain idle afterward.
 
 | Variable | Default |
 | --- | ---: |
-| `DYNAMIC_APPS_ISOLATE_POOL_SIZE` | `2` |
-| `DYNAMIC_APPS_ISOLATE_POOL_MAX_TOTAL` | `8` |
-| `DYNAMIC_APPS_ISOLATE_IDLE_TTL_MS` | `30000` |
-| `DYNAMIC_APPS_ISOLATE_HEAP_LIMIT_MB` | `64` |
+| `DYNAMIC_APPS_CONTEXT_POOL_SIZE` | `2` |
+| `DYNAMIC_APPS_CONTEXT_POOL_MAX_TOTAL` | `8` |
+| `DYNAMIC_APPS_CONTEXT_IDLE_TTL_MS` | `30000` |
+| `DYNAMIC_APPS_CONTEXT_HEAP_LIMIT_MB` | `64` |
 | `DYNAMIC_APPS_RUNTIME_CACHE_MAX_ENTRIES` | `16` |
 | `DYNAMIC_APPS_RUNTIME_CACHE_MAX_BYTES` | `268435456` |
 | `DYNAMIC_APPS_RUNTIME_CACHE_IDLE_TTL_MS` | `900000` |
@@ -168,7 +168,7 @@ configured number remain idle afterward. Setting the pool size to zero selects
 | `DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_WAIT_MS` | `5000` |
 | `DYNAMIC_APPS_ACTOR_REQUEST_TIMEOUT_MS` | `30000` |
 
-Inside a finite cgroup, execution concurrency, both isolate-pool limits, and
+Inside a finite cgroup, execution concurrency, both context-pool limits, and
 the actor-worker limit are upper bounds. At startup they are reduced when
 necessary to keep the configured heap cost below
 `DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT`, with host and payload headroom. They
@@ -188,22 +188,35 @@ with `get()` when the supplied RivetKit client supports it, then falls back to
 only `getOrCreate()` retain the original behavior.
 
 `DYNAMIC_APPS_TIMING_HEADERS=1` adds benchmark-only phase headers.
-`DYNAMIC_APPS_LOG_REQUESTS=1` writes structured request timing records without
-request/response bodies or credentials.
+`DYNAMIC_APPS_LOG_REQUESTS=1` emits structured request timing records through
+the configured log handler without request/response bodies or credentials.
+
+## Collecting logs
+
+Register one synchronous handler during host startup:
+
+```ts
+import { setDynamicAppsLogHandler } from "@rivet-dev/dynamic-apps";
+
+setDynamicAppsLogHandler((event) => {
+	process.stdout.write(`${JSON.stringify(event)}\n`);
+});
+```
+
+The handler receives application stdout/stderr, actor worker output, build
+phases, and runtime events. Enqueue into a logging SDK rather than performing a
+blocking network request in the callback.
 
 ## Memory and trust boundary
 
-Each cached isolate has its own configured V8 heap limit. The pool, runtime
-entry count, artifact bytes, idle TTLs, execution concurrency, queue, and cgroup
-high-water eviction are independently bounded. Direct and actor admission is
-performed before request-body buffering. A used JavaScript context is never
-reused: it is released before a fresh snapshot-backed context is created on the
-cached native isolate.
+Each immutable release owns one bounded agentOS VM with a read-only mounted
+artifact. Context count, runtime entries, artifact bytes, idle TTLs, execution
+concurrency, queues, and cgroup high-water eviction are independently bounded.
+Successful pooled contexts are reset and reinitialized; failed, timed-out, or
+aborted contexts are deleted.
 
-This preview executes isolates in the serving process. `isolated-vm` is a V8
-isolation primitive, not a complete hostile multi-tenant sandbox, and snapshot
-creation can terminate the process if top-level application code exhausts
-native resources. App actor code runs in a worker-thread V8 isolate but shares
-the same containing process. Run one trust domain per container, keep Node/V8
-patched, and rely on Compute restart isolation; do not treat this preview as a
-boundary for mutually hostile tenants.
+agentOS supplies the filesystem, process, environment, and network permission
+boundary for direct HTTP. App actor code still runs in a bounded worker thread
+inside the host process. Run one trust domain per container and keep the host
+and agentOS runtime patched; do not treat actor workers as a boundary for
+mutually hostile tenants.

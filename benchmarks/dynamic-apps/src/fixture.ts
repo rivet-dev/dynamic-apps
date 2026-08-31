@@ -23,13 +23,20 @@ export async function deployBenchmarkFixture(
 					main: "index.js",
 				}),
 				"index.js": `
+import { basename } from "node:path";
+
 export default {
   fetch(request) {
     const url = new URL(request.url);
+		if (url.searchParams.get("logs") === "1") {
+			console.log("benchmark stdout");
+			console.error("benchmark stderr");
+		}
     return Response.json({
       ok: true,
       workload: "basic-request-response",
       requestId: url.searchParams.get("requestId"),
+			node: { platform: process.platform, file: basename(import.meta.filename) },
     });
   },
 };
@@ -61,7 +68,7 @@ export async function deployActorBenchmarkFixture(
 					type: "module",
 					main: "index.js",
 					dependencies: {
-						rivetkit: "0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9",
+						rivetkit: "2.3.11",
 					},
 				}),
 				"index.js": `

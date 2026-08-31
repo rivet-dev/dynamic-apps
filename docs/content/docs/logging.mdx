@@ -1,0 +1,37 @@
+---
+title: "Collecting logs"
+description: "Forward Dynamic Apps output and runtime events to your logging provider."
+---
+
+Dynamic Apps turns application `console.log` and stdout, application
+`console.error` and stderr, actor output, build progress, and enabled request
+summaries into structured events.
+
+For Cloud Run or Rivet Compute, write each event as one JSON line so the
+platform can collect it:
+
+```ts
+import { setDynamicAppsLogHandler } from "@rivet-dev/dynamic-apps";
+
+setDynamicAppsLogHandler((event) =>
+	process.stdout.write(`${JSON.stringify(event)}\n`),
+);
+```
+
+You can also enqueue events into a synchronous or buffered logger:
+
+```ts
+setDynamicAppsLogHandler((event) => {
+	logger.log(event.level, event.message, event);
+});
+```
+
+Each event includes a version, timestamp, level, source, and message. When
+available, it also includes the app, release, request, actor, and output stream,
+plus bounded metadata. Messages are limited to 64 KiB and carry
+`metadata.truncated: true` when shortened.
+
+Delivery is best effort and happens synchronously. Do not make blocking network
+requests in the callback; enqueue into your logging SDK instead. Request and
+response bodies, authorization headers, environment variables, callback
+secrets, endpoint credentials, and build source are excluded.

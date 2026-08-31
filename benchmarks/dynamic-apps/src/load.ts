@@ -215,9 +215,6 @@ export async function runLoadTest(
 					}
 					for (const [phase, header] of Object.entries({
 						bundleLoad: "x-agentos-app-bundle-load-ms",
-						isolateStart: "x-agentos-app-isolate-start-ms",
-						processReady: "x-agentos-app-process-ready-ms",
-						dispatch: "x-agentos-app-dispatch-ms",
 						appReleaseLookup: "x-agentos-app-release-lookup-ms",
 						appRequestBody: "x-agentos-app-request-body-ms",
 						appScalerAcquire: "x-agentos-app-scaler-acquire-ms",

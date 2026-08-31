@@ -66,20 +66,15 @@ export function createBenchmarkApplication(): Hono {
 		...process.env,
 		DYNAMIC_APPS_TIMING_HEADERS: "1",
 	});
-	const warm = new DynamicAppsExecutor({
+	const pooled = new DynamicAppsExecutor({
 		...baseConfig,
-		isolateMode: "prewarm",
-		isolatePoolSize: integerEnv("BENCH_WARM_POOL_SIZE", 8, 1, 128),
+		executionMode: "pooled",
+		contextPoolSize: integerEnv("BENCH_CONTEXT_POOL_SIZE", 8, 1, 128),
 	});
-	const snapshot = new DynamicAppsExecutor({
+	const ephemeral = new DynamicAppsExecutor({
 		...baseConfig,
-		isolateMode: "snapshot",
-		isolatePoolSize: 0,
-	});
-	const fresh = new DynamicAppsExecutor({
-		...baseConfig,
-		isolateMode: "fresh",
-		isolatePoolSize: 0,
+		executionMode: "ephemeral",
+		contextPoolSize: 0,
 	});
 	const client = createClient() as unknown as StateClient &
 		BenchmarkDeploymentClient;
@@ -126,7 +121,7 @@ export function createBenchmarkApplication(): Hono {
 	const direct = (
 		executor: DynamicAppsExecutor,
 		prefix: string,
-		architecture: "warm" | "snapshot" | "fresh",
+		architecture: "pooled" | "ephemeral",
 		request: Request,
 	) => {
 		const url = new URL(request.url);
@@ -138,21 +133,17 @@ export function createBenchmarkApplication(): Hono {
 				return response;
 			});
 	};
-	app.all("/bench/warm", (c) => direct(warm, "/bench/warm", "warm", c.req.raw));
-	app.all("/bench/warm/*", (c) =>
-		direct(warm, "/bench/warm", "warm", c.req.raw),
+	app.all("/bench/pooled", (c) =>
+		direct(pooled, "/bench/pooled", "pooled", c.req.raw),
 	);
-	app.all("/bench/fresh", (c) =>
-		direct(fresh, "/bench/fresh", "fresh", c.req.raw),
+	app.all("/bench/pooled/*", (c) =>
+		direct(pooled, "/bench/pooled", "pooled", c.req.raw),
 	);
-	app.all("/bench/fresh/*", (c) =>
-		direct(fresh, "/bench/fresh", "fresh", c.req.raw),
+	app.all("/bench/ephemeral", (c) =>
+		direct(ephemeral, "/bench/ephemeral", "ephemeral", c.req.raw),
 	);
-	app.all("/bench/snapshot", (c) =>
-		direct(snapshot, "/bench/snapshot", "snapshot", c.req.raw),
-	);
-	app.all("/bench/snapshot/*", (c) =>
-		direct(snapshot, "/bench/snapshot", "snapshot", c.req.raw),
+	app.all("/bench/ephemeral/*", (c) =>
+		direct(ephemeral, "/bench/ephemeral", "ephemeral", c.req.raw),
 	);
 
 	app.all("/bench/actor/resolve", async () => {
@@ -229,7 +220,7 @@ export function createBenchmarkApplication(): Hono {
 			const second = await counter.add(3);
 			const current = await counter.inspect();
 			await counter.dispose();
-			const directResponse = await warm.request(
+			const directResponse = await pooled.request(
 				ACTOR_BENCHMARK_APP_ID,
 				new Request("http://dynamic-app.test/"),
 			);
@@ -280,16 +271,14 @@ export function createBenchmarkApplication(): Hono {
 				memory: process.memoryUsage(),
 			},
 			cpuParallelism: availableParallelism(),
-			warm: warm.diagnostics(),
-			snapshot: snapshot.diagnostics(),
-			fresh: fresh.diagnostics(),
+			pooled: pooled.diagnostics(),
+			ephemeral: ephemeral.diagnostics(),
 			paths: [
 				"/bench/noop",
 				"/bench/actor/resolve",
 				"/bench/actor/action",
-				"/bench/warm",
-				"/bench/snapshot",
-				"/bench/fresh",
+				"/bench/pooled",
+				"/bench/ephemeral",
 				"POST /bench/actor-app/setup",
 				"POST /bench/actor-app/verify",
 				"/bench/actor-app/action",
@@ -386,8 +375,7 @@ export function actorApplicationClientConfig(
 		poolName: deployment.pool,
 		...(deployment.token || endpointToken || process.env.RIVET_TOKEN
 			? {
-					token:
-						deployment.token ?? endpointToken ?? process.env.RIVET_TOKEN,
+					token: deployment.token ?? endpointToken ?? process.env.RIVET_TOKEN,
 				}
 			: {}),
 	};

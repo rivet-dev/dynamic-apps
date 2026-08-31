@@ -75,9 +75,14 @@ await access(builder.default.packagePath);
 
 const main = await import(pathToFileURL(join(mainRoot, "dist/index.js")));
 const exports = Object.keys(main).sort();
-if (JSON.stringify(exports) !== JSON.stringify(["appsRouter", "deployApp"])) {
+if (
+	JSON.stringify(exports) !==
+	JSON.stringify(["appsRouter", "deployApp", "setDynamicAppsLogHandler"])
+) {
 	throw new Error(`packed main package has unexpected exports: ${exports}`);
 }
+main.setDynamicAppsLogHandler(() => {});
+main.setDynamicAppsLogHandler(undefined);
 
 for (const packageRoot of [builderRoot, mainRoot]) {
 	const manifest = JSON.parse(
@@ -89,6 +94,14 @@ for (const packageRoot of [builderRoot, mainRoot]) {
 			`${manifest.name} contains an unpublished dependency specifier`,
 		);
 	}
+	if (
+		manifest.name === "@rivet-dev/dynamic-apps" &&
+		manifest.dependencies?.["isolated-vm"]
+	) {
+		throw new Error(
+			"packed Dynamic Apps still depends directly on isolated-vm",
+		);
+	}
 }
 
 const declaration = await readFile(join(mainRoot, "dist/index.d.ts"), "utf8");
@@ -97,13 +110,19 @@ if (/from ["']@rivet-dev\/agentos/.test(declaration)) {
 		"packed public declarations expose agentOS implementation types",
 	);
 }
+if (
+	!declaration.includes("setDynamicAppsLogHandler") ||
+	!declaration.includes("interface DynamicAppsLogEvent")
+) {
+	throw new Error("packed declarations omit the structured log API");
+}
 
 const workspace = join(fixture, "builder-smoke");
 const release = join(fixture, "builder-release");
 await mkdir(workspace, { recursive: true });
 await writeFile(
 	join(workspace, "entry.ts"),
-	'globalThis.__dynamicAppDispatch = async () => JSON.stringify({ status: 200, statusText: "OK", headers: [], bodyBase64: "" });\n',
+	'export async function dispatch() { return { status: 200, statusText: "OK", headers: [], bodyBase64: "" }; }\n',
 );
 await writeFile(
 	join(workspace, "package.json"),
@@ -119,7 +138,7 @@ await writeFile(
 		version: "packed-smoke",
 		sourceFiles: ["entry.ts"],
 		usesRivetKit: false,
-		directIsolate: true,
+		directAgentOs: true,
 		maxOutputBytes: 1024 * 1024,
 		maxOutputFiles: 16,
 		maxFileBytes: 512 * 1024,
@@ -130,12 +149,9 @@ await execFileAsync(process.execPath, [
 	configPath,
 ]);
 await access(join(release, "main.mjs"));
-if (
-	/^\s*(?:import|export)\s/m.test(
-		await readFile(join(release, "main.mjs"), "utf8"),
-	)
-) {
-	throw new Error("packed direct builder emitted a module instead of an IIFE");
+const directModule = await import(pathToFileURL(join(release, "main.mjs")));
+if (typeof directModule.dispatch !== "function") {
+	throw new Error("packed direct builder did not emit an ESM dispatcher");
 }
 
 const actorWorkspace = join(fixture, "actor-builder-smoke");
@@ -159,7 +175,6 @@ await writeFile(
 		version: "packed-actor-smoke",
 		sourceFiles: ["entry.ts"],
 		usesRivetKit: true,
-		directIsolate: false,
 		platformRivetKit: true,
 		maxOutputBytes: 1024 * 1024,
 		maxOutputFiles: 16,

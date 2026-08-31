@@ -53,7 +53,7 @@ export async function runBenchmarkSuite(
 	const before = await readDiagnostics(normalized);
 	const warmup: Record<string, { attempts: number; warm: boolean }> = {};
 	const initialization: Record<string, LoadResult> = {};
-	for (const architecture of ["warm", "snapshot", "fresh"] as const) {
+	for (const architecture of ["pooled", "ephemeral"] as const) {
 		if (
 			definitions.some((definition) =>
 				definition.path.startsWith(`/bench/${architecture}`),
@@ -126,16 +126,15 @@ function suiteDefinitions(profile: string): CaseDefinition[] {
 		1,
 		100_000,
 	);
-	const warmRequests = integerEnv("BENCH_WARM_REQUESTS", 80, 1, 100_000);
-	const warmConcurrentRequests = integerEnv(
-		"BENCH_WARM_CONCURRENT_REQUESTS",
+	const pooledRequests = integerEnv("BENCH_POOLED_REQUESTS", 80, 1, 100_000);
+	const pooledConcurrentRequests = integerEnv(
+		"BENCH_POOLED_CONCURRENT_REQUESTS",
 		32,
 		1,
 		100_000,
 	);
-	const freshRequests = integerEnv("BENCH_FRESH_REQUESTS", 80, 1, 100_000);
-	const snapshotRequests = integerEnv(
-		"BENCH_SNAPSHOT_REQUESTS",
+	const ephemeralRequests = integerEnv(
+		"BENCH_EPHEMERAL_REQUESTS",
 		80,
 		1,
 		100_000,
@@ -153,30 +152,24 @@ function suiteDefinitions(profile: string): CaseDefinition[] {
 				requests: 4,
 			},
 			{
-				name: "warmSequential",
-				path: "/bench/warm",
+				name: "pooledSequential",
+				path: "/bench/pooled",
 				concurrency: 1,
 				requests: 4,
 			},
 			{
-				name: "snapshotSequential",
-				path: "/bench/snapshot",
+				name: "ephemeralSequential",
+				path: "/bench/ephemeral",
 				concurrency: 1,
 				requests: 4,
-			},
-			{
-				name: "freshSequential",
-				path: "/bench/fresh",
-				concurrency: 1,
-				requests: 2,
 			},
 		];
 	}
 	if (profile === "stability") {
 		return [
 			{
-				name: "warmStability",
-				path: "/bench/warm",
+				name: "pooledStability",
+				path: "/bench/pooled",
 				concurrency: integerEnv("BENCH_STABILITY_CONCURRENCY", 8, 1, 1_000),
 				requests: integerEnv("BENCH_STABILITY_REQUESTS", 10_000, 1, 10_000_000),
 				timeoutMs: 60_000,
@@ -200,45 +193,33 @@ function suiteDefinitions(profile: string): CaseDefinition[] {
 			requests: 800,
 		},
 		{
-			name: "warmSequential",
-			path: "/bench/warm",
+			name: "pooledSequential",
+			path: "/bench/pooled",
 			concurrency: 1,
-			requests: warmRequests,
+			requests: pooledRequests,
 		},
 		{
-			name: "warmConcurrent",
-			path: "/bench/warm",
+			name: "pooledConcurrent",
+			path: "/bench/pooled",
 			concurrency: 8,
-			requests: warmConcurrentRequests,
+			requests: pooledConcurrentRequests,
 			timeoutMs: 10_000,
 		},
 		{
-			name: "snapshotSequential",
-			path: "/bench/snapshot",
+			name: "ephemeralSequential",
+			path: "/bench/ephemeral",
 			concurrency: 1,
-			requests: snapshotRequests,
+			requests: ephemeralRequests,
 		},
 		{
-			name: "snapshotConcurrent",
-			path: "/bench/snapshot",
+			name: "ephemeralConcurrent",
+			path: "/bench/ephemeral",
 			concurrency: 8,
-			requests: Math.min(snapshotRequests, 64),
+			requests: Math.min(ephemeralRequests, 64),
 		},
 		{
-			name: "freshSequential",
-			path: "/bench/fresh",
-			concurrency: 1,
-			requests: freshRequests,
-		},
-		{
-			name: "freshConcurrent",
-			path: "/bench/fresh",
-			concurrency: 8,
-			requests: Math.min(freshRequests, 32),
-		},
-		{
-			name: "warmConcurrent32",
-			path: "/bench/warm",
+			name: "pooledConcurrent32",
+			path: "/bench/pooled",
 			concurrency: 32,
 			requests: 128,
 			timeoutMs: 60_000,
