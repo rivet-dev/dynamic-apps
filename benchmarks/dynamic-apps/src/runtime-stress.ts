@@ -738,12 +738,16 @@ async function actorChurnStress(
 			assert.equal(response.status, 200);
 			await response.arrayBuffer();
 		});
+		await waitFor(() => runtime.diagnostics().entries <= maxEntries);
+		assert.equal(runtime.diagnostics().activeRequests, 0);
+		assert.equal(runtime.diagnostics().pendingRequests, 0);
 		return {
 			requests,
 			keys,
 			maxEntries,
 			artifactLoads,
 			elapsedMs: round(performance.now() - startedAt),
+			diagnostics: runtime.diagnostics(),
 		};
 	} finally {
 		await runtime.dispose();

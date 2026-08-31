@@ -133,13 +133,12 @@ export class DynamicActorRuntime {
 			});
 		}
 		const entry = await this.#entry(input);
-		entry.active += 1;
-		entry.lastUsedAt = Date.now();
 		try {
 			await entry.ready;
 		} catch (error) {
 			entry.active = Math.max(0, entry.active - 1);
 			entry.lastUsedAt = Date.now();
+			if (this.#entries.size > this.config.maxEntries) void this.#prune();
 			throw error;
 		}
 		const id = String(++entry.nextRequestId);
@@ -178,6 +177,19 @@ export class DynamicActorRuntime {
 		await this.#disposeEntry(entry);
 	}
 
+	diagnostics(): Record<string, number> {
+		const entries = [...this.#entries.values()];
+		return {
+			entries: entries.length,
+			creating: this.#creating.size,
+			activeRequests: entries.reduce((sum, entry) => sum + entry.active, 0),
+			pendingRequests: entries.reduce(
+				(sum, entry) => sum + entry.pending.size,
+				0,
+			),
+		};
+	}
+
 	async dispose(): Promise<void> {
 		clearInterval(this.#timer);
 		await Promise.allSettled(
@@ -188,14 +200,15 @@ export class DynamicActorRuntime {
 
 	async #entry(input: ActorRuntimeRequest): Promise<RuntimeEntry> {
 		const existing = this.#entries.get(input.key);
-		if (existing && !existing.disposed) return existing;
+		if (existing && !existing.disposed) return this.#lease(existing);
 		const pending = this.#creating.get(input.key);
-		if (pending) return pending;
+		if (pending) return this.#lease(await pending);
 		const promise = this.#createEntry(input);
 		this.#creating.set(input.key, promise);
 		try {
 			const entry = await promise;
 			this.#entries.set(input.key, entry);
+			this.#lease(entry);
 			await this.#prune(entry.key);
 			return entry;
 		} finally {
@@ -203,6 +216,17 @@ export class DynamicActorRuntime {
 				this.#creating.delete(input.key);
 			}
 		}
+	}
+
+	#lease(entry: RuntimeEntry): RuntimeEntry {
+		if (entry.disposed) {
+			throw new Error(
+				"Dynamic App actor worker was disposed before request lease",
+			);
+		}
+		entry.active += 1;
+		entry.lastUsedAt = Date.now();
+		return entry;
 	}
 
 	async #createEntry(input: ActorRuntimeRequest): Promise<RuntimeEntry> {
@@ -244,7 +268,7 @@ export class DynamicActorRuntime {
 					},
 				},
 			);
-				const entry: RuntimeEntry = {
+			const entry: RuntimeEntry = {
 				key: input.key,
 				directory,
 				worker,
@@ -253,46 +277,46 @@ export class DynamicActorRuntime {
 				active: 0,
 				lastUsedAt: Date.now(),
 				disposed: false,
-					nextRequestId: 0,
-				};
-				let startupSettled = false;
-				const startupTimer = setTimeout(() => {
-					if (startupSettled || entry.disposed) return;
-					startupSettled = true;
-					const error = new Error(
-						`Dynamic App actor worker startup exceeded ${this.config.startTimeoutMs}ms`,
-					);
-					readyReject(error);
-					this.#failEntry(entry, error);
-				}, this.config.startTimeoutMs);
-				startupTimer.unref?.();
-				const finishStartup = () => {
-					if (startupSettled) return;
-					startupSettled = true;
-					clearTimeout(startupTimer);
-				};
-				worker.on("message", (message: WorkerMessage) => {
-					if (message.type === "ready") {
-						finishStartup();
-						readyResolve();
+				nextRequestId: 0,
+			};
+			let startupSettled = false;
+			const startupTimer = setTimeout(() => {
+				if (startupSettled || entry.disposed) return;
+				startupSettled = true;
+				const error = new Error(
+					`Dynamic App actor worker startup exceeded ${this.config.startTimeoutMs}ms`,
+				);
+				readyReject(error);
+				this.#failEntry(entry, error);
+			}, this.config.startTimeoutMs);
+			startupTimer.unref?.();
+			const finishStartup = () => {
+				if (startupSettled) return;
+				startupSettled = true;
+				clearTimeout(startupTimer);
+			};
+			worker.on("message", (message: WorkerMessage) => {
+				if (message.type === "ready") {
+					finishStartup();
+					readyResolve();
 					return;
 				}
-					if (message.type === "error" && !message.id) {
-						finishStartup();
-						readyReject(new Error(message.message));
+				if (message.type === "error" && !message.id) {
+					finishStartup();
+					readyReject(new Error(message.message));
 					this.#failEntry(entry, new Error(message.message));
 					return;
 				}
 				if (message.id) this.#handleMessage(entry, message);
 			});
-				worker.once("error", (error) => {
-					finishStartup();
-					readyReject(error);
+			worker.once("error", (error) => {
+				finishStartup();
+				readyReject(error);
 				this.#failEntry(entry, error);
 			});
-				worker.once("exit", (code) => {
-					finishStartup();
-					if (!entry.disposed) {
+			worker.once("exit", (code) => {
+				finishStartup();
+				if (!entry.disposed) {
 					const error = new Error(
 						`Dynamic App actor worker exited with ${code}`,
 					);
@@ -363,6 +387,7 @@ export class DynamicActorRuntime {
 		entry.pending.delete(id);
 		entry.active = Math.max(0, entry.active - 1);
 		entry.lastUsedAt = Date.now();
+		if (this.#entries.size > this.config.maxEntries) void this.#prune();
 	}
 
 	#failEntry(entry: RuntimeEntry, error: unknown): void {

@@ -620,6 +620,11 @@ export const registry = {
 				),
 			]);
 			expect(outcome).toBe("complete");
+			await waitFor(() => runtime.diagnostics().entries <= 4);
+			expect(runtime.diagnostics()).toMatchObject({
+				activeRequests: 0,
+				pendingRequests: 0,
+			});
 		} finally {
 			await runtime.dispose();
 			await artifact.dispose();
