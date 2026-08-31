@@ -318,6 +318,36 @@ describe("source and runtime contract", () => {
 });
 
 describe("direct V8 execution", () => {
+	test("times out an asynchronous handler that never settles", async () => {
+		const artifact = await makeArtifact(
+			"async-stall",
+			`globalThis.__dynamicAppDispatch = async function() {
+  return new Promise(() => {});
+};`,
+		);
+		const fake = fakeStateClient(artifact);
+		const config = { ...executorConfig("prewarm"), executionTimeoutMs: 50 };
+		const executor = new DynamicAppsExecutor(config, fake.client);
+		try {
+			const outcome = await Promise.race([
+				executor.request("demo", new Request("http://example.test/stall")).then(
+					() => "response" as const,
+					(error: unknown) =>
+						String(error).includes("execution exceeded")
+							? ("timeout" as const)
+							: Promise.reject(error),
+				),
+				new Promise<"hung">((resolve) =>
+					setTimeout(() => resolve("hung"), 250),
+				),
+			]);
+			expect(outcome).toBe("timeout");
+		} finally {
+			await executor.dispose();
+			await artifact.dispose();
+		}
+	}, 5_000);
+
 	test("round-trips binary request bodies through the isolate envelope", async () => {
 		const artifact = await makeArtifact("binary");
 		const fake = fakeStateClient(artifact);
@@ -691,10 +721,15 @@ interface TestArtifact {
 	dispose(): Promise<void>;
 }
 
-async function makeArtifact(marker: string): Promise<TestArtifact> {
+async function makeArtifact(
+	marker: string,
+	customSource?: string,
+): Promise<TestArtifact> {
 	const directory = await mkdtemp(join(tmpdir(), "dynamic-apps-test-"));
 	const archive = join(directory, "app.tar");
-	const moduleSource = `let counter = 0;
+	const moduleSource =
+		customSource ??
+		`let counter = 0;
 globalThis.__dynamicAppDispatch = async function(inputJson) {
 	const input = JSON.parse(inputJson);
 	const requestBody = globalThis.__dynamicAppsBase64Decode(input.bodyBase64 || "");

@@ -51,6 +51,7 @@ const STRESS_CASES = [
 	"actorStartup",
 	"actorTraffic",
 	"actorChurn",
+	"directStall",
 ] as const;
 
 type StressCase = (typeof STRESS_CASES)[number];
@@ -186,6 +187,13 @@ async function main(): Promise<void> {
 		"actor-traffic",
 		actorTrafficSource(),
 	);
+	const directStallArtifact = await createArtifact(
+		"direct-stall",
+		"direct",
+		`globalThis.__dynamicAppDispatch = async function() {
+  return new Promise(() => {});
+};`,
+	);
 	const result: StressResult = {
 		config: {
 			appCount,
@@ -251,11 +259,15 @@ async function main(): Promise<void> {
 		await runStressCase(result, selectedCases, "actorChurn", () =>
 			actorChurnStress(actorTrafficArtifact, actorChurnRequests, concurrency),
 		);
+		await runStressCase(result, selectedCases, "directStall", () =>
+			directStallStress(directStallArtifact, concurrency),
+		);
 	} finally {
 		await Promise.allSettled([
 			...artifacts.map((artifact) => artifact.dispose()),
 			actorStartupArtifact.dispose(),
 			actorTrafficArtifact.dispose(),
+			directStallArtifact.dispose(),
 		]);
 	}
 
@@ -751,6 +763,44 @@ async function actorChurnStress(
 		};
 	} finally {
 		await runtime.dispose();
+	}
+}
+
+async function directStallStress(
+	artifact: Artifact,
+	concurrency: number,
+): Promise<unknown> {
+	const plane = new FakeStatePlane();
+	plane.set("direct-stall", artifact);
+	const requests = Math.min(concurrency, 64);
+	const config = {
+		...executorConfig({
+			appEntries: 1,
+			concurrency: requests,
+			poolMaxTotal: 8,
+			poolSize: 8,
+		}),
+		executionTimeoutMs: 50,
+	};
+	const executor = new DynamicAppsExecutor(config, plane.client as never);
+	const startedAt = performance.now();
+	try {
+		await runConcurrent(requests, requests, async (index) => {
+			await assert.rejects(
+				executor.request(
+					"direct-stall",
+					new Request(`http://stress.test/stall/${index}`),
+				),
+				/execution exceeded/,
+			);
+		});
+		return {
+			requests,
+			elapsedMs: round(performance.now() - startedAt),
+			diagnostics: executor.diagnostics(),
+		};
+	} finally {
+		await executor.dispose();
 	}
 }
 
