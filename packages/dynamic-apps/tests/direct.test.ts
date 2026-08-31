@@ -736,6 +736,42 @@ export const registry = {
 		}
 	}, 5_000);
 
+	test("allows an actor response stream to outlive the handler timeout", async () => {
+		const artifact = await makeActorArtifact(`
+export const registry = {
+  handler() {
+    return new Response(new ReadableStream({
+      async start(controller) {
+        controller.enqueue(new TextEncoder().encode("started-"));
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        controller.enqueue(new TextEncoder().encode("finished"));
+        controller.close();
+      },
+    }));
+  },
+};
+`);
+		const runtime = new DynamicActorRuntime({
+			DYNAMIC_APPS_ACTOR_REQUEST_TIMEOUT_MS: "50",
+		});
+		try {
+			const response = await runtime.request({
+				key: "long-response",
+				loadArtifact: async () => artifact.bytes,
+				endpoint: "http://example.test",
+				namespace: "test",
+				pool: "default",
+				request: new Request("http://example.test/stream", {
+					method: "POST",
+				}),
+			});
+			expect(await response.text()).toBe("started-finished");
+		} finally {
+			await runtime.dispose();
+			await artifact.dispose();
+		}
+	}, 5_000);
+
 	test("forwards actor callback bodies without eager buffering", async () => {
 		let pulls = 0;
 		const source = streamingRequest("http://example.test/api/rivet/start", {

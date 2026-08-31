@@ -474,6 +474,10 @@ export class DynamicActorRuntime {
 		const pending = entry.pending.get(message.id);
 		if (!pending || pending.settled) return;
 		if (message.type === "head") {
+			if (pending.timeout) {
+				clearTimeout(pending.timeout);
+				pending.timeout = undefined;
+			}
 			const stream = new ReadableStream<Uint8Array>({
 				start: (controller) => {
 					pending.controller = controller;
