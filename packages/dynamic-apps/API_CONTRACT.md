@@ -322,8 +322,8 @@ accepts only Rivet Engine traffic with the per-app secret and only the active
 actor-enabled release.
 
 The callback lazily verifies and extracts `actor/main.mjs`, then caches one
-worker-thread V8 isolate per active release. The worker uses the platform's
-pinned RivetKit native runtime and the app namespace/pool connection. Actor
+worker thread per active release. The worker uses the platform's pinned
+RivetKit WebAssembly runtime and the app namespace/pool connection. Actor
 state, actions, events, connections, request/response streaming, backpressure,
 and cancellation use the ordinary RivetKit protocol. Worker entries are
 bounded by count, V8 heap, idle TTL, callback body size, and container memory

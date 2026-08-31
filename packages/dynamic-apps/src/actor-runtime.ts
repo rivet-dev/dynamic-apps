@@ -395,7 +395,10 @@ export class DynamicActorRuntime {
 					`data:text/javascript,${encodeURIComponent(ACTOR_WORKER_SOURCE)}`,
 				),
 				{
-					workerData: { entrypoint },
+					workerData: {
+						entrypoint,
+						wasmPath: platformPackages.wasmPath,
+					},
 					env: actorWorkerEnvironment(input),
 					resourceLimits: {
 						maxOldGenerationSizeMb: this.config.heapLimitMb,
@@ -624,14 +627,22 @@ async function readBoundedBody(
 	}
 }
 
-let platformActorPackages: Promise<{ rivetkit: string }> | undefined;
+let platformActorPackages:
+	| Promise<{ rivetkit: string; wasmPath: string }>
+	| undefined;
 
-function resolvePlatformActorPackages(): Promise<{ rivetkit: string }> {
+function resolvePlatformActorPackages(): Promise<{
+	rivetkit: string;
+	wasmPath: string;
+}> {
 	platformActorPackages ??= (async () => {
 		const hostRequire = createRequire(import.meta.url);
 		const rivetkitEntry = hostRequire.resolve("rivetkit");
 		const rivetkit = await findPackageRoot(rivetkitEntry);
-		return { rivetkit };
+		const wasmPath = createRequire(rivetkitEntry).resolve(
+			"@rivetkit/rivetkit-wasm/rivetkit_wasm_bg.wasm",
+		);
+		return { rivetkit, wasmPath };
 	})();
 	return platformActorPackages;
 }
@@ -682,7 +693,7 @@ export function actorWorkerEnvironment(
 	endpoint.password = "";
 	return {
 		NODE_ENV: "production",
-		RIVETKIT_RUNTIME: "native",
+		RIVETKIT_RUNTIME: "wasm",
 		RIVETKIT_RUNTIME_MODE: "serverless",
 		RIVET_ENDPOINT: endpoint.toString().replace(/\/$/u, ""),
 		RIVET_NAMESPACE: input.namespace,
@@ -863,14 +874,31 @@ class ActorAdmission {
 }
 
 const ACTOR_WORKER_SOURCE = `
+import { readFile } from "node:fs/promises";
 import { parentPort, workerData } from "node:worker_threads";
 if (!parentPort) throw new Error("Dynamic App actor worker has no parent port");
 const { registry } = await import(workerData.entrypoint);
 if (typeof registry?.handler !== "function") throw new TypeError("Dynamic App actor registry is invalid");
+if (process.env.RIVETKIT_RUNTIME === "wasm" && registry.config) {
+  registry.config.wasm = {
+    ...registry.config.wasm,
+    initInput: await readFile(workerData.wasmPath),
+  };
+}
 const requests = new Map();
 const acknowledgements = new Map();
 const waitForAck = (id) => new Promise((resolve) => acknowledgements.set(id, resolve));
 const finishAck = (id) => { const resolve = acknowledgements.get(id); acknowledgements.delete(id); resolve?.(); };
+const describeError = (error) => {
+  if (!(error instanceof Error)) return String(error);
+  const details = [error.stack || error.message];
+  let cause = error.cause;
+  for (let depth = 0; cause !== undefined && depth < 4; depth += 1) {
+    details.push("Caused by: " + (cause instanceof Error ? cause.stack || cause.message : String(cause)));
+    cause = cause instanceof Error ? cause.cause : undefined;
+  }
+  return details.join("\\n");
+};
 parentPort.on("message", (message) => {
   if (message.type === "ack") { finishAck(message.id); return; }
   if (message.type === "cancel") {
@@ -911,7 +939,7 @@ parentPort.on("message", (message) => {
       }
       parentPort.postMessage({ type: "end", id: message.id });
     } catch (error) {
-      parentPort.postMessage({ type: "error", id: message.id, message: error instanceof Error ? error.message : String(error) });
+      parentPort.postMessage({ type: "error", id: message.id, message: describeError(error) });
     } finally {
       requests.delete(message.id);
       finishAck(message.id);

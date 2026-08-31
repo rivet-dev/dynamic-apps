@@ -158,8 +158,8 @@ Engine metadata/start callbacks enter the existing `agentOSAppsApp` request
 hook through an authenticated callback URL. That actor validates the callback
 secret and release, then dispatches the streaming request to a process-local
 actor runtime. The runtime extracts only verified `actor/` files and starts one
-bounded Node worker-thread V8 isolate per active app release. The worker uses
-the host's pinned RivetKit native core, preserves the `/start` response stream,
+bounded Node worker thread per active app release. The worker uses the host's
+pinned RivetKit WebAssembly core, preserves the `/start` response stream,
 backpressure, and cancellation, and uses the deployment's namespace/pool.
 Ordinary app HTTP never enters this worker and remains eligible for direct
 snapshot/prewarm caching.

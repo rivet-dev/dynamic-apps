@@ -74,7 +74,7 @@ token fields before RivetKit starts.
 
 Actor requests follow the normal Rivet Engine path. The app's serverless
 callback loads its verified actor bundle into a bounded process-local worker
-thread and uses the host's pinned RivetKit native runtime. State, actions,
+thread and uses the host's pinned RivetKit WebAssembly runtime. State, actions,
 events, connections, and streaming actor responses are handled by RivetKit;
 ordinary HTTP for the same app still uses the direct isolate path.
 

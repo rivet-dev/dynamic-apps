@@ -236,6 +236,7 @@ describe("retained public surface", () => {
 				pool: "app-pool",
 			}),
 		).toMatchObject({
+			RIVETKIT_RUNTIME: "wasm",
 			RIVET_ENDPOINT: "https://api.rivet.dev",
 			RIVET_NAMESPACE: "app-namespace",
 			RIVET_TOKEN: "pk_example",
@@ -788,6 +789,34 @@ export const registry = {
 			Uint8Array.of(1, 2, 3),
 		);
 		expect(pulls).toBe(1);
+	});
+
+	test("preserves actor worker error stacks and causes", async () => {
+		const artifact = await makeActorArtifact(`
+export const registry = {
+  async handler() {
+    throw new Error("outer failure", { cause: new Error("inner failure") });
+  },
+};
+`);
+		const runtime = new DynamicActorRuntime();
+		try {
+			await expect(
+				runtime.request({
+					key: "worker-error",
+					loadArtifact: async () => artifact.bytes,
+					endpoint: "http://example.test",
+					namespace: "test",
+					pool: "default",
+					request: new Request("http://example.test/start", {
+						method: "POST",
+					}),
+				}),
+			).rejects.toThrow(/outer failure[\s\S]*Caused by:[\s\S]*inner failure/u);
+		} finally {
+			await runtime.dispose();
+			await artifact.dispose();
+		}
 	});
 
 	test("admits actor callback bodies before reading them", async () => {

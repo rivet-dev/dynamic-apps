@@ -6,8 +6,8 @@ settings:
 
 overrides:
   '@rivet-dev/agentos-core': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c
-  rivetkit: 0.0.0-feat-workflows-public-host-apis.0ff6164
-  '@rivetkit/rivetkit-wasm': 0.0.0-feat-workflows-public-host-apis.0ff6164
+  rivetkit: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+  '@rivetkit/rivetkit-wasm': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
 
 importers:
 
@@ -44,12 +44,12 @@ importers:
         specifier: ^4.12.9
         version: 4.13.3
       rivetkit:
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
+        specifier: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+        version: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9(better-sqlite3@12.11.1)(ws@8.21.3)
     devDependencies:
       '@rivetkit/engine-cli':
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164
+        specifier: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+        version: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
       '@types/node':
         specifier: ^22.19.15
         version: 22.20.1
@@ -140,8 +140,8 @@ importers:
         specifier: ^6.2.0
         version: 6.2.0
       rivetkit:
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
+        specifier: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+        version: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9(better-sqlite3@12.11.1)(ws@8.21.3)
     devDependencies:
       '@types/node':
         specifier: ^22.19.15
@@ -184,15 +184,15 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/dynamic-apps-builder
       rivetkit:
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
+        specifier: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+        version: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9(better-sqlite3@12.11.1)(ws@8.21.3)
     devDependencies:
       '@rivet-dev/agentos-toolchain':
         specifier: 0.2.15
         version: 0.2.15
       '@rivetkit/engine-cli':
-        specifier: 0.0.0-feat-workflows-public-host-apis.0ff6164
-        version: 0.0.0-feat-workflows-public-host-apis.0ff6164
+        specifier: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+        version: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
       '@types/node':
         specifier: ^22.19.15
         version: 22.20.1
@@ -1316,36 +1316,36 @@ packages:
     resolution: {integrity: sha512-3qndQUQXLdwafMEqfhz24hUtDPcsf1Bu3q52Kb8MqeH8JUh3h6R4HYW3ZJXiQsLcyYyFM68PuIwlLRlg1xDEpg==}
     engines: {node: ^14.18.0 || >=16.0.0}
 
-  '@rivetkit/engine-cli-darwin-arm64@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-hb/GOOgEPKEZicdBVhnkjIalYZwIx+x0AL3YORl2nXFpMxqWaUtOCGzQB3E2IveSfnPw9SJMKO2xkBe0Z6pjxg==}
+  '@rivetkit/engine-cli-darwin-arm64@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-OB450mPesx27N9Zcs7R6h2+SnPqsMZGvEcLlO8LpK91nwJCmwp3rx2nNnfG6E7w9djyMd2gGNVCbC+JyvyoShg==}
     engines: {node: '>= 20.0.0'}
     cpu: [arm64]
     os: [darwin]
 
-  '@rivetkit/engine-cli-darwin-x64@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-qt128grSxT3p2nSK3uudl1ALh79lzXuQ9IbwIkqXQV8i7TFSF7N9jY98U8FvDI2360whr3qq1lvWmFTGDnJ6/A==}
+  '@rivetkit/engine-cli-darwin-x64@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-ZVAiGvUAOrvQYO/IHCGqZV8iv6zDjTsxxdWejy2aNsRHq9Oo9BwMruxJAUDPiqp55hV2pqfJ2EjGGnQSReuO+g==}
     engines: {node: '>= 20.0.0'}
     cpu: [x64]
     os: [darwin]
 
-  '@rivetkit/engine-cli-linux-arm64-musl@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-J9xWBqUvy1D1IWsWpIdkujlg83GqSBdTOTC1DBGPhoQ8It8BSZlRGYvrFLSAFPYqgb1vMv6eFPtipPLPTXecUg==}
+  '@rivetkit/engine-cli-linux-arm64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-AtcDyANVy/vMUxxnENVyuMf8b4e2S4NjFxnf5wfF6aSI6kjr+AuadxpKM4GJWA+P7euRwxIRbsuPgh9QVWGRIg==}
     engines: {node: '>= 20.0.0'}
     cpu: [arm64]
     os: [linux]
 
-  '@rivetkit/engine-cli-linux-x64-musl@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-ImXsYTJnmxwrlOa0DSKVy4+2Dp39a2/FVUzi9jgjz4KWVfR/QafGc/gVntZDIkVSvfTUkG/WW6pp8qS7qrz1oA==}
+  '@rivetkit/engine-cli-linux-x64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-1tBFYJXcGZ4na0ZyOBPc2hT6yBPP+5HLhKH3UUF7VI3vxiLnWV/NDtlvzrzlMm4g6LCUMG4vaqg1J/ttxRQrPA==}
     engines: {node: '>= 20.0.0'}
     cpu: [x64]
     os: [linux]
 
-  '@rivetkit/engine-cli@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-EZE/e48WufHAJFm/0qKzTXY5LKNH0+YAlD26haDhwyucW2OgomdVSdmP2i+1a1wTwqSdtRsQRN7O4DmWSbDRTg==}
+  '@rivetkit/engine-cli@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-9dk8nMhjgzSh6P0iLLi9A5sowKXRAeH62z+jCOfxpuZyyG2+nReufU/tuCfEHbEaI1SeZIFV5vdj4x/hYjX5YQ==}
     engines: {node: '>= 20.0.0'}
 
-  '@rivetkit/engine-envoy-protocol@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-ZEzFU2dtHD+IzM57NlmKH5YXl6sHJTPLYBWYwgfGH1fJsYRdk8zY6yCSLPkzsCcKC8418XIY01mgaymd0vRDPA==}
+  '@rivetkit/engine-envoy-protocol@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-kNQHhSKIKx8E8wXPoRBTSP/9fPuA0EG4VQZPF4c3xLNQ4tmIVAGqsFy8oIFwSup+5XQ9/DJhEPrkpMwZOwhvfw==}
 
   '@rivetkit/framework-base@2.3.9':
     resolution: {integrity: sha512-ZSxrclYcpmdGsLMiVE2dfWNfUB6diSx+t8k4EQgL4cN02ThzJD3BM5mhU+zQVCCwfNw42eRZVIoxydYDLl/yHw==}
@@ -1360,58 +1360,40 @@ packages:
       react: ^18 || ^19
       react-dom: ^18 || ^19
 
-  '@rivetkit/rivetkit-napi-darwin-arm64@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-XHnxDGrdzZGfNdo7kLBUcXua84bqJ/6v/GhZF1s4sajFO1hkWzBGrAq2R3+t8g3tUuimoLxMGfCtO1ctXUBOlg==}
+  '@rivetkit/rivetkit-napi-darwin-arm64@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-mMVWV4MsTuNpoYc8MwcikpJikv/7nQjolheWGo2+Xh5evQiajdbeUB+eukfRWUIYyKZ1DjVIVAelCWz4T4QOUg==}
     engines: {node: '>= 20.0.0'}
     cpu: [arm64]
     os: [darwin]
 
-  '@rivetkit/rivetkit-napi-darwin-x64@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-ni79/MJRNR/jO/blbvjW+lPhHGFtp6otDSoWmxW/QkeUvFF6wvwBTeNcvR7Bx+GohgU9JC7Y3BOXJGuYrCRbAA==}
+  '@rivetkit/rivetkit-napi-darwin-x64@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-btTN0LCIeAQwJpPYbRaoIKj4ASfYyRx/t9juJKg4pg47TzJphxjjqbmgrlUKtGk+hTCg96HNGDgswBO+H63p3g==}
     engines: {node: '>= 20.0.0'}
     cpu: [x64]
     os: [darwin]
 
-  '@rivetkit/rivetkit-napi-linux-arm64-gnu@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-uUHF7vF5N8pegVtluIzix3xYBTik25cL9izjMhwAzoL2/+2UvQaqMg47hqgO1hwr17ImY7UV/WcwOyNODzEJHg==}
+  '@rivetkit/rivetkit-napi-linux-arm64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-yhYZzWqx5egBGgjChWuHjcNVXLjUJ90RLtZOE/dBNHVV/YhKbor7j2n5KCpyKoFSzCyWndLRuuVq0ictpoy/nw==}
     engines: {node: '>= 20.0.0'}
     cpu: [arm64]
     os: [linux]
 
-  '@rivetkit/rivetkit-napi-linux-arm64-musl@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-7/BCrybtr1Tl3GJ1JXyG9MxxsCmfREgpVYDm0H4MZdgu8Lckc7V2CQWWwuXK1bgSewCPcD1QLsVMVj6qhBdxyQ==}
-    engines: {node: '>= 20.0.0'}
-    cpu: [arm64]
-    os: [linux]
-
-  '@rivetkit/rivetkit-napi-linux-x64-gnu@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-SjoGcPPM6L4LFEmc9JvdqCJWMUTBMtkaZDquIiu6kBU2bB7V///fqRtMTX06oASdZoU4P7CTSyEGg1DPS2RACg==}
-    engines: {node: '>= 20.0.0'}
-    cpu: [x64]
-    os: [linux]
-
-  '@rivetkit/rivetkit-napi-linux-x64-musl@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-yfVy21Fcw6heDNBbI6vICAm4aFQUbs2jSMUexxEXFh5huHjVCHeTLDh9d6TRBB82iDm94i8URU7q/UYYJRzqBQ==}
-    engines: {node: '>= 20.0.0'}
-    cpu: [x64]
-    os: [linux]
-
-  '@rivetkit/rivetkit-napi@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-JNsbSqJNqNBT4Meh/CaHA5kJjKokAGfDC0k1E4N2faysbt1zn6LYYQoM12irwj/6++Wr5RpNgOiiDT8npB9d2g==}
+  '@rivetkit/rivetkit-napi@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-BMoZz5vkXbF5C2jJ9sRuc0OmoXeyzk+/UyPw++k/afpQm/uMoU/PDOG2uDp15f0YAfEvA9OM3zPQkb3RJO+CAg==}
     engines: {node: '>= 20.0.0'}
 
-  '@rivetkit/rivetkit-wasm@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-sajvCywErQwBxeIKDbNKp83hjlfUAe8JsFjGz17AiBV+Cgobc6DZOZBLrnItrccJjBtL3Iq0XdOYd60JAF/LkA==}
+  '@rivetkit/rivetkit-wasm@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-09OrZk1nzacGM4Dm5eIQP0k6KAJ9iGI+t5NY5pTpaWl1kYtJxZ8xsolrrgAwPmEm9DcUoLI565Rs/lrP8D+/bQ==}
 
-  '@rivetkit/traces@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-TRffcxSyfJE6mooduSxVfnY0JP26ealeLcTeB5MnkqhbbiTY3UV2YG4eJ/mbUKmNWTYQCAtddHGwN42geLzIgQ==}
+  '@rivetkit/traces@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-RJYJQBfkl2I9qZGA8I9mTRkuCoVoPF8TQ1sKi4XaJhDZxLh30bxcsAzMbcy6Xn7ni+PAfLRxwSkY+AO8r7LYsA==}
     engines: {node: '>=18.0.0'}
 
-  '@rivetkit/virtual-websocket@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-FZBDcOvdg/ywND8KT/lHidfvWsKu1/7RFm1Blc0ULOpp3+788H2NX4zyHvOuF71L8QWfjt9fz1EUm+H87zbhxA==}
+  '@rivetkit/virtual-websocket@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-HO4YRllAYg8ephUf5W77mXR/arB0yT6iY9tGDSZRK4JGQS3127c5qLPo4fND7vmMvtC1cX1R1MMMpRw30sKEgA==}
 
-  '@rivetkit/workflow-engine@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    resolution: {integrity: sha512-yjOCVmv67cq66vLeIndsx+jlKo1ct+Tlye1E65O2Xzbc7OcAKVAw/SLOKeBsB4dBMVwTe5Fau4ueuS4xVT3axA==}
+  '@rivetkit/workflow-engine@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
+    resolution: {integrity: sha512-szdhepDiO8E7cMXDgp3Ie7IydYvaaoH6/PWSuwuCrlKau/Ig9KVS6j0Uzhvh5iJ4OiMyoo1+9MkHRL8oucU1bw==}
     engines: {node: '>=18.0.0'}
 
   '@rollup/rollup-android-arm-eabi@4.62.4':
@@ -3071,8 +3053,8 @@ packages:
     resolution: {integrity: sha512-5Di9UC0+8h1L6ZD2d7awM7E/T4uA1fJRlx6zk/NvdCCVEoAnFqvHmCuNeIKoCeIixBX/q8uM+6ycDvF8woqosA==}
     engines: {node: '>= 0.8'}
 
-  rivetkit@0.0.0-feat-workflows-public-host-apis.0ff6164:
-    resolution: {integrity: sha512-oFSxfTtFdvOiW4ufuGr3liEzy3gXtx08VIqL6LpcbsLdKmg4ivfr48GUGTRpgt+PcmqtmJ/2L90ucHxRK/r83Q==}
+  rivetkit@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9:
+    resolution: {integrity: sha512-fs8c21BiLh8srF7nk0W9P3/dyKth3BAcF9sN51oCZQF1Xqg2+X5XYW/AGpcsagrNwuVuuQqwMvGRWLu1qrMUBA==}
     engines: {node: '>=22.0.0'}
     peerDependencies:
       drizzle-kit: ^0.31.2
@@ -4611,7 +4593,7 @@ snapshots:
       '@agentos-software/common': 0.2.15
       '@rivet-dev/agentos-core': 0.0.0-fix-core-spawn-keep-stdin-open.242e11c(@modelcontextprotocol/sdk@1.30.0(zod@4.4.3))(ws@8.21.3)
       '@rivetkit/react': 2.3.9(better-sqlite3@12.11.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(ws@8.21.3)
-      rivetkit: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
+      rivetkit: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9(better-sqlite3@12.11.1)(ws@8.21.3)
       zod: 4.4.3
     optionalDependencies:
       react: 19.2.8
@@ -4659,26 +4641,26 @@ snapshots:
 
   '@rivetkit/bare-ts@0.6.2': {}
 
-  '@rivetkit/engine-cli-darwin-arm64@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/engine-cli-darwin-arm64@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optional: true
 
-  '@rivetkit/engine-cli-darwin-x64@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/engine-cli-darwin-x64@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optional: true
 
-  '@rivetkit/engine-cli-linux-arm64-musl@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/engine-cli-linux-arm64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optional: true
 
-  '@rivetkit/engine-cli-linux-x64-musl@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/engine-cli-linux-x64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optional: true
 
-  '@rivetkit/engine-cli@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/engine-cli@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optionalDependencies:
-      '@rivetkit/engine-cli-darwin-arm64': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/engine-cli-darwin-x64': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/engine-cli-linux-arm64-musl': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/engine-cli-linux-x64-musl': 0.0.0-feat-workflows-public-host-apis.0ff6164
+      '@rivetkit/engine-cli-darwin-arm64': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/engine-cli-darwin-x64': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/engine-cli-linux-arm64-musl': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/engine-cli-linux-x64-musl': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
 
-  '@rivetkit/engine-envoy-protocol@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/engine-envoy-protocol@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     dependencies:
       '@rivetkit/bare-ts': 0.6.2
 
@@ -4686,7 +4668,7 @@ snapshots:
     dependencies:
       '@tanstack/store': 0.7.7
       fast-deep-equal: 3.1.3
-      rivetkit: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
+      rivetkit: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9(better-sqlite3@12.11.1)(ws@8.21.3)
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cloudflare/workers-types'
@@ -4730,7 +4712,7 @@ snapshots:
       '@tanstack/react-store': 0.7.7(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
-      rivetkit: 0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3)
+      rivetkit: 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9(better-sqlite3@12.11.1)(ws@8.21.3)
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cloudflare/workers-types'
@@ -4766,48 +4748,36 @@ snapshots:
       - sqlite3
       - ws
 
-  '@rivetkit/rivetkit-napi-darwin-arm64@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/rivetkit-napi-darwin-arm64@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optional: true
 
-  '@rivetkit/rivetkit-napi-darwin-x64@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/rivetkit-napi-darwin-x64@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optional: true
 
-  '@rivetkit/rivetkit-napi-linux-arm64-gnu@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/rivetkit-napi-linux-arm64-musl@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     optional: true
 
-  '@rivetkit/rivetkit-napi-linux-arm64-musl@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    optional: true
-
-  '@rivetkit/rivetkit-napi-linux-x64-gnu@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    optional: true
-
-  '@rivetkit/rivetkit-napi-linux-x64-musl@0.0.0-feat-workflows-public-host-apis.0ff6164':
-    optional: true
-
-  '@rivetkit/rivetkit-napi@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/rivetkit-napi@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     dependencies:
       '@napi-rs/cli': 2.18.4
-      '@rivetkit/engine-envoy-protocol': 0.0.0-feat-workflows-public-host-apis.0ff6164
+      '@rivetkit/engine-envoy-protocol': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
     optionalDependencies:
-      '@rivetkit/rivetkit-napi-darwin-arm64': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/rivetkit-napi-darwin-x64': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/rivetkit-napi-linux-arm64-gnu': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/rivetkit-napi-linux-arm64-musl': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/rivetkit-napi-linux-x64-gnu': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/rivetkit-napi-linux-x64-musl': 0.0.0-feat-workflows-public-host-apis.0ff6164
+      '@rivetkit/rivetkit-napi-darwin-arm64': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/rivetkit-napi-darwin-x64': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/rivetkit-napi-linux-arm64-musl': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
 
-  '@rivetkit/rivetkit-wasm@0.0.0-feat-workflows-public-host-apis.0ff6164': {}
+  '@rivetkit/rivetkit-wasm@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9': {}
 
-  '@rivetkit/traces@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/traces@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     dependencies:
       '@rivetkit/bare-ts': 0.6.2
       cbor-x: 1.6.5
       fdb-tuple: 1.0.0
       vbare: 0.0.4
 
-  '@rivetkit/virtual-websocket@0.0.0-feat-workflows-public-host-apis.0ff6164': {}
+  '@rivetkit/virtual-websocket@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9': {}
 
-  '@rivetkit/workflow-engine@0.0.0-feat-workflows-public-host-apis.0ff6164':
+  '@rivetkit/workflow-engine@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9':
     dependencies:
       '@rivetkit/bare-ts': 0.6.2
       cbor-x: 1.6.5
@@ -6550,19 +6520,19 @@ snapshots:
       hash-base: 3.1.2
       inherits: 2.0.4
 
-  rivetkit@0.0.0-feat-workflows-public-host-apis.0ff6164(better-sqlite3@12.11.1)(ws@8.21.3):
+  rivetkit@0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9(better-sqlite3@12.11.1)(ws@8.21.3):
     dependencies:
       '@hono/zod-openapi': 1.6.0(hono@4.13.3)(zod@4.4.3)
       '@rivet-dev/agent-os-core': 0.1.1
       '@rivetkit/bare-ts': 0.6.2
-      '@rivetkit/engine-cli': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/engine-envoy-protocol': 0.0.0-feat-workflows-public-host-apis.0ff6164
+      '@rivetkit/engine-cli': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/engine-envoy-protocol': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
       '@rivetkit/on-change': 6.0.1
-      '@rivetkit/rivetkit-napi': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/rivetkit-wasm': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/traces': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/virtual-websocket': 0.0.0-feat-workflows-public-host-apis.0ff6164
-      '@rivetkit/workflow-engine': 0.0.0-feat-workflows-public-host-apis.0ff6164
+      '@rivetkit/rivetkit-napi': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/rivetkit-wasm': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/traces': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/virtual-websocket': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
+      '@rivetkit/workflow-engine': 0.0.0-fix-rivetkit-wasm-serve-config.e2b11f9
       cbor-x: 1.6.5
       drizzle-orm: 0.44.7(better-sqlite3@12.11.1)
       hono: 4.13.3
