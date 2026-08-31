@@ -323,11 +323,12 @@ function summarizeStage(stage: StageResult): unknown {
 }
 
 async function setup(baseUrl: string): Promise<unknown> {
-	await postJson(baseUrl, "/bench/setup", 15 * 60_000);
-	await postJson(baseUrl, "/bench/actor-app/setup", 15 * 60_000);
-	const verification = await postJson(
+	await ensureCloudSetup(baseUrl, "/bench/setup");
+	await ensureCloudSetup(baseUrl, "/bench/actor-app/setup");
+	const verification = await requestJsonWithRetry(
 		baseUrl,
 		"/bench/actor-app/verify",
+		"POST",
 		15 * 60_000,
 	);
 	for (let index = 0; index < 10; index += 1) {
@@ -354,22 +355,87 @@ async function setup(baseUrl: string): Promise<unknown> {
 	return verification;
 }
 
-async function postJson(
+export async function ensureCloudSetup(
 	baseUrl: string,
 	path: string,
+	timeoutMs = 15 * 60_000,
+	retryDelayMs = 1_000,
+	fetchImpl: typeof fetch = fetch,
+): Promise<unknown> {
+	const deadline = Date.now() + timeoutMs;
+	let method: "GET" | "POST" = "GET";
+	let lastFailure = "setup did not start";
+	while (Date.now() < deadline) {
+		try {
+			const response = await fetchImpl(`${baseUrl}${path}`, {
+				method,
+				signal: AbortSignal.timeout(Math.min(60_000, timeoutMs)),
+			});
+			const body = await response.text();
+			if (response.ok) return body ? JSON.parse(body) : null;
+			lastFailure = `HTTP ${response.status}: ${body.slice(0, 512)}`;
+			if (response.status === 404 && method === "GET") {
+				method = "POST";
+				continue;
+			}
+			if (!isRetriableStatus(response.status)) {
+				throw new Error(`${path} failed with ${lastFailure}`);
+			}
+		} catch (error) {
+			if (
+				error instanceof Error &&
+				error.message.startsWith(`${path} failed`)
+			) {
+				throw error;
+			}
+			lastFailure = errorMessage(error);
+		}
+		method = "GET";
+		await delay(retryDelayMs);
+	}
+	throw new Error(`${path} did not become ready: ${lastFailure}`);
+}
+
+async function requestJsonWithRetry(
+	baseUrl: string,
+	path: string,
+	method: "GET" | "POST",
 	timeoutMs: number,
 ): Promise<unknown> {
-	const response = await fetch(`${baseUrl}${path}`, {
-		method: "POST",
-		signal: AbortSignal.timeout(timeoutMs),
-	});
-	const body = await response.text();
-	if (!response.ok) {
-		throw new Error(
-			`${path} failed with HTTP ${response.status}: ${body.slice(0, 512)}`,
-		);
+	const deadline = Date.now() + timeoutMs;
+	let lastFailure = "request did not start";
+	while (Date.now() < deadline) {
+		try {
+			const response = await fetch(`${baseUrl}${path}`, {
+				method,
+				signal: AbortSignal.timeout(Math.min(60_000, timeoutMs)),
+			});
+			const body = await response.text();
+			if (response.ok) return body ? JSON.parse(body) : null;
+			lastFailure = `HTTP ${response.status}: ${body.slice(0, 512)}`;
+			if (!isRetriableStatus(response.status)) {
+				throw new Error(`${path} failed with ${lastFailure}`);
+			}
+		} catch (error) {
+			if (
+				error instanceof Error &&
+				error.message.startsWith(`${path} failed`)
+			) {
+				throw error;
+			}
+			lastFailure = errorMessage(error);
+		}
+		await delay(1_000);
 	}
-	return body ? JSON.parse(body) : null;
+	throw new Error(`${path} did not complete: ${lastFailure}`);
+}
+
+function isRetriableStatus(status: number): boolean {
+	return status === 502 || status === 503 || status === 504;
+}
+
+function delay(durationMs: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, durationMs));
 }
 
 async function readJson(baseUrl: string, path: string): Promise<unknown> {

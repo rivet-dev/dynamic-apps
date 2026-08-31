@@ -1,6 +1,7 @@
 import { strict as assert } from "node:assert";
 import { createServer } from "node:http";
 import { describe, it } from "node:test";
+import { ensureCloudSetup } from "./cloud-stress.js";
 import { actorApplicationClientConfig, benchmarkErrorDetails } from "./edge.js";
 import { readLoadConfig, runLoadTest } from "./load.js";
 
@@ -138,6 +139,32 @@ describe("Dynamic Apps load driver", () => {
 
 		assert.equal(result.successRate, 0);
 		assert.deepEqual(result.statuses, { InvalidBenchmarkResponseError: 1 });
+	});
+
+	it("resumes setup after the ingress times out an idempotent POST", async () => {
+		let attempts = 0;
+		const result = await ensureCloudSetup(
+			"http://setup.test",
+			"/bench/setup",
+			1_000,
+			0,
+			async (_input, init) => {
+				attempts += 1;
+				if (attempts === 1) {
+					assert.equal(init?.method, "GET");
+					return new Response("not ready", { status: 404 });
+				}
+				if (attempts === 2) {
+					assert.equal(init?.method, "POST");
+					return new Response("timed out", { status: 504 });
+				}
+				assert.equal(init?.method, "GET");
+				return Response.json({ status: "ready" });
+			},
+		);
+
+		assert.deepEqual(result, { status: "ready" });
+		assert.equal(attempts, 3);
 	});
 
 	it("fails a request instead of buffering an oversized response", async () => {

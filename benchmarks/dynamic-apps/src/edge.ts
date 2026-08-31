@@ -96,12 +96,8 @@ export function createBenchmarkApplication(): Hono {
 		return actorApplicationDeployment;
 	};
 	const getActorApplicationClient = () => {
-		const connection = resolveDefaultRivetConnection();
 		actorApplicationClient ??= createClient(
-			actorApplicationClientConfig({
-				namespace: connection.namespace,
-				pool: appRunnerPool(ACTOR_BENCHMARK_APP_ID),
-			}),
+			actorApplicationClientConfig(actorApplicationRuntime()),
 		) as unknown as ActorApplicationClient;
 		return actorApplicationClient;
 	};
@@ -183,17 +179,25 @@ export function createBenchmarkApplication(): Hono {
 		const deployment = await deployBenchmarkFixture(client);
 		return Response.json({ status: "ready", deployment });
 	});
-	app.post("/bench/actor-app/setup", async () => {
-		const deployment = await getActorApplicationDeployment();
+	const setupActorApplication = async () => {
+		let deployment: {
+			appId: string;
+			namespace: string;
+			pool: string;
+			reused?: boolean;
+		} = actorApplicationRuntime();
 		const actorClient = getActorApplicationClient();
 		try {
 			await actorClient.counter.get(ACTOR_LOAD_KEY).inspect();
 		} catch (error) {
 			if (!isActorNotFound(error)) throw error;
+			deployment = await getActorApplicationDeployment();
 			await actorClient.counter.getOrCreate(ACTOR_LOAD_KEY).inspect();
 		}
 		return Response.json({ status: "ready", deployment });
-	});
+	};
+	app.get("/bench/actor-app/setup", setupActorApplication);
+	app.post("/bench/actor-app/setup", setupActorApplication);
 	app.all("/bench/actor-app/action", async () => {
 		const startedAt = performance.now();
 		const actorClient = getActorApplicationClient();
@@ -206,7 +210,7 @@ export function createBenchmarkApplication(): Hono {
 		return response;
 	});
 	app.post("/bench/actor-app/verify", async () => {
-		const deployment = await getActorApplicationDeployment();
+		const deployment = actorApplicationRuntime();
 		const actorClient = createClient(
 			actorApplicationClientConfig(deployment),
 		) as unknown as ActorApplicationClient;
@@ -334,6 +338,20 @@ function isActorNotFound(error: unknown): boolean {
 		code === "actor_not_found" ||
 		(code === "not_found" && "group" in error && error.group === "actor")
 	);
+}
+
+function actorApplicationRuntime(): {
+	appId: string;
+	namespace: string;
+	pool: string;
+	reused: true;
+} {
+	return {
+		appId: ACTOR_BENCHMARK_APP_ID,
+		namespace: resolveDefaultRivetConnection().namespace,
+		pool: appRunnerPool(ACTOR_BENCHMARK_APP_ID),
+		reused: true,
+	};
 }
 
 export function benchmarkErrorDetails(error: unknown): {
