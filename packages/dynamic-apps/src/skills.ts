@@ -1,5 +1,5 @@
 /** Instructions and a complete starter for a buildable TypeScript HTTP app. */
-export const webServerSkill = `Build a Node.js web server in TypeScript. Start from this complete project and modify it for the user's request.
+export const webServerSkill = `Build a Dynamic Apps fetch handler in TypeScript. Start from this complete project and modify it for the user's request.
 
 package.json
 ~~~json
@@ -10,16 +10,14 @@ package.json
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "build": "tsc"
   },
   "dependencies": {
-    "@hono/node-server": "2.0.11",
-    "hono": "4.12.9"
+    "hono": "4.13.5"
   },
   "devDependencies": {
-    "@types/node": "22.19.15",
-    "typescript": "5.7.3"
+    "@types/node": "22.20.1",
+    "typescript": "5.9.3"
   }
 }
 ~~~
@@ -43,7 +41,6 @@ tsconfig.json
 
 src/index.ts
 ~~~ts
-import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 
 const app = new Hono();
@@ -52,16 +49,13 @@ app.get("/", (context) =>
   context.json({ ok: true, message: "Hello from Dynamic Apps" }),
 );
 
-serve({
-  fetch: app.fetch,
-  port: Number(process.env.PORT ?? 3000),
-});
+export default app;
 ~~~
 
-Keep the build script as "tsc" and the entrypoint as dist/index.js. The deployment runs npm run build, so invalid generated TypeScript returns compiler diagnostics that can be used to repair the files.`;
+Export the fetch handler and do not open a port; Dynamic Apps owns the HTTP server. Keep the build script as "tsc" and the entrypoint as dist/index.js. The deployment runs npm run build, so invalid generated TypeScript returns compiler diagnostics that can be used to repair the files.`;
 
 /** Instructions and a complete starter for a TypeScript app with Rivet actors. */
-export const rivetActorsSkill = `Build a Node.js TypeScript web server with Rivet Actors. Start from this complete project and modify the actor state, actions, and HTTP routes for the user's request.
+export const rivetActorsSkill = `Build a Dynamic Apps fetch handler with Rivet Actors. Start from this complete project and modify the actor state, actions, and HTTP routes for the user's request.
 
 package.json
 ~~~json
@@ -72,17 +66,15 @@ package.json
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "build": "tsc"
   },
   "dependencies": {
-    "@hono/node-server": "2.0.11",
-    "hono": "4.12.9",
+    "hono": "4.13.5",
     "rivetkit": "2.3.11"
   },
   "devDependencies": {
-    "@types/node": "22.19.15",
-    "typescript": "5.7.3"
+    "@types/node": "22.20.1",
+    "typescript": "5.9.3"
   }
 }
 ~~~
@@ -106,7 +98,6 @@ tsconfig.json
 
 src/index.ts
 ~~~ts
-import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { actor, event, setup } from "rivetkit";
 
@@ -130,16 +121,13 @@ export const registry = setup({ use: { counter } });
 const app = new Hono();
 app.all("/api/rivet/*", (context) => registry.handler(context.req.raw));
 app.get("/", (context) =>
-  context.json({ ok: true, message: "Rivet Actors server is running" }),
+  context.json({ ok: true, message: "Rivet Actors app is running" }),
 );
 
-serve({
-  fetch: app.fetch,
-  port: Number(process.env.PORT ?? 3000),
-});
+export default app;
 ~~~
 
-Do not call registry.start(): the Hono server owns the HTTP listener. Keep the build script as "tsc" so deployment failures include TypeScript diagnostics. The example above works without reading external documentation.
+Export the fetch handler and do not call serve() or registry.start(); Dynamic Apps owns the HTTP listener. Keep the build script as "tsc" so deployment failures include TypeScript diagnostics. The example above works without reading external documentation.
 
 Optional reference links:
 - Rivet Actors: https://rivet.dev/actors/docs/

@@ -1,7 +1,14 @@
-import type { AppScaling, DeployAppInput } from "@rivet-dev/dynamic-apps-core";
+import type { DeployAppInput } from "@rivet-dev/dynamic-apps-core";
 import type { DIRECT_ENTRYPOINT } from "@rivet-dev/dynamic-apps-core/internal";
 
-export type { AppScaling, DeployAppInput };
+export type { DeployAppInput };
+
+/** Legacy actor wire/storage shape. Not part of the public deploy surface. */
+export interface AppScaling {
+	minReplicas?: number;
+	maxReplicas?: number;
+	targetConcurrency?: number;
+}
 
 export interface Deployment {
 	appId: string;
@@ -12,7 +19,6 @@ export interface Deployment {
 	pool: string;
 	/** Publishable token scoped to this application's namespace, when required. */
 	token?: string;
-	regions: string[];
 }
 
 export interface AppReleaseInfo {
@@ -29,8 +35,7 @@ export interface AppReleaseInfo {
 export interface PreparedDeployAppInput {
 	appId: string;
 	files: Record<string, Uint8Array>;
-	regions?: string[];
-	scaling?: AppScaling;
+	createNamespace?: boolean;
 }
 
 export interface AppRouteResolution {
@@ -47,4 +52,6 @@ export interface AppRouteResolution {
 	maxRequestBytes: number;
 	maxResponseBytes: number;
 	usesRivetKit: boolean;
+	serverlessEndpoint?: string;
+	runtimePool?: string;
 }

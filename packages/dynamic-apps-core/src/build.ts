@@ -210,7 +210,7 @@ export function validateDeployment(
 	if (!packageJsonSource) {
 		fail(
 			"dynamic_apps_entrypoint_not_found",
-			"direct applications must contain package.json and a server entrypoint",
+			"direct applications must contain package.json and a fetch entrypoint",
 		);
 	}
 	let packageJson: {
@@ -281,7 +281,7 @@ export function validateDeployment(
 	}
 	fail(
 		"dynamic_apps_entrypoint_not_found",
-		"could not infer a direct server entrypoint",
+		"could not infer a direct fetch entrypoint",
 	);
 }
 

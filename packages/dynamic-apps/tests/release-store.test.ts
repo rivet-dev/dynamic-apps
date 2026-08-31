@@ -79,7 +79,6 @@ describe("Rivet release store", () => {
 			"namespace",
 			"pool",
 			"token",
-			"regions",
 		]);
 	});
 
@@ -114,7 +113,9 @@ describe("Rivet release store", () => {
 					scaling: { minReplicas: 0, maxReplicas: 1, targetConcurrency: 1 },
 					maxRequestBytes: 1024,
 					maxResponseBytes: 1024,
-					usesRivetKit: false,
+					usesRivetKit: true,
+					serverlessEndpoint: "https://demo:runtime-token@example.test",
+					runtimePool: "actor-pool",
 				};
 			},
 			async getArtifactManifest() {
@@ -142,6 +143,14 @@ describe("Rivet release store", () => {
 			recordTiming: (name) => timings.push(name),
 		});
 		expect(release?.artifact.bytes).toEqual(bytes);
+		expect(release?.server?.environment).toMatchObject({
+			RIVET_ENDPOINT: "https://example.test",
+			RIVET_NAMESPACE: "demo",
+			RIVET_POOL: "actor-pool",
+			RIVET_TOKEN: "runtime-token",
+			RIVETKIT_RUNTIME: "wasm",
+			RIVETKIT_RUNTIME_MODE: "serverless",
+		});
 		expect(timings).toEqual([
 			"actor-connect",
 			"actor-resolve",

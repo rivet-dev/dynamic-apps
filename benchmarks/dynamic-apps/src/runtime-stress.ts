@@ -99,8 +99,6 @@ class FakeStatePlane {
 				byteLength: state.artifact.bytes.byteLength,
 				usesRivetKit: false,
 			},
-			regions: ["local"],
-			scaling: { minReplicas: 0, maxReplicas: 1, targetConcurrency: 32 },
 			maxRequestBytes: 1024 * 1024,
 			maxResponseBytes: 4 * 1024 * 1024,
 		};

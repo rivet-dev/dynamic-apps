@@ -1,8 +1,12 @@
 ---
-title: "Deploying Apps"
+title: "Deploy"
 description: "Deploy a directory or generated files with deployApp(), preserve rollback, and configure app actors."
 skill: true
 ---
+
+`deployApp()` publishes an app's files as a new release.
+
+## Getting started
 
 Deploy a local application directory:
 
@@ -35,14 +39,28 @@ await deployApp({
 });
 ```
 
-The direct entrypoint must default-export a function or an object with
-`fetch(request)`. Code runs inside agentOS with filesystem, process,
-environment, and network permissions, and supported Node builtins are
-available. Directories that contain only static files are rejected; see
-[Static Websites](/dynamic-apps/docs/static-websites). Native addons are not
-supported.
+## Bundle requirements
 
-## Build repair and rollback
+An app needs two things:
+
+- A `package.json`.
+- An entrypoint that default-exports a `fetch` handler.
+
+Dynamic Apps owns the HTTP listener. Application code must not call `serve()`,
+`listen()`, or `registry.start()`.
+
+With Hono, export the app directly:
+
+```ts
+import { Hono } from "hono";
+
+const app = new Hono();
+app.get("/", (c) => c.json({ ok: true }));
+
+export default app;
+```
+
+## Build and repair loop
 
 `deployApp()` rejects with bounded build diagnostics when generated source does
 not compile. Feed those diagnostics back to the generator and try again:
@@ -59,53 +77,16 @@ for (let attempt = 0; attempt < 3; attempt++) {
 }
 ```
 
-Include `webServerSkill` and `rivetActorsSkill` from `@rivet-dev/dynamic-apps`
-in the model prompt. They describe the supported TypeScript server layout and
-Rivet actor integration. [View the complete AI App Builder example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-ai-builder).
-
-A failed build or incomplete artifact write never replaces the active release.
-A successful call returns only after the immutable artifact is persisted and
-activated; it does not mean a request-serving replica was warmed.
-
-With core, this is the `publishRelease` guarantee: make the complete artifact
-durable first, atomically replace the active release second, and resolve only
-when `loadActiveRelease` can read it. The default adapter provides those
-semantics through its per-app Rivet actor.
-
-`appId` must contain 1–63 lowercase letters, numbers, or hyphens. Pass exactly
-one of `source` or `files`.
+A failed build never replaces the active release. A successful call resolves
+only after the new release is persisted and activated. Activation is
+all-or-nothing and rolls out instantly: warm VMs load the new release on the
+next request.
 
 ## Configuration
 
-```ts
-await deployApp({
-  appId: "my-app",
-  source,
-  regions: ["atl", "fra"],
-  scaling: {
-    minReplicas: 0,
-    maxReplicas: 128,
-    targetConcurrency: 8,
-  },
-});
-```
-
 | Option | Default | Meaning |
 | --- | --- | --- |
-| `regions` | State actor's current region | Stored compatibility metadata; it does not move direct HTTP execution |
-| `createNamespace` | none | Deprecated compatibility option; every app always receives its own stable namespace |
-| `scaling.minReplicas` | `0` | App-defined actor runner setting; compatibility metadata for direct HTTP |
-| `scaling.maxReplicas` | `128` | App-defined actor runner setting; compatibility metadata for direct HTTP |
-| `scaling.targetConcurrency` | `8` | App-defined actor runner setting; compatibility metadata for direct HTTP |
+| `createNamespace` | `true` | Set `false` to disable namespace provisioning entirely. Unset keeps the default. Apps that use `rivetkit` require a namespace |
 
-Every app receives its own Rivet namespace. Locally, configure an Engine secret
-token with permission to create namespaces. On Rivet Cloud, set
-`RIVET_CLOUD_TOKEN` to a `cloud_api_*` token for the project; `deployApp()` uses
-it to create the namespace and namespace-scoped actor credentials. Keep this
-management token server-side. The deployment result includes the app's Engine
-endpoint, namespace, pool, and publishable token for connecting to app-defined
-actors.
-
-Rivet Compute automatically uses the deployment's `.rivet.run/api/rivet`
-callback. For another public host, set `DYNAMIC_APPS_CALLBACK_URL` to its
-origin.
+See [Connect to Rivet](/dynamic-apps/docs/connect) for credentials and
+namespace setup.

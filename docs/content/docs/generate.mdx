@@ -1,0 +1,51 @@
+---
+title: "Generate"
+description: "Generate an app's files with a model and the Dynamic Apps skills."
+skill: true
+---
+
+import ExampleLinkBar from "@/components/docs/ExampleLinkBar.astro";
+
+<ExampleLinkBar href="https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-ai-builder" />
+
+An LLM writes the app as a set of files.
+
+## Getting started
+
+Use `generateObject` with a schema for the file tree, and pass the skills from
+`@rivet-dev/dynamic-apps` as the system prompt so the model knows the supported
+project layout:
+
+```ts
+import { anthropic } from "@ai-sdk/anthropic";
+import { rivetActorsSkill, webServerSkill } from "@rivet-dev/dynamic-apps";
+import { generateObject } from "ai";
+import { z } from "zod";
+
+const { object } = await generateObject({
+  model: anthropic("claude-sonnet-5"),
+  // Skills teach the model the supported project layout.
+  system: [webServerSkill, rivetActorsSkill].join("\n\n"),
+  schema: z.object({ files: z.record(z.string(), z.string()) }),
+  prompt: "Build a team board.",
+});
+
+const { files } = object;
+```
+
+Pass the generated `files` to [`deployApp()`](/dynamic-apps/docs/deploy). If the
+build fails, feed the diagnostics back to the model and deploy again. See
+[Deploy](/dynamic-apps/docs/deploy) for the repair loop.
+
+## Skills
+
+Skills are prompt fragments exported by `@rivet-dev/dynamic-apps`. Each one
+carries the instructions and a complete starter project for one kind of app, so
+generated code compiles and serves on the first try more often.
+
+| Skill | What the model learns |
+| --- | --- |
+| `webServerSkill` | The supported TypeScript Fetch-handler layout: `package.json`, `tsconfig.json`, and a Hono entrypoint with no application-owned listener. |
+| `rivetActorsSkill` | The same layout plus Rivet Actors: durable state, actions, and HTTP routes backed by actors. |
+
+More skills will be added over time.

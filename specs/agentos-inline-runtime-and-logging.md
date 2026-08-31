@@ -7,9 +7,10 @@ Public API baseline: `packages/dynamic-apps/API_CONTRACT.md`
 ## Decision
 
 Remove `isolated-vm` completely. Ordinary Dynamic Apps HTTP requests execute
-through the agentOS library's headless JavaScript API in the Compute process;
-they must not start an execution actor, guest process, HTTP listener, or nested
-Node server.
+through agentOS. Apps without RivetKit use the library's headless JavaScript
+API. Actor-enabled apps use one cached guest process and platform-owned HTTP
+listener for both ordinary HTTP and Rivet callbacks; the application only
+exports a fetch handler.
 
 Keep the existing deployment implementation and durable `dynamicAppsApp`
 state actor. It remains responsible for building releases in an agentOS build
@@ -39,6 +40,11 @@ warm direct request
   -> ephemeral evaluation or leased retained context
   -> direct fetch result
 
+actor-enabled ordinary HTTP
+  -> appsRouter
+  -> cached AgentOS VM and guest process
+  -> agentOS native VM HTTP stream
+
 app-defined actor request
   -> Rivet gateway
   -> authenticated Dynamic Apps callback
@@ -47,9 +53,9 @@ app-defined actor request
   -> agentOS native VM HTTP stream
 ```
 
-App-defined actors use agentOS as the mandatory hostile-code boundary. The app
-listens on the supplied `PORT`, and Dynamic Apps forwards the real response head
-and chunks with agentOS's native VM HTTP stream. The init packet is not mocked:
+App-defined actors use agentOS as the mandatory hostile-code boundary. Dynamic
+Apps starts the generated listener on the supplied `PORT` and forwards the real
+response head and chunks with agentOS's native VM HTTP stream. The init packet is not mocked:
 Engine uses its encoded runner ID and protocol version. Actor traffic travels
 over RivetKit's outbound WebSocket; the SSE stream carries init, keepalive, and
 connection lifetime only.
@@ -59,8 +65,8 @@ connection lifetime only.
 - Do not change `deployApp()` inputs, results, namespace behavior, build
   rollback, release schema, artifact chunking, or state-actor identity.
 - Do not reintroduce scaler or replica execution actors for ordinary HTTP.
-- Do not boot `node /app/main.mjs`, poll a readiness URL, or call `vm.fetch()`
-  for direct request execution.
+- Do not boot a guest process for apps without RivetKit and do not poll a
+  readiness URL for any app.
 - Do not expose the agentOS instance, actor definitions, or cache controls as
   public JavaScript APIs.
 - Do not promise durable log delivery. The hook is an in-process emission
@@ -218,7 +224,8 @@ within the existing size limit, and returns the response envelope as the
 evaluation value.
 
 Do not pass a JSON string through a custom host reference. Do not define custom
-Web API shims. Do not expose an HTTP listener inside the guest.
+Web API shims. Only the generated actor-enabled bootstrap may expose an HTTP
+listener inside the guest.
 
 ### Execution modes
 
@@ -286,9 +293,9 @@ The direct release must be a Node-targeted ESM bundle, not a browser IIFE.
 - Continue rejecting native `.node` addons.
 - Delete the Dynamic Apps RivetKit stub entirely.
 - For an app importing RivetKit, build the direct bundle with the real RivetKit
-  runtime. The app mounts `registry.handler()` in its exported fetch router. In
-  serverless mode it calls `serve()` on `PORT` and awaits the listening
-  callback; Dynamic Apps starts the actor entrypoint as a normal Node program.
+  runtime. The app mounts `registry.handler()` in its exported fetch router and
+  never opens a listener. Dynamic Apps wraps that fetch export in its generated
+  actor entrypoint, starts the listener, and awaits the listening callback.
 - Build the separate actor entrypoint with RivetKit and its WASM asset bundled
   for execution inside AgentOS.
 - Continue validating both bundles before activating a release.
@@ -566,7 +573,7 @@ Replace isolated-VM-specific tests with:
 - timeout/abort and poisoned-context eviction;
 - release invalidation and concurrent drain;
 - bounded VM/context cache and disposal;
-- no guest process or HTTP listener; and
+- no guest process or HTTP listener for apps without actors; and
 - real RivetKit imports in a direct actor-enabled release.
 
 #### `packages/dynamic-apps/tests/logging.test.ts` (new)
@@ -637,8 +644,9 @@ Do not replace agentOS with another direct V8 integration to meet the target.
 
 - `isolated-vm` is absent from package manifests, the lockfile, runtime source,
   Docker commands, and active public documentation.
-- Ordinary HTTP executes only through the agentOS headless JavaScript API.
-- No direct request starts a guest process or HTTP listener.
+- Ordinary HTTP executes only through agentOS. Actor-enabled ordinary requests
+  share the generated server runtime; other apps use the headless JavaScript API.
+- No application source opens its own HTTP listener.
 - Node APIs work inside the agentOS sandbox.
 - Both ephemeral and pooled modes preserve clean-request semantics.
 - App-defined RivetKit actors still pass deployment, SQLite, state, action,

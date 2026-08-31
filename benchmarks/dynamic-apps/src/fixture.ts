@@ -10,7 +10,6 @@ export type BenchmarkDeploymentClient = NonNullable<
 export async function deployBenchmarkFixture(
 	client?: BenchmarkDeploymentClient,
 ) {
-	const region = process.env.BENCH_REGION;
 	return deployApp(
 		{
 			appId: BENCHMARK_APP_ID,
@@ -42,12 +41,6 @@ export default {
 };
 `,
 			},
-			scaling: {
-				minReplicas: 1,
-				maxReplicas: 1,
-				targetConcurrency: 128,
-			},
-			...(region ? { regions: [region] } : {}),
 		},
 		client ? { client } : undefined,
 	);
@@ -56,7 +49,6 @@ export default {
 export async function deployActorBenchmarkFixture(
 	client?: BenchmarkDeploymentClient,
 ) {
-	const region = process.env.BENCH_REGION;
 	return deployApp(
 		{
 			appId: ACTOR_BENCHMARK_APP_ID,
@@ -68,7 +60,7 @@ export async function deployActorBenchmarkFixture(
 					type: "module",
 					main: "index.js",
 					dependencies: {
-						hono: "4.13.3",
+						hono: "4.13.5",
 						rivetkit: "2.3.11",
 					},
 				}),
@@ -115,12 +107,6 @@ app.all("*", () => Response.json({ ok: true, workload: "actor-and-direct-http" }
 export default app;
 `,
 			},
-			scaling: {
-				minReplicas: 0,
-				maxReplicas: 16,
-				targetConcurrency: 8,
-			},
-			...(region ? { regions: [region] } : {}),
 		},
 		client ? { client } : undefined,
 	);

@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { availableParallelism, tmpdir } from "node:os";
 import { join } from "node:path";
-import { AgentOs } from "@rivet-dev/agentos-core";
+import { AgentOs, type AgentOsOptions } from "@rivet-dev/agentos-core";
 import { DynamicAppsError } from "./errors.js";
 import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
 import { capConcurrencyForMemory, readCgroupMemory } from "./memory.js";
@@ -10,6 +10,7 @@ import { DIRECT_BUNDLE_PATH, DIRECT_RUNTIME_FORMAT } from "./runtime.js";
 import { validateAppId } from "./source.js";
 import type {
 	ActiveRelease,
+	ApplicationServerRuntime,
 	ReleaseInvalidation,
 	ReleaseLoadContext,
 	Unsubscribe,
@@ -130,7 +131,7 @@ interface PreparedRuntime {
 
 interface AppMapping {
 	resolution: ActiveRelease;
-	runtime: PreparedRuntime;
+	runtime?: PreparedRuntime;
 }
 
 interface AppCacheEntry {
@@ -320,6 +321,55 @@ export function resolveExecutorConfig(
 	return config;
 }
 
+export function resolveRuntimeAgentOsOptions(
+	base: AgentOsOptions | undefined,
+	artifactPath: string,
+	heapLimitMb: number,
+): AgentOsOptions {
+	if (base?.mounts?.some((mount) => mount.path === "/app")) {
+		throw new DynamicAppsError(
+			"dynamic_apps_invalid_config",
+			'vm.mounts cannot replace the reserved "/app" mount',
+		);
+	}
+	return {
+		...base,
+		sidecar: base?.sidecar ?? { kind: "shared", pool: "dynamic-apps-direct" },
+		defaultSoftware: base?.defaultSoftware ?? false,
+		mounts: [
+			...(base?.mounts ?? []),
+			{
+				path: "/app",
+				readOnly: true,
+				plugin: {
+					id: "agentos_packages",
+					config: {
+						kind: "tar",
+						tarPath: artifactPath,
+						root: "/",
+						readOnly: true,
+					},
+				},
+			},
+		],
+		permissions: {
+			fs: "allow",
+			childProcess: "allow",
+			process: "allow",
+			env: "allow",
+			network: "allow",
+			...base?.permissions,
+		},
+		limits: {
+			...base?.limits,
+			jsRuntime: {
+				...base?.limits?.jsRuntime,
+				v8HeapLimitMb: heapLimitMb,
+			},
+		},
+	};
+}
+
 function invalidExecutorConfig(name: string): DynamicAppsError {
 	return new DynamicAppsError(
 		"dynamic_apps_invalid_config",
@@ -330,6 +380,8 @@ function invalidExecutorConfig(name: string): DynamicAppsError {
 export class DynamicAppsExecutor {
 	readonly config: ExecutorConfig;
 	readonly #source: ExecutorReleaseSource;
+	readonly #serverRuntime?: ApplicationServerRuntime;
+	readonly #vmOptions?: AgentOsOptions;
 	readonly #semaphore: Semaphore;
 	readonly #apps = new Map<string, AppCacheEntry>();
 	readonly #runtimes = new Map<string, PreparedRuntime>();
@@ -340,9 +392,16 @@ export class DynamicAppsExecutor {
 	#disposed = false;
 	#disposePromise?: Promise<void>;
 
-	constructor(source: ExecutorReleaseSource, config: ExecutorConfig) {
+	constructor(
+		source: ExecutorReleaseSource,
+		config: ExecutorConfig,
+		vmOptions?: AgentOsOptions,
+		serverRuntime?: ApplicationServerRuntime,
+	) {
 		this.config = config;
 		this.#source = source;
+		this.#vmOptions = vmOptions;
+		this.#serverRuntime = serverRuntime;
 		this.#semaphore = new Semaphore(
 			config.executionConcurrency,
 			config.executionQueueSize,
@@ -381,8 +440,6 @@ export class DynamicAppsExecutor {
 			const envelope = await measure(trace, "request-buffer", () =>
 				serializeRequest(request),
 			);
-			const requestedRegion =
-				request.headers.get("x-agentos-app-region") ?? undefined;
 			const { entry, hit } = this.#appEntry(appId);
 			if (!hit) trace.cacheOutcome = "app-miss";
 			entry.refs += 1;
@@ -391,22 +448,23 @@ export class DynamicAppsExecutor {
 				const mapping = entry.mapping
 					? entry.mapping
 					: await this.#resolveAndPrepare(entry, trace);
-				if (
-					requestedRegion &&
-					!mapping.resolution.regions.includes(requestedRegion)
-				) {
-					throw new DynamicAppsError(
-						"dynamic_apps_region_not_deployed",
-						`app is not deployed in requested region ${requestedRegion}`,
-						{ requestedRegion, regions: mapping.resolution.regions },
-					);
-				}
 				trace.release = mapping.resolution.release;
-				mapping.runtime.refs += 1;
-				mapping.runtime.lastUsedAt = Date.now();
+				const runtime = mapping.runtime;
+				if (!runtime) {
+					const response = await this.#executeServer(
+						mapping.resolution,
+						envelope,
+						trace,
+						request.signal,
+					);
+					this.#finishTrace(response.headers, trace);
+					return response;
+				}
+				runtime.refs += 1;
+				runtime.lastUsedAt = Date.now();
 				try {
 					const response = await this.#execute(
-						mapping.runtime,
+						runtime,
 						envelope,
 						trace,
 						request.signal,
@@ -414,8 +472,8 @@ export class DynamicAppsExecutor {
 					this.#finishTrace(response.headers, trace);
 					return response;
 				} finally {
-					mapping.runtime.refs -= 1;
-					void this.#maybeDisposeRuntime(mapping.runtime);
+					runtime.refs -= 1;
+					void this.#maybeDisposeRuntime(runtime);
 				}
 			} finally {
 				entry.refs -= 1;
@@ -473,6 +531,7 @@ export class DynamicAppsExecutor {
 				.filter((item) => item.lastContextResetError !== undefined)
 				.at(-1)?.lastContextResetError,
 			evaluations: runtimes.reduce((sum, item) => sum + item.evaluations, 0),
+			serverRuntime: this.#serverRuntime?.diagnostics?.(),
 		};
 	}
 
@@ -589,7 +648,18 @@ export class DynamicAppsExecutor {
 					"artifact-verify",
 					async () => verifyActiveRelease(resolution),
 				);
-				const runtime = await this.#prepareRuntime(verifiedResolution, trace);
+				const runtime = verifiedResolution.artifact.usesRivetKit
+					? undefined
+					: await this.#prepareRuntime(verifiedResolution, trace);
+				if (
+					verifiedResolution.artifact.usesRivetKit &&
+					(!this.#serverRuntime || !verifiedResolution.server)
+				) {
+					throw new DynamicAppsError(
+						"dynamic_apps_server_runtime_missing",
+						"RivetKit applications require a configured HTTP server runtime",
+					);
+				}
 				if (entry.epoch !== epoch) continue;
 				if (this.#disposed || this.#apps.get(entry.appId) !== entry) {
 					throw disposedError();
@@ -605,6 +675,34 @@ export class DynamicAppsExecutor {
 		} finally {
 			if (entry.resolvePromise === promise) entry.resolvePromise = undefined;
 		}
+	}
+
+	async #executeServer(
+		resolution: ActiveRelease,
+		envelope: RequestEnvelope,
+		trace: RequestTrace,
+		requestSignal: AbortSignal,
+	): Promise<Response> {
+		const serverRuntime = this.#serverRuntime;
+		const server = resolution.server;
+		if (!serverRuntime || !server) {
+			throw new DynamicAppsError(
+				"dynamic_apps_server_runtime_missing",
+				"RivetKit applications require a configured HTTP server runtime",
+			);
+		}
+		return await measure(trace, "server-request", () =>
+			serverRuntime.request({
+				key: `${resolution.release}:${resolution.artifact.hash}`,
+				appId: resolution.appId,
+				release: resolution.release,
+				loadArtifact: async () => new Uint8Array(resolution.artifact.bytes),
+				environment: { ...server.environment },
+				request: requestFromEnvelope(envelope, requestSignal),
+				maxRequestBytes: resolution.maxRequestBytes,
+				maxResponseBytes: resolution.maxResponseBytes,
+			}),
+		);
 	}
 
 	async #prepareRuntime(
@@ -656,35 +754,13 @@ export class DynamicAppsExecutor {
 			await chmod(directory, 0o700);
 			await writeFile(artifactPath, artifact, { mode: 0o600 });
 			vm = await measureOptional(trace, "vm-prepare", () =>
-				AgentOs.create({
-					sidecar: { kind: "shared", pool: "dynamic-apps-direct" },
-					defaultSoftware: false,
-					mounts: [
-						{
-							path: "/app",
-							readOnly: true,
-							plugin: {
-								id: "agentos_packages",
-								config: {
-									kind: "tar",
-									tarPath: artifactPath,
-									root: "/",
-									readOnly: true,
-								},
-							},
-						},
-					],
-					permissions: {
-						fs: "allow",
-						childProcess: "allow",
-						process: "allow",
-						env: "allow",
-						network: "allow",
-					},
-					limits: {
-						jsRuntime: { v8HeapLimitMb: this.config.contextHeapLimitMb },
-					},
-				}),
+				AgentOs.create(
+					resolveRuntimeAgentOsOptions(
+						this.#vmOptions,
+						artifactPath,
+						this.config.contextHeapLimitMb,
+					),
+				),
 			);
 			const runtime: PreparedRuntime = {
 				key,
@@ -1299,14 +1375,6 @@ function verifyActiveRelease(input: ActiveRelease): ActiveRelease {
 		Buffer.byteLength(input.release) < 1 ||
 		Buffer.byteLength(input.release) > 256 ||
 		/[\0-\x1f\x7f]/.test(input.release) ||
-		!Array.isArray(input.regions) ||
-		input.regions.length === 0 ||
-		input.regions.length > 128 ||
-		input.regions.some(
-			(region) =>
-				typeof region !== "string" || !/^[a-z0-9][a-z0-9-]{0,62}$/.test(region),
-		) ||
-		!validScaling(input.scaling) ||
 		!Number.isSafeInteger(input.maxRequestBytes) ||
 		input.maxRequestBytes < 1 ||
 		!Number.isSafeInteger(input.maxResponseBytes) ||
@@ -1327,7 +1395,9 @@ function verifyActiveRelease(input: ActiveRelease): ActiveRelease {
 		!Number.isSafeInteger(artifact.byteLength) ||
 		artifact.byteLength < 1 ||
 		artifact.byteLength !== artifact.bytes.byteLength ||
-		typeof artifact.usesRivetKit !== "boolean"
+		typeof artifact.usesRivetKit !== "boolean" ||
+		artifact.usesRivetKit !== Boolean(input.server) ||
+		(input.server !== undefined && !validServerConfig(input.server))
 	) {
 		throw new DynamicAppsError(
 			"dynamic_apps_artifact_manifest_mismatch",
@@ -1343,25 +1413,35 @@ function verifyActiveRelease(input: ActiveRelease): ActiveRelease {
 	}
 	return {
 		...input,
-		regions: [...input.regions],
-		scaling: { ...input.scaling },
+		...(input.server
+			? { server: { environment: { ...input.server.environment } } }
+			: {}),
 		artifact: { ...artifact, bytes },
 	};
 }
 
-function validScaling(value: ActiveRelease["scaling"]): boolean {
+function validServerConfig(
+	value: NonNullable<ActiveRelease["server"]>,
+): boolean {
+	if (
+		!(
+			value !== null &&
+			typeof value === "object" &&
+			value.environment !== null &&
+			typeof value.environment === "object" &&
+			!Array.isArray(value.environment)
+		)
+	)
+		return false;
+	const entries = Object.entries(value.environment);
 	return (
-		value !== null &&
-		typeof value === "object" &&
-		Number.isInteger(value.minReplicas) &&
-		value.minReplicas >= 0 &&
-		Number.isInteger(value.maxReplicas) &&
-		value.maxReplicas >= 1 &&
-		value.maxReplicas <= 128 &&
-		value.minReplicas <= value.maxReplicas &&
-		Number.isInteger(value.targetConcurrency) &&
-		value.targetConcurrency >= 1 &&
-		value.targetConcurrency <= 1_024
+		entries.length <= 128 &&
+		entries.every(
+			([name, content]) =>
+				/^[A-Z_][A-Z0-9_]*$/.test(name) &&
+				typeof content === "string" &&
+				Buffer.byteLength(content) <= 64 * 1024,
+		)
 	);
 }
 
@@ -1407,6 +1487,24 @@ async function serializeRequest(request: Request): Promise<RequestEnvelope> {
 				? Buffer.from(body).toString("base64")
 				: undefined,
 	};
+}
+
+function requestFromEnvelope(
+	envelope: RequestEnvelope,
+	signal: AbortSignal,
+): Request {
+	const body = envelope.bodyBase64
+		? Buffer.from(envelope.bodyBase64, "base64")
+		: undefined;
+	return new Request(envelope.url, {
+		method: envelope.method,
+		headers: envelope.headers,
+		body:
+			envelope.method === "GET" || envelope.method === "HEAD"
+				? undefined
+				: body,
+		signal,
+	});
 }
 
 function responseFromEnvelope(

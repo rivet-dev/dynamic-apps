@@ -1,16 +1,22 @@
 ---
-title: "Core Quickstart"
+title: "Quickstart (Core)"
 description: "Build and serve a Dynamic App with a development-only in-memory release store."
 skill: true
 ---
 
-[View the complete Core Quick Start example on GitHub](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-core-quickstart).
+import ExampleLinkBar from "@/components/docs/ExampleLinkBar.astro";
+
+import ArchitectureDiagram from "./_architecture-diagram.astro";
+
+<ExampleLinkBar href="https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-core-quickstart" />
+
+<ArchitectureDiagram />
+
+## When to use each
 
 Use Core when your application owns release storage and deployment lifecycle.
-Use the standard [Dynamic Apps Quick Start](/dynamic-apps/docs/quickstart) when
-you want Rivet to provide those pieces.
-
-## Choosing between Core and the Rivet-backed package
+For managed storage and invalidation, use the standard [Dynamic Apps
+Quickstart](/dynamic-apps/docs/quickstart).
 
 | | Core | Rivet-backed package |
 |-|---|---|
@@ -22,11 +28,7 @@ you want Rivet to provide those pieces.
 | Lifecycle | Explicit `dispose()` | Managed by the package |
 | Best for | Custom infrastructure | Batteries included and scalable |
 
-<Note>
-This in-memory store is **development-only**. It loses releases on restart and
-cannot invalidate another process. Use durable storage and cross-process
-notifications in production.
-</Note>
+## Quickstart
 
 <Steps>
 
@@ -37,52 +39,86 @@ Use Node.js 22 or newer:
 ```sh
 npm add @rivet-dev/dynamic-apps-core @hono/node-server hono
 npm add --save-dev tsx
-npm pkg set type=module
 ```
 
 </Step>
 
-<Step title="Create the host and release store">
+<Step title="Create the instance">
 
-The example keeps a `Map` of active releases and a `Map` of update listeners.
-Its hooks atomically publish a complete copied artifact, load a copied active
-release, and register an update watcher that returns an unsubscribe function.
-It then mounts the router, deploys a complete generated two-file app, and
-disposes the instance during shutdown.
+Create the Dynamic Apps instance and provide storage hooks. This example uses
+in-memory maps to keep the setup small:
 
-<CodeSnippet file="examples/apps-core-quickstart/src/server.ts" title="src/server.ts" />
+<CodeSnippet file="examples/apps-core-quickstart/src/server.ts" region="setup" title="src/server.ts" />
+
+<Note>
+This in-memory store is **development-only**. It loses releases on restart and
+cannot invalidate another process. Use durable storage and cross-process
+notifications in production.
+</Note>
 
 </Step>
 
-<Step title="Run the server">
+<Step title="Set up the router">
 
-Pass the listening host on the command line:
+Mount `appsRouter` wherever generated apps should be served, then start the
+HTTP server:
+
+<CodeSnippet file="examples/apps-core-quickstart/src/server.ts" region="routing" title="src/server.ts" />
+
+</Step>
+
+<Step title="Generate and deploy">
+
+An LLM writes the app as a set of files. Pass the [skills](/dynamic-apps/docs/generate)
+from `@rivet-dev/dynamic-apps` as the system prompt so the model knows the
+supported project layout:
+
+```ts
+import { anthropic } from "@ai-sdk/anthropic";
+import { rivetActorsSkill, webServerSkill } from "@rivet-dev/dynamic-apps";
+import { generateObject } from "ai";
+import { z } from "zod";
+
+const { object } = await generateObject({
+  model: anthropic("claude-sonnet-5"),
+  // Skills teach the model the supported project layout.
+  system: [webServerSkill, rivetActorsSkill].join("
+
+"),
+  schema: z.object({ files: z.record(z.string(), z.string()) }),
+  prompt: "Build a team board.",
+});
+
+const { files } = object;
+```
+
+Pass the generated files to `deployApp()`:
+
+```ts
+await dynamicApps.deployApp({
+  appId: "team-board",
+  files,
+});
+```
+
+</Step>
+
+<Step title="Visit the app">
+
+Run the complete example and make a request:
 
 ```sh
-npx tsx src/server.ts --host 0.0.0.0
+npm start
+curl http://localhost:3000/apps/team-board/
 ```
 
-</Step>
-
-<Step title="Call the generated app">
-
-```sh
-curl http://localhost:3000/apps/hello/
-# Hello from Dynamic Apps Core!
-```
+Core builds the app, publishes the release through your hooks, and loads it on
+the first request. Warm requests reuse the cached agentOS VM. Call
+`await dynamicApps.dispose()` when your host shuts down.
 
 </Step>
 
 </Steps>
 
-The request lifecycle is compact:
-
-```text
-agentOS build -> publishRelease
-first request -> watchActiveRelease + loadActiveRelease
-warm request  -> cached agentOS VM (zero hooks)
-```
-
-Continue with [Custom Storage](/dynamic-apps/docs/custom-storage) for durable,
-multi-process hooks. Use the ordinary [Quick Start](/dynamic-apps/docs/quickstart)
-for the batteries-included Rivet actor-backed package.
+Continue with [Core](/dynamic-apps/docs/core) before using
+Core across multiple processes.

@@ -47,17 +47,9 @@ The expected generated declaration is structurally equivalent to:
 import type { Hono } from "hono";
 import type { BlankEnv, BlankSchema } from "hono/types";
 
-interface AppScaling {
-	minReplicas?: number;
-	maxReplicas?: number;
-	targetConcurrency?: number;
-}
-
 interface DeployAppBase {
 	appId: string;
 	createNamespace?: boolean;
-	regions?: string[];
-	scaling?: AppScaling;
 }
 
 type DeployAppInput =
@@ -77,14 +69,12 @@ interface Deployment {
 	namespace: string;
 	pool: string;
 	token?: string;
-	regions: string[];
 }
 
 interface PreparedDeployAppInput {
 	appId: string;
 	files: Record<string, Uint8Array>;
-	regions?: string[];
-	scaling?: AppScaling;
+	createNamespace?: boolean;
 }
 
 interface DeployAppOptions {
@@ -228,7 +218,7 @@ export.
   release is active. It no longer means a replica was warmed.
 - A failed build or incomplete artifact write does not replace the previous
   active release.
-- Identical built artifact bytes plus normalized regions/scaling,
+- Identical built artifact bytes plus normalized
   namespace/runtime metadata, and packaging identity produce the same opaque
   release ID within one packaging version. Unlocked dependency resolution or a
   nondeterministic build may produce a different artifact and therefore a new
@@ -237,15 +227,16 @@ export.
 
 ### Compatibility fields
 
-- `regions` remains accepted, deduplicated in input order, validated, stored,
-  and returned. There must be 1–8 values matching
-  `[a-z0-9][a-z0-9-]{0,62}`. The default is the state actor's current region,
-  falling back to `default`. It does not place local execution in a remote
-  region.
-- `scaling` remains accepted and validated. Defaults are `minReplicas: 0`,
-  `maxReplicas: 128`, and `targetConcurrency: 8`; bounds are 0–128, 1–128, and
-  1–1,024 respectively, with `minReplicas <= maxReplicas`. It is compatibility
-  metadata for direct HTTP and has no deleted scaler/replica effect.
+- `createNamespace` defaults to true as of 0.12. An explicit value is
+  persisted on the app actor's state and a later explicit value overrides it.
+  With `false`, publish and activation skip namespace provisioning and token
+  minting, and the deployment reports the host connection's namespace and the
+  deterministic pool. A `false` publish of a release that declares `rivetkit`
+  is rejected with `dynamic_apps_namespace_required`.
+- `regions` and `scaling` are removed from `DeployAppInput` and from the
+  `Deployment` result as of 0.12. They configured nothing at runtime. The
+  private state actor still stores and returns legacy region/scaling metadata
+  so existing SQLite rows keep resolving; the host ignores it.
 - `endpoint`, `namespace`, deterministic `pool`, and an optional namespace-scoped
   publishable `token` are returned. The pool is
   `dynamic-apps-${sha256(appId).slice(0, 16)}`. Direct HTTP does not execute in
@@ -264,7 +255,6 @@ The resolved value contains exactly these enumerable keys:
 	namespace: string;
 	pool: string;
 	token?: string;
-	regions: string[];
 }
 ```
 
@@ -349,12 +339,11 @@ part of the retained API.
 ## App-defined RivetKit actor contract
 
 An application that declares `rivetkit` mounts `registry.handler()` at
-`/api/rivet/*` in its default exported fetch router. When
-`RIVETKIT_RUNTIME_MODE=serverless`, it must also listen on the numeric `PORT`
-provided by Dynamic Apps. The same router serves ordinary direct requests. The
-server entrypoint should await its listening callback. Dynamic Apps treats
-successful module evaluation as readiness and does not poll an application
-health route.
+`/api/rivet/*` in its default exported fetch router. Application code does not
+open a listener. Dynamic Apps starts a platform-owned HTTP server around that
+export, waits for its listening callback, and sends both ordinary application
+requests and Rivet callbacks through the same cached process. It does not poll
+an application health route.
 
 On activation, deployment configures the returned `namespace` and `pool` with
 an authenticated serverless callback to the private `dynamicAppsApp` actor.
@@ -369,6 +358,10 @@ connections use the ordinary RivetKit protocol. The retained runtime count is
 an idle-cache target, not a callback admission limit; active callbacks are not
 rejected or evicted because the target is full. Guest runtimes do not receive
 the deployment actor's control credential.
+
+Ordinary HTTP for an actor-enabled release uses that same runtime key and HTTP
+listener. The application module is imported once per warm runtime. Apps
+without RivetKit continue to use the direct evaluation modes below.
 
 Rivet Engine's `/start` response is an SSE control stream. It contains the
 exact encoded runner ID/protocol version once, then keepalive pings, and stays

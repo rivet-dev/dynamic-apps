@@ -38,6 +38,8 @@ export function createDynamicApps<TDeployment, TDeployOptions = undefined>(
 			watchActiveRelease: options.watchActiveRelease,
 		},
 		executorConfig,
+		options.vm,
+		options.serverRuntime,
 	);
 	const appsRouter = createAppsRouter(executor);
 	const inFlight = new Set<Promise<unknown>>();
@@ -67,8 +69,6 @@ export function createDynamicApps<TDeployment, TDeployOptions = undefined>(
 					...built.artifact,
 					bytes: new Uint8Array(built.artifact.bytes),
 				},
-				regions: input.regions ? [...input.regions] : undefined,
-				scaling: input.scaling ? { ...input.scaling } : undefined,
 				createdAt: Date.now(),
 			};
 			const result = await options.publishRelease(publishInput, deployOptions);

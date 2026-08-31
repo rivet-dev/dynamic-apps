@@ -1,5 +1,5 @@
 ---
-title: "Collecting logs"
+title: "Collecting Logs"
 description: "Forward Dynamic Apps output and runtime events to your logging provider."
 ---
 
@@ -32,6 +32,6 @@ plus bounded metadata. Messages are limited to 64 KiB and carry
 `metadata.truncated: true` when shortened.
 
 Delivery is best effort and happens synchronously. Do not make blocking network
-requests in the callback; enqueue into your logging SDK instead. Request and
-response bodies, authorization headers, environment variables, callback
-secrets, endpoint credentials, and build source are excluded.
+requests in the callback. Enqueue into your logging SDK instead. Request and
+response bodies, authorization headers, environment variables, credentials,
+and build source are excluded.

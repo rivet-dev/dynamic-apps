@@ -1,92 +1,28 @@
 ---
 title: "Dynamic Apps"
-description: "Deploy user-generated applications in isolated agentOS VMs with SQLite, workflows, multiplayer, and static sites out of the box."
+description: "Deploy an AI-generated app and backend for each of your users."
 skill: true
 ---
-
-Dynamic Apps runs user-generated HTTP applications inside your own Node.js
-server. Each app runs in an isolated agentOS VM and can add durable SQLite
-state, workflows, realtime multiplayer, and static sites.
 
 <Note>
 Dynamic Apps is in preview and its API is subject to change.
 </Note>
 
+Dynamic Apps runs user-generated HTTP applications inside your own Node.js
+server. Each app runs in an isolated agentOS VM and can add durable SQLite
+state, workflows, realtime multiplayer, and static sites.
+
 <CardGroup>
   <Card title="Quickstart" href="/dynamic-apps/docs/quickstart">
-    Start the host server, deploy a generated app, and visit it.
+    Generate a backend, deploy it, and serve it from your router.
   </Card>
-  <Card title="Deploying Apps" href="/dynamic-apps/docs/deploy">
+  <Card title="Quickstart (Core)" href="/dynamic-apps/docs/quickstart-core">
+    The same flow with your own release storage.
+  </Card>
+  <Card title="Deploy" href="/dynamic-apps/docs/deploy">
     Deploy files or a directory, repair build errors, and configure apps.
   </Card>
-  <Card title="Static Websites" href="/dynamic-apps/docs/static-websites">
-    Serve an HTML, CSS, and JavaScript site.
-  </Card>
-  <Card title="SQLite" href="/dynamic-apps/docs/sqlite">
-    Store durable relational data in an actor-owned database.
-  </Card>
-  <Card title="Multiplayer" href="/dynamic-apps/docs/multiplayer">
-    Share realtime state between every connected client.
-  </Card>
-  <Card title="Workflows" href="/dynamic-apps/docs/workflows">
-    Run durable multi-step jobs that sleep and resume.
+  <Card title="Route" href="/dynamic-apps/docs/routing">
+    How requests reach each deployed app.
   </Card>
 </CardGroup>
-
-## Architecture
-
-**Dynamic Apps is a library, not a hosted app deployment platform.** You own
-the Hono server, its authentication, and the URL on which applications are
-mounted.
-
-Requests reach your Hono server, where `appsRouter` executes them in a cached
-agentOS VM holding the app's active release. Warm requests never touch storage
-or a Rivet actor.
-
-<svg viewBox="0 0 620 190" role="img" aria-label="An HTTP request reaches your Hono server, where appsRouter executes it inside an agentOS VM serving the user's app." style="width:100%;height:auto;max-width:620px;display:block;margin:2.5rem auto 1rem;">
-  <defs>
-    <marker id="apps-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-      <path d="M0,0 L10,5 L0,10 z" fill="#1b1916" />
-    </marker>
-    <symbol id="apps-os" viewBox="0 0 100 100">
-      <rect x="8" y="8" width="84" height="84" rx="26" fill="none" stroke="#1b1916" stroke-width="8" />
-      <text x="50" y="50" text-anchor="middle" dominant-baseline="central" font-family="var(--sl-font)" font-weight="700" font-size="38" fill="#1b1916">OS</text>
-    </symbol>
-  </defs>
-
-  <rect x="12" y="66" width="126" height="58" rx="12" fill="#ffffff" stroke="#1b1916" stroke-width="1.5" />
-  <text x="75" y="91" text-anchor="middle" font-family="var(--sl-font)" font-size="14" font-weight="600" fill="#1b1916">Request</text>
-  <text x="75" y="110" text-anchor="middle" font-family="var(--sl-font)" font-size="10.5" fill="#56524a">Agent · Browser · API</text>
-
-  <line x1="140" y1="95" x2="184" y2="95" stroke="#1b1916" stroke-width="1.5" marker-end="url(#apps-arrow)" />
-
-  <rect x="190" y="42" width="174" height="106" rx="14" fill="#faf8f3" stroke="#1b1916" stroke-width="1.5" />
-  <text x="206" y="65" font-family="var(--sl-font)" font-size="13" font-weight="600" fill="#1b1916">Your Hono server</text>
-  <rect x="206" y="78" width="142" height="50" rx="8" fill="#ffffff" stroke="#1b1916" stroke-width="1.2" />
-  <text x="277" y="99" text-anchor="middle" font-family="var(--sl-font)" font-size="12" font-weight="600" fill="#1b1916">appsRouter</text>
-  <text x="277" y="116" text-anchor="middle" font-family="var(--sl-font)" font-size="10" fill="#56524a">auth · route</text>
-
-  <line x1="366" y1="95" x2="410" y2="95" stroke="#1b1916" stroke-width="1.5" marker-end="url(#apps-arrow)" />
-
-  <rect x="416" y="42" width="192" height="106" rx="14" fill="#faf8f3" stroke="#1b1916" stroke-width="1.5" />
-  <text x="432" y="65" font-family="var(--sl-font)" font-size="13" font-weight="600" fill="#1b1916">agentOS VM</text>
-  <rect x="432" y="78" width="160" height="50" rx="8" fill="#ffffff" stroke="#1b1916" stroke-width="1.2" />
-  <use href="#apps-os" x="444" y="88" width="30" height="30" />
-  <text x="485" y="99" font-family="var(--sl-font)" font-size="11.5" font-weight="600" fill="#1b1916">User's app</text>
-  <text x="485" y="116" font-family="var(--sl-font)" font-size="10" fill="#56524a">serves the response</text>
-</svg>
-
-Deployment is separate from serving. `deployApp()` builds the files in a
-sandboxed agentOS build VM and publishes an immutable release. The default
-`@rivet-dev/dynamic-apps` package stores releases in a per-app Rivet actor;
-`@rivet-dev/dynamic-apps-core` lets you supply another store.
-
-An app may also export a RivetKit registry. Those app-defined actors use normal
-Rivet routing for durable state, actions, events, and connections, while the
-same app's ordinary HTTP handler still runs through the agentOS VM.
-
-<Note>
-agentOS provides the filesystem, process, environment, and network permission
-boundary for direct requests. App-defined actor workers share the host process,
-so run one trust domain per container for mutually untrusted tenants.
-</Note>

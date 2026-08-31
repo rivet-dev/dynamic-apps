@@ -226,8 +226,6 @@ const dynamicApps = core.createDynamicApps({
 				bytes: new Uint8Array(input.artifact.bytes),
 				hash: createHash("sha256").update(input.artifact.bytes).digest("hex"),
 			},
-			regions: ["local"],
-			scaling: { minReplicas: 0, maxReplicas: 1, targetConcurrency: 1 },
 			maxRequestBytes: 1024 * 1024,
 			maxResponseBytes: 4 * 1024 * 1024,
 		};
