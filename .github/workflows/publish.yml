@@ -14,6 +14,11 @@ on:
         default: auto
         type: choice
         options: [auto, latest, rc, next, preview]
+      skip_tests:
+        description: Skip tests for an expedited manual publish
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -55,7 +60,8 @@ jobs:
       - run: node scripts/set-release-version.mjs ${{ steps.release.outputs.version }}
       - run: pnpm build
       - run: pnpm check-types
-      - run: pnpm test
+      - if: ${{ !inputs.skip_tests }}
+        run: pnpm test
       - run: pnpm check-boundaries
       - run: pnpm lint
       - run: pnpm test:packed
