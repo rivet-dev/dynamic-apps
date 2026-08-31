@@ -7,7 +7,10 @@ import { promisify } from "node:util";
 import { packAospkgFromTarBytes } from "@rivet-dev/agentos-toolchain";
 import { Hono } from "hono";
 import { afterEach, describe, expect, test } from "vitest";
-import { actorWorkerEnvironment } from "../src/actor-runtime.js";
+import {
+	actorWorkerEnvironment,
+	DynamicActorRuntime,
+} from "../src/actor-runtime.js";
 import type { AppRouteResolution } from "../src/actors.js";
 import { resolveDefaultRivetConnection } from "../src/control-plane.js";
 import { deployApp } from "../src/deploy.js";
@@ -387,6 +390,137 @@ describe("direct V8 execution", () => {
 			await artifact.dispose();
 		}
 	});
+
+	test("admits a request before buffering its body", async () => {
+		const artifact = await makeArtifact("admission");
+		const fake = fakeStateClient(artifact);
+		const executor = new DynamicAppsExecutor(
+			{
+				...executorConfig("prewarm"),
+				executionConcurrency: 1,
+				executionQueueSize: 0,
+			},
+			fake.client,
+		);
+		let releaseFirstBody = () => {};
+		const firstBodyGate = new Promise<void>((resolve) => {
+			releaseFirstBody = resolve;
+		});
+		let firstBodyPulled = false;
+		let secondBodyPulls = 0;
+		try {
+			await executor.request("demo", new Request("http://example.test/warm"));
+			const first = executor.request(
+				"demo",
+				streamingRequest("http://example.test/first", {
+					async pull(controller) {
+						if (firstBodyPulled) return;
+						firstBodyPulled = true;
+						controller.enqueue(new Uint8Array([1]));
+						await firstBodyGate;
+						controller.close();
+					},
+				}),
+			);
+			await waitFor(() => firstBodyPulled);
+			const second = executor.request(
+				"demo",
+				streamingRequest("http://example.test/second", {
+					pull(controller) {
+						secondBodyPulls += 1;
+						controller.close();
+					},
+				}),
+			);
+			const secondError = second.then(
+				() => undefined,
+				(error: unknown) => error,
+			);
+			await new Promise((resolve) => setTimeout(resolve, 25));
+			expect(secondBodyPulls).toBe(0);
+			releaseFirstBody();
+			expect((await first).status).toBe(200);
+			expect(await secondError).toMatchObject({
+				code: "agentos_apps_no_capacity",
+			});
+		} finally {
+			releaseFirstBody();
+			await executor.dispose();
+			await artifact.dispose();
+		}
+	});
+
+	test("bounds the total prewarm cache across applications", async () => {
+		const artifacts = await Promise.all(
+			Array.from({ length: 6 }, (_, index) => makeArtifact(`multi-${index}`)),
+		);
+		const fake = fakeMultiStateClient(
+			new Map(
+				artifacts.map((artifact, index) => [`app-${index}`, artifact] as const),
+			),
+		);
+		const executor = new DynamicAppsExecutor(
+			{
+				...executorConfig("prewarm"),
+				runtimeCacheMaxEntries: artifacts.length,
+				isolatePoolMaxTotal: 4,
+			} as ExecutorConfig,
+			fake.client,
+		);
+		try {
+			for (let index = 0; index < artifacts.length; index += 1) {
+				const response = await executor.request(
+					`app-${index}`,
+					new Request(`http://example.test/${index}`),
+				);
+				expect(response.status).toBe(200);
+			}
+			expect(executor.diagnostics()).toMatchObject({
+				runtimes: artifacts.length,
+				cleanIsolates: 4,
+			});
+		} finally {
+			await executor.dispose();
+			await Promise.all(artifacts.map((artifact) => artifact.dispose()));
+		}
+	});
+});
+
+describe("actor callback resource limits", () => {
+	test("stops reading a callback body when it crosses the limit", async () => {
+		const runtime = new DynamicActorRuntime({
+			DYNAMIC_APPS_ACTOR_START_PAYLOAD_MAX_BYTES: "1024",
+		});
+		let pulls = 0;
+		let cancelled = false;
+		const request = streamingRequest("http://example.test/start", {
+			pull(controller) {
+				pulls += 1;
+				controller.enqueue(new Uint8Array(1024));
+				if (pulls === 64) controller.close();
+			},
+			cancel() {
+				cancelled = true;
+			},
+		});
+		try {
+			const response = await runtime.request({
+				key: "oversized",
+				loadArtifact: async () => {
+					throw new Error("oversized input must fail before artifact loading");
+				},
+				endpoint: "http://example.test",
+				namespace: "test",
+				pool: "default",
+				request,
+			});
+			expect(response.status).toBe(413);
+			expect(pulls).toBeLessThanOrEqual(2);
+			expect(cancelled).toBe(true);
+		} finally {
+			await runtime.dispose();
+		}
+	});
 });
 
 async function waitForCleanPool(
@@ -398,6 +532,25 @@ async function waitForCleanPool(
 		await new Promise((resolve) => setTimeout(resolve, 1));
 	}
 	throw new Error("prewarm pool did not refill");
+}
+
+async function waitFor(predicate: () => boolean): Promise<void> {
+	for (let attempt = 0; attempt < 1_000; attempt += 1) {
+		if (predicate()) return;
+		await new Promise((resolve) => setTimeout(resolve, 1));
+	}
+	throw new Error("condition did not become true");
+}
+
+function streamingRequest(
+	url: string,
+	source: UnderlyingDefaultSource<Uint8Array>,
+): Request {
+	return new Request(url, {
+		method: "POST",
+		body: new ReadableStream(source, { highWaterMark: 0 }),
+		duplex: "half",
+	} as RequestInit & { duplex: "half" });
 }
 
 function executorConfig(
@@ -515,6 +668,67 @@ function fakeStateClient(artifact: TestArtifact) {
 						return {
 							ready: Promise.resolve(),
 							connStatus: "connected",
+							on: () => () => {},
+							onOpen: () => () => {},
+							onClose: () => () => {},
+							dispose: async () => {},
+						};
+					},
+				};
+			},
+		},
+	};
+	return { client, calls };
+}
+
+function fakeMultiStateClient(artifacts: Map<string, TestArtifact>) {
+	const calls = { resolve: 0, manifest: 0, chunk: 0 };
+	const client = {
+		agentOSAppsApp: {
+			getOrCreate(key: string[]) {
+				const appId = key[0] ?? "";
+				const artifact = artifacts.get(appId);
+				if (!artifact) throw new Error(`unknown test app ${appId}`);
+				const resolution: AppRouteResolution = {
+					appId,
+					release: artifact.release,
+					region: "local",
+					regions: ["local"],
+					revision: 1,
+					artifactHash: artifact.hash,
+					artifactBytes: artifact.bytes.byteLength,
+					entrypoint: DIRECT_ENTRYPOINT,
+					namespace: "test",
+					scaling: {
+						minReplicas: 0,
+						maxReplicas: 128,
+						targetConcurrency: 8,
+					},
+					maxRequestBytes: 1024 * 1024,
+					maxResponseBytes: 4 * 1024 * 1024,
+				};
+				return {
+					async resolveDeployment() {
+						calls.resolve += 1;
+						return resolution;
+					},
+					async getArtifactManifest() {
+						calls.manifest += 1;
+						return {
+							format: DIRECT_RUNTIME_FORMAT,
+							hash: artifact.hash,
+							bytes: artifact.bytes.byteLength,
+							chunks: 1,
+							chunkBytes: artifact.bytes.byteLength,
+						};
+					},
+					async readArtifactChunk() {
+						calls.chunk += 1;
+						return artifact.bytes;
+					},
+					connect() {
+						return {
+							ready: Promise.resolve(),
 							on: () => () => {},
 							onOpen: () => () => {},
 							onClose: () => () => {},
