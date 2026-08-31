@@ -49,6 +49,8 @@ const STRESS_CASES = [
 	"admission",
 	"actorOversize",
 	"actorStartup",
+	"actorTraffic",
+	"actorChurn",
 ] as const;
 
 type StressCase = (typeof STRESS_CASES)[number];
@@ -164,13 +166,26 @@ async function main(): Promise<void> {
 		4 * 1024 * 1024,
 	);
 	const coldFanout = integerEnv("STRESS_COLD_FANOUT", 16, 1, 128);
+	const actorChurnRequests = integerEnv(
+		"STRESS_ACTOR_CHURN_REQUESTS",
+		64,
+		8,
+		10_000,
+	);
 	const baselineMemory = memorySnapshot();
 	const artifacts = await Promise.all(
 		Array.from({ length: appCount + 3 }, (_, index) =>
 			createDirectArtifact(`stress-${index}`),
 		),
 	);
-	const actorArtifact = await createActorArtifact("while (true) {}");
+	const actorStartupArtifact = await createActorArtifact(
+		"actor-stall",
+		"while (true) {}",
+	);
+	const actorTrafficArtifact = await createActorArtifact(
+		"actor-traffic",
+		actorTrafficSource(),
+	);
 	const result: StressResult = {
 		config: {
 			appCount,
@@ -181,6 +196,7 @@ async function main(): Promise<void> {
 			requestBytes,
 			responseBytes,
 			coldFanout,
+			actorChurnRequests,
 		},
 		cases: {},
 		memory: { baseline: baselineMemory, final: baselineMemory },
@@ -227,12 +243,19 @@ async function main(): Promise<void> {
 			actorOversizeStress(requests, concurrency),
 		);
 		await runStressCase(result, selectedCases, "actorStartup", () =>
-			actorStartupStress(actorArtifact, Math.min(concurrency, 16)),
+			actorStartupStress(actorStartupArtifact, Math.min(concurrency, 16)),
+		);
+		await runStressCase(result, selectedCases, "actorTraffic", () =>
+			actorTrafficStress(actorTrafficArtifact, requests, concurrency),
+		);
+		await runStressCase(result, selectedCases, "actorChurn", () =>
+			actorChurnStress(actorTrafficArtifact, actorChurnRequests, concurrency),
 		);
 	} finally {
 		await Promise.allSettled([
 			...artifacts.map((artifact) => artifact.dispose()),
-			actorArtifact.dispose(),
+			actorStartupArtifact.dispose(),
+			actorTrafficArtifact.dispose(),
 		]);
 	}
 
@@ -625,6 +648,108 @@ async function actorStartupStress(
 	}
 }
 
+async function actorTrafficStress(
+	artifact: Artifact,
+	requests: number,
+	concurrency: number,
+): Promise<unknown> {
+	const runtime = new DynamicActorRuntime({
+		DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES: "1",
+		DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS: "10000",
+	});
+	const latencies: number[] = [];
+	const counters = new Set<number>();
+	let artifactLoads = 0;
+	const rss = rssSampler();
+	const startedAt = performance.now();
+	try {
+		await runConcurrent(requests, Math.min(concurrency, 64), async (index) => {
+			const requestStartedAt = performance.now();
+			const response = await runtime.request({
+				key: "traffic",
+				loadArtifact: async () => {
+					artifactLoads += 1;
+					return artifact.bytes;
+				},
+				endpoint: "http://stress.test",
+				namespace: "stress",
+				pool: "default",
+				request: new Request(`http://stress.test/traffic/${index}`, {
+					method: "POST",
+					body: Uint8Array.of(index & 255),
+				}),
+			});
+			assert.equal(response.status, 200);
+			const body = (await response.json()) as {
+				counter: number;
+				requestBytes: number;
+			};
+			assert.equal(body.requestBytes, 1);
+			counters.add(body.counter);
+			latencies.push(performance.now() - requestStartedAt);
+		});
+		assert.equal(artifactLoads, 1);
+		assert.equal(counters.size, requests);
+		assert(counters.has(requests));
+		return {
+			requests,
+			artifactLoads,
+			elapsedMs: round(performance.now() - startedAt),
+			requestsPerSecond: round(
+				requests / ((performance.now() - startedAt) / 1_000),
+			),
+			latencyMs: summarize(latencies),
+			peakRssBytes: rss.peak(),
+		};
+	} finally {
+		rss.stop();
+		await runtime.dispose();
+	}
+}
+
+async function actorChurnStress(
+	artifact: Artifact,
+	requests: number,
+	concurrency: number,
+): Promise<unknown> {
+	const maxEntries = 4;
+	const keys = Math.max(maxEntries + 1, Math.min(16, concurrency));
+	const runtime = new DynamicActorRuntime({
+		DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES: String(maxEntries),
+		DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS: "10000",
+	});
+	let artifactLoads = 0;
+	const startedAt = performance.now();
+	try {
+		await runConcurrent(requests, Math.min(concurrency, 32), async (index) => {
+			const response = await runtime.request({
+				key: `churn-${index % keys}`,
+				loadArtifact: async () => {
+					artifactLoads += 1;
+					return artifact.bytes;
+				},
+				endpoint: "http://stress.test",
+				namespace: "stress",
+				pool: "default",
+				request: new Request(`http://stress.test/churn/${index}`, {
+					method: "POST",
+				}),
+			});
+			assert.equal(response.status, 200);
+			await response.arrayBuffer();
+		});
+		return {
+			requests,
+			keys,
+			maxEntries,
+			artifactLoads,
+			elapsedMs: round(performance.now() - startedAt),
+		};
+	} finally {
+		await runtime.dispose();
+	}
+}
+
 function executorConfig(input: {
 	appEntries: number;
 	concurrency: number;
@@ -694,8 +819,24 @@ globalThis.__dynamicAppDispatch = async function(inputJson) {
 	return createArtifact(marker, "direct", source);
 }
 
-function createActorArtifact(source: string): Promise<Artifact> {
-	return createArtifact("actor-stall", "actor", source);
+function createActorArtifact(
+	marker: string,
+	source: string,
+): Promise<Artifact> {
+	return createArtifact(marker, "actor", source);
+}
+
+function actorTrafficSource(): string {
+	return `
+let counter = 0;
+export const registry = {
+  async handler(request) {
+    counter += 1;
+    const requestBytes = (await request.arrayBuffer()).byteLength;
+    return Response.json({ counter, requestBytes });
+  },
+};
+`;
 }
 
 async function createArtifact(

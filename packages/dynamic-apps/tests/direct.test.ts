@@ -585,6 +585,46 @@ describe("actor callback resource limits", () => {
 			await artifact.dispose();
 		}
 	});
+
+	test("serves concurrent actor worker cache churn without losing requests", async () => {
+		const artifact = await makeActorArtifact(`
+export const registry = {
+  async handler() {
+    return new Response("ok");
+  },
+};
+`);
+		const runtime = new DynamicActorRuntime({
+			DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES: "4",
+			DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS: "1000",
+		});
+		try {
+			const outcome = await Promise.race([
+				Promise.all(
+					Array.from({ length: 8 }, async (_, index) => {
+						const response = await runtime.request({
+							key: `churn-${index}`,
+							loadArtifact: async () => artifact.bytes,
+							endpoint: "http://example.test",
+							namespace: "test",
+							pool: "default",
+							request: new Request(`http://example.test/${index}`, {
+								method: "POST",
+							}),
+						});
+						expect(await response.text()).toBe("ok");
+					}),
+				).then(() => "complete" as const),
+				new Promise<"hung">((resolve) =>
+					setTimeout(() => resolve("hung"), 1_000),
+				),
+			]);
+			expect(outcome).toBe("complete");
+		} finally {
+			await runtime.dispose();
+			await artifact.dispose();
+		}
+	}, 5_000);
 });
 
 async function waitForCleanPool(
