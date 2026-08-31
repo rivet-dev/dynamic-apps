@@ -304,6 +304,19 @@ export async function provisionAppNamespace(
 	};
 }
 
+/** Runtime coordinates for an app deployed with createNamespace: false. */
+export function unprovisionedAppNamespace(
+	appId: string,
+	connection = resolveDefaultRivetConnection(),
+): ProvisionedAppNamespace {
+	return {
+		namespace: connection.namespace,
+		endpoint: connection.endpoint,
+		pool: appRunnerPool(appId),
+		controlToken: connection.token,
+	};
+}
+
 function serverlessAppCallback(
 	appActorId: string,
 	connection: ResolvedRivetConnection,

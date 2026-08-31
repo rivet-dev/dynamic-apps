@@ -304,6 +304,14 @@ function nodeFileSystemPlugin() {
 					return { path: resolver.resolve(args.path) };
 				} catch (error) {
 					if (
+						args.path === "@hono/node-server" ||
+						args.path === "hono/ws"
+					) {
+						try {
+							return { path: builderRequire.resolve(args.path) };
+						} catch {}
+					}
+					if (
 						config.usesRivetKit &&
 						(args.path === "rivetkit" ||
 							args.path.startsWith("rivetkit/") ||

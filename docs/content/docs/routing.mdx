@@ -1,11 +1,14 @@
 ---
-title: "Route requests"
-description: "Mount direct app traffic and the private Rivet callback on a Hono server."
+title: "Route"
+description: "Serve every deployed app from your own server."
 skill: true
 ---
 
-The package root exports one router. Mount ordinary application traffic at any
-prefix and forward the private `/api/rivet/*` callback to the same router:
+`appsRouter` serves every deployed app at `/:appId/*`.
+
+## Getting started
+
+Mount it at any prefix and forward the private `/api/rivet/*` callback to it:
 
 ```ts
 import { appsRouter } from "@rivet-dev/dynamic-apps";
@@ -17,8 +20,5 @@ server.all("/api/rivet/*", (c) => appsRouter.fetch(c.req.raw));
 server.route("/apps", appsRouter);
 ```
 
-This serves `/:appId/*` relative to the mount. For example,
-`/apps/example/api/items?q=1` reaches the deployed handler as
-`/api/items?q=1`. A bare `/apps/example` request redirects to
-`/apps/example/`.
-
+A request to `/apps/example/api/items` reaches that app's handler as
+`/api/items`.

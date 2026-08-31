@@ -37,15 +37,13 @@ bodies are not supported.
 
 ## App-defined actors
 
-An app that declares `rivetkit` mounts the registry handler in its normal fetch
-router and starts an HTTP server on `PORT` when it runs in serverless mode.
-Dynamic Apps waits for the server entrypoint's listening callback before
-forwarding callbacks:
+An app that declares `rivetkit` mounts the registry handler in its exported
+fetch router. Dynamic Apps owns the HTTP listener and uses the same cached
+agentOS process for ordinary routes and Rivet callbacks:
 
 ```ts
 import { actor, setup } from "rivetkit";
 import { Hono } from "hono";
-import { serve } from "@hono/node-server";
 
 const counter = actor({
 	state: { value: 0 },
@@ -60,24 +58,12 @@ const registry = setup({ use: { counter } });
 const app = new Hono();
 app.all("/api/rivet/*", (c) => registry.handler(c.req.raw));
 app.all("*", () => new Response("ok"));
-if (process.env.RIVETKIT_RUNTIME_MODE === "serverless") {
-	await new Promise((resolve, reject) => {
-		const server = serve(
-			{
-				fetch: app.fetch,
-				port: Number(process.env.PORT),
-				hostname: "0.0.0.0",
-			},
-			resolve,
-		);
-		server.once("error", reject);
-	});
-}
 export default app;
 ```
 
-Awaiting Hono's listening callback makes module completion the readiness signal;
-Dynamic Apps does not poll an application health route.
+Do not call `serve()`, `registry.start()`, or bind a port in application code.
+Dynamic Apps starts the platform listener and waits for its listening callback;
+it does not poll an application health route.
 
 Use the unchanged `deployApp` result to create the app client:
 
@@ -119,8 +105,9 @@ receiver that accepts child-namespace lifecycle callbacks; Dynamic Apps appends
 Actor requests follow the normal Rivet Engine path. The app's serverless
 callback mounts its verified artifact in agentOS and runs the bundled RivetKit
 WebAssembly runtime in serverless mode. State, actions, events, connections,
-and streaming actor responses are handled by RivetKit inside the sandbox;
-ordinary HTTP for the same app uses the agentOS evaluation path.
+and streaming actor responses are handled by RivetKit inside the sandbox. The
+same listener serves the app's ordinary HTTP routes without importing the app a
+second time.
 
 Rivet Engine requires `/api/rivet/start` to return a long-lived SSE control
 stream containing the real runner-init packet and keepalive pings. Actor traffic
@@ -169,6 +156,9 @@ const deployment = await deployApp({
 ## Execution modes
 
 `DYNAMIC_APPS_EXECUTION_MODE` selects the request execution strategy:
+
+These modes apply to apps without RivetKit actors. Actor-enabled apps use one
+cached server process for both ordinary HTTP and Rivet callbacks.
 
 | Mode | Cached object | Cache-hit request |
 | --- | --- | --- |
@@ -242,10 +232,9 @@ blocking network request in the callback.
 ## Memory and trust boundary
 
 Each immutable release owns one bounded agentOS VM with a read-only mounted
-artifact. Context count, runtime entries, artifact bytes, idle TTLs, execution
-concurrency, queues, and cgroup high-water eviction are independently bounded.
-Successful pooled contexts are reset and reinitialized; failed, timed-out, or
-aborted contexts are deleted.
+artifact. Apps without actors use resettable evaluation contexts. Actor-enabled
+apps use one cached server process so ordinary HTTP and Rivet's streaming
+callback share a single module instance.
 
 agentOS supplies the filesystem, process, environment, and network permission
 boundary for both direct HTTP and app-defined actors. RivetKit actors use the

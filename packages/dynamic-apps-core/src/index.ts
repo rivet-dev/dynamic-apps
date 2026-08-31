@@ -1,7 +1,8 @@
 export { createDynamicApps } from "./factory.js";
 export type {
 	ActiveRelease,
-	AppScaling,
+	ApplicationServerRuntime,
+	ApplicationServerRuntimeRequest,
 	BuildArtifactCache,
 	BuildConfig,
 	BuiltAppRelease,

@@ -1,17 +1,25 @@
 ---
-title: "Static Websites"
+title: "Frontends & Static Sites"
 description: "Serve an HTML, CSS, and JavaScript site from a Dynamic App."
 ---
 
-An app is a directory with a `package.json` and a server entrypoint. A static
+import ExampleLinkBar from "@/components/docs/ExampleLinkBar.astro";
+
+<ExampleLinkBar href="https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-static-website" />
+
+An app is a directory with a `package.json` and a fetch entrypoint. A static
 site is the same directory plus a `public/` folder and a handler that serves
-it. [View the complete example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-static-website).
+it.
+
+## Example generated code
 
 <CodeGroup>
 <CodeSnippet file="examples/apps-static-website/fixtures/app/src/index.ts" title="src/index.ts" />
 <CodeSnippet file="examples/apps-static-website/fixtures/app/public/index.html" title="public/index.html" />
 <CodeSnippet file="examples/apps-static-website/fixtures/app/package.json" title="package.json" />
 </CodeGroup>
+
+## Deploy and route
 
 Deploy the directory and open `/apps/static-website/`:
 

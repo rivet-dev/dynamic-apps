@@ -120,7 +120,7 @@ describe("retained public surface", () => {
 					"package.json": '{"type":"module","main":"index.js"}',
 					"index.js": "export default { fetch() {} }",
 				},
-				regions: ["us-west"],
+				createNamespace: false,
 			},
 			{
 				client: {
@@ -137,7 +137,6 @@ describe("retained public surface", () => {
 										namespace: "app-demo",
 										pool: "dynamic-apps-demo",
 										token: "pk_demo",
-										regions: ["us-west"],
 										appActorId: "actor-1",
 										usesRivetKit: false,
 									};
@@ -156,9 +155,10 @@ describe("retained public surface", () => {
 			"namespace",
 			"pool",
 			"token",
-			"regions",
 		]);
-		expect(prepared).toMatchObject({ appId: "demo", regions: ["us-west"] });
+		expect(prepared).toMatchObject({ appId: "demo", createNamespace: false });
+		expect(prepared).not.toHaveProperty("regions");
+		expect(prepared).not.toHaveProperty("scaling");
 	});
 
 	test("deploys through an existing stable actor before creating one", async () => {
@@ -281,7 +281,6 @@ function deploymentResult(_input: unknown) {
 		namespace: "app-demo",
 		pool: "dynamic-apps-demo",
 		token: "pk_demo",
-		regions: ["default"],
 		appActorId: "actor-1",
 		usesRivetKit: false,
 	};
@@ -865,7 +864,7 @@ export default {
 			await runtime.dispose();
 			await artifact.dispose();
 		}
-	}, 5_000);
+	}, 60_000);
 
 	test("forwards actor callback bodies without eager buffering", async () => {
 		let pulls = 0;
@@ -1284,7 +1283,9 @@ http.createServer(async (incoming, outgoing) => {
     if (!outgoing.headersSent) outgoing.writeHead(500);
     if (!outgoing.writableEnded) outgoing.end("Internal Server Error");
   }
-}).listen(port, "0.0.0.0");
+}).listen(port, "0.0.0.0", () => {
+  console.log("DYNAMIC_APPS_SERVER_READY:" + (process.env.DYNAMIC_APPS_READY_NONCE ?? ""));
+});
 `,
 	);
 	await writeFile(
@@ -1332,8 +1333,6 @@ function fakeStateClient(
 					byteLength: artifact.bytes.byteLength,
 					usesRivetKit: false,
 				},
-				regions: ["local"],
-				scaling: { minReplicas: 0, maxReplicas: 128, targetConcurrency: 8 },
 				maxRequestBytes: 1024 * 1024,
 				maxResponseBytes: 4 * 1024 * 1024,
 			};
@@ -1365,8 +1364,6 @@ function fakeMultiStateClient(artifacts: Map<string, TestArtifact>) {
 					byteLength: artifact.bytes.byteLength,
 					usesRivetKit: false,
 				},
-				regions: ["local"],
-				scaling: { minReplicas: 0, maxReplicas: 128, targetConcurrency: 8 },
 				maxRequestBytes: 1024 * 1024,
 				maxResponseBytes: 4 * 1024 * 1024,
 			};

@@ -3,6 +3,10 @@ import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { AgentOs } from "@rivet-dev/agentos-core";
+import type {
+	ApplicationServerRuntime,
+	ApplicationServerRuntimeRequest,
+} from "@rivet-dev/dynamic-apps-core";
 import { emitDynamicAppsLog } from "./logging.js";
 
 const ACTOR_HTTP_PORT = 3000;
@@ -27,14 +31,22 @@ interface ActorRuntimeConfig {
 	requestTimeoutMs: number;
 }
 
-export interface ActorRuntimeRequest {
+export interface ActorRuntimeRequest
+	extends Omit<
+		ApplicationServerRuntimeRequest,
+		"appId" | "release" | "environment"
+	> {
 	key: string;
 	appId?: string;
 	release?: string;
 	loadArtifact: () => Promise<Uint8Array>;
-	endpoint: string;
-	namespace: string;
-	pool: string;
+	environment?: Record<string, string>;
+	/** @deprecated Use environment. */
+	endpoint?: string;
+	/** @deprecated Use environment. */
+	namespace?: string;
+	/** @deprecated Use environment. */
+	pool?: string;
 	request: Request;
 }
 
@@ -51,7 +63,7 @@ interface RuntimeEntry {
 }
 
 /** Runs RivetKit callbacks in cached agentOS VMs using its native HTTP stream. */
-export class DynamicActorRuntime {
+export class DynamicActorRuntime implements ApplicationServerRuntime {
 	readonly config: ActorRuntimeConfig;
 	readonly #entries = new Map<string, RuntimeEntry>();
 	readonly #creating = new Map<string, Promise<RuntimeEntry>>();
@@ -121,7 +133,7 @@ export class DynamicActorRuntime {
 	async request(input: ActorRuntimeRequest): Promise<Response> {
 		const body = await readBoundedBody(
 			input.request.body,
-			this.config.maxStartPayloadBytes,
+			input.maxRequestBytes ?? this.config.maxStartPayloadBytes,
 		);
 		if (!body)
 			return new Response("RivetKit actor start payload exceeds limit", {
@@ -150,6 +162,7 @@ export class DynamicActorRuntime {
 		}
 
 		let settled = false;
+		let responseBytes = 0;
 		const settle = () => {
 			if (settled) return;
 			settled = true;
@@ -169,6 +182,20 @@ export class DynamicActorRuntime {
 				if (settled) return controller.close();
 				try {
 					const chunk = await entry.vm.fetchStreamRead(head.streamId);
+					responseBytes += chunk.body.byteLength;
+					if (
+						input.maxResponseBytes !== undefined &&
+						responseBytes > input.maxResponseBytes
+					) {
+						await entry.vm.fetchStreamCancel(head.streamId).catch(() => {});
+						controller.error(
+							new RangeError(
+								"Dynamic App response exceeds the configured limit",
+							),
+						);
+						settle();
+						return;
+					}
 					if (chunk.body.byteLength > 0) controller.enqueue(chunk.body);
 					if (chunk.done) {
 						controller.close();
@@ -276,6 +303,7 @@ export class DynamicActorRuntime {
 		const artifactPath = join(directory, "release.aospkg");
 		let vm: AgentOs | undefined;
 		try {
+			const environment = resolveWorkerEnvironment(input);
 			await chmod(directory, 0o700);
 			await writeFile(artifactPath, await input.loadArtifact(), {
 				mode: 0o600,
@@ -283,7 +311,7 @@ export class DynamicActorRuntime {
 			vm = await AgentOs.create({
 				sidecar: { kind: "shared", pool: "dynamic-apps-actors" },
 				defaultSoftware: false,
-				loopbackExemptPorts: loopbackExemptPorts(input.endpoint),
+				loopbackExemptPorts: loopbackExemptPorts(environment.RIVET_ENDPOINT),
 				mounts: [
 					{
 						path: "/app",
@@ -322,7 +350,8 @@ export class DynamicActorRuntime {
 			const process = await vm.process.spawn("node", ["/app/actor/main.mjs"], {
 				cwd: "/app/actor",
 				env: stringEnvironment({
-					...actorWorkerEnvironment(input),
+					...environment,
+					PORT: String(ACTOR_HTTP_PORT),
 					DYNAMIC_APPS_READY_NONCE: readyNonce,
 				}),
 				onStdout: (data) => {
@@ -519,9 +548,12 @@ async function withTimeout<T>(
 }
 
 /** @internal */
-export function actorWorkerEnvironment(
-	input: Pick<ActorRuntimeRequest, "endpoint" | "key" | "namespace" | "pool">,
-): NodeJS.ProcessEnv {
+export function actorWorkerEnvironment(input: {
+	endpoint: string;
+	key: string;
+	namespace: string;
+	pool: string;
+}): NodeJS.ProcessEnv {
 	const endpoint = new URL(input.endpoint);
 	const endpointNamespace = endpoint.username
 		? decodeURIComponent(endpoint.username)
@@ -551,6 +583,23 @@ export function actorWorkerEnvironment(
 	};
 }
 
+function resolveWorkerEnvironment(
+	input: ActorRuntimeRequest,
+): Record<string, string> {
+	if (input.environment) return { ...input.environment };
+	if (!input.endpoint || !input.namespace || !input.pool) {
+		throw new Error("Dynamic App server runtime environment is missing");
+	}
+	return stringEnvironment(
+		actorWorkerEnvironment({
+			endpoint: input.endpoint,
+			key: input.key,
+			namespace: input.namespace,
+			pool: input.pool,
+		}),
+	);
+}
+
 function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
 	return Object.fromEntries(
 		Object.entries(env).filter(
@@ -559,7 +608,8 @@ function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
 	);
 }
 
-function loopbackExemptPorts(endpoint: string): number[] {
+function loopbackExemptPorts(endpoint: string | undefined): number[] {
+	if (!endpoint) return [];
 	const url = new URL(endpoint);
 	if (
 		url.hostname !== "127.0.0.1" &&

@@ -1,0 +1,29 @@
+---
+title: "Customize the VM"
+description: "Configure the agentOS VM that builds and serves each app."
+skill: true
+---
+
+With [Core](/dynamic-apps/docs/core), use the `vm` option to configure the
+agentOS VM that serves each app:
+
+```ts
+const dynamicApps = createDynamicApps({
+  // Release hooks omitted.
+  vm: {
+    software: [firstPackage, secondPackage],
+    onAgentStderr: (event) => logger.error(event),
+    onLimitWarning: (warning) => logger.warn(warning),
+  },
+});
+```
+
+Dynamic Apps itself controls where the app's code is placed in the VM and the
+V8 heap limit. `vm` options cannot override them.
+Use the separate `logger` option for application output and build events.
+
+The VM itself is configured through agentOS:
+
+- [Software](/agentos/docs/software): packages available inside the VM
+- [Resource Limits](/agentos/docs/resource-limits): CPU, memory, and disk caps
+- [Permissions](/agentos/docs/permissions): filesystem, process, and network boundaries

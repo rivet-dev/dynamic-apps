@@ -10,7 +10,10 @@
 	},
 	"type": "module",
 	"sideEffects": false,
-	"files": ["dist", "package.json"],
+	"files": [
+		"dist",
+		"package.json"
+	],
 	"exports": {
 		".": {
 			"import": {
@@ -25,7 +28,9 @@
 			}
 		}
 	},
-	"engines": { "node": ">=22.0.0" },
+	"engines": {
+		"node": ">=22.0.0"
+	},
 	"scripts": {
 		"build": "tsup src/index.ts src/internal.ts --format esm --dts --sourcemap --clean --external @rivet-dev/agentos-core --external @rivet-dev/agentos-toolchain --external @rivet-dev/dynamic-apps-builder --external @agentos-software/sh --external @agentos-software/tar",
 		"check-types": "tsc --noEmit",
@@ -37,7 +42,7 @@
 		"@rivet-dev/agentos-core": "0.2.18",
 		"@rivet-dev/agentos-toolchain": "0.2.18",
 		"@rivet-dev/dynamic-apps-builder": "workspace:0.3.0",
-		"hono": "^4.7.0"
+		"hono": "^4.13.5"
 	},
 	"devDependencies": {
 		"@types/node": "^22.19.15",

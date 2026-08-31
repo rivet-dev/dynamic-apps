@@ -17,13 +17,7 @@ const port = await new Promise((resolve, reject) => {
 
 const child = spawn(
 	process.execPath,
-	[
-		"--import",
-		"tsx",
-		"examples/apps-core-quickstart/src/server.ts",
-		"--host",
-		"0.0.0.0",
-	],
+	["--import", "tsx", "examples/apps-core-quickstart/src/server.ts"],
 	{
 		stdio: ["ignore", "pipe", "inherit"],
 		env: { ...process.env, PORT: String(port) },

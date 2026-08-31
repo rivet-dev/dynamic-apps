@@ -1,3 +1,4 @@
+// docs:start setup
 import { serve } from "@hono/node-server";
 import {
 	type ActiveRelease,
@@ -19,12 +20,6 @@ const dynamicApps = createDynamicApps({
 				...input.artifact,
 				bytes: new Uint8Array(input.artifact.bytes),
 			},
-			regions: input.regions ?? ["local"],
-			scaling: {
-				minReplicas: input.scaling?.minReplicas ?? 0,
-				maxReplicas: input.scaling?.maxReplicas ?? 1,
-				targetConcurrency: input.scaling?.targetConcurrency ?? 8,
-			},
 			maxRequestBytes: 1024 * 1024,
 			maxResponseBytes: 4 * 1024 * 1024,
 		};
@@ -38,8 +33,6 @@ const dynamicApps = createDynamicApps({
 		return release
 			? {
 					...release,
-					regions: [...release.regions],
-					scaling: { ...release.scaling },
 					artifact: {
 						...release.artifact,
 						bytes: new Uint8Array(release.artifact.bytes),
@@ -57,21 +50,9 @@ const dynamicApps = createDynamicApps({
 		};
 	},
 });
+// docs:end setup
 
-const app = new Hono();
-app.route("/apps", dynamicApps.appsRouter);
-
-let server: ReturnType<typeof serve> | undefined;
-let shuttingDown = false;
-const shutdown = async () => {
-	if (shuttingDown) return;
-	shuttingDown = true;
-	await dynamicApps.dispose();
-	server?.close();
-};
-process.once("SIGINT", () => void shutdown());
-process.once("SIGTERM", () => void shutdown());
-
+// docs:start deploy
 await dynamicApps.deployApp({
 	appId: "hello",
 	files: {
@@ -89,10 +70,13 @@ await dynamicApps.deployApp({
 		`,
 	},
 });
+// docs:end deploy
 
-const hostIndex = process.argv.indexOf("--host");
-const hostname = hostIndex >= 0 ? process.argv[hostIndex + 1] : "127.0.0.1";
-if (!hostname) throw new Error("--host requires a value");
+// docs:start routing
+const app = new Hono();
+app.route("/apps", dynamicApps.appsRouter);
+
 const port = Number(process.env.PORT ?? 3000);
-server = serve({ fetch: app.fetch, hostname, port });
-console.log(`Dynamic Apps Core listening on http://${hostname}:${port}`);
+serve({ fetch: app.fetch, port });
+console.log(`Dynamic Apps Core listening on http://localhost:${port}`);
+// docs:end routing

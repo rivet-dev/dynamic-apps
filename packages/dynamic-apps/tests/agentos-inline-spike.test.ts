@@ -115,7 +115,7 @@ export async function dispatch(request) {
 			timeoutMs: 5_000,
 		});
 		controller.abort();
-		await expect(aborted).rejects.toMatchObject({ name: "AbortError" });
+		await expect(aborted).resolves.toMatchObject({ outcome: "cancelled" });
 	} finally {
 		await vm?.dispose();
 		await rm(directory, { recursive: true, force: true });

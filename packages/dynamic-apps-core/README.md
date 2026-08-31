@@ -22,12 +22,6 @@ const dynamicApps = createDynamicApps({
 				...input.artifact,
 				bytes: new Uint8Array(input.artifact.bytes),
 			},
-			regions: input.regions ?? ["local"],
-			scaling: {
-				minReplicas: input.scaling?.minReplicas ?? 0,
-				maxReplicas: input.scaling?.maxReplicas ?? 1,
-				targetConcurrency: input.scaling?.targetConcurrency ?? 8,
-			},
 			maxRequestBytes: 1024 * 1024,
 			maxResponseBytes: 4 * 1024 * 1024,
 		};
@@ -64,9 +58,38 @@ Each factory instance owns its builder configuration, router, release
 subscriptions, runtime cache, agentOS context pool, and cleanup timer. Await
 `dynamicApps.dispose()` during shutdown.
 
+Application entrypoints always default-export a Fetch-compatible handler. They
+must not call `serve()`, `listen()`, or `registry.start()`; the serving runtime
+owns the listener.
+
+For a release whose artifact has `usesRivetKit: true`, `loadActiveRelease` must
+also return its `server.environment`, and the factory must receive an
+`ApplicationServerRuntime` through `serverRuntime`. That shared runtime handles
+ordinary HTTP and Rivet callbacks in one cached process. The standard
+`@rivet-dev/dynamic-apps` package wires this automatically.
+
 The default `pooled` mode leases a bounded agentOS context and resets it after
 each request. `ephemeral` mode creates a fresh context per request while reusing
 the immutable release VM. Use container isolation between trust domains.
+
+Pass additional VM configuration through `vm`. This supports any
+number of agentOS software packages as well as runtime observability callbacks:
+
+```ts
+const dynamicApps = createDynamicApps({
+	// Release hooks omitted.
+	vm: {
+		software: [firstPackage, secondPackage],
+		onAgentStderr: (event) => logger.error(event),
+		onLimitWarning: (warning) => logger.warn(warning),
+	},
+});
+```
+
+Dynamic Apps retains ownership of the `/app` artifact mount and the V8 heap
+limit used for executor memory accounting. Other agentOS options pass through
+to each serving VM. The Dynamic Apps `logger` continues to receive application
+stdout/stderr and build events.
 
 The in-memory example is development-only: it loses releases on restart and
 cannot invalidate another process. Use durable object storage plus a reliable

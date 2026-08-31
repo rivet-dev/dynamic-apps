@@ -1,8 +1,5 @@
 import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
-import type {
-	AppScaling,
-	BuildArtifactCache,
-} from "@rivet-dev/dynamic-apps-core";
+import type { BuildArtifactCache } from "@rivet-dev/dynamic-apps-core";
 import {
 	buildAppRelease,
 	DIRECT_ENTRYPOINT,
@@ -16,11 +13,13 @@ import {
 	configureAppNamespaceRunner,
 	provisionAppNamespace,
 	resolveDefaultRivetConnection,
+	unprovisionedAppNamespace,
 } from "./control-plane.js";
 import { APP_CALLBACK_SECRET_HEADER } from "./runtime.js";
 import type {
 	AppReleaseInfo,
 	AppRouteResolution,
+	AppScaling,
 	Deployment,
 	PreparedDeployAppInput,
 } from "./types.js";
@@ -89,6 +88,7 @@ interface BeginReleasePublishInput {
 	artifactHash: string;
 	artifactBytes: number;
 	usesRivetKit: boolean;
+	createNamespace?: boolean;
 	regions?: string[];
 	scaling?: AppScaling;
 	createdAt: number;
@@ -547,10 +547,18 @@ function validateBeginInput(
 		input.artifactBytes < 1 ||
 		input.artifactBytes > MAX_ARTIFACT_BYTES ||
 		typeof input.usesRivetKit !== "boolean" ||
+		(input.createNamespace !== undefined &&
+			typeof input.createNamespace !== "boolean") ||
 		!Number.isSafeInteger(input.createdAt) ||
 		input.createdAt < 0
 	) {
 		fail("dynamic_apps_publish_invalid", "release publish metadata is invalid");
+	}
+	if (input.createNamespace === false && input.usesRivetKit) {
+		fail(
+			"dynamic_apps_publish_invalid",
+			"apps that use rivetkit require a namespace; remove createNamespace: false",
+		);
 	}
 	return appId;
 }
@@ -594,14 +602,15 @@ async function beginReleasePublishLocked(
 	const state = c.state as AppState;
 	const regions = normalizeRegions(input.regions, c.region);
 	const scaling = normalizeScaling(input.scaling);
-	const runtime = await provisionAppNamespace(
-		appId,
-		resolveDefaultRivetConnection(),
-		{
-			namespace: state.namespace,
-			cloudNamespace: state.cloudNamespace,
-		},
-	);
+	// createNamespace: false disables provisioning entirely; unset keeps the
+	// default behavior of giving every app its own stable namespace.
+	const runtime =
+		input.createNamespace === false
+			? unprovisionedAppNamespace(appId)
+			: await provisionAppNamespace(appId, resolveDefaultRivetConnection(), {
+					namespace: state.namespace,
+					cloudNamespace: state.cloudNamespace,
+				});
 	state.namespace = runtime.namespace;
 	state.cloudNamespace = runtime.cloudNamespace ?? null;
 	state.runnerToken = runtime.runnerToken ?? null;
@@ -896,7 +905,6 @@ function deploymentForRelease(
 		namespace: release.namespace,
 		pool: release.runtimePool,
 		...(state.publicToken ? { token: state.publicToken } : {}),
-		regions: [...release.regions],
 		appActorId: c.actorId,
 		usesRivetKit: release.usesRivetKit,
 	};
@@ -1020,8 +1028,7 @@ export function createAppsActors(
 								artifactHash: built.artifact.hash,
 								artifactBytes: built.artifact.byteLength,
 								usesRivetKit: built.artifact.usesRivetKit,
-								regions: input.regions,
-								scaling: input.scaling,
+								createNamespace: input.createNamespace,
 								createdAt: Date.now(),
 							};
 							const begin = await beginReleasePublishLocked(c, publishInput);
@@ -1103,6 +1110,12 @@ export function createAppsActors(
 					maxRequestBytes: DEFAULT_MAX_REQUEST_BYTES,
 					maxResponseBytes: DEFAULT_MAX_RESPONSE_BYTES,
 					usesRivetKit: release.usesRivetKit,
+					...(release.usesRivetKit
+						? {
+								serverlessEndpoint: actorPublicEndpoint(release, state),
+								runtimePool: release.runtimePool,
+							}
+						: {}),
 				};
 			},
 			getArtifactManifest: async (c: AnyActorContext, releaseId: string) => {

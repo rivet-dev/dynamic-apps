@@ -295,15 +295,20 @@ describe("apps-builder", () => {
 		await writeFile(
 			join(workspace, "src", "index.mjs"),
 			[
-				'import http from "node:http";',
 				'import { actor, setup } from "rivetkit";',
 				"const counter = actor({ state: { count: 0 } });",
 				"const registry = setup({ use: { counter } });",
-				"http.createServer(async (incoming, outgoing) => {",
-				"  const chunks = []; for await (const chunk of incoming) chunks.push(Buffer.from(chunk));",
-				"  const response = await registry.handler(new Request(new URL(incoming.url ?? '/', 'http://actor.test'), { method: incoming.method, headers: incoming.headers, body: incoming.method === 'GET' || incoming.method === 'HEAD' ? undefined : Buffer.concat(chunks) }));",
-				"  outgoing.statusCode = response.status; response.headers.forEach((value, name) => outgoing.setHeader(name, value)); outgoing.end(Buffer.from(await response.arrayBuffer()));",
-				"}).listen(Number(process.env.PORT), '0.0.0.0');",
+				"export default { fetch(request) {",
+				"  if (new URL(request.url).pathname === '/ordinary') return new Response(new ReadableStream({",
+				"    async start(controller) {",
+				"      controller.enqueue(new TextEncoder().encode('started-'));",
+				"      await new Promise((resolve) => setTimeout(resolve, 100));",
+				"      controller.enqueue(new TextEncoder().encode('finished'));",
+				"      controller.close();",
+				"    },",
+				"  }));",
+				"  return registry.handler(request);",
+				"} };",
 			].join("\n"),
 		);
 		const configPath = join(root, "config.json");
@@ -349,36 +354,48 @@ describe("apps-builder", () => {
 			env: {
 				...process.env,
 				PORT: String(port),
+				DYNAMIC_APPS_READY_NONCE: "builder-test",
 				RIVETKIT_RUNTIME: "wasm",
 				RIVETKIT_RUNTIME_MODE: "serverless",
 			},
 		});
 		let stderr = "";
-		child.stdout.resume();
+		let stdout = "";
+		child.stdout.on("data", (chunk) => {
+			stdout += String(chunk);
+		});
 		child.stderr.on("data", (chunk) => {
 			stderr += chunk;
 		});
-		await new Promise<void>((resolveReady, rejectReady) => {
-			const timeout = setTimeout(() => {
-				child.kill("SIGKILL");
-				rejectReady(new Error(`actor bundle did not start: ${stderr}`));
-			}, 5_000);
-			const poll = setInterval(() => {
-				void fetch(`http://127.0.0.1:${port}/.agentos/ready`)
-					.then(() => {
-						clearInterval(poll);
-						clearTimeout(timeout);
-						resolveReady();
-					})
-					.catch(() => {});
-			}, 20);
-			child.once("exit", (code) => {
-				clearInterval(poll);
-				clearTimeout(timeout);
-				rejectReady(new Error(`actor bundle exited ${code}: ${stderr}`));
+		try {
+			await new Promise<void>((resolveReady, rejectReady) => {
+				const timeout = setTimeout(() => {
+					child.kill("SIGKILL");
+					rejectReady(new Error(`actor bundle did not start: ${stderr}`));
+				}, 5_000);
+				const poll = setInterval(() => {
+					if (!stdout.includes("DYNAMIC_APPS_SERVER_READY:builder-test"))
+						return;
+					clearInterval(poll);
+					clearTimeout(timeout);
+					resolveReady();
+				}, 20);
+				child.once("exit", (code) => {
+					clearInterval(poll);
+					clearTimeout(timeout);
+					rejectReady(new Error(`actor bundle exited ${code}: ${stderr}`));
+				});
 			});
-		});
-		child.kill("SIGKILL");
+			const response = await fetch(`http://127.0.0.1:${port}/ordinary`);
+			const reader = response.body?.getReader();
+			if (!reader) throw new Error("streaming response has no body");
+			const decoder = new TextDecoder();
+			expect(decoder.decode((await reader.read()).value)).toBe("started-");
+			expect(decoder.decode((await reader.read()).value)).toBe("finished");
+			expect((await reader.read()).done).toBe(true);
+		} finally {
+			child.kill("SIGKILL");
+		}
 	}, 15_000);
 });
 

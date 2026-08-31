@@ -12,7 +12,7 @@ await deployApp({
 			type: "module",
 			main: "src/index.ts",
 			dependencies: {
-				hono: "^4.12.9",
+				hono: "4.13.5",
 			},
 		}),
 		"src/index.ts": `

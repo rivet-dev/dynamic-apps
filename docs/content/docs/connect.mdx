@@ -1,0 +1,42 @@
+---
+title: "Connect to Rivet"
+description: "Every deployed app gets its own Rivet namespace for actors, workflows, and data."
+skill: true
+---
+
+Every deployment gets its own Rivet namespace. That gives each user's app:
+
+- Complete per-tenant isolation
+- Per-user billing
+- Infrastructure that costs nothing when idle
+
+## What namespaces are
+
+A namespace holds an app's Rivet Actors, which power its workflows, SQLite,
+realtime state, queues, and crons. `deployApp()` creates one namespace per app
+and returns the endpoint, namespace, pool, and publishable token your client
+needs to connect.
+
+## Connecting to Rivet
+
+### Local development
+
+No action needed. Dynamic Apps connects to the local Rivet Engine by default.
+
+### Rivet Cloud
+
+Set the `RIVET_CLOUD_TOKEN` environment variable. Issue a token from
+**Settings > Advanced > Cloud Token** in the
+[dashboard](https://dashboard.rivet.dev). `deployApp()` uses it to create each
+app's namespace through the Rivet Cloud API. Keep this token server-side.
+
+### Self-hosting
+
+Use your admin token. Nothing else is needed. The admin token is the same
+token your backend already uses to connect to Rivet, so namespace creation
+works out of the box.
+
+## Disabling namespace creation
+
+Set `createNamespace: false` on `deployApp()` for HTTP-only apps. Apps that
+use `rivetkit` require a namespace.

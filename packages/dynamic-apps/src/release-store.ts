@@ -1,7 +1,6 @@
 import { createHash } from "node:crypto";
 import type {
 	ActiveRelease,
-	AppScaling,
 	PublishReleaseInput,
 	ReleaseInvalidation,
 	ReleaseLoadContext,
@@ -12,6 +11,7 @@ import {
 	DIRECT_RUNTIME_FORMAT,
 } from "@rivet-dev/dynamic-apps-core/internal";
 import { createClient } from "rivetkit/client";
+import { actorWorkerEnvironment } from "./actor-runtime.js";
 import { ensurePrivateAppsRegistry } from "./registry.js";
 import type { AppRouteResolution, Deployment } from "./types.js";
 
@@ -31,8 +31,7 @@ interface BeginReleasePublishInput {
 	artifactHash: string;
 	artifactBytes: number;
 	usesRivetKit: boolean;
-	regions?: string[];
-	scaling?: AppScaling;
+	createNamespace?: boolean;
 	createdAt: number;
 }
 
@@ -115,8 +114,15 @@ interface DriverEntry {
 	unsubscribe?: Unsubscribe;
 }
 
+export interface RivetDeployOptions {
+	createNamespace?: boolean;
+}
+
 export interface RivetReleaseStore {
-	publishRelease(input: PublishReleaseInput): Promise<Deployment>;
+	publishRelease(
+		input: PublishReleaseInput,
+		options?: RivetDeployOptions,
+	): Promise<Deployment>;
 	loadActiveRelease(
 		appId: string,
 		context: ReleaseLoadContext,
@@ -137,6 +143,7 @@ export function createRivetReleaseStore(
 
 	const publishRelease = async (
 		input: PublishReleaseInput,
+		options?: RivetDeployOptions,
 	): Promise<Deployment> => {
 		await ensurePrivateAppsRegistry();
 		const group = getClient().dynamicAppsApp;
@@ -161,8 +168,7 @@ export function createRivetReleaseStore(
 			artifactHash: input.artifact.hash,
 			artifactBytes: input.artifact.byteLength,
 			usesRivetKit: input.artifact.usesRivetKit,
-			regions: input.regions,
-			scaling: input.scaling,
+			createNamespace: options?.createNamespace,
 			createdAt: input.createdAt,
 		};
 		let begin: BeginReleasePublishResult;
@@ -265,10 +271,24 @@ export function createRivetReleaseStore(
 				byteLength: bytes.byteLength,
 				usesRivetKit: resolution.usesRivetKit,
 			},
-			regions: [...resolution.regions],
-			scaling: { ...resolution.scaling },
 			maxRequestBytes: resolution.maxRequestBytes,
 			maxResponseBytes: resolution.maxResponseBytes,
+			...(resolution.usesRivetKit &&
+			resolution.serverlessEndpoint &&
+			resolution.runtimePool
+				? {
+						server: {
+							environment: definedEnvironment(
+								actorWorkerEnvironment({
+									endpoint: resolution.serverlessEndpoint,
+									key: `${resolution.release}:${resolution.artifactHash}`,
+									namespace: resolution.namespace,
+									pool: resolution.runtimePool,
+								}),
+							),
+						},
+					}
+				: {}),
 		};
 	};
 
@@ -319,6 +339,14 @@ export function createRivetReleaseStore(
 	};
 
 	return { publishRelease, loadActiveRelease, watchActiveRelease };
+}
+
+function definedEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
+	return Object.fromEntries(
+		Object.entries(env).filter(
+			(entry): entry is [string, string] => typeof entry[1] === "string",
+		),
+	);
 }
 
 async function connectDriver(
@@ -399,7 +427,6 @@ function projectDeployment(input: Deployment): Deployment {
 		namespace: input.namespace,
 		pool: input.pool,
 		...(input.token ? { token: input.token } : {}),
-		regions: [...input.regions],
 	};
 }
 

@@ -1,18 +1,16 @@
+import type { AgentOsOptions } from "@rivet-dev/agentos-core";
 import type { Hono } from "hono";
 import type { BlankEnv, BlankSchema } from "hono/types";
 
-export interface AppScaling {
-	minReplicas?: number;
-	maxReplicas?: number;
-	targetConcurrency?: number;
-}
-
 interface DeployAppBase {
 	appId: string;
-	/** @deprecated Retained by the Rivet adapter for source compatibility. */
+	/**
+	 * Whether the storage adapter provisions an isolated namespace for this
+	 * app. Defaults to true, or to the app's stored setting from an earlier
+	 * explicit deploy. Set false to skip provisioning; apps deployed without a
+	 * namespace cannot use app-defined actors.
+	 */
 	createNamespace?: boolean;
-	regions?: string[];
-	scaling?: AppScaling;
 }
 
 export type DeployAppInput =
@@ -35,8 +33,6 @@ export interface PublishReleaseInput {
 	appId: string;
 	buildId: string;
 	artifact: ReleaseArtifact;
-	regions?: string[];
-	scaling?: AppScaling;
 	createdAt: number;
 }
 
@@ -44,10 +40,28 @@ export interface ActiveRelease {
 	appId: string;
 	release: string;
 	artifact: ReleaseArtifact;
-	regions: string[];
-	scaling: Required<AppScaling>;
 	maxRequestBytes: number;
 	maxResponseBytes: number;
+	/** Required runtime environment for releases that use RivetKit. */
+	server?: {
+		environment: Record<string, string>;
+	};
+}
+
+export interface ApplicationServerRuntimeRequest {
+	key: string;
+	appId: string;
+	release: string;
+	loadArtifact(): Promise<Uint8Array>;
+	environment: Record<string, string>;
+	request: Request;
+	maxRequestBytes?: number;
+	maxResponseBytes?: number;
+}
+
+export interface ApplicationServerRuntime {
+	request(input: ApplicationServerRuntimeRequest): Promise<Response>;
+	diagnostics?(): Record<string, unknown>;
 }
 
 export type ReleaseInvalidation = () => void;
@@ -120,6 +134,10 @@ export interface DynamicAppsOptions<TDeployment, TDeployOptions = undefined> {
 		invalidate: ReleaseInvalidation,
 	): Promise<Unsubscribe>;
 	executor?: Partial<ExecutorConfig>;
+	/** Additional options passed to every application-serving VM. */
+	vm?: AgentOsOptions;
+	/** Shared HTTP runtime used by releases that contain RivetKit actors. */
+	serverRuntime?: ApplicationServerRuntime;
 	build?: Partial<BuildConfig>;
 	artifactCache?: BuildArtifactCache;
 	logger?: DynamicAppsLogger;

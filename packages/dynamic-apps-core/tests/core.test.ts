@@ -51,12 +51,6 @@ describe("createDynamicApps", () => {
 						...input.artifact,
 						bytes: new Uint8Array(input.artifact.bytes),
 					},
-					regions: input.regions ?? ["local"],
-					scaling: {
-						minReplicas: 0,
-						maxReplicas: 128,
-						targetConcurrency: 8,
-					},
 					maxRequestBytes: 1024 * 1024,
 					maxResponseBytes: 4 * 1024 * 1024,
 				};
@@ -160,13 +154,70 @@ describe("createDynamicApps", () => {
 			const first = await dynamicApps.appsRouter.request("/demo/");
 			expect(first.headers.get("x-agentos-app-release")).toBe("release-before");
 			loaded.release = "release-after";
-			loaded.regions[0] = "mutated";
 			loaded.artifact.bytes[0] ^= 1;
 			const second = await dynamicApps.appsRouter.request("/demo/");
 			expect(second.headers.get("x-agentos-app-release")).toBe(
 				"release-before",
 			);
 			expect(await second.text()).toBe("copied");
+		} finally {
+			await dynamicApps.dispose();
+		}
+	});
+
+	test("routes RivetKit releases through the shared server runtime", async () => {
+		const bytes = await makeArtifact("unused-direct-entrypoint");
+		const active = release("demo", "actors", bytes);
+		active.artifact.usesRivetKit = true;
+		active.server = {
+			environment: {
+				RIVET_ENDPOINT: "https://api.rivet.dev",
+				RIVET_NAMESPACE: "demo",
+			},
+		};
+		const requests: Array<{ key: string; path: string; environment: string }> =
+			[];
+		const dynamicApps = createDynamicApps({
+			async publishRelease() {},
+			async watchActiveRelease() {
+				return () => {};
+			},
+			async loadActiveRelease() {
+				return active;
+			},
+			serverRuntime: {
+				async request(input) {
+					requests.push({
+						key: input.key,
+						path: new URL(input.request.url).pathname,
+						environment: input.environment.RIVET_NAMESPACE ?? "",
+					});
+					expect(await input.loadArtifact()).toEqual(bytes);
+					return new Response(`server:${requests.length}`);
+				},
+			},
+			executor: { executionMode: "ephemeral" },
+		});
+		try {
+			expect(
+				await (await dynamicApps.appsRouter.request("/demo/one")).text(),
+			).toBe("server:1");
+			expect(
+				await (await dynamicApps.appsRouter.request("/demo/two")).text(),
+			).toBe("server:2");
+			expect(requests).toEqual([
+				{
+					key: `release-actors:${active.artifact.hash}`,
+					path: "/one",
+					environment: "demo",
+				},
+				{
+					key: `release-actors:${active.artifact.hash}`,
+					path: "/two",
+					environment: "demo",
+				},
+			]);
+			expect(dynamicApps.diagnostics()).toMatchObject({ runtimes: 0 });
 		} finally {
 			await dynamicApps.dispose();
 		}
@@ -189,8 +240,6 @@ function release(
 			byteLength: bytes.byteLength,
 			usesRivetKit: false,
 		},
-		regions: ["local"],
-		scaling: { minReplicas: 0, maxReplicas: 128, targetConcurrency: 8 },
 		maxRequestBytes: 1024 * 1024,
 		maxResponseBytes: 4 * 1024 * 1024,
 	};

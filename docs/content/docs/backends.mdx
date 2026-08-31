@@ -1,0 +1,30 @@
+---
+title: "Backends & REST APIs"
+description: "Serve HTTP backends and REST APIs from a Dynamic App."
+---
+
+import ExampleLinkBar from "@/components/docs/ExampleLinkBar.astro";
+
+<ExampleLinkBar href="https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-hello-world" />
+
+An app is a directory with a `package.json` and an entrypoint that
+default-exports a `fetch` handler. Any framework that speaks `fetch` works.
+The app does not bind a port; Dynamic Apps owns its listener. This app serves a
+frontend and a JSON API from the same handler.
+
+## Example generated code
+
+<CodeGroup>
+<CodeSnippet file="examples/apps-hello-world/fixtures/app/src/index.ts" title="src/index.ts" />
+<CodeSnippet file="examples/apps-hello-world/fixtures/app/package.json" title="package.json" />
+</CodeGroup>
+
+## Deploy and route
+
+Deploy the directory and every route the app defines is served under
+`/apps/:appId` on your routing server:
+
+<CodeSnippet file="examples/apps-hello-world/src/server.ts" title="src/server.ts" />
+
+See [Routing](/dynamic-apps/docs/routing) for how requests reach the app and
+[Deploy](/dynamic-apps/docs/deploy) for builds and releases.

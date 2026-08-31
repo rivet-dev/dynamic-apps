@@ -7,8 +7,9 @@ import {
 	rivetActorsSkill,
 	webServerSkill,
 } from "@rivet-dev/dynamic-apps";
-import { generateText } from "ai";
+import { generateObject } from "ai";
 import { Hono } from "hono";
+import { z } from "zod";
 
 const editablePaths = [
 	"package.json",
@@ -29,15 +30,12 @@ async function loadSeed(): Promise<Record<string, string>> {
 	return files;
 }
 
-function parseFiles(text: string): Record<string, string> {
-	const json = text.match(/```json\s*([\s\S]*?)```/)?.[1] ?? text;
-	const value = JSON.parse(json) as { files?: Record<string, unknown> };
-	if (!value.files || typeof value.files !== "object") {
-		throw new TypeError("model response must contain a files object");
-	}
+const filesSchema = z.object({ files: z.record(z.string(), z.string()) });
+
+function validateFiles(value: Record<string, string>): Record<string, string> {
 	const files: Record<string, string> = {};
 	for (const path of editablePaths) {
-		const content = value.files[path];
+		const content = value[path];
 		if (typeof content !== "string") {
 			throw new TypeError(`model response is missing ${path}`);
 		}
@@ -49,19 +47,20 @@ function parseFiles(text: string): Record<string, string> {
 	return files;
 }
 
+// docs:start generate
 async function revise(
 	prompt: string,
 	files: Record<string, string>,
 	diagnostics?: string,
 ): Promise<Record<string, string>> {
-	const result = await generateText({
+	const result = await generateObject({
 		model: anthropic(process.env.AI_MODEL ?? "claude-sonnet-4-5"),
 		maxOutputTokens: 8_000,
+		schema: filesSchema,
 		prompt: [
 			// These skills tell the model how to structure, build, and serve the generated code.
 			webServerSkill,
 			rivetActorsSkill,
-			'Return JSON only as {"files":{"path":"content"}}.',
 			`You may edit only: ${editablePaths.join(", ")}.`,
 			`User request: ${prompt}`,
 			diagnostics ? `Previous build diagnostics:\n${diagnostics}` : "",
@@ -70,8 +69,9 @@ async function revise(
 			.filter(Boolean)
 			.join("\n\n"),
 	});
-	return parseFiles(result.text);
+	return validateFiles(result.object.files);
 }
+// docs:end generate
 
 async function generateApp(appId: string, prompt: string) {
 	let files = await revise(prompt, await loadSeed());

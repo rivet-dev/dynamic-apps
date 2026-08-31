@@ -71,15 +71,7 @@ export function directRunnerSource(input: {
 }): string {
 	const entrypoint = `./${normalizeAppPath(input.entrypoint)}`;
 	return `const dynamicAppsModuleImportStartedAt = performance.now();
-const dynamicAppsPreviousRuntimeMode = process.env.RIVETKIT_RUNTIME_MODE;
-delete process.env.RIVETKIT_RUNTIME_MODE;
-let application;
-try {
-  application = await import(${JSON.stringify(entrypoint)});
-} finally {
-  if (dynamicAppsPreviousRuntimeMode === undefined) delete process.env.RIVETKIT_RUNTIME_MODE;
-  else process.env.RIVETKIT_RUNTIME_MODE = dynamicAppsPreviousRuntimeMode;
-}
+const application = await import(${JSON.stringify(entrypoint)});
 const dynamicAppsModuleImportMs = performance.now() - dynamicAppsModuleImportStartedAt;
 const exported = application.default;
 const appFetch = typeof exported === "function"
@@ -147,15 +139,33 @@ export async function dispatch(input) {
 `;
 }
 
-/** Initializes RivetKit WASM, then starts the application's own HTTP server. */
+/** Initializes RivetKit WASM and hosts the application's exported fetch handler. */
 export function actorRunnerSource(entrypointInput: string): string {
 	const entrypoint = `./${normalizeAppPath(entrypointInput)}`;
 	return `import { readFile } from "node:fs/promises";
+import { serve } from "@hono/node-server";
 import initializeRivetKit from "@rivetkit/rivetkit-wasm";
 
 const wasmUrl = new URL(__AGENTOS_RIVETKIT_WASM_PATH__, import.meta.url);
 await initializeRivetKit({ module_or_path: await readFile(wasmUrl) });
-await import(${JSON.stringify(entrypoint)});
+const applicationModule = await import(${JSON.stringify(entrypoint)});
+const application = applicationModule.default;
+const fetch = typeof application === "function"
+  ? application
+  : typeof application?.fetch === "function"
+    ? application.fetch.bind(application)
+    : undefined;
+if (!fetch) {
+  throw new TypeError("Dynamic App entrypoint default export must be a fetch handler");
+}
+await new Promise((resolve, reject) => {
+  const server = serve({
+    fetch,
+    port: Number(process.env.PORT),
+    hostname: "0.0.0.0",
+  }, resolve);
+  server.once("error", reject);
+});
 console.log("DYNAMIC_APPS_SERVER_READY:" + (process.env.DYNAMIC_APPS_READY_NONCE ?? ""));
 `;
 }

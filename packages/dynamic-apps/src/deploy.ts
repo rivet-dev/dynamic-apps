@@ -37,13 +37,16 @@ export async function deployApp(
 ): Promise<Deployment> {
 	// The ordinary path uses core's build + release hooks. An injected structural
 	// client must keep calling the legacy actor action for declaration compatibility.
-	if (!options.client) return defaultDynamicApps.deployApp(input);
+	if (!options.client) {
+		return defaultDynamicApps.deployApp(input, {
+			createNamespace: input.createNamespace,
+		});
+	}
 	const files = await prepareSource(input);
 	const prepared: PreparedDeployAppInput = {
 		appId: input.appId,
 		files,
-		regions: input.regions,
-		scaling: input.scaling,
+		createNamespace: input.createNamespace,
 	};
 	const result = await deployThroughStableActor(
 		options.client.dynamicAppsApp,
@@ -57,7 +60,6 @@ export async function deployApp(
 		namespace: result.namespace,
 		pool: result.pool,
 		...(result.token ? { token: result.token } : {}),
-		regions: result.regions,
 	};
 }
 
