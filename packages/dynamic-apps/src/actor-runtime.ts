@@ -21,6 +21,7 @@ const MAX_ACTOR_ARTIFACT_BYTES = 64 * 1024 * 1024;
 interface ActorRuntimeConfig {
 	maxEntries: number;
 	heapLimitMb: number;
+	startTimeoutMs: number;
 	idleTtlMs: number;
 	maxStartPayloadBytes: number;
 	memoryHighWaterPercent: number;
@@ -84,6 +85,13 @@ export class DynamicActorRuntime {
 				96,
 				16,
 				2_048,
+			),
+			startTimeoutMs: integerEnv(
+				env,
+				"DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS",
+				10_000,
+				10,
+				5 * 60_000,
 			),
 			idleTtlMs: integerEnv(
 				env,
@@ -236,7 +244,7 @@ export class DynamicActorRuntime {
 					},
 				},
 			);
-			const entry: RuntimeEntry = {
+				const entry: RuntimeEntry = {
 				key: input.key,
 				directory,
 				worker,
@@ -245,26 +253,46 @@ export class DynamicActorRuntime {
 				active: 0,
 				lastUsedAt: Date.now(),
 				disposed: false,
-				nextRequestId: 0,
-			};
-			worker.on("message", (message: WorkerMessage) => {
-				if (message.type === "ready") {
-					readyResolve();
+					nextRequestId: 0,
+				};
+				let startupSettled = false;
+				const startupTimer = setTimeout(() => {
+					if (startupSettled || entry.disposed) return;
+					startupSettled = true;
+					const error = new Error(
+						`Dynamic App actor worker startup exceeded ${this.config.startTimeoutMs}ms`,
+					);
+					readyReject(error);
+					this.#failEntry(entry, error);
+				}, this.config.startTimeoutMs);
+				startupTimer.unref?.();
+				const finishStartup = () => {
+					if (startupSettled) return;
+					startupSettled = true;
+					clearTimeout(startupTimer);
+				};
+				worker.on("message", (message: WorkerMessage) => {
+					if (message.type === "ready") {
+						finishStartup();
+						readyResolve();
 					return;
 				}
-				if (message.type === "error" && !message.id) {
-					readyReject(new Error(message.message));
+					if (message.type === "error" && !message.id) {
+						finishStartup();
+						readyReject(new Error(message.message));
 					this.#failEntry(entry, new Error(message.message));
 					return;
 				}
 				if (message.id) this.#handleMessage(entry, message);
 			});
-			worker.once("error", (error) => {
-				readyReject(error);
+				worker.once("error", (error) => {
+					finishStartup();
+					readyReject(error);
 				this.#failEntry(entry, error);
 			});
-			worker.once("exit", (code) => {
-				if (!entry.disposed) {
+				worker.once("exit", (code) => {
+					finishStartup();
+					if (!entry.disposed) {
 					const error = new Error(
 						`Dynamic App actor worker exited with ${code}`,
 					);
