@@ -52,6 +52,7 @@ const STRESS_CASES = [
 	"actorTraffic",
 	"actorChurn",
 	"directStall",
+	"actorAdmission",
 ] as const;
 
 type StressCase = (typeof STRESS_CASES)[number];
@@ -261,6 +262,9 @@ async function main(): Promise<void> {
 		);
 		await runStressCase(result, selectedCases, "directStall", () =>
 			directStallStress(directStallArtifact, concurrency),
+		);
+		await runStressCase(result, selectedCases, "actorAdmission", () =>
+			actorAdmissionStress(actorTrafficArtifact, concurrency),
 		);
 	} finally {
 		await Promise.allSettled([
@@ -801,6 +805,69 @@ async function directStallStress(
 		};
 	} finally {
 		await executor.dispose();
+	}
+}
+
+async function actorAdmissionStress(
+	artifact: Artifact,
+	concurrency: number,
+): Promise<unknown> {
+	const active = Math.min(8, concurrency);
+	const queued = active;
+	const total = Math.max(concurrency * 2, active + queued + 1);
+	const runtime = new DynamicActorRuntime({
+		DYNAMIC_APPS_ACTOR_REQUEST_CONCURRENCY: String(active),
+		DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_SIZE: String(queued),
+		DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_WAIT_MS: "10000",
+	});
+	let release = () => {};
+	const gate = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	let pulls = 0;
+	try {
+		const outcomes = Array.from({ length: total }, (_, index) =>
+			runtime
+				.request({
+					key: "admission",
+					loadArtifact: async () => artifact.bytes,
+					endpoint: "http://stress.test",
+					namespace: "stress",
+					pool: "default",
+					request: streamingRequest(`http://stress.test/admission/${index}`, {
+						async pull(controller) {
+							pulls += 1;
+							await gate;
+							controller.close();
+						},
+					}),
+				})
+				.then(
+					async (response) => {
+						await response.arrayBuffer();
+						return "complete" as const;
+					},
+					() => "rejected" as const,
+				),
+		);
+		await waitFor(() => pulls >= active);
+		await new Promise((resolve) => setTimeout(resolve, 20));
+		assert.equal(pulls, active);
+		const pullsBeforeRelease = pulls;
+		release();
+		const settled = await Promise.all(outcomes);
+		return {
+			total,
+			active,
+			queued,
+			pullsBeforeRelease,
+			completed: settled.filter((value) => value === "complete").length,
+			rejected: settled.filter((value) => value === "rejected").length,
+			diagnostics: runtime.diagnostics(),
+		};
+	} finally {
+		release();
+		await runtime.dispose();
 	}
 }
 

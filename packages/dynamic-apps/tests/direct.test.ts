@@ -545,6 +545,54 @@ describe("direct V8 execution", () => {
 });
 
 describe("actor callback resource limits", () => {
+	test("admits actor callback bodies before reading them", async () => {
+		const artifact = await makeActorArtifact(`
+export const registry = {
+  async handler() {
+    return new Response("ok");
+  },
+};
+`);
+		const runtime = new DynamicActorRuntime({
+			DYNAMIC_APPS_ACTOR_REQUEST_CONCURRENCY: "4",
+			DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_SIZE: "4",
+			DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_WAIT_MS: "1000",
+		});
+		let release = () => {};
+		const gate = new Promise<void>((resolve) => {
+			release = resolve;
+		});
+		let pulls = 0;
+		const outcomes = Array.from({ length: 16 }, (_, index) =>
+			runtime
+				.request({
+					key: "admission",
+					loadArtifact: async () => artifact.bytes,
+					endpoint: "http://example.test",
+					namespace: "test",
+					pool: "default",
+					request: streamingRequest(`http://example.test/${index}`, {
+						async pull(controller) {
+							pulls += 1;
+							await gate;
+							controller.close();
+						},
+					}),
+				})
+				.then((response) => response.arrayBuffer()),
+		);
+		try {
+			await waitFor(() => pulls >= 4);
+			await new Promise((resolve) => setTimeout(resolve, 20));
+			expect(pulls).toBe(4);
+		} finally {
+			release();
+			await Promise.allSettled(outcomes);
+			await runtime.dispose();
+			await artifact.dispose();
+		}
+	});
+
 	test("stops reading a callback body when it crosses the limit", async () => {
 		const runtime = new DynamicActorRuntime({
 			DYNAMIC_APPS_ACTOR_START_PAYLOAD_MAX_BYTES: "1024",
