@@ -333,7 +333,11 @@ export class DynamicAppsExecutor {
 				mapping.runtime.refs += 1;
 				mapping.runtime.lastUsedAt = Date.now();
 				try {
-					const response = await this.#execute(mapping.runtime, envelope, trace);
+					const response = await this.#execute(
+						mapping.runtime,
+						envelope,
+						trace,
+					);
 					this.#finishTrace(response.headers, trace);
 					return response;
 				} finally {
@@ -800,9 +804,7 @@ export class DynamicAppsExecutor {
 		if (await this.#memoryPressure()) return;
 		const reserved = this.#reservePoolSlots(this.config.isolatePoolSize);
 		const outcomes = await Promise.allSettled(
-			Array.from({ length: reserved }, () =>
-				this.#createSlot(runtime),
-			),
+			Array.from({ length: reserved }, () => this.#createSlot(runtime)),
 		);
 		const failed = outcomes.find(
 			(outcome): outcome is PromiseRejectedResult =>
@@ -819,7 +821,8 @@ export class DynamicAppsExecutor {
 		}
 		for (const outcome of outcomes) {
 			this.#poolReservations -= 1;
-			if (outcome.status === "fulfilled") this.#offerSlot(runtime, outcome.value);
+			if (outcome.status === "fulfilled")
+				this.#offerSlot(runtime, outcome.value);
 		}
 	}
 
@@ -1430,27 +1433,35 @@ const ISOLATE_BOOTSTRAP_SOURCE = String.raw`
   };
   const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   globalThis.__dynamicAppsBase64Encode = (bytes) => {
-    let out = "";
+		const chunks = [];
+		let out = "";
     for (let i = 0; i < bytes.length; i += 3) {
       const n = (bytes[i] << 16) | ((bytes[i + 1] ?? 0) << 8) | (bytes[i + 2] ?? 0);
       out += alphabet[(n >> 18) & 63] + alphabet[(n >> 12) & 63] +
         (i + 1 < bytes.length ? alphabet[(n >> 6) & 63] : "=") +
         (i + 2 < bytes.length ? alphabet[n & 63] : "=");
+			if (out.length >= 16384) { chunks.push(out); out = ""; }
     }
-    return out;
+		chunks.push(out);
+		return chunks.join("");
   };
   globalThis.__dynamicAppsBase64Decode = (text) => {
     const clean = String(text).replace(/=+$/, "");
-    const out = [];
+		const out = new Uint8Array(Math.floor(clean.length * 3 / 4));
+		let offset = 0;
     let bits = 0, count = 0;
     for (const char of clean) {
       const value = alphabet.indexOf(char);
       if (value < 0) continue;
       bits = (bits << 6) | value;
       count += 6;
-      if (count >= 8) { count -= 8; out.push((bits >> count) & 255); }
+			if (count >= 8) {
+				count -= 8;
+				out[offset++] = (bits >> count) & 255;
+				bits &= count === 0 ? 0 : (1 << count) - 1;
+			}
     }
-    return new Uint8Array(out);
+		return offset === out.length ? out : out.slice(0, offset);
   };
   class TextEncoder { encode(value = "") { return utf8Encode(value); } }
   class TextDecoder { decode(value = new Uint8Array()) { return utf8Decode(new Uint8Array(value)); } }

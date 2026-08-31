@@ -318,6 +318,34 @@ describe("source and runtime contract", () => {
 });
 
 describe("direct V8 execution", () => {
+	test("round-trips binary request bodies through the isolate envelope", async () => {
+		const artifact = await makeArtifact("binary");
+		const fake = fakeStateClient(artifact);
+		const executor = new DynamicAppsExecutor(
+			executorConfig("prewarm"),
+			fake.client,
+		);
+		const input = Uint8Array.from(
+			{ length: 65_537 },
+			(_, index) => index % 256,
+		);
+		try {
+			const response = await executor.request(
+				"demo",
+				new Request("http://example.test/binary", {
+					method: "POST",
+					body: input,
+				}),
+			);
+			expect(await response.json()).toMatchObject({
+				requestBodyBase64: Buffer.from(input).toString("base64"),
+			});
+		} finally {
+			await executor.dispose();
+			await artifact.dispose();
+		}
+	});
+
 	test.each([
 		"fresh",
 		"snapshot",
@@ -624,6 +652,7 @@ async function makeArtifact(marker: string): Promise<TestArtifact> {
 	const moduleSource = `let counter = 0;
 globalThis.__dynamicAppDispatch = async function(inputJson) {
 	const input = JSON.parse(inputJson);
+	const requestBody = globalThis.__dynamicAppsBase64Decode(input.bodyBase64 || "");
   counter += 1;
   const request = new Request(input.url, { method: input.method, headers: input.headers });
   const body = JSON.stringify({
@@ -632,6 +661,7 @@ globalThis.__dynamicAppDispatch = async function(inputJson) {
     path: new URL(request.url).pathname + new URL(request.url).search,
     authorization: request.headers.get("authorization"),
     privateToken: request.headers.get("x-rivet-token"),
+		requestBodyBase64: globalThis.__dynamicAppsBase64Encode(requestBody),
   });
 	return JSON.stringify({
     status: 200,
