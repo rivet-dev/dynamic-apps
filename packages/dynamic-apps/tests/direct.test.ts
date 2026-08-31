@@ -579,7 +579,10 @@ export const registry = {
 						},
 					}),
 				})
-				.then((response) => response.arrayBuffer()),
+				.then(
+					(response) => response.arrayBuffer(),
+					() => undefined,
+				),
 		);
 		try {
 			await waitFor(() => pulls >= 4);

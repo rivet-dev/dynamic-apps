@@ -12,6 +12,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, posix } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Worker } from "node:worker_threads";
+import { DynamicAppsError } from "./errors.js";
 import { ACTOR_BUNDLE_PATH } from "./runtime.js";
 
 const MAX_ACTOR_FILES = 4_096;
@@ -25,6 +26,9 @@ interface ActorRuntimeConfig {
 	idleTtlMs: number;
 	maxStartPayloadBytes: number;
 	memoryHighWaterPercent: number;
+	requestConcurrency: number;
+	requestQueueSize: number;
+	requestQueueWaitMs: number;
 }
 
 export interface ActorRuntimeRequest {
@@ -43,6 +47,7 @@ interface PendingRequest {
 	waitingAck: boolean;
 	settled: boolean;
 	abort?: () => void;
+	releaseAdmission(): void;
 }
 
 interface RuntimeEntry {
@@ -68,6 +73,7 @@ export class DynamicActorRuntime {
 	readonly config: ActorRuntimeConfig;
 	readonly #entries = new Map<string, RuntimeEntry>();
 	readonly #creating = new Map<string, Promise<RuntimeEntry>>();
+	readonly #admission: ActorAdmission;
 	readonly #timer: ReturnType<typeof setInterval>;
 
 	constructor(env: NodeJS.ProcessEnv = process.env) {
@@ -114,7 +120,33 @@ export class DynamicActorRuntime {
 				10,
 				95,
 			),
+			requestConcurrency: integerEnv(
+				env,
+				"DYNAMIC_APPS_ACTOR_REQUEST_CONCURRENCY",
+				64,
+				1,
+				4_096,
+			),
+			requestQueueSize: integerEnv(
+				env,
+				"DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_SIZE",
+				128,
+				0,
+				100_000,
+			),
+			requestQueueWaitMs: integerEnv(
+				env,
+				"DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_WAIT_MS",
+				5_000,
+				1,
+				60_000,
+			),
 		};
+		this.#admission = new ActorAdmission(
+			this.config.requestConcurrency,
+			this.config.requestQueueSize,
+			this.config.requestQueueWaitMs,
+		);
 		this.#timer = setInterval(
 			() => void this.#prune(),
 			Math.min(this.config.idleTtlMs, 30_000),
@@ -123,51 +155,61 @@ export class DynamicActorRuntime {
 	}
 
 	async request(input: ActorRuntimeRequest): Promise<Response> {
-		const body = await readBoundedBody(
-			input.request.body,
-			this.config.maxStartPayloadBytes,
-		);
-		if (!body) {
-			return new Response("RivetKit actor start payload exceeds limit", {
-				status: 413,
-			});
-		}
-		const entry = await this.#entry(input);
+		await this.#admission.acquire();
+		let admissionHandedOff = false;
 		try {
-			await entry.ready;
-		} catch (error) {
-			entry.active = Math.max(0, entry.active - 1);
-			entry.lastUsedAt = Date.now();
-			if (this.#entries.size > this.config.maxEntries) void this.#prune();
-			throw error;
-		}
-		const id = String(++entry.nextRequestId);
-		return new Promise<Response>((resolve, reject) => {
-			const pending: PendingRequest = {
-				resolve,
-				reject,
-				waitingAck: false,
-				settled: false,
-			};
-			const cancel = () => entry.worker.postMessage({ type: "cancel", id });
-			pending.abort = cancel;
-			entry.pending.set(id, pending);
-			try {
-				entry.worker.postMessage({
-					type: "request",
-					id,
-					method: input.request.method,
-					url: input.request.url,
-					headers: [...input.request.headers.entries()],
-					body,
+			const body = await readBoundedBody(
+				input.request.body,
+				this.config.maxStartPayloadBytes,
+			);
+			if (!body) {
+				return new Response("RivetKit actor start payload exceeds limit", {
+					status: 413,
 				});
-				input.request.signal.addEventListener("abort", cancel, { once: true });
-				if (input.request.signal.aborted) cancel();
-			} catch (error) {
-				this.#settle(entry, id);
-				reject(error);
 			}
-		});
+			const entry = await this.#entry(input);
+			try {
+				await entry.ready;
+			} catch (error) {
+				entry.active = Math.max(0, entry.active - 1);
+				entry.lastUsedAt = Date.now();
+				if (this.#entries.size > this.config.maxEntries) void this.#prune();
+				throw error;
+			}
+			const id = String(++entry.nextRequestId);
+			return new Promise<Response>((resolve, reject) => {
+				const pending: PendingRequest = {
+					resolve,
+					reject,
+					waitingAck: false,
+					settled: false,
+					releaseAdmission: () => this.#admission.release(),
+				};
+				const cancel = () => entry.worker.postMessage({ type: "cancel", id });
+				pending.abort = cancel;
+				entry.pending.set(id, pending);
+				admissionHandedOff = true;
+				try {
+					entry.worker.postMessage({
+						type: "request",
+						id,
+						method: input.request.method,
+						url: input.request.url,
+						headers: [...input.request.headers.entries()],
+						body,
+					});
+					input.request.signal.addEventListener("abort", cancel, {
+						once: true,
+					});
+					if (input.request.signal.aborted) cancel();
+				} catch (error) {
+					this.#settle(entry, id);
+					reject(error);
+				}
+			});
+		} finally {
+			if (!admissionHandedOff) this.#admission.release();
+		}
 	}
 
 	async invalidate(key: string): Promise<void> {
@@ -187,11 +229,14 @@ export class DynamicActorRuntime {
 				(sum, entry) => sum + entry.pending.size,
 				0,
 			),
+			admittedRequests: this.#admission.active,
+			queuedRequests: this.#admission.queued,
 		};
 	}
 
 	async dispose(): Promise<void> {
 		clearInterval(this.#timer);
+		this.#admission.dispose();
 		await Promise.allSettled(
 			[...this.#entries.values()].map((entry) => this.#disposeEntry(entry)),
 		);
@@ -385,6 +430,7 @@ export class DynamicActorRuntime {
 		if (!pending || pending.settled) return;
 		pending.settled = true;
 		entry.pending.delete(id);
+		pending.releaseAdmission();
 		entry.active = Math.max(0, entry.active - 1);
 		entry.lastUsedAt = Date.now();
 		if (this.#entries.size > this.config.maxEntries) void this.#prune();
@@ -443,11 +489,11 @@ export class DynamicActorRuntime {
 	async #disposeEntry(entry: RuntimeEntry): Promise<void> {
 		if (entry.disposed) return;
 		entry.disposed = true;
-		for (const pending of entry.pending.values()) {
+		for (const [id, pending] of entry.pending) {
 			pending.reject(new Error("Dynamic App actor worker disposed"));
 			pending.controller?.error(new Error("Dynamic App actor worker disposed"));
+			this.#settle(entry, id);
 		}
-		entry.pending.clear();
 		await Promise.allSettled([
 			entry.worker.terminate(),
 			rm(entry.directory, { recursive: true, force: true }),
@@ -636,6 +682,85 @@ function integerEnv(
 		throw new Error(`${name} must be an integer from ${minimum} to ${maximum}`);
 	}
 	return value;
+}
+
+class ActorAdmission {
+	readonly capacity: number;
+	readonly #maxQueued: number;
+	readonly #waitMs: number;
+	#active = 0;
+	#disposed = false;
+	#queue: Array<{ resolve(): void; reject(error: unknown): void }> = [];
+
+	constructor(capacity: number, maxQueued: number, waitMs: number) {
+		this.capacity = capacity;
+		this.#maxQueued = maxQueued;
+		this.#waitMs = waitMs;
+	}
+
+	get active(): number {
+		return this.#active;
+	}
+
+	get queued(): number {
+		return this.#queue.length;
+	}
+
+	async acquire(): Promise<void> {
+		if (this.#disposed) throw new Error("actor runtime disposed");
+		if (this.#active < this.capacity) {
+			this.#active += 1;
+			return;
+		}
+		if (this.#queue.length >= this.#maxQueued) {
+			throw new DynamicAppsError(
+				"agentos_apps_no_capacity",
+				"Dynamic Apps actor callback queue is full",
+			);
+		}
+		await new Promise<void>((resolve, reject) => {
+			let settled = false;
+			const item = {
+				resolve: () => {
+					if (settled) return;
+					settled = true;
+					clearTimeout(timer);
+					this.#active += 1;
+					resolve();
+				},
+				reject: (error: unknown) => {
+					if (settled) return;
+					settled = true;
+					clearTimeout(timer);
+					reject(error);
+				},
+			};
+			const timer = setTimeout(() => {
+				const offset = this.#queue.indexOf(item);
+				if (offset >= 0) this.#queue.splice(offset, 1);
+				item.reject(
+					new DynamicAppsError(
+						"agentos_apps_no_capacity",
+						`Dynamic Apps actor callback queue exceeded ${this.#waitMs}ms`,
+					),
+				);
+			}, this.#waitMs);
+			this.#queue.push(item);
+		});
+	}
+
+	release(): void {
+		if (this.#active <= 0) return;
+		this.#active -= 1;
+		this.#queue.shift()?.resolve();
+	}
+
+	dispose(): void {
+		this.#disposed = true;
+		for (const item of this.#queue.splice(0)) {
+			item.reject(new Error("actor runtime disposed"));
+		}
+	}
 }
 
 const ACTOR_WORKER_SOURCE = `
