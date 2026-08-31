@@ -1,10 +1,10 @@
 ---
 title: "Deploying Apps"
-description: "Deploy a directory or generated files with deployApp(), repair TypeScript, and configure regions and scaling."
+description: "Deploy a directory or generated files with deployApp(), preserve rollback, and configure app actors."
 skill: true
 ---
 
-Deploy a directory:
+Deploy a local application directory:
 
 ```ts
 await deployApp({
@@ -13,22 +13,36 @@ await deployApp({
 });
 ```
 
-Or deploy generated files:
+Or pass a complete generated application tree:
 
 ```ts
 await deployApp({
   appId: "generated-app",
   files: {
-    "index.html": "<h1>Hello</h1>",
+    "package.json": JSON.stringify({
+      private: true,
+      type: "module",
+      main: "index.js",
+    }),
+    "index.js": `
+      export default {
+        fetch() {
+          return new Response("hello");
+        },
+      };
+    `,
   },
 });
 ```
 
-## TypeScript repair
+The direct entrypoint must default-export a function or an object with
+`fetch(request)`. Static-only directories, Node builtins, and native addons are
+not supported in this release candidate.
 
-`deployApp()` returns build diagnostics when generated TypeScript does not
-compile. An agent can use those diagnostics to repair the files and call
-`deployApp()` again:
+## Build repair and rollback
+
+`deployApp()` rejects with bounded build diagnostics when generated source does
+not compile. Feed those diagnostics back to the generator and try again:
 
 ```ts
 for (let attempt = 0; attempt < 3; attempt++) {
@@ -42,8 +56,9 @@ for (let attempt = 0; attempt < 3; attempt++) {
 }
 ```
 
-A failed build does not replace the currently active release. See the
-[AI App Builder example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-ai-builder).
+A failed build or incomplete artifact write never replaces the active release.
+A successful call returns only after the immutable artifact is persisted and
+activated; it does not mean a request-serving replica was warmed.
 
 `appId` must contain 1–63 lowercase letters, numbers, or hyphens. Pass exactly
 one of `source` or `files`.
@@ -55,7 +70,6 @@ await deployApp({
   appId: "my-app",
   source,
   regions: ["atl", "fra"],
-  createNamespace: true,
   scaling: {
     minReplicas: 0,
     maxReplicas: 128,
@@ -64,14 +78,22 @@ await deployApp({
 });
 ```
 
-| Option | Default |
-| --- | --- |
-| `regions` | Current Rivet region |
-| `createNamespace` | `false` |
-| `scaling.minReplicas` | `0` |
-| `scaling.maxReplicas` | `128` |
-| `scaling.targetConcurrency` | `8` |
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `regions` | State actor's current region | Stored compatibility metadata; it does not move direct HTTP execution |
+| `createNamespace` | — | Deprecated compatibility option; every app always receives its own stable namespace |
+| `scaling.minReplicas` | `0` | App-defined actor runner setting; compatibility metadata for direct HTTP |
+| `scaling.maxReplicas` | `128` | App-defined actor runner setting; compatibility metadata for direct HTTP |
+| `scaling.targetConcurrency` | `8` | App-defined actor runner setting; compatibility metadata for direct HTTP |
 
-By default, apps use the namespace configured on the ordinary Rivet client.
-Enable `createNamespace` only when the app needs its own namespace; it requires
-Rivet namespace list and create permissions.
+Every app receives its own Rivet namespace. Locally, configure an Engine secret
+token with permission to create namespaces. On Rivet Cloud, set
+`RIVET_CLOUD_TOKEN` to a `cloud_api_*` token for the project; `deployApp()` uses
+it to create the namespace and namespace-scoped actor credentials. Keep this
+management token server-side. The deployment result includes the app's Engine
+endpoint, namespace, pool, and publishable token for connecting to app-defined
+actors.
+
+Rivet Compute automatically uses the deployment's `.rivet.run/api/rivet`
+callback. For another public host, set `DYNAMIC_APPS_CALLBACK_URL` to its
+origin.

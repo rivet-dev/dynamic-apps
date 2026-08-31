@@ -13,6 +13,3 @@ export class DynamicAppsError extends Error {
 		this.metadata = metadata;
 	}
 }
-
-/** @deprecated Dynamic Apps moved out of agentOS. Use `DynamicAppsError`. */
-export const AgentOSAppsError = DynamicAppsError;

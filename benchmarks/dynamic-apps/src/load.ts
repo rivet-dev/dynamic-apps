@@ -3,6 +3,7 @@ import { pathToFileURL } from "node:url";
 
 export interface LoadConfig {
 	target: string;
+	token?: string;
 	concurrency: number;
 	durationSeconds: number;
 	timeoutMs: number;
@@ -10,6 +11,8 @@ export interface LoadConfig {
 	maxSamples: number;
 	maxResponseBytes: number;
 	maxReplicaSeries: number;
+	validateJsonOk: boolean;
+	echoRequestId: boolean;
 	maxP95Ms?: number;
 	minSuccessRate?: number;
 }
@@ -35,13 +38,18 @@ export interface LoadResult {
 	warmLatencyMs: LatencySummary;
 	statuses: Record<string, number>;
 	replicas: Record<string, number>;
+	benchmarkInstances: Record<string, number>;
 	coldStarts: number;
 	warmRequests: number;
 	unclassifiedRequests: number;
 	warmHitRate: number;
 	replicaHeaderCoverage: number;
+	benchmarkInstanceHeaderCoverage: number;
 	maximumReplicaCount: number;
 	queueDelayMs: Pick<LatencySummary, "p50" | "p95" | "max">;
+	serverColdStartMs: LatencySummary;
+	serverPhaseMs: Record<string, LatencySummary>;
+	serverPhaseSamples: Record<string, number>;
 	sampledRequests: number;
 	droppedLatencySamples: number;
 	droppedQueueDelaySamples: number;
@@ -54,6 +62,7 @@ export function readLoadConfig(
 ): LoadConfig {
 	return {
 		target: env.LOAD_TEST_URL ?? "http://127.0.0.1:3000/apps/hello-world",
+		token: env.LOAD_TEST_TOKEN,
 		concurrency: integerEnv(env, "LOAD_TEST_CONCURRENCY", 16, 1, 1_000),
 		durationSeconds: integerEnv(
 			env,
@@ -85,6 +94,8 @@ export function readLoadConfig(
 			1,
 			10_000,
 		),
+		validateJsonOk: env.LOAD_TEST_VALIDATE_JSON_OK === "1",
+		echoRequestId: env.LOAD_TEST_ECHO_REQUEST_ID === "1",
 		maxP95Ms: optionalNumberEnv(env, "LOAD_TEST_MAX_P95_MS"),
 		minSuccessRate: optionalNumberEnv(env, "LOAD_TEST_MIN_SUCCESS_RATE", 1),
 	};
@@ -101,13 +112,17 @@ export async function runLoadTest(
 	const warmLatencies: number[] = [];
 	const statuses = new Map<string, number>();
 	const replicas = new Map<string, number>();
+	const benchmarkInstances = new Map<string, number>();
 	const queueDelays: number[] = [];
+	const serverColdStarts: number[] = [];
+	const serverPhases = new Map<string, number[]>();
 	let started = 0;
 	let completed = 0;
 	let successful = 0;
 	let coldStarts = 0;
 	let warmRequests = 0;
 	let replicaHeaders = 0;
+	let benchmarkInstanceHeaders = 0;
 	let maximumReplicaCount = 0;
 	let droppedLatencySamples = 0;
 	let droppedQueueDelaySamples = 0;
@@ -117,16 +132,36 @@ export async function runLoadTest(
 		Array.from({ length: config.concurrency }, async () => {
 			while (performance.now() < deadline && started < config.maxRequests) {
 				started += 1;
+				const requestId = config.echoRequestId
+					? `${process.pid}-${Math.trunc(loadStartedAt)}-${started}`
+					: undefined;
 				const startedAt = performance.now();
 				let status = "error";
+				let responseWasOk: boolean | undefined;
 				let temperature: "cold" | "warm" | undefined;
 				try {
-					const response = await fetchImpl(config.target, {
-						signal: AbortSignal.timeout(config.timeoutMs),
-						headers: { "user-agent": "agentos-apps-load-test" },
-					});
-					await consumeResponseBody(response, config.maxResponseBytes);
+					const response = await fetchImpl(
+						requestId
+							? targetWithRequestId(config.target, requestId)
+							: config.target,
+						{
+							signal: AbortSignal.timeout(config.timeoutMs),
+							headers: {
+								"user-agent": "agentos-apps-load-test",
+								...(config.token ? { "x-rivet-token": config.token } : {}),
+							},
+						},
+					);
 					status = String(response.status);
+					responseWasOk = response.ok;
+					const responseBody = await consumeResponseBody(
+						response,
+						config.maxResponseBytes,
+						config.validateJsonOk || requestId !== undefined,
+					);
+					if (config.validateJsonOk || requestId !== undefined) {
+						validateJsonResponse(responseBody, requestId);
+					}
 					if (response.ok) successful += 1;
 
 					const replica = response.headers.get("x-agentos-app-replica");
@@ -141,6 +176,23 @@ export async function runLoadTest(
 							droppedReplicaSeries += 1;
 						}
 					}
+					const benchmarkInstance = response.headers.get(
+						"x-agentos-bench-instance",
+					);
+					if (benchmarkInstance) {
+						benchmarkInstanceHeaders += 1;
+						if (
+							benchmarkInstances.has(benchmarkInstance) ||
+							benchmarkInstances.size < config.maxReplicaSeries
+						) {
+							benchmarkInstances.set(
+								benchmarkInstance,
+								(benchmarkInstances.get(benchmarkInstance) ?? 0) + 1,
+							);
+						} else {
+							droppedReplicaSeries += 1;
+						}
+					}
 
 					const coldStart = response.headers.get("x-agentos-app-cold-start");
 					if (coldStart === "1") {
@@ -150,6 +202,45 @@ export async function runLoadTest(
 						warmRequests += 1;
 						temperature = "warm";
 					}
+
+					const serverColdStart = headerNumber(
+						response,
+						"x-agentos-app-cold-start-ms",
+					);
+					if (
+						serverColdStart !== undefined &&
+						serverColdStarts.length < config.maxSamples
+					) {
+						serverColdStarts.push(serverColdStart);
+					}
+					for (const [phase, header] of Object.entries({
+						bundleLoad: "x-agentos-app-bundle-load-ms",
+						isolateStart: "x-agentos-app-isolate-start-ms",
+						processReady: "x-agentos-app-process-ready-ms",
+						dispatch: "x-agentos-app-dispatch-ms",
+						appReleaseLookup: "x-agentos-app-release-lookup-ms",
+						appRequestBody: "x-agentos-app-request-body-ms",
+						appScalerAcquire: "x-agentos-app-scaler-acquire-ms",
+						appReplicaHeaders: "x-agentos-app-replica-headers-ms",
+						appRequestHeaders: "x-agentos-app-request-headers-ms",
+					})) {
+						const value = headerNumber(response, header);
+						if (value === undefined) continue;
+						const samples = serverPhases.get(phase) ?? [];
+						if (samples.length < config.maxSamples) samples.push(value);
+						serverPhases.set(phase, samples);
+					}
+					response.headers.forEach((header, name) => {
+						const match = /^x-agentos-bench-(.+)-ms$/.exec(name);
+						if (!match) return;
+						const value = Number(header);
+						if (!Number.isFinite(value)) return;
+						const phase = match[1];
+						if (!phase) return;
+						const samples = serverPhases.get(phase) ?? [];
+						if (samples.length < config.maxSamples) samples.push(value);
+						serverPhases.set(phase, samples);
+					});
 
 					const queueDelay = headerNumber(
 						response,
@@ -171,7 +262,9 @@ export async function runLoadTest(
 						maximumReplicaCount = Math.max(maximumReplicaCount, replicaCount);
 					}
 				} catch (error) {
-					status = error instanceof Error ? error.name : "error";
+					if (responseWasOk !== false) {
+						status = error instanceof Error ? error.name : "error";
+					}
 				}
 
 				const latency = performance.now() - startedAt;
@@ -201,6 +294,7 @@ export async function runLoadTest(
 	const elapsedSeconds = (performance.now() - loadStartedAt) / 1_000;
 	const successRate = completed === 0 ? 0 : successful / completed;
 	const classifiedRequests = coldStarts + warmRequests;
+	const queueDelaySummary = latencySummary(queueDelays);
 	return {
 		target: config.target,
 		concurrency: config.concurrency,
@@ -214,18 +308,36 @@ export async function runLoadTest(
 		warmLatencyMs: latencySummary(warmLatencies),
 		statuses: Object.fromEntries([...statuses.entries()].sort()),
 		replicas: Object.fromEntries([...replicas.entries()].sort()),
+		benchmarkInstances: Object.fromEntries(
+			[...benchmarkInstances.entries()].sort(),
+		),
 		coldStarts,
 		warmRequests,
 		unclassifiedRequests: completed - classifiedRequests,
 		warmHitRate:
 			classifiedRequests === 0 ? 0 : warmRequests / classifiedRequests,
 		replicaHeaderCoverage: completed === 0 ? 0 : replicaHeaders / completed,
+		benchmarkInstanceHeaderCoverage:
+			completed === 0 ? 0 : benchmarkInstanceHeaders / completed,
 		maximumReplicaCount,
 		queueDelayMs: {
-			p50: round(percentile(queueDelays, 0.5)),
-			p95: round(percentile(queueDelays, 0.95)),
-			max: round(Math.max(...queueDelays, 0)),
+			p50: queueDelaySummary.p50,
+			p95: queueDelaySummary.p95,
+			max: queueDelaySummary.max,
 		},
+		serverColdStartMs: latencySummary(serverColdStarts),
+		serverPhaseMs: Object.fromEntries(
+			[...serverPhases.entries()].map(([phase, samples]) => [
+				phase,
+				latencySummary(samples),
+			]),
+		),
+		serverPhaseSamples: Object.fromEntries(
+			[...serverPhases.entries()].map(([phase, samples]) => [
+				phase,
+				samples.length,
+			]),
+		),
 		sampledRequests: latencies.length,
 		droppedLatencySamples,
 		droppedQueueDelaySamples,
@@ -269,22 +381,57 @@ async function main(): Promise<void> {
 async function consumeResponseBody(
 	response: Response,
 	maxResponseBytes: number,
-): Promise<void> {
-	if (!response.body) return;
+	capture: boolean,
+): Promise<Uint8Array | undefined> {
+	if (!response.body) return capture ? new Uint8Array() : undefined;
 	const reader = response.body.getReader();
+	const chunks: Uint8Array[] = [];
 	let received = 0;
 	try {
 		while (true) {
 			const { done, value } = await reader.read();
-			if (done) return;
+			if (done) {
+				return capture ? Buffer.concat(chunks, received) : undefined;
+			}
 			received += value.byteLength;
 			if (received > maxResponseBytes) {
 				await reader.cancel();
 				throw new ResponseBodyLimitError(maxResponseBytes);
 			}
+			if (capture) chunks.push(value);
 		}
 	} finally {
 		reader.releaseLock();
+	}
+}
+
+function targetWithRequestId(target: string, requestId: string): string {
+	const url = new URL(target);
+	url.searchParams.set("requestId", requestId);
+	return url.toString();
+}
+
+function validateJsonResponse(
+	body: Uint8Array | undefined,
+	expectedRequestId: string | undefined,
+): void {
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(new TextDecoder().decode(body));
+	} catch {
+		throw new InvalidBenchmarkResponseError("response was not valid JSON");
+	}
+	if (typeof parsed !== "object" || parsed === null || !("ok" in parsed)) {
+		throw new InvalidBenchmarkResponseError("response did not contain ok");
+	}
+	if (parsed.ok !== true) {
+		throw new InvalidBenchmarkResponseError("response ok was not true");
+	}
+	if (
+		expectedRequestId !== undefined &&
+		(!("requestId" in parsed) || parsed.requestId !== expectedRequestId)
+	) {
+		throw new InvalidBenchmarkResponseError("response requestId did not match");
 	}
 }
 
@@ -303,6 +450,10 @@ class ResponseBodyLimitError extends Error {
 			`response exceeded LOAD_TEST_MAX_RESPONSE_BYTES (${limit} bytes); raise the limit to read larger responses`,
 		);
 	}
+}
+
+class InvalidBenchmarkResponseError extends Error {
+	override name = "InvalidBenchmarkResponseError";
 }
 
 function integerEnv(
@@ -347,9 +498,11 @@ function latencySummary(values: number[]): LatencySummary {
 
 function percentile(sorted: number[], quantile: number): number {
 	if (sorted.length === 0) return 0;
-	return sorted[
-		Math.min(sorted.length - 1, Math.ceil(sorted.length * quantile) - 1)
-	]!;
+	return (
+		sorted[
+			Math.min(sorted.length - 1, Math.ceil(sorted.length * quantile) - 1)
+		] ?? 0
+	);
 }
 
 function round(value: number): number {

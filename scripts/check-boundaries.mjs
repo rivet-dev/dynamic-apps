@@ -49,15 +49,14 @@ for (const path of await walk("examples/")) {
 	assert(
 		!source.includes('from "@rivet-dev/agentos"') &&
 			!source.includes('"@rivet-dev/agentos":'),
-		`${path} exposes agentOS instead of the Dynamic Apps setup wrapper`,
+		`${path} exposes the Dynamic Apps deployment implementation`,
 	);
 }
 
 const actors = await read("packages/dynamic-apps/src/actors.ts");
 for (const identity of [
-	'const APP_ACTOR_NAME = "agentOSAppsApp"',
-	'const SCALER_ACTOR_NAME = "agentOSAppsScaler"',
-	'const REPLICA_ACTOR_NAME = "agentOSAppsReplica"',
+	"agentOSAppsApp: AnyActorDefinition;",
+	"const agentOSAppsApp = actor({",
 	'"/opt/agentos/bin/apps-builder"',
 ]) {
 	assert(
@@ -68,8 +67,17 @@ for (const identity of [
 
 const runtime = await read("packages/dynamic-apps/src/runtime.ts");
 assert(
-	runtime.includes('hash.update("agentos-apps-release-v15\\0")'),
+	runtime.includes('hash.update("agentos-apps-release-v17-direct-actors\\0")'),
 	"release hash domain changed",
+);
+
+const index = await read("packages/dynamic-apps/src/index.ts");
+assert(
+	index.includes("export { appsRouter }") &&
+		index.includes("export { deployApp }") &&
+		!index.includes("setupApps") &&
+		!index.includes("createAppsRouter"),
+	"package root must retain only appsRouter and deployApp",
 );
 
 const builderManifest = JSON.parse(

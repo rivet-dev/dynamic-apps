@@ -1,10 +1,6 @@
 import { createClient } from "rivetkit/client";
-import {
-	provisionAppNamespace,
-	resolveDefaultRivetConnection,
-} from "./control-plane.js";
-import { AgentOSAppsError } from "./errors.js";
-import { appRunnerPool } from "./runtime.js";
+import { DynamicAppsError } from "./errors.js";
+import { ensurePrivateAppsRegistry } from "./registry.js";
 import { prepareSource } from "./source.js";
 import type {
 	DeployAppInput,
@@ -18,12 +14,16 @@ interface DeploymentHandle {
 	): Promise<Deployment & { appActorId: string; usesRivetKit: boolean }>;
 }
 
+interface DeploymentActorGroup {
+	/** Resolve an existing stable app actor without constraining its datacenter. */
+	get?(key: string | string[]): DeploymentHandle;
+	getOrCreate(key: string | string[]): DeploymentHandle;
+}
+
 export interface DeployAppOptions {
 	/** An ordinary RivetKit client. The default client is created lazily. */
 	client?: {
-		agentOSAppsApp: {
-			getOrCreate(key: string | string[]): DeploymentHandle;
-		};
+		agentOSAppsApp: DeploymentActorGroup;
 	};
 }
 
@@ -43,34 +43,52 @@ export async function deployApp(
 	options: DeployAppOptions = {},
 ): Promise<Deployment> {
 	const files = await prepareSource(input);
-	const connection = resolveDefaultRivetConnection();
-	const runtime = input.createNamespace
-		? await provisionAppNamespace(input.appId, connection)
-		: {
-				endpoint: connection.endpoint,
-				namespace: connection.namespace,
-				pool: appRunnerPool(input.appId),
-			};
+	if (!options.client) await ensurePrivateAppsRegistry();
 	const client = options.client ?? getDefaultClient();
-	const app = client.agentOSAppsApp.getOrCreate([input.appId]);
-	const result = await deployWhenHostRegistryIsReady(app, {
+	const prepared: PreparedDeployAppInput = {
 		appId: input.appId,
 		files,
 		regions: input.regions,
 		scaling: input.scaling,
-		namespace: runtime.namespace,
-		runtime: {
-			endpoint: runtime.endpoint,
-			pool: runtime.pool,
-		},
-	});
+	};
+	const result = await deployThroughStableActor(
+		client.agentOSAppsApp,
+		input.appId,
+		prepared,
+	);
 	return {
 		appId: input.appId,
 		release: result.release,
+		endpoint: result.endpoint,
 		namespace: result.namespace,
-		pool: runtime.pool,
+		pool: result.pool,
+		...(result.token ? { token: result.token } : {}),
 		regions: result.regions,
 	};
+}
+
+async function deployThroughStableActor(
+	group: DeploymentActorGroup,
+	appId: string,
+	input: PreparedDeployAppInput,
+): Promise<Deployment & { appActorId: string; usesRivetKit: boolean }> {
+	if (group.get) {
+		try {
+			return await deployWhenHostRegistryIsReady(group.get([appId]), input);
+		} catch (error) {
+			if (!isActorNotFound(error)) throw error;
+		}
+	}
+	return deployWhenHostRegistryIsReady(group.getOrCreate([appId]), input);
+}
+
+function isActorNotFound(error: unknown): boolean {
+	if (typeof error !== "object" || error === null) return false;
+	const code = getErrorCode(error);
+	return (
+		code === "actor_not_found" ||
+		(code === "not_found" && "group" in error && error.group === "actor")
+	);
 }
 
 async function deployWhenHostRegistryIsReady(
@@ -92,9 +110,9 @@ async function deployWhenHostRegistryIsReady(
 		}
 	} while (Date.now() < deadline);
 
-	throw new AgentOSAppsError(
+	throw new DynamicAppsError(
 		"host_registry_not_ready",
-		`Dynamic Apps could not reach the host actor runner within ${HOST_REGISTRY_READY_TIMEOUT_MS}ms. Call registry.start() before deployApp().`,
+		`Dynamic Apps could not reach its private actor registry within ${HOST_REGISTRY_READY_TIMEOUT_MS}ms.`,
 		{
 			timeoutMs: HOST_REGISTRY_READY_TIMEOUT_MS,
 			lastCode: getErrorCode(lastError),

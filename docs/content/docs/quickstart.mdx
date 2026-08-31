@@ -1,11 +1,10 @@
 ---
 title: "Quickstart"
-description: "Set up a Dynamic Apps server, deploy an AI-generated application, connect the router, and verify the app from your browser."
+description: "Start the host server, deploy a generated app, and serve it from a local V8 isolate."
 skill: true
 ---
 
 import { Hosting } from "@/components/docs/Hosting";
-
 
 [View the complete Quickstart example on GitHub](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-hello-world).
 
@@ -13,58 +12,55 @@ import { Hosting } from "@/components/docs/Hosting";
 
 <Step title="Install">
 
+Use Node.js 22 or newer:
+
 ```sh
-npm add @rivet-dev/dynamic-apps
-npm add @hono/node-server hono
+npm add @rivet-dev/dynamic-apps @hono/node-server hono
 npm add --save-dev tsx
 npm pkg set type=module
 ```
 
 </Step>
 
-<Step title="Setup the server">
+<Step title="Start the host server">
 
-Setup the HTTP server that will serve requests for AI-generated apps. Also set
-up the actors that power the deployments.
+Mount the private Rivet callback separately from application traffic. The
+callback keeps the deployment state actor available; ordinary app requests are
+served by `appsRouter` from local isolates.
 
-<CodeGroup>
 <CodeSnippet file="examples/apps-hello-world/src/server.ts" title="src/server.ts" />
-<CodeSnippet file="examples/apps-hello-world/src/actors.ts" title="src/actors.ts" />
-</CodeGroup>
 
-Run the server:
+Run the server with Node snapshots disabled, as required by `isolated-vm`:
 
 ```sh
-npx tsx src/server.ts
+node --no-node-snapshot --import tsx src/server.ts
 ```
 
 </Step>
 
-<Step title="Deploy an AI-generated app">
+<Step title="Deploy an app">
 
-Pass generated files directly to `deployApp()`. This can be called by an agent,
-an upload endpoint, or any other part of your system:
+Pass a complete application tree to `deployApp()`. This can be called by an
+agent, an upload endpoint, or another trusted control-plane process.
 
 <CodeSnippet file="examples/apps-hello-world/src/deploy.ts" title="src/deploy.ts" />
 
 ```sh
-npx tsx src/deploy.ts
+node --import tsx src/deploy.ts
 ```
 
 </Step>
 
-<Step title="Visit the AI-generated app">
+<Step title="Visit the app">
 
-Open `http://localhost:3000/apps/hello-world/`. Pass this URL to agents,
-frontends, or any other part of your system that needs to visit the deployment.
+Open `http://localhost:3000/apps/hello-world/`. The bare
+`/apps/hello-world` path redirects to its trailing-slash form.
 
 </Step>
 
-<Step title="Deploy">
-
+<Step title="Deploy the host">
 
 <Hosting product="dynamic-apps" />
-
 
 </Step>
 

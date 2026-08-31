@@ -1,15 +1,26 @@
 import { createHash } from "node:crypto";
 import { controlFetch } from "./control-request.js";
-import { AgentOSAppsError } from "./errors.js";
+import { DynamicAppsError } from "./errors.js";
 import { appRunnerPool, ensureServerlessRunnerConfig } from "./runtime.js";
 
 const DEFAULT_ENDPOINT = "http://localhost:6420";
+const DEFAULT_CLOUD_ENDPOINT = "https://cloud-api.rivet.dev";
 const MAX_CONTROL_RESPONSE_BYTES = 1024 * 1024;
 
 export interface ResolvedRivetConnection {
 	endpoint: string;
 	namespace: string;
 	token?: string;
+}
+
+export interface ProvisionedAppNamespace {
+	endpoint: string;
+	namespace: string;
+	pool: string;
+	cloudNamespace?: string;
+	controlToken?: string;
+	runnerToken?: string;
+	publicToken?: string;
 }
 
 async function readBoundedJson(response: Response): Promise<unknown> {
@@ -24,7 +35,7 @@ async function readBoundedJson(response: Response): Promise<unknown> {
 			bytes += value.byteLength;
 			if (bytes > MAX_CONTROL_RESPONSE_BYTES) {
 				await reader.cancel("Dynamic Apps control response limit exceeded");
-				throw new AgentOSAppsError(
+				throw new DynamicAppsError(
 					"agentos_apps_control_response_limit",
 					`Rivet control response exceeded ${MAX_CONTROL_RESPONSE_BYTES} bytes`,
 					{ limit: MAX_CONTROL_RESPONSE_BYTES },
@@ -41,8 +52,8 @@ async function readBoundedJson(response: Response): Promise<unknown> {
 
 /**
  * Resolves the same standard Rivet connection variables as createClient(), but
- * only when a deployment or replica actually needs control-plane information.
- * This is intentionally not called by setupApps() or at module import time.
+ * only when a deployment needs control-plane information. This is not called
+ * at module import time.
  */
 export function resolveDefaultRivetConnection(): ResolvedRivetConnection {
 	const rawEndpoint =
@@ -59,7 +70,10 @@ export function resolveDefaultRivetConnection(): ResolvedRivetConnection {
 	return {
 		endpoint: url.toString().replace(/\/$/, ""),
 		namespace: endpointNamespace ?? process.env.RIVET_NAMESPACE ?? "default",
-		token: endpointToken ?? process.env.RIVET_TOKEN,
+		token:
+			process.env.DYNAMIC_APPS_CONTROL_TOKEN ??
+			endpointToken ??
+			process.env.RIVET_TOKEN,
 	};
 }
 
@@ -70,7 +84,7 @@ function namespaceName(appId: string, hostNamespace: string): string {
 		.update(appId)
 		.digest("hex")
 		.slice(0, 10);
-	return `agentos-app-${appId}`.slice(0, 63 - suffix.length - 1) + `-${suffix}`;
+	return `${`agentos-app-${appId}`.slice(0, 63 - suffix.length - 1)}-${suffix}`;
 }
 
 function controlHeaders(token?: string): Record<string, string> {
@@ -81,22 +95,159 @@ function controlHeaders(token?: string): Record<string, string> {
 	};
 }
 
-function serverlessAppUrl(
-	appActorId: string,
-	connection: ResolvedRivetConnection,
-): string {
+async function checkedJson<T>(
+	url: URL,
+	init: RequestInit,
+	code: string,
+	operation: string,
+): Promise<T> {
+	const response = await controlFetch(url, init);
+	if (!response.ok) {
+		throw new DynamicAppsError(
+			code,
+			`${operation} failed with HTTP ${response.status}`,
+			{ status: response.status },
+		);
+	}
+	return (await readBoundedJson(response)) as T;
+}
+
+function cloudUrl(path: string, organization?: string): URL {
 	const url = new URL(
-		`/gateway/${encodeURIComponent(appActorId)}/request/.agentos/apps/rivet`,
-		connection.endpoint,
+		path,
+		process.env.RIVET_CLOUD_ENDPOINT ?? DEFAULT_CLOUD_ENDPOINT,
 	);
-	return url.toString();
+	if (organization) url.searchParams.set("org", organization);
+	return url;
+}
+
+function appNamespaceDisplayName(appId: string, hostNamespace: string): string {
+	const suffix = createHash("sha256")
+		.update(hostNamespace)
+		.update("\0")
+		.update(appId)
+		.digest("hex")
+		.slice(0, 12);
+	return `Dynamic App ${appId} ${suffix}`.slice(0, 128);
+}
+
+async function provisionCloudNamespace(
+	appId: string,
+	connection: ResolvedRivetConnection,
+	existingCloudNamespace?: string,
+): Promise<ProvisionedAppNamespace> {
+	const cloudToken = process.env.RIVET_CLOUD_TOKEN;
+	if (!cloudToken) throw new Error("RIVET_CLOUD_TOKEN is required");
+	const headers = controlHeaders(cloudToken);
+	const identity = await checkedJson<{
+		project: string;
+		organization: string;
+	}>(
+		cloudUrl("/tokens/api/inspect"),
+		{ headers },
+		"agentos_apps_cloud_token_invalid",
+		"Rivet Cloud token inspection",
+	);
+	const displayName = appNamespaceDisplayName(appId, connection.namespace);
+	let cloudNamespace = existingCloudNamespace;
+	if (!cloudNamespace) {
+		let cursor: string | undefined;
+		do {
+			const url = cloudUrl(
+				`/projects/${encodeURIComponent(identity.project)}/namespaces`,
+				identity.organization,
+			);
+			url.searchParams.set("limit", "100");
+			if (cursor) url.searchParams.set("cursor", cursor);
+			const listed = await checkedJson<{
+				namespaces: Array<{ name: string; displayName: string }>;
+				pagination?: { cursor?: string };
+			}>(
+				url,
+				{ headers },
+				"agentos_apps_namespace_lookup_failed",
+				"Rivet Cloud namespace lookup",
+			);
+			cloudNamespace = listed.namespaces.find(
+				(candidate) => candidate.displayName === displayName,
+			)?.name;
+			cursor = cloudNamespace ? undefined : listed.pagination?.cursor;
+		} while (cursor);
+	}
+	if (!cloudNamespace) {
+		const created = await checkedJson<{
+			namespace: {
+				name: string;
+				access: { engineNamespaceName: string };
+			};
+		}>(
+			cloudUrl(
+				`/projects/${encodeURIComponent(identity.project)}/namespaces`,
+				identity.organization,
+			),
+			{
+				method: "POST",
+				headers,
+				body: JSON.stringify({ displayName }),
+			},
+			"agentos_apps_namespace_create_failed",
+			"Rivet Cloud namespace creation",
+		);
+		cloudNamespace = created.namespace.name;
+	}
+	const namespacePath = `/projects/${encodeURIComponent(identity.project)}/namespaces/${encodeURIComponent(cloudNamespace)}`;
+	const [{ namespace }, access, secret, publishable] = await Promise.all([
+		checkedJson<{
+			namespace: { access: { engineNamespaceName: string } };
+		}>(
+			cloudUrl(namespacePath, identity.organization),
+			{ headers },
+			"agentos_apps_namespace_lookup_failed",
+			"Rivet Cloud namespace resolution",
+		),
+		checkedJson<{ token: string }>(
+			cloudUrl(`${namespacePath}/tokens/access`, identity.organization),
+			{ method: "POST", headers },
+			"agentos_apps_namespace_token_failed",
+			"Rivet Cloud access token creation",
+		),
+		checkedJson<{ token: string }>(
+			cloudUrl(`${namespacePath}/tokens/secret`, identity.organization),
+			{ method: "POST", headers },
+			"agentos_apps_namespace_token_failed",
+			"Rivet Cloud runner token creation",
+		),
+		checkedJson<{ token: string }>(
+			cloudUrl(`${namespacePath}/tokens/publishable`, identity.organization),
+			{ method: "POST", headers },
+			"agentos_apps_namespace_token_failed",
+			"Rivet Cloud publishable token creation",
+		),
+	]);
+	return {
+		endpoint: connection.endpoint,
+		namespace: namespace.access.engineNamespaceName,
+		pool: appRunnerPool(appId),
+		cloudNamespace,
+		controlToken: access.token,
+		runnerToken: secret.token,
+		publicToken: publishable.token,
+	};
 }
 
 /** Idempotently provisions the isolated application namespace. */
 export async function provisionAppNamespace(
 	appId: string,
 	connection = resolveDefaultRivetConnection(),
-): Promise<{ namespace: string; endpoint: string; pool: string }> {
+	existing?: { namespace?: string | null; cloudNamespace?: string | null },
+): Promise<ProvisionedAppNamespace> {
+	if (process.env.RIVET_CLOUD_TOKEN) {
+		return provisionCloudNamespace(
+			appId,
+			connection,
+			existing?.cloudNamespace ?? undefined,
+		);
+	}
 	const namespace = namespaceName(appId, connection.namespace);
 	const headers = controlHeaders(connection.token);
 	const lookupUrl = new URL("/namespaces", connection.endpoint);
@@ -107,7 +258,7 @@ export async function provisionAppNamespace(
 			headers,
 		});
 		if (!response.ok) {
-			throw new AgentOSAppsError(
+			throw new DynamicAppsError(
 				"agentos_apps_namespace_lookup_failed",
 				`Rivet namespace lookup failed with HTTP ${response.status}`,
 				{ status: response.status },
@@ -132,7 +283,7 @@ export async function provisionAppNamespace(
 			},
 		);
 		if (!response.ok && !(await lookup())) {
-			throw new AgentOSAppsError(
+			throw new DynamicAppsError(
 				"agentos_apps_namespace_create_failed",
 				`Rivet namespace creation failed with HTTP ${response.status}`,
 				{ status: response.status },
@@ -144,27 +295,48 @@ export async function provisionAppNamespace(
 		namespace,
 		endpoint: connection.endpoint,
 		pool: appRunnerPool(appId),
+		controlToken: connection.token,
 	};
 }
 
-/** Configures the guest pool only after a healthy release has been activated. */
+function serverlessAppUrl(
+	appActorId: string,
+	connection: ResolvedRivetConnection,
+): string {
+	const configured = process.env.DYNAMIC_APPS_CALLBACK_URL;
+	if (configured) return new URL("/api/rivet", configured).toString();
+	if (process.env._RIVET_COMPUTE) {
+		return `https://${connection.namespace}.rivet.run/api/rivet`;
+	}
+	return new URL(
+		`/gateway/${encodeURIComponent(appActorId)}/request/.agentos/apps/rivet`,
+		connection.endpoint,
+	).toString();
+}
+
+/** Configure the nested actor pool only after its release is ready. */
 export async function configureAppNamespaceRunner(
 	appActorId: string,
-	runtime: { endpoint: string; namespace: string; pool: string },
+	runtime: {
+		endpoint: string;
+		namespace: string;
+		pool: string;
+		controlToken?: string;
+	},
 	callbackSecret: string,
-	connection = resolveDefaultRivetConnection(),
+	callbackConnection = resolveDefaultRivetConnection(),
 ): Promise<void> {
 	try {
 		await ensureServerlessRunnerConfig({
 			endpoint: runtime.endpoint,
 			namespace: runtime.namespace,
-			url: serverlessAppUrl(appActorId, connection),
+			url: serverlessAppUrl(appActorId, callbackConnection),
 			pool: runtime.pool,
-			token: connection.token,
+			token: runtime.controlToken,
 			callbackSecret,
 		});
 	} catch (error) {
-		throw new AgentOSAppsError(
+		throw new DynamicAppsError(
 			"agentos_apps_runner_config_failed",
 			`Rivet runner configuration failed for namespace ${runtime.namespace} and pool ${runtime.pool}`,
 			{

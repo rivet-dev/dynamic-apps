@@ -1,20 +1,35 @@
 ---
 title: "Route requests"
-description: "Mount deployed Dynamic Apps on a Hono server, route requests by application ID, and connect an explicit RivetKit client when needed."
+description: "Mount direct app traffic and the private Rivet callback on a Hono server."
 skill: true
 ---
 
-Mount all deployed apps:
+The package root exports one router. Mount ordinary application traffic at any
+prefix and explicitly dispatch the private `/api/rivet` callback to the same
+router:
 
 ```ts
+import { appsRouter } from "@rivet-dev/dynamic-apps";
+import { Hono } from "hono";
+
+const server = new Hono();
+
+const dispatchRegistry = (request: Request) => {
+  const headers = new Headers(request.headers);
+  headers.set("x-agentos-app-registry-dispatch", "1");
+  return appsRouter.fetch(new Request(request, { headers }));
+};
+
+server.all("/api/rivet", (c) => dispatchRegistry(c.req.raw));
+server.all("/api/rivet/*", (c) => dispatchRegistry(c.req.raw));
 server.route("/apps", appsRouter);
 ```
 
-This routes `/apps/:appId` and `/apps/:appId/*`. To use an explicit RivetKit
-client:
+This serves `/:appId/*` relative to the mount. For example,
+`/apps/example/api/items?q=1` reaches the deployed handler as
+`/api/items?q=1`. A bare `/apps/example` request redirects to
+`/apps/example/`.
 
-```ts
-import { createAppsRouter } from "@rivet-dev/dynamic-apps";
-
-server.route("/apps", createAppsRouter({ client }));
-```
+There is no `createAppsRouter` or router-specific client option. `appsRouter`
+creates and reuses its private control client lazily; cache-hit HTTP requests do
+not call that actor.
