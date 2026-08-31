@@ -78,6 +78,12 @@ thread and uses the host's pinned RivetKit native runtime. State, actions,
 events, connections, and streaming actor responses are handled by RivetKit;
 ordinary HTTP for the same app still uses the direct isolate path.
 
+Callback admission happens before the request body is read. The worker cache
+is a strict process limit across active and idle app bundles; a new bundle is
+rejected with `agentos_apps_no_capacity` when every worker slot is busy.
+Existing bundles continue sharing their worker up to the callback concurrency
+limit.
+
 ## Host integration
 
 Mount application traffic and the private Rivet callback separately:
@@ -153,6 +159,18 @@ configured number remain idle afterward. Setting the pool size to zero selects
 | `DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS` | `10000` |
 | `DYNAMIC_APPS_ACTOR_WORKER_IDLE_TTL_MS` | `30000` |
 | `DYNAMIC_APPS_ACTOR_START_PAYLOAD_MAX_BYTES` | `1048576` |
+| `DYNAMIC_APPS_ACTOR_REQUEST_CONCURRENCY` | `64` |
+| `DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_SIZE` | `128` |
+| `DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_WAIT_MS` | `5000` |
+| `DYNAMIC_APPS_ACTOR_REQUEST_TIMEOUT_MS` | `30000` |
+
+Inside a finite cgroup, execution concurrency, both isolate-pool limits, and
+the actor-worker limit are upper bounds. At startup they are reduced when
+necessary to keep the configured heap cost below
+`DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT`, with host and payload headroom. They
+are unchanged when the cgroup has no finite memory limit. Effective direct
+concurrency appears as `executionConcurrency` in executor diagnostics, and the
+effective actor limit appears as `workerLimit` in actor diagnostics.
 
 `DYNAMIC_APPS_CONTROL_TOKEN` optionally overrides only the token used by
 Dynamic Apps control-plane requests, including explicit app-namespace
@@ -174,9 +192,10 @@ request/response bodies or credentials.
 
 Each cached isolate has its own configured V8 heap limit. The pool, runtime
 entry count, artifact bytes, idle TTLs, execution concurrency, queue, and cgroup
-high-water eviction are independently bounded. A used JavaScript context is
-never reused: it is released before a fresh snapshot-backed context is created
-on the cached native isolate.
+high-water eviction are independently bounded. Direct and actor admission is
+performed before request-body buffering. A used JavaScript context is never
+reused: it is released before a fresh snapshot-backed context is created on the
+cached native isolate.
 
 This preview executes isolates in the serving process. `isolated-vm` is a V8
 isolation primitive, not a complete hostile multi-tenant sandbox, and snapshot

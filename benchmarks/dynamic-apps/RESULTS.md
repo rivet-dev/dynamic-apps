@@ -26,6 +26,55 @@ direct isolate pool 2, actor-worker cache 4, and actor-worker heap limit 96 MiB.
 Every Cloud mutation targeted only
 `dynamic-apps-ben-562e-production-sqac`.
 
+## Runtime hardening qualification (2026-08-30)
+
+The local stress suite now exercises multi-app cache churn, large payload
+bursts, release invalidation, cold-cache fan-out, queue overflow, oversized
+actor bodies, worker startup and handler stalls, sustained actor traffic,
+worker-key churn, shutdown during preparation, and cgroup memory pressure.
+
+Confirmed failures were reproduced before their fixes: eager body buffering,
+unbounded process-wide isolate retention, actor bodies read past their limit,
+stalled worker startup and handlers, unresolved direct promises, worker
+eviction races, unconstrained worker creation, post-shutdown worker/runtime
+publication, and cgroup OOMs from active and cached V8 heaps.
+
+| Qualification | Result |
+| --- | ---: |
+| Unit runtime suite | **30 / 30 passed** |
+| Load-driver suite | **5 / 5 passed** |
+| Default stress requests per main case | **10,000** |
+| Extended multi-app + invalidation requests | **100,000 each** |
+| Extended oversized actor bodies canceled | **100,000 / 100,000** |
+| Extended stale responses after activation | **0 / 66,667** |
+| Extended warm worker traffic | **33,418 req/s** |
+| Extended warm worker p50 / p95 | **1.52 / 3.87 ms** |
+| Worker churn peak | **4 / configured 4** |
+| Context reset failures | **0** |
+
+The deliberately hostile 10,000-request payload case used 256 KiB requests,
+128 KiB responses, concurrency 64, executor concurrency 32, and a two-isolate
+cache. On an unlimited-memory host it peaked at 1.37 GiB RSS and completed with
+no corruption or reset failures. That profile measures worst-case allocator
+high-water behavior; finite production cgroups now reduce active and cached V8
+counts before serving traffic.
+
+| 256/512 MiB cgroup profile | Before | After |
+| --- | ---: | ---: |
+| Direct payload, 512 MiB | OOM, exit 137 | **257 MiB peak, exit 0** |
+| Direct payload, 256 MiB | OOM, exit 137 | **240 MiB peak, exit 0** |
+| Actor workers retaining 64 MiB, 256 MiB | OOM, exit 137 | **203 MiB peak, exit 0** |
+
+The effective direct limits were four isolates at 512 MiB and one at 256 MiB;
+the actor-worker limit was one at 256 MiB. Excess work failed with the bounded
+no-capacity error instead of overcommitting the container.
+
+The final local Rivet Engine run also passed real app-defined actor deployment,
+state transitions `2 -> 5`, event value `2`, state readback `5`, and direct HTTP
+from the same release. Its warm actor action cases were 100% successful at
+23.42 ms sequential p50 and 61.27 ms concurrency-16 p50; those numbers include
+the local Engine path, unlike the lower-level worker timing above.
+
 ## Decision
 
 **Use the direct local-isolate path for ordinary request/response. Keep Rivet
@@ -166,6 +215,13 @@ request latency, and should be fixed independently.
 ## Reproduction
 
 ```sh
+pnpm --filter @rivet-dev/dynamic-apps-benchmarks benchmark:stress
+
+STRESS_CASES=multiApp,invalidation,actorTraffic,actorChurn,actorOversize \
+STRESS_APP_COUNT=64 STRESS_REQUESTS=100000 STRESS_CONCURRENCY=128 \
+STRESS_ACTOR_CHURN_REQUESTS=1000 \
+pnpm --filter @rivet-dev/dynamic-apps-benchmarks benchmark:stress
+
 BENCH_PROFILE=actors \
 pnpm --filter @rivet-dev/dynamic-apps-benchmarks benchmark:local -- --host 0.0.0.0
 
