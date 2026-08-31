@@ -4,13 +4,12 @@ name: Sync docs
 # docs/ bundle into the website's vendor/dynamic-apps and opens a PR there, which is
 # also what triggers the site rebuild.
 #
-# No extra-paths: this product owns no examples/ tree. Its <CodeSnippet> paths
-# resolve against another product's repo via snippetFrom in the website's
-# product-metadata.ts, so nothing outside docs/ needs to travel with the bundle.
+# examples/ travels with the bundle because Dynamic Apps docs embed snippets
+# from this repository by repo-root-relative path.
 on:
   push:
     branches: [main]
-    paths: ["docs/**"]
+    paths: ["docs/**", "examples/**", ".github/workflows/docs-sync.yml"]
   workflow_dispatch:
 
 jobs:
@@ -22,3 +21,4 @@ jobs:
         with:
           product: dynamic-apps
           token: ${{ secrets.RIVET_WEBSITE_TOKEN }}
+          extra-paths: examples
