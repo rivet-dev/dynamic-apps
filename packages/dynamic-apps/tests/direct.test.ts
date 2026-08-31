@@ -12,6 +12,7 @@ import {
 	DynamicActorRuntime,
 } from "../src/actor-runtime.js";
 import type { AppRouteResolution } from "../src/actors.js";
+import { forwardActorCallbackRequest } from "../src/actors.js";
 import { resolveDefaultRivetConnection } from "../src/control-plane.js";
 import { deployApp } from "../src/deploy.js";
 import {
@@ -545,6 +546,24 @@ describe("direct V8 execution", () => {
 });
 
 describe("actor callback resource limits", () => {
+	test("forwards actor callback bodies without eager buffering", async () => {
+		let pulls = 0;
+		const source = streamingRequest("http://example.test/api/rivet/start", {
+			pull(controller) {
+				pulls += 1;
+				controller.enqueue(Uint8Array.of(1, 2, 3));
+				controller.close();
+			},
+		});
+		const forwarded = forwardActorCallbackRequest(source, "/start");
+		expect(pulls).toBe(0);
+		expect(new URL(forwarded.url).pathname).toBe("/start");
+		expect(new Uint8Array(await forwarded.arrayBuffer())).toEqual(
+			Uint8Array.of(1, 2, 3),
+		);
+		expect(pulls).toBe(1);
+	});
+
 	test("admits actor callback bodies before reading them", async () => {
 		const artifact = await makeActorArtifact(`
 export const registry = {

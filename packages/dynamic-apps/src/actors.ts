@@ -1167,14 +1167,6 @@ export function createAppsActors(
 		if (!validCallbackSecret(request, release.callbackSecret)) {
 			return new Response("Unauthorized", { status: 401 });
 		}
-		const url = new URL(request.url);
-		url.pathname = callbackPath;
-		const headers = new Headers(request.headers);
-		headers.delete(APP_CALLBACK_SECRET_HEADER);
-		const body =
-			request.method === "GET" || request.method === "HEAD"
-				? undefined
-				: await request.arrayBuffer();
 		try {
 			return await getDefaultActorRuntime().request({
 				key: `${release.release}:${release.artifactHash}`,
@@ -1182,7 +1174,7 @@ export function createAppsActors(
 				endpoint: actorPublicEndpoint(release),
 				namespace: release.namespace,
 				pool: release.runtimePool,
-				request: new Request(url, { method: request.method, headers, body }),
+				request: forwardActorCallbackRequest(request, callbackPath),
 			});
 		} catch (error) {
 			c.log.error({
@@ -1610,4 +1602,26 @@ export function createAppsActors(
 		},
 	});
 	return { agentOSAppsApp };
+}
+
+/** @internal Preserves callback streaming until runtime admission. */
+export function forwardActorCallbackRequest(
+	request: Request,
+	callbackPath: string,
+): Request {
+	const url = new URL(request.url);
+	url.pathname = callbackPath;
+	const headers = new Headers(request.headers);
+	headers.delete(APP_CALLBACK_SECRET_HEADER);
+	const body =
+		request.method === "GET" || request.method === "HEAD"
+			? undefined
+			: request.body;
+	return new Request(url, {
+		method: request.method,
+		headers,
+		body,
+		signal: request.signal,
+		...(body ? { duplex: "half" } : {}),
+	} as RequestInit & { duplex?: "half" });
 }
