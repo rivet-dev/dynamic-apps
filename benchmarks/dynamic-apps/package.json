@@ -5,6 +5,7 @@
 	"type": "module",
 	"scripts": {
 		"benchmark:local": "node --import tsx src/local.ts --host 0.0.0.0",
+		"benchmark:cloud-stress": "node --import tsx src/cloud-stress.ts",
 		"benchmark:stress": "node --expose-gc --import tsx src/runtime-stress.ts",
 		"benchmark:suite": "node --import tsx src/suite.ts",
 		"deploy:fixture": "node --import tsx src/deploy-fixture.ts",

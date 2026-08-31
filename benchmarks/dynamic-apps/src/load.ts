@@ -11,6 +11,8 @@ export interface LoadConfig {
 	maxSamples: number;
 	maxResponseBytes: number;
 	maxReplicaSeries: number;
+	validateJsonOk: boolean;
+	echoRequestId: boolean;
 	maxP95Ms?: number;
 	minSuccessRate?: number;
 }
@@ -36,11 +38,13 @@ export interface LoadResult {
 	warmLatencyMs: LatencySummary;
 	statuses: Record<string, number>;
 	replicas: Record<string, number>;
+	benchmarkInstances: Record<string, number>;
 	coldStarts: number;
 	warmRequests: number;
 	unclassifiedRequests: number;
 	warmHitRate: number;
 	replicaHeaderCoverage: number;
+	benchmarkInstanceHeaderCoverage: number;
 	maximumReplicaCount: number;
 	queueDelayMs: Pick<LatencySummary, "p50" | "p95" | "max">;
 	serverColdStartMs: LatencySummary;
@@ -90,6 +94,8 @@ export function readLoadConfig(
 			1,
 			10_000,
 		),
+		validateJsonOk: env.LOAD_TEST_VALIDATE_JSON_OK === "1",
+		echoRequestId: env.LOAD_TEST_ECHO_REQUEST_ID === "1",
 		maxP95Ms: optionalNumberEnv(env, "LOAD_TEST_MAX_P95_MS"),
 		minSuccessRate: optionalNumberEnv(env, "LOAD_TEST_MIN_SUCCESS_RATE", 1),
 	};
@@ -106,6 +112,7 @@ export async function runLoadTest(
 	const warmLatencies: number[] = [];
 	const statuses = new Map<string, number>();
 	const replicas = new Map<string, number>();
+	const benchmarkInstances = new Map<string, number>();
 	const queueDelays: number[] = [];
 	const serverColdStarts: number[] = [];
 	const serverPhases = new Map<string, number[]>();
@@ -115,6 +122,7 @@ export async function runLoadTest(
 	let coldStarts = 0;
 	let warmRequests = 0;
 	let replicaHeaders = 0;
+	let benchmarkInstanceHeaders = 0;
 	let maximumReplicaCount = 0;
 	let droppedLatencySamples = 0;
 	let droppedQueueDelaySamples = 0;
@@ -124,18 +132,33 @@ export async function runLoadTest(
 		Array.from({ length: config.concurrency }, async () => {
 			while (performance.now() < deadline && started < config.maxRequests) {
 				started += 1;
+				const requestId = config.echoRequestId
+					? `${process.pid}-${Math.trunc(loadStartedAt)}-${started}`
+					: undefined;
 				const startedAt = performance.now();
 				let status = "error";
 				let temperature: "cold" | "warm" | undefined;
 				try {
-					const response = await fetchImpl(config.target, {
-						signal: AbortSignal.timeout(config.timeoutMs),
-						headers: {
-							"user-agent": "agentos-apps-load-test",
-							...(config.token ? { "x-rivet-token": config.token } : {}),
+					const response = await fetchImpl(
+						requestId
+							? targetWithRequestId(config.target, requestId)
+							: config.target,
+						{
+							signal: AbortSignal.timeout(config.timeoutMs),
+							headers: {
+								"user-agent": "agentos-apps-load-test",
+								...(config.token ? { "x-rivet-token": config.token } : {}),
+							},
 						},
-					});
-					await consumeResponseBody(response, config.maxResponseBytes);
+					);
+					const responseBody = await consumeResponseBody(
+						response,
+						config.maxResponseBytes,
+						config.validateJsonOk || requestId !== undefined,
+					);
+					if (config.validateJsonOk || requestId !== undefined) {
+						validateJsonResponse(responseBody, requestId);
+					}
 					status = String(response.status);
 					if (response.ok) successful += 1;
 
@@ -147,6 +170,23 @@ export async function runLoadTest(
 							replicas.size < config.maxReplicaSeries
 						) {
 							replicas.set(replica, (replicas.get(replica) ?? 0) + 1);
+						} else {
+							droppedReplicaSeries += 1;
+						}
+					}
+					const benchmarkInstance = response.headers.get(
+						"x-agentos-bench-instance",
+					);
+					if (benchmarkInstance) {
+						benchmarkInstanceHeaders += 1;
+						if (
+							benchmarkInstances.has(benchmarkInstance) ||
+							benchmarkInstances.size < config.maxReplicaSeries
+						) {
+							benchmarkInstances.set(
+								benchmarkInstance,
+								(benchmarkInstances.get(benchmarkInstance) ?? 0) + 1,
+							);
 						} else {
 							droppedReplicaSeries += 1;
 						}
@@ -264,12 +304,17 @@ export async function runLoadTest(
 		warmLatencyMs: latencySummary(warmLatencies),
 		statuses: Object.fromEntries([...statuses.entries()].sort()),
 		replicas: Object.fromEntries([...replicas.entries()].sort()),
+		benchmarkInstances: Object.fromEntries(
+			[...benchmarkInstances.entries()].sort(),
+		),
 		coldStarts,
 		warmRequests,
 		unclassifiedRequests: completed - classifiedRequests,
 		warmHitRate:
 			classifiedRequests === 0 ? 0 : warmRequests / classifiedRequests,
 		replicaHeaderCoverage: completed === 0 ? 0 : replicaHeaders / completed,
+		benchmarkInstanceHeaderCoverage:
+			completed === 0 ? 0 : benchmarkInstanceHeaders / completed,
 		maximumReplicaCount,
 		queueDelayMs: {
 			p50: queueDelaySummary.p50,
@@ -332,22 +377,57 @@ async function main(): Promise<void> {
 async function consumeResponseBody(
 	response: Response,
 	maxResponseBytes: number,
-): Promise<void> {
-	if (!response.body) return;
+	capture: boolean,
+): Promise<Uint8Array | undefined> {
+	if (!response.body) return capture ? new Uint8Array() : undefined;
 	const reader = response.body.getReader();
+	const chunks: Uint8Array[] = [];
 	let received = 0;
 	try {
 		while (true) {
 			const { done, value } = await reader.read();
-			if (done) return;
+			if (done) {
+				return capture ? Buffer.concat(chunks, received) : undefined;
+			}
 			received += value.byteLength;
 			if (received > maxResponseBytes) {
 				await reader.cancel();
 				throw new ResponseBodyLimitError(maxResponseBytes);
 			}
+			if (capture) chunks.push(value);
 		}
 	} finally {
 		reader.releaseLock();
+	}
+}
+
+function targetWithRequestId(target: string, requestId: string): string {
+	const url = new URL(target);
+	url.searchParams.set("requestId", requestId);
+	return url.toString();
+}
+
+function validateJsonResponse(
+	body: Uint8Array | undefined,
+	expectedRequestId: string | undefined,
+): void {
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(new TextDecoder().decode(body));
+	} catch {
+		throw new InvalidBenchmarkResponseError("response was not valid JSON");
+	}
+	if (typeof parsed !== "object" || parsed === null || !("ok" in parsed)) {
+		throw new InvalidBenchmarkResponseError("response did not contain ok");
+	}
+	if (parsed.ok !== true) {
+		throw new InvalidBenchmarkResponseError("response ok was not true");
+	}
+	if (
+		expectedRequestId !== undefined &&
+		(!("requestId" in parsed) || parsed.requestId !== expectedRequestId)
+	) {
+		throw new InvalidBenchmarkResponseError("response requestId did not match");
 	}
 }
 
@@ -366,6 +446,10 @@ class ResponseBodyLimitError extends Error {
 			`response exceeded LOAD_TEST_MAX_RESPONSE_BYTES (${limit} bytes); raise the limit to read larger responses`,
 		);
 	}
+}
+
+class InvalidBenchmarkResponseError extends Error {
+	override name = "InvalidBenchmarkResponseError";
 }
 
 function integerEnv(

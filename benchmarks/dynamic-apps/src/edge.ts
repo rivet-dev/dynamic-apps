@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { availableParallelism } from "node:os";
 import { appsRouter } from "@rivet-dev/dynamic-apps";
 import { Hono } from "hono";
@@ -50,6 +51,16 @@ const ACTOR_LOAD_KEY = ["load-v2"];
 
 export function createBenchmarkApplication(): Hono {
 	const app = new Hono();
+	const benchmarkInstance = randomUUID();
+	const benchmarkStartedAt = Date.now();
+	app.use("/bench/*", async (c, next) => {
+		await next();
+		c.header("x-agentos-bench-instance", benchmarkInstance);
+		c.header(
+			"x-agentos-bench-process-age-ms",
+			String(Date.now() - benchmarkStartedAt),
+		);
+	});
 	const baseConfig = readExecutorConfig({
 		...process.env,
 		DYNAMIC_APPS_TIMING_HEADERS: "1",
@@ -264,6 +275,13 @@ export function createBenchmarkApplication(): Hono {
 	app.get("/bench/info", () =>
 		Response.json({
 			appId: BENCHMARK_APP_ID,
+			benchmarkInstance,
+			benchmarkStartedAt,
+			process: {
+				pid: process.pid,
+				uptimeSeconds: process.uptime(),
+				memory: process.memoryUsage(),
+			},
 			cpuParallelism: availableParallelism(),
 			warm: warm.diagnostics(),
 			snapshot: snapshot.diagnostics(),

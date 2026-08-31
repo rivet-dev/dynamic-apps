@@ -84,6 +84,7 @@ describe("Dynamic Apps load driver", () => {
 			assert.equal(result.unclassifiedRequests, 0);
 			assert.equal(result.warmHitRate, 0.5);
 			assert.equal(result.replicaHeaderCoverage, 1);
+			assert.equal(result.benchmarkInstanceHeaderCoverage, 0);
 			assert.equal(result.maximumReplicaCount, 2);
 			assert.deepEqual(result.queueDelayMs, { p50: 3, p95: 9, max: 9 });
 			assert.equal(result.serverColdStartMs.p50, 7);
@@ -98,6 +99,45 @@ describe("Dynamic Apps load driver", () => {
 				server.close((error) => (error ? reject(error) : resolve())),
 			);
 		}
+	});
+
+	it("validates response bodies and echoed request identities", async () => {
+		const result = await runLoadTest(
+			{
+				...readLoadConfig({}),
+				target: "http://load.test",
+				concurrency: 1,
+				durationSeconds: 1,
+				maxRequests: 2,
+				validateJsonOk: true,
+				echoRequestId: true,
+			},
+			async (input) => {
+				const requestId = new URL(String(input)).searchParams.get("requestId");
+				return Response.json({ ok: true, requestId });
+			},
+		);
+
+		assert.equal(result.successRate, 1);
+		assert.deepEqual(result.statuses, { "200": 2 });
+	});
+
+	it("rejects a successful response with the wrong request identity", async () => {
+		const result = await runLoadTest(
+			{
+				...readLoadConfig({}),
+				target: "http://load.test",
+				concurrency: 1,
+				durationSeconds: 1,
+				maxRequests: 1,
+				validateJsonOk: true,
+				echoRequestId: true,
+			},
+			async () => Response.json({ ok: true, requestId: "wrong" }),
+		);
+
+		assert.equal(result.successRate, 0);
+		assert.deepEqual(result.statuses, { InvalidBenchmarkResponseError: 1 });
 	});
 
 	it("fails a request instead of buffering an oversized response", async () => {
