@@ -78,6 +78,8 @@ export class DynamicActorRuntime {
 	readonly #admission: ActorAdmission;
 	readonly #timer: ReturnType<typeof setInterval>;
 	#workerReservations = 0;
+	#disposed = false;
+	#disposePromise?: Promise<void>;
 
 	constructor(env: NodeJS.ProcessEnv = process.env) {
 		this.config = {
@@ -254,8 +256,19 @@ export class DynamicActorRuntime {
 	}
 
 	async dispose(): Promise<void> {
+		if (this.#disposePromise !== undefined) return this.#disposePromise;
+		this.#disposed = true;
 		clearInterval(this.#timer);
 		this.#admission.dispose();
+		this.#disposePromise = this.#finishDispose();
+		return this.#disposePromise;
+	}
+
+	async #finishDispose(): Promise<void> {
+		while (this.#creating.size > 0) {
+			await Promise.allSettled([...this.#creating.values()]);
+			await new Promise<void>((resolve) => setImmediate(resolve));
+		}
 		await Promise.allSettled(
 			[...this.#entries.values()].map((entry) => this.#disposeEntry(entry)),
 		);
@@ -263,20 +276,36 @@ export class DynamicActorRuntime {
 	}
 
 	async #entry(input: ActorRuntimeRequest): Promise<RuntimeEntry> {
+		if (this.#disposed) throw new Error("Dynamic App actor runtime disposed");
 		const existing = this.#entries.get(input.key);
 		if (existing && !existing.disposed) return this.#lease(existing);
 		const pending = this.#creating.get(input.key);
 		if (pending) return this.#lease(await pending);
 		const reservation = this.#reserveWorker();
-		const promise = reservation.then(() => this.#createEntry(input));
+		const promise = reservation.then(async () => {
+			const entry = await this.#createEntry(input);
+			if (this.#disposed) {
+				await this.#disposeEntry(entry);
+				throw new Error(
+					"Dynamic App actor runtime disposed during worker creation",
+				);
+			}
+			return entry;
+		});
 		this.#creating.set(input.key, promise);
 		let reserved = true;
 		try {
 			const entry = await promise;
-			this.#entries.set(input.key, entry);
 			this.#creating.delete(input.key);
 			this.#workerReservations = Math.max(0, this.#workerReservations - 1);
 			reserved = false;
+			if (this.#disposed) {
+				await this.#disposeEntry(entry);
+				throw new Error(
+					"Dynamic App actor runtime disposed during worker creation",
+				);
+			}
+			this.#entries.set(input.key, entry);
 			this.#lease(entry);
 			await this.#prune(entry.key);
 			return entry;
@@ -291,6 +320,7 @@ export class DynamicActorRuntime {
 	}
 
 	#reserveWorker(): Promise<void> {
+		if (this.#disposed) throw new Error("Dynamic App actor runtime disposed");
 		if (
 			this.#entries.size + this.#workerReservations <
 			this.config.maxEntries
@@ -497,6 +527,7 @@ export class DynamicActorRuntime {
 	}
 
 	async #prune(protectedKey?: string): Promise<void> {
+		if (this.#disposed) return;
 		const now = Date.now();
 		const memoryPressure = await this.#memoryPressure();
 		const entries = [...this.#entries.values()].sort(
