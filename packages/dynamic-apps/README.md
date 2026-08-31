@@ -137,6 +137,7 @@ configured number remain idle afterward. Setting the pool size to zero selects
 | Variable | Default |
 | --- | ---: |
 | `DYNAMIC_APPS_ISOLATE_POOL_SIZE` | `2` |
+| `DYNAMIC_APPS_ISOLATE_POOL_MAX_TOTAL` | `8` |
 | `DYNAMIC_APPS_ISOLATE_IDLE_TTL_MS` | `30000` |
 | `DYNAMIC_APPS_ISOLATE_HEAP_LIMIT_MB` | `64` |
 | `DYNAMIC_APPS_RUNTIME_CACHE_MAX_ENTRIES` | `16` |

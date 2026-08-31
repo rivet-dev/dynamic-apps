@@ -559,6 +559,7 @@ function executorConfig(
 	return {
 		isolateMode: mode,
 		isolatePoolSize: 2,
+		isolatePoolMaxTotal: 8,
 		isolateIdleTtlMs: 30_000,
 		isolateHeapLimitMb: 128,
 		runtimeCacheMaxEntries: 4,

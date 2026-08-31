@@ -32,6 +32,7 @@ export type IsolateMode = "fresh" | "snapshot" | "prewarm";
 export interface ExecutorConfig {
 	isolateMode: IsolateMode;
 	isolatePoolSize: number;
+	isolatePoolMaxTotal: number;
 	isolateIdleTtlMs: number;
 	isolateHeapLimitMb: number;
 	runtimeCacheMaxEntries: number;
@@ -108,6 +109,7 @@ interface RequestTrace {
 
 interface IsolateSlot {
 	isolate: ivm.Isolate;
+	pooled: boolean;
 	context?: ivm.Context;
 	dispatch?: ivm.Reference<(input: string) => Promise<string>>;
 	lastUsedAt: number;
@@ -170,6 +172,13 @@ export function readExecutorConfig(
 	return {
 		isolateMode: mode === "prewarm" && poolSize === 0 ? "snapshot" : mode,
 		isolatePoolSize: poolSize,
+		isolatePoolMaxTotal: integerEnv(
+			env,
+			"DYNAMIC_APPS_ISOLATE_POOL_MAX_TOTAL",
+			8,
+			0,
+			1_024,
+		),
 		isolateIdleTtlMs: integerEnv(
 			env,
 			"DYNAMIC_APPS_ISOLATE_IDLE_TTL_MS",
@@ -254,6 +263,8 @@ export class DynamicAppsExecutor {
 	readonly #runtimes = new Map<string, PreparedRuntime>();
 	readonly #runtimePromises = new Map<string, Promise<PreparedRuntime>>();
 	readonly #cleanupTimer: ReturnType<typeof setInterval>;
+	#pooledIsolates = 0;
+	#poolReservations = 0;
 	#disposed = false;
 
 	constructor(
@@ -353,6 +364,9 @@ export class DynamicAppsExecutor {
 				(sum, item) => sum + item.cleanSlots.length,
 				0,
 			),
+			pooledIsolates: this.#pooledIsolates,
+			poolReservations: this.#poolReservations,
+			isolatePoolMaxTotal: this.config.isolatePoolMaxTotal,
 			inUseIsolates: runtimes.reduce((sum, item) => sum + item.inUse, 0),
 			refillingIsolates: runtimes.reduce(
 				(sum, item) => sum + item.refilling,
@@ -738,7 +752,11 @@ export class DynamicAppsExecutor {
 			memoryLimit: this.config.isolateHeapLimitMb,
 			...(runtime.snapshot ? { snapshot: runtime.snapshot } : {}),
 		});
-		const slot: IsolateSlot = { isolate, lastUsedAt: Date.now() };
+		const slot: IsolateSlot = {
+			isolate,
+			pooled: false,
+			lastUsedAt: Date.now(),
+		};
 		try {
 			await this.#initializeSlot(runtime, slot);
 			runtime.isolateCreates += 1;
@@ -780,8 +798,9 @@ export class DynamicAppsExecutor {
 
 	async #fillPool(runtime: PreparedRuntime): Promise<void> {
 		if (await this.#memoryPressure()) return;
+		const reserved = this.#reservePoolSlots(this.config.isolatePoolSize);
 		const outcomes = await Promise.allSettled(
-			Array.from({ length: this.config.isolatePoolSize }, () =>
+			Array.from({ length: reserved }, () =>
 				this.#createSlot(runtime),
 			),
 		);
@@ -791,14 +810,16 @@ export class DynamicAppsExecutor {
 		);
 		if (failed) {
 			for (const outcome of outcomes) {
-				if (outcome.status === "fulfilled")
+				this.#poolReservations -= 1;
+				if (outcome.status === "fulfilled") {
 					this.#disposeSlot(runtime, outcome.value);
+				}
 			}
 			throw failed.reason;
 		}
 		for (const outcome of outcomes) {
-			if (outcome.status === "fulfilled")
-				this.#offerSlot(runtime, outcome.value);
+			this.#poolReservations -= 1;
+			if (outcome.status === "fulfilled") this.#offerSlot(runtime, outcome.value);
 		}
 	}
 
@@ -809,18 +830,24 @@ export class DynamicAppsExecutor {
 			this.#disposed
 		)
 			return;
-		const missing =
+		const missingForRuntime =
 			this.config.isolatePoolSize -
 			(runtime.cleanSlots.length + runtime.inUse + runtime.refilling);
+		const missing = this.#reservePoolSlots(missingForRuntime);
 		for (let index = 0; index < missing; index += 1) {
 			runtime.refilling += 1;
+			let reserved = true;
 			const task = this.#memoryPressure()
 				.then(async (pressure) => {
 					if (pressure || runtime.stale) return;
-					this.#offerSlot(runtime, await this.#createSlot(runtime));
+					const slot = await this.#createSlot(runtime);
+					this.#poolReservations -= 1;
+					reserved = false;
+					this.#offerSlot(runtime, slot);
 				})
 				.catch(() => {})
 				.finally(() => {
+					if (reserved) this.#poolReservations -= 1;
 					runtime.refilling -= 1;
 					void this.#maybeDisposeRuntime(runtime);
 				});
@@ -848,10 +875,25 @@ export class DynamicAppsExecutor {
 			this.#disposeSlot(runtime, slot);
 			return;
 		}
+		if (!slot.pooled) {
+			if (
+				this.#pooledIsolates + this.#poolReservations >=
+				this.config.isolatePoolMaxTotal
+			) {
+				this.#disposeSlot(runtime, slot);
+				return;
+			}
+			slot.pooled = true;
+			this.#pooledIsolates += 1;
+		}
 		runtime.cleanSlots.push(slot);
 	}
 
 	#disposeSlot(runtime: PreparedRuntime, slot: IsolateSlot): void {
+		if (slot.pooled) {
+			slot.pooled = false;
+			this.#pooledIsolates = Math.max(0, this.#pooledIsolates - 1);
+		}
 		this.#releaseSlotContext(runtime, slot);
 		try {
 			slot.isolate.dispose();
@@ -869,6 +911,18 @@ export class DynamicAppsExecutor {
 		if (slot.dispatch || slot.context) runtime.contextDisposes += 1;
 		slot.dispatch = undefined;
 		slot.context = undefined;
+	}
+
+	#reservePoolSlots(requested: number): number {
+		const available = Math.max(
+			0,
+			this.config.isolatePoolMaxTotal -
+				this.#pooledIsolates -
+				this.#poolReservations,
+		);
+		const reserved = Math.max(0, Math.min(requested, available));
+		this.#poolReservations += reserved;
+		return reserved;
 	}
 
 	async #pruneCaches(force = false, incomingBytes = 0): Promise<void> {
