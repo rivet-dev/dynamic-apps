@@ -266,6 +266,7 @@ export class DynamicAppsExecutor {
 	#pooledIsolates = 0;
 	#poolReservations = 0;
 	#disposed = false;
+	#disposePromise?: Promise<void>;
 
 	constructor(
 		config: ExecutorConfig = readExecutorConfig(),
@@ -410,14 +411,20 @@ export class DynamicAppsExecutor {
 	}
 
 	async dispose(): Promise<void> {
-		if (this.#disposed) return;
+		if (this.#disposePromise !== undefined) return this.#disposePromise;
 		this.#disposed = true;
 		clearInterval(this.#cleanupTimer);
 		this.#semaphore.dispose();
+		this.#disposePromise = this.#finishDispose();
+		return this.#disposePromise;
+	}
+
+	async #finishDispose(): Promise<void> {
 		await Promise.allSettled(
 			[...this.#apps.values()].map((entry) => entry.connection.dispose()),
 		);
 		this.#apps.clear();
+		await Promise.allSettled([...this.#runtimePromises.values()]);
 		for (const runtime of this.#runtimes.values()) runtime.stale = true;
 		await Promise.allSettled(
 			[...this.#runtimes.values()].map((runtime) =>
@@ -515,6 +522,12 @@ export class DynamicAppsExecutor {
 		resolution: AppRouteResolution,
 		trace?: RequestTrace,
 	): Promise<PreparedRuntime> {
+		if (this.#disposed) {
+			throw new DynamicAppsError(
+				"agentos_apps_executor_disposed",
+				"Dynamic Apps executor is shutting down",
+			);
+		}
 		const key = `${resolution.artifactHash}:${DIRECT_RUNTIME_FORMAT}`;
 		const existing = this.#runtimes.get(key);
 		if (existing && !existing.stale) {
@@ -628,9 +641,21 @@ export class DynamicAppsExecutor {
 		}
 		this.#runtimes.set(key, runtime);
 		try {
+			if (this.#disposed) {
+				throw new DynamicAppsError(
+					"agentos_apps_executor_disposed",
+					"Dynamic Apps executor is shutting down",
+				);
+			}
 			if (this.config.isolateMode === "prewarm") {
 				await measureOptional(trace, "isolate-prewarm", () =>
 					this.#fillPool(runtime),
+				);
+			}
+			if (this.#disposed) {
+				throw new DynamicAppsError(
+					"agentos_apps_executor_disposed",
+					"Dynamic Apps executor is shutting down",
 				);
 			}
 			return runtime;
