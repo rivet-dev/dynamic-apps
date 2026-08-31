@@ -29,6 +29,7 @@ interface ActorRuntimeConfig {
 	requestConcurrency: number;
 	requestQueueSize: number;
 	requestQueueWaitMs: number;
+	requestTimeoutMs: number;
 }
 
 export interface ActorRuntimeRequest {
@@ -48,6 +49,7 @@ interface PendingRequest {
 	settled: boolean;
 	abort?: () => void;
 	releaseAdmission(): void;
+	timeout?: ReturnType<typeof setTimeout>;
 }
 
 interface RuntimeEntry {
@@ -141,6 +143,13 @@ export class DynamicActorRuntime {
 				1,
 				60_000,
 			),
+			requestTimeoutMs: integerEnv(
+				env,
+				"DYNAMIC_APPS_ACTOR_REQUEST_TIMEOUT_MS",
+				30_000,
+				10,
+				5 * 60_000,
+			),
 		};
 		this.#admission = new ActorAdmission(
 			this.config.requestConcurrency,
@@ -189,6 +198,14 @@ export class DynamicActorRuntime {
 				pending.abort = cancel;
 				entry.pending.set(id, pending);
 				admissionHandedOff = true;
+				pending.timeout = setTimeout(() => {
+					this.#failEntry(
+						entry,
+						new Error(
+							`Dynamic App actor request exceeded ${this.config.requestTimeoutMs}ms`,
+						),
+					);
+				}, this.config.requestTimeoutMs);
 				try {
 					entry.worker.postMessage({
 						type: "request",
@@ -430,6 +447,7 @@ export class DynamicActorRuntime {
 		if (!pending || pending.settled) return;
 		pending.settled = true;
 		entry.pending.delete(id);
+		if (pending.timeout) clearTimeout(pending.timeout);
 		pending.releaseAdmission();
 		entry.active = Math.max(0, entry.active - 1);
 		entry.lastUsedAt = Date.now();
