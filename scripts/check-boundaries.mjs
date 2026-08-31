@@ -32,8 +32,8 @@ const corePackage = JSON.parse(
 );
 assert(
 	!corePackage.dependencies?.["@rivet-dev/agentos"] &&
-		corePackage.dependencies?.["@rivet-dev/agentos-core"] === "0.2.17" &&
-		corePackage.dependencies?.["@rivet-dev/agentos-toolchain"] === "0.2.17",
+		corePackage.dependencies?.["@rivet-dev/agentos-core"] === "0.2.18" &&
+		corePackage.dependencies?.["@rivet-dev/agentos-toolchain"] === "0.2.18",
 	"core must use exact pinned agentOS Core implementation dependencies",
 );
 assert(
@@ -59,7 +59,7 @@ assert(
 	"the adapter must use the exact matching core version",
 );
 assert(
-	mainPackage.dependencies?.["@rivet-dev/agentos-core"] === "0.2.17",
+	mainPackage.dependencies?.["@rivet-dev/agentos-core"] === "0.2.18",
 	"the adapter must declare the exact agentOS runtime it imports",
 );
 for (const dependency of [
