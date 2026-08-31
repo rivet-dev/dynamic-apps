@@ -748,37 +748,58 @@ async function actorChurnStress(
 		DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS: "10000",
 	});
 	let artifactLoads = 0;
+	let completed = 0;
+	let rejected = 0;
+	let peakWorkers = 0;
+	const workerSampler = setInterval(() => {
+		const diagnostics = runtime.diagnostics();
+		peakWorkers = Math.max(
+			peakWorkers,
+			diagnostics.entries + diagnostics.creating,
+		);
+	}, 1);
 	const startedAt = performance.now();
 	try {
 		await runConcurrent(requests, Math.min(concurrency, 32), async (index) => {
-			const response = await runtime.request({
-				key: `churn-${index % keys}`,
-				loadArtifact: async () => {
-					artifactLoads += 1;
-					return artifact.bytes;
-				},
-				endpoint: "http://stress.test",
-				namespace: "stress",
-				pool: "default",
-				request: new Request(`http://stress.test/churn/${index}`, {
-					method: "POST",
-				}),
-			});
-			assert.equal(response.status, 200);
-			await response.arrayBuffer();
+			try {
+				const response = await runtime.request({
+					key: `churn-${index % keys}`,
+					loadArtifact: async () => {
+						artifactLoads += 1;
+						return artifact.bytes;
+					},
+					endpoint: "http://stress.test",
+					namespace: "stress",
+					pool: "default",
+					request: new Request(`http://stress.test/churn/${index}`, {
+						method: "POST",
+					}),
+				});
+				assert.equal(response.status, 200);
+				await response.arrayBuffer();
+				completed += 1;
+			} catch (error) {
+				if (!isErrorCode(error, "agentos_apps_no_capacity")) throw error;
+				rejected += 1;
+			}
 		});
 		await waitFor(() => runtime.diagnostics().entries <= maxEntries);
 		assert.equal(runtime.diagnostics().activeRequests, 0);
 		assert.equal(runtime.diagnostics().pendingRequests, 0);
+		assert(peakWorkers <= maxEntries);
 		return {
 			requests,
 			keys,
 			maxEntries,
 			artifactLoads,
+			completed,
+			rejected,
+			peakWorkers,
 			elapsedMs: round(performance.now() - startedAt),
 			diagnostics: runtime.diagnostics(),
 		};
 	} finally {
+		clearInterval(workerSampler);
 		await runtime.dispose();
 	}
 }

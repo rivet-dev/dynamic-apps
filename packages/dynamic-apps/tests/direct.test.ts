@@ -546,6 +546,46 @@ describe("direct V8 execution", () => {
 });
 
 describe("actor callback resource limits", () => {
+	test("bounds concurrent actor workers as well as idle cache entries", async () => {
+		const artifact = await makeActorArtifact(`
+export const registry = {
+  async handler() {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return new Response("ok");
+  },
+};
+`);
+		const runtime = new DynamicActorRuntime({
+			DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES: "4",
+		});
+		const outcomes = Array.from({ length: 16 }, (_, index) =>
+			runtime
+				.request({
+					key: `bounded-${index}`,
+					loadArtifact: async () => artifact.bytes,
+					endpoint: "http://example.test",
+					namespace: "test",
+					pool: "default",
+					request: new Request(`http://example.test/${index}`, {
+						method: "POST",
+					}),
+				})
+				.then(
+					(response) => response.arrayBuffer(),
+					() => undefined,
+				),
+		);
+		try {
+			await new Promise((resolve) => setTimeout(resolve, 50));
+			const diagnostics = runtime.diagnostics();
+			expect(diagnostics.entries + diagnostics.creating).toBeLessThanOrEqual(4);
+		} finally {
+			await Promise.allSettled(outcomes);
+			await runtime.dispose();
+			await artifact.dispose();
+		}
+	}, 5_000);
+
 	test("times out an actor handler that blocks its worker", async () => {
 		const artifact = await makeActorArtifact(`
 export const registry = {
