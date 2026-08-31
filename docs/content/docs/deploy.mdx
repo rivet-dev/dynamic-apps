@@ -1,6 +1,6 @@
 ---
 title: "Deploy"
-description: "Deploy a directory or generated files with deployApp(), preserve rollback, and configure app actors."
+description: "Deploy a directory or generated files with deployApp() and repair failed builds."
 skill: true
 ---
 
@@ -13,7 +13,7 @@ Deploy a local application directory:
 ```ts
 await deployApp({
   appId: "hello-world",
-  source: new URL("../fixtures/app/", import.meta.url),
+  source: new URL("./app/", import.meta.url),
 });
 ```
 

@@ -1,16 +1,11 @@
 ---
 title: "Backends & REST APIs"
-description: "Serve HTTP backends and REST APIs from a Dynamic App."
+description: "Serve HTTP APIs and frontends from a generated app with any framework that speaks fetch."
 ---
 
 import ExampleLinkBar from "@/components/docs/ExampleLinkBar.astro";
 
 <ExampleLinkBar href="https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-hello-world" />
-
-An app is a directory with a `package.json` and an entrypoint that
-default-exports a `fetch` handler. Any framework that speaks `fetch` works.
-The app does not bind a port; Dynamic Apps owns its listener. This app serves a
-frontend and a JSON API from the same handler.
 
 ## Example generated code
 
@@ -26,5 +21,5 @@ Deploy the directory and every route the app defines is served under
 
 <CodeSnippet file="examples/apps-hello-world/src/server.ts" title="src/server.ts" />
 
-See [Routing](/dynamic-apps/docs/routing) for how requests reach the app and
+See [Route](/dynamic-apps/docs/routing) for how requests reach the app and
 [Deploy](/dynamic-apps/docs/deploy) for builds and releases.

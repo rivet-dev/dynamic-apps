@@ -4,18 +4,24 @@ description: "Every deployed app gets its own Rivet namespace for actors, workfl
 skill: true
 ---
 
-Every deployment gets its own Rivet namespace. That gives each user's app:
+`deployApp()` creates one Rivet namespace per app and returns the endpoint,
+namespace, pool, and publishable token your client needs to connect.
+
+## What are namespaces?
+
+A namespace holds an app's Rivet Actors, which power:
+
+- [Workflows](/workflows/docs/)
+- [SQLite](/actors/docs/sqlite/)
+- [Realtime state](/actors/docs/events/)
+- [Queues](/actors/docs/queues/)
+- [Crons](/actors/docs/schedule/)
+
+Each app gets its own Rivet namespace, which provides it:
 
 - Complete per-tenant isolation
 - Per-user billing
 - Infrastructure that costs nothing when idle
-
-## What namespaces are
-
-A namespace holds an app's Rivet Actors, which power its workflows, SQLite,
-realtime state, queues, and crons. `deployApp()` creates one namespace per app
-and returns the endpoint, namespace, pool, and publishable token your client
-needs to connect.
 
 ## Connecting to Rivet
 
