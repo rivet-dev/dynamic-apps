@@ -115,8 +115,11 @@ export class DynamicActorRuntime {
 	}
 
 	async request(input: ActorRuntimeRequest): Promise<Response> {
-		const body = new Uint8Array(await input.request.arrayBuffer());
-		if (body.byteLength > this.config.maxStartPayloadBytes) {
+		const body = await readBoundedBody(
+			input.request.body,
+			this.config.maxStartPayloadBytes,
+		);
+		if (!body) {
 			return new Response("RivetKit actor start payload exceeds limit", {
 				status: 413,
 			});
@@ -396,6 +399,30 @@ export class DynamicActorRuntime {
 			entry.worker.terminate(),
 			rm(entry.directory, { recursive: true, force: true }),
 		]);
+	}
+}
+
+async function readBoundedBody(
+	body: ReadableStream<Uint8Array> | null,
+	limit: number,
+): Promise<Uint8Array | undefined> {
+	if (!body) return new Uint8Array();
+	const reader = body.getReader();
+	const chunks: Uint8Array[] = [];
+	let bytes = 0;
+	try {
+		for (;;) {
+			const { value, done } = await reader.read();
+			if (done) return new Uint8Array(Buffer.concat(chunks, bytes));
+			bytes += value.byteLength;
+			if (bytes > limit) {
+				await reader.cancel("RivetKit actor start payload exceeds limit");
+				return undefined;
+			}
+			chunks.push(value);
+		}
+	} finally {
+		reader.releaseLock();
 	}
 }
 
