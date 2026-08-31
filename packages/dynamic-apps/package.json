@@ -1,6 +1,6 @@
 {
 	"name": "@rivet-dev/dynamic-apps",
-	"version": "0.12.0-rc.1",
+	"version": "0.12.0-rc.2",
 	"description": "Build and run user-generated HTTP applications in agentOS with durable Rivet state.",
 	"license": "Apache-2.0",
 	"repository": {
@@ -31,15 +31,13 @@
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@agentos-software/sh": "0.2.15",
-		"@agentos-software/tar": "0.3.5",
-		"@rivet-dev/agentos-core": "0.2.15",
-		"@rivet-dev/agentos-toolchain": "0.2.15",
-		"@rivet-dev/dynamic-apps-builder": "workspace:0.12.0-rc.1",
+		"@rivet-dev/dynamic-apps-core": "workspace:0.12.0-rc.2",
 		"hono": "^4.7.0",
 		"rivetkit": "2.3.11"
 	},
 	"devDependencies": {
+		"@rivet-dev/agentos-core": "0.2.15",
+		"@rivet-dev/agentos-toolchain": "0.2.15",
 		"@types/node": "^22.19.15",
 		"tsup": "^8.4.0",
 		"typescript": "^5.7.3",

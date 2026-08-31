@@ -3,13 +3,17 @@ import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { availableParallelism, tmpdir } from "node:os";
 import { join } from "node:path";
 import { AgentOs } from "@rivet-dev/agentos-core";
-import { createClient } from "rivetkit/client";
-import type { AppRouteResolution } from "./actors.js";
 import { DynamicAppsError } from "./errors.js";
 import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
 import { capConcurrencyForMemory, readCgroupMemory } from "./memory.js";
-import { ensurePrivateAppsRegistry } from "./registry.js";
 import { DIRECT_BUNDLE_PATH, DIRECT_RUNTIME_FORMAT } from "./runtime.js";
+import { validateAppId } from "./source.js";
+import type {
+	ActiveRelease,
+	ReleaseInvalidation,
+	ReleaseLoadContext,
+	Unsubscribe,
+} from "./types.js";
 
 const MAX_URL_BYTES = 16 * 1024;
 const MAX_METHOD_BYTES = 256;
@@ -51,41 +55,15 @@ export interface ExecutorConfig {
 	logRequests: boolean;
 }
 
-interface ArtifactManifest {
-	format: string;
-	hash: string;
-	bytes: number;
-	chunks: number;
-	chunkBytes: number;
-}
-
-interface ReleaseActivatedEvent {
-	revision: number;
-	release: string;
-	artifactHash: string;
-	activatedAt: number;
-}
-
-interface AppConnection {
-	ready: Promise<void>;
-	on(
-		name: string,
-		callback: (event: ReleaseActivatedEvent) => void,
-	): () => void;
-	onOpen(callback: () => void): () => void;
-	onClose(callback: () => void): () => void;
-	dispose(): Promise<void>;
-}
-
-interface AppHandle {
-	resolveDeployment(): Promise<AppRouteResolution>;
-	getArtifactManifest(release: string): Promise<ArtifactManifest>;
-	readArtifactChunk(release: string, index: number): Promise<Uint8Array>;
-	connect(): AppConnection;
-}
-
-interface StateClient {
-	agentOSAppsApp: { getOrCreate(key: string[]): AppHandle };
+export interface ExecutorReleaseSource {
+	loadActiveRelease(
+		appId: string,
+		context: ReleaseLoadContext,
+	): Promise<ActiveRelease | undefined>;
+	watchActiveRelease(
+		appId: string,
+		invalidate: ReleaseInvalidation,
+	): Promise<Unsubscribe>;
 }
 
 interface RequestEnvelope {
@@ -151,19 +129,17 @@ interface PreparedRuntime {
 }
 
 interface AppMapping {
-	resolution: AppRouteResolution;
+	resolution: ActiveRelease;
 	runtime: PreparedRuntime;
 }
 
 interface AppCacheEntry {
 	appId: string;
-	handle: AppHandle;
-	connection: AppConnection;
-	ready: Promise<void>;
+	subscription: Promise<Unsubscribe>;
+	unsubscribe?: Unsubscribe;
 	mapping?: AppMapping;
 	resolvePromise?: Promise<AppMapping>;
 	epoch: number;
-	highestRevision: number;
 	lastUsedAt: number;
 	refs: number;
 }
@@ -299,10 +275,61 @@ export function readExecutorConfig(
 	};
 }
 
+export function resolveExecutorConfig(
+	base: ExecutorConfig,
+	overrides: Partial<ExecutorConfig> = {},
+): ExecutorConfig {
+	const config = { ...base, ...overrides };
+	if (
+		config.executionMode !== "ephemeral" &&
+		config.executionMode !== "pooled"
+	) {
+		throw invalidExecutorConfig("executionMode");
+	}
+	const limits: Array<[keyof ExecutorConfig, number, number]> = [
+		["contextPoolSize", 0, 128],
+		["contextPoolMaxTotal", 0, 1_024],
+		["contextIdleTtlMs", 1_000, 60 * 60_000],
+		["contextHeapLimitMb", 8, 2_048],
+		["runtimeCacheMaxEntries", 1, 1_024],
+		["runtimeCacheMaxBytes", 1024 * 1024, 16 * 1024 * 1024 * 1024],
+		["runtimeCacheIdleTtlMs", 1_000, 24 * 60 * 60_000],
+		["memoryHighWaterPercent", 10, 95],
+		["executionConcurrency", 1, 1_024],
+		["executionQueueSize", 0, 100_000],
+		["executionQueueWaitMs", 1, 60_000],
+		["executionTimeoutMs", 1, 5 * 60_000],
+	];
+	for (const [name, minimum, maximum] of limits) {
+		const value = config[name];
+		if (
+			typeof value !== "number" ||
+			!Number.isSafeInteger(value) ||
+			value < minimum ||
+			value > maximum
+		) {
+			throw invalidExecutorConfig(String(name));
+		}
+	}
+	if (
+		typeof config.timingHeaders !== "boolean" ||
+		typeof config.logRequests !== "boolean"
+	) {
+		throw invalidExecutorConfig("timingHeaders/logRequests");
+	}
+	return config;
+}
+
+function invalidExecutorConfig(name: string): DynamicAppsError {
+	return new DynamicAppsError(
+		"agentos_apps_invalid_config",
+		`invalid Dynamic Apps executor config ${name}`,
+	);
+}
+
 export class DynamicAppsExecutor {
 	readonly config: ExecutorConfig;
-	readonly #client: StateClient;
-	readonly #ensureRegistry: boolean;
+	readonly #source: ExecutorReleaseSource;
 	readonly #semaphore: Semaphore;
 	readonly #apps = new Map<string, AppCacheEntry>();
 	readonly #runtimes = new Map<string, PreparedRuntime>();
@@ -313,13 +340,9 @@ export class DynamicAppsExecutor {
 	#disposed = false;
 	#disposePromise?: Promise<void>;
 
-	constructor(
-		config: ExecutorConfig = readExecutorConfig(),
-		client?: StateClient,
-	) {
+	constructor(source: ExecutorReleaseSource, config: ExecutorConfig) {
 		this.config = config;
-		this.#ensureRegistry = client === undefined;
-		this.#client = client ?? (createClient() as unknown as StateClient);
+		this.#source = source;
 		this.#semaphore = new Semaphore(
 			config.executionConcurrency,
 			config.executionQueueSize,
@@ -358,9 +381,6 @@ export class DynamicAppsExecutor {
 			const envelope = await measure(trace, "request-buffer", () =>
 				serializeRequest(request),
 			);
-			if (this.#ensureRegistry) {
-				await measure(trace, "registry-ready", ensurePrivateAppsRegistry);
-			}
 			const requestedRegion =
 				request.headers.get("x-agentos-app-region") ?? undefined;
 			const { entry, hit } = this.#appEntry(appId);
@@ -466,11 +486,12 @@ export class DynamicAppsExecutor {
 	}
 
 	async #finishDispose(): Promise<void> {
-		await Promise.allSettled(
-			[...this.#apps.values()].map((entry) => entry.connection.dispose()),
-		);
+		const entries = [...this.#apps.values()];
 		this.#apps.clear();
-		await Promise.allSettled([...this.#runtimePromises.values()]);
+		await Promise.allSettled([
+			...entries.map((entry) => this.#releaseEntry(entry)),
+			...this.#runtimePromises.values(),
+		]);
 		for (const runtime of this.#runtimes.values()) runtime.stale = true;
 		await Promise.allSettled(
 			[...this.#runtimes.values()].map((runtime) =>
@@ -483,41 +504,47 @@ export class DynamicAppsExecutor {
 	#appEntry(appId: string): { entry: AppCacheEntry; hit: boolean } {
 		const existing = this.#apps.get(appId);
 		if (existing) return { entry: existing, hit: true };
-		const handle = this.#client.agentOSAppsApp.getOrCreate([appId]);
-		const connection = handle.connect();
 		const entry: AppCacheEntry = {
 			appId,
-			handle,
-			connection,
-			ready: connection.ready,
+			subscription: undefined as unknown as Promise<Unsubscribe>,
 			epoch: 0,
-			highestRevision: 0,
 			lastUsedAt: Date.now(),
 			refs: 0,
 		};
-		connection.on("releaseActivated", (event) => {
-			if (!validReleaseEvent(event) || event.revision <= entry.highestRevision)
-				return;
-			entry.highestRevision = event.revision;
-			this.#invalidateMapping(entry);
-			void this.#resolveAndPrepare(entry).catch(() => {});
-		});
-		connection.onClose(() => this.#invalidateMapping(entry));
-		connection.onOpen(() => {
-			if (entry.mapping || entry.highestRevision > 0) {
-				this.#invalidateMapping(entry);
-				void this.#resolveAndPrepare(entry).catch(() => {});
-			}
-		});
 		this.#apps.set(appId, entry);
+		entry.subscription = Promise.resolve()
+			.then(() =>
+				this.#source.watchActiveRelease(appId, () => this.invalidate(appId)),
+			)
+			.then(async (unsubscribe) => {
+				if (typeof unsubscribe !== "function") {
+					throw new DynamicAppsError(
+						"agentos_apps_invalid_subscription",
+						"watchActiveRelease must resolve to an unsubscribe function",
+					);
+				}
+				const once = onceUnsubscribe(unsubscribe);
+				if (this.#disposed || this.#apps.get(appId) !== entry) {
+					await once();
+				} else {
+					entry.unsubscribe = once;
+				}
+				return once;
+			})
+			.catch((error) => {
+				if (this.#apps.get(appId) === entry) this.#apps.delete(appId);
+				throw error;
+			});
 		return { entry, hit: false };
 	}
 
-	#invalidateMapping(entry: AppCacheEntry): void {
+	invalidate(appId: string): void {
+		const entry = this.#apps.get(appId);
+		if (!entry || this.#disposed) return;
+		const active = entry.mapping !== undefined || entry.refs > 0;
 		entry.epoch += 1;
-		const runtime = entry.mapping?.runtime;
 		entry.mapping = undefined;
-		if (runtime) this.#invalidateRuntime(runtime);
+		if (active) void this.#resolveAndPrepare(entry).catch(() => {});
 	}
 
 	#invalidateRuntime(runtime: PreparedRuntime): void {
@@ -536,34 +563,38 @@ export class DynamicAppsExecutor {
 		if (entry.resolvePromise !== undefined) return entry.resolvePromise;
 		const promise = (async () => {
 			for (;;) {
+				await entry.subscription;
 				const epoch = entry.epoch;
-				await measureOptional(trace, "actor-connect", () => entry.ready);
-				const resolution = await measureOptional(trace, "actor-resolve", () =>
-					entry.handle.resolveDeployment(),
+				const resolution = await measureOptional(trace, "release-load", () =>
+					this.#source.loadActiveRelease(
+						entry.appId,
+						createReleaseLoadContext(trace),
+					),
 				);
-				if (
-					entry.epoch !== epoch ||
-					resolution.revision < entry.highestRevision
-				)
-					continue;
-				entry.highestRevision = Math.max(
-					entry.highestRevision,
-					resolution.revision,
-				);
-				const runtime = await this.#prepareRuntime(
-					entry.appId,
-					entry.handle,
-					resolution,
-					trace,
-				);
-				if (
-					entry.epoch !== epoch ||
-					resolution.revision < entry.highestRevision
-				) {
-					this.#invalidateRuntime(runtime);
-					continue;
+				if (entry.epoch !== epoch) continue;
+				if (!resolution) {
+					throw new DynamicAppsError(
+						"agentos_apps_not_deployed",
+						"app has no active direct release; call deployApp() first",
+					);
 				}
-				const mapping = { resolution, runtime };
+				if (resolution.appId !== entry.appId) {
+					throw new DynamicAppsError(
+						"agentos_apps_active_release_invalid",
+						"loadActiveRelease returned a release for a different app",
+					);
+				}
+				const verifiedResolution = await measureOptional(
+					trace,
+					"artifact-verify",
+					async () => verifyActiveRelease(resolution),
+				);
+				const runtime = await this.#prepareRuntime(verifiedResolution, trace);
+				if (entry.epoch !== epoch) continue;
+				if (this.#disposed || this.#apps.get(entry.appId) !== entry) {
+					throw disposedError();
+				}
+				const mapping = { resolution: verifiedResolution, runtime };
 				entry.mapping = mapping;
 				return mapping;
 			}
@@ -577,9 +608,7 @@ export class DynamicAppsExecutor {
 	}
 
 	async #prepareRuntime(
-		appId: string,
-		handle: AppHandle,
-		resolution: AppRouteResolution,
+		resolution: ActiveRelease,
 		trace?: RequestTrace,
 	): Promise<PreparedRuntime> {
 		if (this.#disposed) {
@@ -588,7 +617,7 @@ export class DynamicAppsExecutor {
 				"Dynamic Apps executor is shutting down",
 			);
 		}
-		const key = `${appId}:${resolution.release}:${resolution.artifactHash}:${DIRECT_RUNTIME_FORMAT}`;
+		const key = `${resolution.appId}:${resolution.release}:${resolution.artifact.hash}:${DIRECT_RUNTIME_FORMAT}`;
 		const existing = this.#runtimes.get(key);
 		if (existing && !existing.stale) {
 			existing.lastUsedAt = Date.now();
@@ -596,7 +625,7 @@ export class DynamicAppsExecutor {
 		}
 		const pending = this.#runtimePromises.get(key);
 		if (pending) return pending;
-		const promise = this.#createRuntime(key, appId, handle, resolution, trace);
+		const promise = this.#createRuntime(key, resolution, trace);
 		this.#runtimePromises.set(key, promise);
 		try {
 			return await promise;
@@ -609,58 +638,17 @@ export class DynamicAppsExecutor {
 
 	async #createRuntime(
 		key: string,
-		appId: string,
-		handle: AppHandle,
-		resolution: AppRouteResolution,
+		resolution: ActiveRelease,
 		trace?: RequestTrace,
 	): Promise<PreparedRuntime> {
-		await this.#pruneCaches(true, resolution.artifactBytes);
-		if (resolution.artifactBytes > this.config.runtimeCacheMaxBytes) {
+		const artifact = resolution.artifact.bytes;
+		await this.#pruneCaches(true, artifact.byteLength);
+		if (artifact.byteLength > this.config.runtimeCacheMaxBytes) {
 			throw new DynamicAppsError(
 				"agentos_apps_artifact_cache_limit",
 				"application artifact is larger than the configured runtime cache",
 			);
 		}
-		const manifest = await measureOptional(trace, "artifact-manifest", () =>
-			handle.getArtifactManifest(resolution.release),
-		);
-		validateManifest(manifest, resolution);
-		const artifact = await measureOptional(
-			trace,
-			"artifact-download",
-			async () => {
-				const chunks: Uint8Array[] = [];
-				const digest = createHash("sha256");
-				let bytes = 0;
-				for (let index = 0; index < manifest.chunks; index += 1) {
-					const chunk = new Uint8Array(
-						await handle.readArtifactChunk(resolution.release, index),
-					);
-					bytes += chunk.byteLength;
-					if (
-						chunk.byteLength > manifest.chunkBytes ||
-						bytes > manifest.bytes
-					) {
-						throw new DynamicAppsError(
-							"agentos_apps_artifact_chunk_invalid",
-							`artifact chunk ${index} has an invalid length`,
-						);
-					}
-					digest.update(chunk);
-					chunks.push(chunk);
-				}
-				if (
-					bytes !== manifest.bytes ||
-					digest.digest("hex") !== manifest.hash
-				) {
-					throw new DynamicAppsError(
-						"agentos_apps_artifact_hash_mismatch",
-						"downloaded artifact failed size or hash verification",
-					);
-				}
-				return new Uint8Array(Buffer.concat(chunks, bytes));
-			},
-		);
 		const directory = await mkdtemp(join(tmpdir(), "dynamic-app-runtime-"));
 		const artifactPath = join(directory, "release.aospkg");
 		let vm: AgentOs | undefined;
@@ -700,10 +688,10 @@ export class DynamicAppsExecutor {
 			);
 			const runtime: PreparedRuntime = {
 				key,
-				appId,
+				appId: resolution.appId,
 				release: resolution.release,
-				artifactHash: resolution.artifactHash,
-				artifactBytes: resolution.artifactBytes,
+				artifactHash: resolution.artifact.hash,
+				artifactBytes: artifact.byteLength,
 				artifact,
 				directory,
 				artifactPath,
@@ -742,7 +730,7 @@ export class DynamicAppsExecutor {
 				level: "debug",
 				source: "runtime",
 				message: "Dynamic Apps release runtime prepared",
-				appId,
+				appId: resolution.appId,
 				release: resolution.release,
 			});
 			return runtime;
@@ -754,7 +742,7 @@ export class DynamicAppsExecutor {
 				level: "error",
 				source: "runtime",
 				message: "Dynamic Apps release runtime preparation failed",
-				appId,
+				appId: resolution.appId,
 				release: resolution.release,
 			});
 			throw error;
@@ -1088,7 +1076,7 @@ export class DynamicAppsExecutor {
 					this.#apps.size > this.config.runtimeCacheMaxEntries)
 			) {
 				this.#apps.delete(entry.appId);
-				void entry.connection.dispose();
+				void this.#releaseEntry(entry).catch(() => {});
 			}
 		}
 		let bytes = [...this.#runtimes.values()].reduce(
@@ -1114,6 +1102,15 @@ export class DynamicAppsExecutor {
 				}
 				bytes -= runtime.artifactBytes;
 			}
+		}
+	}
+
+	async #releaseEntry(entry: AppCacheEntry): Promise<void> {
+		try {
+			const unsubscribe = entry.unsubscribe ?? (await entry.subscription);
+			await unsubscribe();
+		} catch {
+			// A failed watcher must not prevent executor shutdown or cache eviction.
 		}
 	}
 
@@ -1242,37 +1239,130 @@ function evaluationValue<T>(result: EvaluationResult<T>, timeoutMs: number): T {
 	);
 }
 
-function validReleaseEvent(event: unknown): event is ReleaseActivatedEvent {
-	if (!event || typeof event !== "object") return false;
-	const value = event as Partial<ReleaseActivatedEvent>;
-	return (
-		Number.isInteger(value.revision) &&
-		typeof value.release === "string" &&
-		typeof value.artifactHash === "string" &&
-		typeof value.activatedAt === "number"
+function disposedError(): DynamicAppsError {
+	return new DynamicAppsError(
+		"agentos_apps_executor_disposed",
+		"Dynamic Apps executor is shutting down",
 	);
 }
 
-function validateManifest(
-	manifest: ArtifactManifest,
-	resolution: AppRouteResolution,
-): void {
+function onceUnsubscribe(unsubscribe: Unsubscribe): Unsubscribe {
+	let promise: Promise<void> | undefined;
+	return () => {
+		promise ??= Promise.resolve().then(unsubscribe);
+		return promise;
+	};
+}
+
+function createReleaseLoadContext(
+	trace: RequestTrace | undefined,
+): ReleaseLoadContext {
+	return {
+		recordTiming(name, durationMs) {
+			if (!Number.isFinite(durationMs) || durationMs < 0) {
+				throw new DynamicAppsError(
+					"agentos_apps_invalid_timing",
+					"release load timing duration must be finite and non-negative",
+				);
+			}
+			if (typeof name !== "string" || Buffer.byteLength(name) > 64) {
+				throw new DynamicAppsError(
+					"agentos_apps_invalid_timing",
+					"release load timing name must be at most 64 bytes",
+				);
+			}
+			const normalized = name
+				.toLowerCase()
+				.replace(/[^a-z0-9]+/g, "-")
+				.replace(/^-|-$/g, "");
+			if (!normalized) {
+				throw new DynamicAppsError(
+					"agentos_apps_invalid_timing",
+					"release load timing name must contain ASCII letters or digits",
+				);
+			}
+			trace?.phases.set(`store-${normalized}`, durationMs);
+		},
+	};
+}
+
+function verifyActiveRelease(input: ActiveRelease): ActiveRelease {
+	if (!input || typeof input !== "object") {
+		throw new DynamicAppsError(
+			"agentos_apps_active_release_invalid",
+			"loadActiveRelease returned an invalid release",
+		);
+	}
+	validateAppId(input.appId);
 	if (
-		manifest.format !== DIRECT_RUNTIME_FORMAT ||
-		manifest.hash !== resolution.artifactHash ||
-		manifest.bytes !== resolution.artifactBytes ||
-		!Number.isInteger(manifest.chunks) ||
-		manifest.chunks <= 0 ||
-		manifest.chunks > 128 ||
-		!Number.isInteger(manifest.chunkBytes) ||
-		manifest.chunkBytes <= 0 ||
-		!/^[a-f0-9]{64}$/.test(manifest.hash)
+		typeof input.release !== "string" ||
+		Buffer.byteLength(input.release) < 1 ||
+		Buffer.byteLength(input.release) > 256 ||
+		/[\0-\x1f\x7f]/.test(input.release) ||
+		!Array.isArray(input.regions) ||
+		input.regions.length === 0 ||
+		input.regions.length > 128 ||
+		input.regions.some(
+			(region) =>
+				typeof region !== "string" || !/^[a-z0-9][a-z0-9-]{0,62}$/.test(region),
+		) ||
+		!validScaling(input.scaling) ||
+		!Number.isSafeInteger(input.maxRequestBytes) ||
+		input.maxRequestBytes < 1 ||
+		!Number.isSafeInteger(input.maxResponseBytes) ||
+		input.maxResponseBytes < 1
+	) {
+		throw new DynamicAppsError(
+			"agentos_apps_active_release_invalid",
+			"loadActiveRelease returned invalid release metadata",
+		);
+	}
+	const artifact = input.artifact;
+	if (
+		!artifact ||
+		artifact.format !== DIRECT_RUNTIME_FORMAT ||
+		artifact.entrypoint !== "direct-v2/main.mjs" ||
+		!/^[a-f0-9]{64}$/.test(artifact.hash) ||
+		!(artifact.bytes instanceof Uint8Array) ||
+		!Number.isSafeInteger(artifact.byteLength) ||
+		artifact.byteLength < 1 ||
+		artifact.byteLength !== artifact.bytes.byteLength ||
+		typeof artifact.usesRivetKit !== "boolean"
 	) {
 		throw new DynamicAppsError(
 			"agentos_apps_artifact_manifest_mismatch",
-			"app actor returned an invalid artifact manifest",
+			"loadActiveRelease returned invalid artifact metadata",
 		);
 	}
+	const bytes = new Uint8Array(artifact.bytes);
+	if (createHash("sha256").update(bytes).digest("hex") !== artifact.hash) {
+		throw new DynamicAppsError(
+			"agentos_apps_artifact_hash_mismatch",
+			"loaded artifact failed size or hash verification",
+		);
+	}
+	return {
+		...input,
+		regions: [...input.regions],
+		scaling: { ...input.scaling },
+		artifact: { ...artifact, bytes },
+	};
+}
+
+function validScaling(value: ActiveRelease["scaling"]): boolean {
+	return (
+		value !== null &&
+		typeof value === "object" &&
+		Number.isInteger(value.minReplicas) &&
+		value.minReplicas >= 0 &&
+		Number.isInteger(value.maxReplicas) &&
+		value.maxReplicas >= 1 &&
+		value.maxReplicas <= 128 &&
+		value.minReplicas <= value.maxReplicas &&
+		Number.isInteger(value.targetConcurrency) &&
+		value.targetConcurrency >= 1 &&
+		value.targetConcurrency <= 1_024
+	);
 }
 
 async function serializeRequest(request: Request): Promise<RequestEnvelope> {
@@ -1566,16 +1656,4 @@ class Semaphore {
 			item.reject(new Error("disposed"));
 		}
 	}
-}
-
-let defaultExecutor: DynamicAppsExecutor | undefined;
-
-export function getDefaultExecutor(): DynamicAppsExecutor {
-	defaultExecutor ??= new DynamicAppsExecutor();
-	return defaultExecutor;
-}
-
-export async function resetDefaultExecutorForTest(): Promise<void> {
-	await defaultExecutor?.dispose();
-	defaultExecutor = undefined;
 }

@@ -11,7 +11,7 @@ import { describe, expect, test } from "vitest";
 import {
 	actorRunnerSource,
 	directRunnerSource,
-} from "../../dynamic-apps/src/runtime.js";
+} from "../../dynamic-apps-core/src/runtime.js";
 
 const execFileAsync = promisify(execFile);
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");

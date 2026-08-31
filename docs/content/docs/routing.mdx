@@ -30,6 +30,7 @@ This serves `/:appId/*` relative to the mount. For example,
 `/api/items?q=1`. A bare `/apps/example` request redirects to
 `/apps/example/`.
 
-There is no `createAppsRouter` or router-specific client option. `appsRouter`
-creates and reuses its private control client lazily; cache-hit HTTP requests do
-not call that actor.
+There is no `createAppsRouter` or router-specific client option in the default
+adapter. `appsRouter` creates and reuses its private control client lazily. Once
+an active artifact is prepared, warm requests use only the local runtime and
+isolate caches: they do not call release storage or a Rivet actor.

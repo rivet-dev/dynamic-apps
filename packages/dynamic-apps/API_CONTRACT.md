@@ -4,6 +4,12 @@ Status: normative rewrite contract
 Baseline: `@rivet-dev/dynamic-apps@0.2.15`, JJ `xuymorrq`, commit `baca1719`  
 Scope: `appsRouter`, `deployApp`, and structured log delivery
 
+The retained three-value surface is unchanged by the core extraction. Ordinary
+deployment now prepares and builds through `@rivet-dev/dynamic-apps-core`, then
+publishes through the Rivet release store. The optional injected-client path
+intentionally continues to call the legacy actor `deploy` action for structural
+source compatibility.
+
 This file is the source of truth that must be written and verified against the
 old implementation before its internals are deleted. It deliberately does not
 preserve any other root export, subpath export, actor name except the private

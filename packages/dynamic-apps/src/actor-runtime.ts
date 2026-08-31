@@ -12,10 +12,13 @@ import { tmpdir } from "node:os";
 import { dirname, join, posix } from "node:path";
 import { pathToFileURL } from "node:url";
 import { Worker } from "node:worker_threads";
-import { DynamicAppsError } from "./errors.js";
+import {
+	ACTOR_BUNDLE_PATH,
+	capConcurrencyForMemory,
+	DynamicAppsError,
+	readCgroupMemory,
+} from "@rivet-dev/dynamic-apps-core/internal";
 import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
-import { capConcurrencyForMemory, readCgroupMemory } from "./memory.js";
-import { ACTOR_BUNDLE_PATH } from "./runtime.js";
 
 const MAX_ACTOR_FILES = 4_096;
 const MAX_ACTOR_FILE_BYTES = 32 * 1024 * 1024;

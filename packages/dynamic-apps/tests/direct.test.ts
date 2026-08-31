@@ -1,41 +1,58 @@
 import { execFile } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
 import { packAospkgFromTarBytes } from "@rivet-dev/agentos-toolchain";
+import type { ExecutorConfig } from "@rivet-dev/dynamic-apps-core";
+import {
+	canonicalDeploymentHash,
+	capExecutionConcurrencyForMemory,
+	createAppsRouter,
+	DIRECT_ENTRYPOINT,
+	DIRECT_RUNTIME_FORMAT,
+	DynamicAppsExecutor,
+	directRunnerSource,
+	type ExecutorReleaseSource,
+	normalizeAppPath,
+	prepareSource,
+	readExecutorConfig,
+} from "@rivet-dev/dynamic-apps-core/internal";
 import { Hono } from "hono";
 import { afterEach, describe, expect, test } from "vitest";
 import {
 	actorWorkerEnvironment,
 	DynamicActorRuntime,
 } from "../src/actor-runtime.js";
-import type { AppRouteResolution } from "../src/actors.js";
 import { forwardActorCallbackRequest } from "../src/actors.js";
 import { resolveDefaultRivetConnection } from "../src/control-plane.js";
 import { deployApp } from "../src/deploy.js";
 import {
-	capExecutionConcurrencyForMemory,
-	DynamicAppsExecutor,
-	type ExecutorConfig,
-	readExecutorConfig,
-} from "../src/executor.js";
-import {
 	type DynamicAppsLogEvent,
 	setDynamicAppsLogHandler,
 } from "../src/logging.js";
-import { appsRouter, setRouterRequestOverride } from "../src/router.js";
-import {
-	canonicalDeploymentHash,
-	DIRECT_ENTRYPOINT,
-	DIRECT_RUNTIME_FORMAT,
-	directRunnerSource,
-	normalizeAppPath,
-} from "../src/runtime.js";
-import { prepareSource } from "../src/source.js";
 
 const execFileAsync = promisify(execFile);
+
+let requestOverride:
+	| ((appId: string, request: Request, requestId: string) => Promise<Response>)
+	| undefined;
+const appsRouter = createAppsRouter({
+	request(appId, request, requestId = randomUUID()) {
+		if (!requestOverride) throw new Error("missing test request executor");
+		return requestOverride(appId, request, requestId);
+	},
+});
+const setRouterRequestOverride = (
+	override?: (
+		appId: string,
+		request: Request,
+		requestId: string,
+	) => Promise<Response>,
+) => {
+	requestOverride = override;
+};
 
 afterEach(() => {
 	setRouterRequestOverride();
@@ -358,8 +375,8 @@ describe("direct agentOS execution", () => {
 			},
 		});
 		const executor = new DynamicAppsExecutor(
+			fake.source,
 			executorConfig("pooled"),
-			fake.client,
 		);
 		const outcome = executor
 			.request("demo", new Request("http://example.test/shutdown"))
@@ -394,7 +411,7 @@ describe("direct agentOS execution", () => {
 		);
 		const fake = fakeStateClient(artifact);
 		const config = { ...executorConfig("pooled"), executionTimeoutMs: 50 };
-		const executor = new DynamicAppsExecutor(config, fake.client);
+		const executor = new DynamicAppsExecutor(fake.source, config);
 		try {
 			const outcome = await Promise.race([
 				executor.request("demo", new Request("http://example.test/stall")).then(
@@ -419,8 +436,8 @@ describe("direct agentOS execution", () => {
 		const artifact = await makeArtifact("binary");
 		const fake = fakeStateClient(artifact);
 		const executor = new DynamicAppsExecutor(
+			fake.source,
 			executorConfig("pooled"),
-			fake.client,
 		);
 		const input = Uint8Array.from(
 			{ length: 65_537 },
@@ -449,7 +466,7 @@ describe("direct agentOS execution", () => {
 	] as const)("starts every request clean in %s mode", async (mode) => {
 		const artifact = await makeArtifact("one");
 		const fake = fakeStateClient(artifact);
-		const executor = new DynamicAppsExecutor(executorConfig(mode), fake.client);
+		const executor = new DynamicAppsExecutor(fake.source, executorConfig(mode));
 		try {
 			const first = await executor.request(
 				"demo",
@@ -489,8 +506,8 @@ describe("direct agentOS execution", () => {
 		const artifact = await makeArtifact("reuse");
 		const fake = fakeStateClient(artifact);
 		const executor = new DynamicAppsExecutor(
+			fake.source,
 			executorConfig("pooled"),
-			fake.client,
 		);
 		try {
 			for (let index = 0; index < 20; index += 1) {
@@ -517,14 +534,11 @@ describe("direct agentOS execution", () => {
 	test("admits a request before buffering its body", async () => {
 		const artifact = await makeArtifact("admission");
 		const fake = fakeStateClient(artifact);
-		const executor = new DynamicAppsExecutor(
-			{
-				...executorConfig("pooled"),
-				executionConcurrency: 1,
-				executionQueueSize: 0,
-			},
-			fake.client,
-		);
+		const executor = new DynamicAppsExecutor(fake.source, {
+			...executorConfig("pooled"),
+			executionConcurrency: 1,
+			executionQueueSize: 0,
+		});
 		let releaseFirstBody = () => {};
 		const firstBodyGate = new Promise<void>((resolve) => {
 			releaseFirstBody = resolve;
@@ -582,14 +596,11 @@ describe("direct agentOS execution", () => {
 				artifacts.map((artifact, index) => [`app-${index}`, artifact] as const),
 			),
 		);
-		const executor = new DynamicAppsExecutor(
-			{
-				...executorConfig("pooled"),
-				runtimeCacheMaxEntries: artifacts.length,
-				contextPoolMaxTotal: 4,
-			} as ExecutorConfig,
-			fake.client,
-		);
+		const executor = new DynamicAppsExecutor(fake.source, {
+			...executorConfig("pooled"),
+			runtimeCacheMaxEntries: artifacts.length,
+			contextPoolMaxTotal: 4,
+		} as ExecutorConfig);
 		try {
 			for (let index = 0; index < artifacts.length; index += 1) {
 				const response = await executor.request(
@@ -618,8 +629,8 @@ export async function dispatch(input) {
 		);
 		const fake = fakeStateClient(artifact);
 		const executor = new DynamicAppsExecutor(
+			fake.source,
 			executorConfig("ephemeral"),
-			fake.client,
 		);
 		try {
 			const response = await executor.request(
@@ -645,10 +656,10 @@ export async function dispatch(input) {
 }`,
 		);
 		const fake = fakeStateClient(artifact);
-		const executor = new DynamicAppsExecutor(
-			{ ...executorConfig("ephemeral"), logRequests: true },
-			fake.client,
-		);
+		const executor = new DynamicAppsExecutor(fake.source, {
+			...executorConfig("ephemeral"),
+			logRequests: true,
+		});
 		try {
 			const response = await executor.request(
 				"demo",
@@ -1271,117 +1282,65 @@ function fakeStateClient(
 	options: { beforeChunk?: () => Promise<void> } = {},
 ) {
 	const calls = { resolve: 0, manifest: 0, chunk: 0 };
-	const resolution: AppRouteResolution = {
-		appId: "demo",
-		release: artifact.release,
-		region: "local",
-		regions: ["local"],
-		revision: 1,
-		artifactHash: artifact.hash,
-		artifactBytes: artifact.bytes.byteLength,
-		entrypoint: DIRECT_ENTRYPOINT,
-		namespace: "test",
-		scaling: { minReplicas: 0, maxReplicas: 128, targetConcurrency: 8 },
-		maxRequestBytes: 1024 * 1024,
-		maxResponseBytes: 4 * 1024 * 1024,
-	};
-	const client = {
-		agentOSAppsApp: {
-			getOrCreate() {
-				return {
-					async resolveDeployment() {
-						calls.resolve += 1;
-						return resolution;
-					},
-					async getArtifactManifest() {
-						calls.manifest += 1;
-						return {
-							format: DIRECT_RUNTIME_FORMAT,
-							hash: artifact.hash,
-							bytes: artifact.bytes.byteLength,
-							chunks: 1,
-							chunkBytes: artifact.bytes.byteLength,
-						};
-					},
-					async readArtifactChunk() {
-						calls.chunk += 1;
-						await options.beforeChunk?.();
-						return artifact.bytes;
-					},
-					connect() {
-						return {
-							ready: Promise.resolve(),
-							connStatus: "connected",
-							on: () => () => {},
-							onOpen: () => () => {},
-							onClose: () => () => {},
-							dispose: async () => {},
-						};
-					},
-				};
-			},
+	const source: ExecutorReleaseSource = {
+		async watchActiveRelease() {
+			return () => {};
+		},
+		async loadActiveRelease(appId: string) {
+			calls.resolve += 1;
+			calls.manifest += 1;
+			await options.beforeChunk?.();
+			calls.chunk += 1;
+			return {
+				appId,
+				release: artifact.release,
+				artifact: {
+					format: DIRECT_RUNTIME_FORMAT,
+					entrypoint: DIRECT_ENTRYPOINT,
+					hash: artifact.hash,
+					bytes: new Uint8Array(artifact.bytes),
+					byteLength: artifact.bytes.byteLength,
+					usesRivetKit: false,
+				},
+				regions: ["local"],
+				scaling: { minReplicas: 0, maxReplicas: 128, targetConcurrency: 8 },
+				maxRequestBytes: 1024 * 1024,
+				maxResponseBytes: 4 * 1024 * 1024,
+			};
 		},
 	};
-	return { client, calls };
+	return { source, calls };
 }
 
 function fakeMultiStateClient(artifacts: Map<string, TestArtifact>) {
 	const calls = { resolve: 0, manifest: 0, chunk: 0 };
-	const client = {
-		agentOSAppsApp: {
-			getOrCreate(key: string[]) {
-				const appId = key[0] ?? "";
-				const artifact = artifacts.get(appId);
-				if (!artifact) throw new Error(`unknown test app ${appId}`);
-				const resolution: AppRouteResolution = {
-					appId,
-					release: artifact.release,
-					region: "local",
-					regions: ["local"],
-					revision: 1,
-					artifactHash: artifact.hash,
-					artifactBytes: artifact.bytes.byteLength,
+	const source: ExecutorReleaseSource = {
+		async watchActiveRelease() {
+			return () => {};
+		},
+		async loadActiveRelease(appId: string) {
+			const artifact = artifacts.get(appId);
+			if (!artifact) throw new Error(`unknown test app ${appId}`);
+			calls.resolve += 1;
+			calls.manifest += 1;
+			calls.chunk += 1;
+			return {
+				appId,
+				release: artifact.release,
+				artifact: {
+					format: DIRECT_RUNTIME_FORMAT,
 					entrypoint: DIRECT_ENTRYPOINT,
-					namespace: "test",
-					scaling: {
-						minReplicas: 0,
-						maxReplicas: 128,
-						targetConcurrency: 8,
-					},
-					maxRequestBytes: 1024 * 1024,
-					maxResponseBytes: 4 * 1024 * 1024,
-				};
-				return {
-					async resolveDeployment() {
-						calls.resolve += 1;
-						return resolution;
-					},
-					async getArtifactManifest() {
-						calls.manifest += 1;
-						return {
-							format: DIRECT_RUNTIME_FORMAT,
-							hash: artifact.hash,
-							bytes: artifact.bytes.byteLength,
-							chunks: 1,
-							chunkBytes: artifact.bytes.byteLength,
-						};
-					},
-					async readArtifactChunk() {
-						calls.chunk += 1;
-						return artifact.bytes;
-					},
-					connect() {
-						return {
-							ready: Promise.resolve(),
-							on: () => () => {},
-							onOpen: () => () => {},
-							onClose: () => () => {},
-							dispose: async () => {},
-						};
-					},
-				};
-			},
+					hash: artifact.hash,
+					bytes: new Uint8Array(artifact.bytes),
+					byteLength: artifact.bytes.byteLength,
+					usesRivetKit: false,
+				},
+				regions: ["local"],
+				scaling: { minReplicas: 0, maxReplicas: 128, targetConcurrency: 8 },
+				maxRequestBytes: 1024 * 1024,
+				maxResponseBytes: 4 * 1024 * 1024,
+			};
 		},
 	};
-	return { client, calls };
+	return { source, calls };
 }

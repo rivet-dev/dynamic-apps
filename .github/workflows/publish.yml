@@ -46,7 +46,7 @@ jobs:
         run: |
           set -euo pipefail
           npm ping
-          for package in @rivet-dev/dynamic-apps-builder @rivet-dev/dynamic-apps; do
+          for package in @rivet-dev/dynamic-apps-builder @rivet-dev/dynamic-apps-core @rivet-dev/dynamic-apps; do
             if npm view "$package@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
               echo "$package@${{ steps.release.outputs.version }} already exists" >&2
               exit 1
@@ -80,6 +80,26 @@ jobs:
             sleep 10
           done
           echo "builder version did not become visible" >&2
+          exit 1
+      - name: Publish core
+        env:
+          NODE_AUTH_TOKEN: ""
+        run: >-
+          npm publish
+          .pack/rivet-dev-dynamic-apps-core-${{ steps.release.outputs.version }}.tgz
+          --access public
+          --provenance
+          --tag ${{ steps.release.outputs.npm_tag }}
+      - name: Wait for core registry visibility
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            if npm view "@rivet-dev/dynamic-apps-core@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "core version did not become visible" >&2
           exit 1
       - name: Publish main package
         env:

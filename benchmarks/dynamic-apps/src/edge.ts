@@ -1,12 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { availableParallelism } from "node:os";
 import { appsRouter } from "@rivet-dev/dynamic-apps";
-import { Hono } from "hono";
-import { createClient } from "rivetkit/client";
 import {
 	DynamicAppsExecutor,
 	readExecutorConfig,
-} from "../../../packages/dynamic-apps/src/executor.js";
+} from "@rivet-dev/dynamic-apps-core/internal";
+import { Hono } from "hono";
+import { createClient } from "rivetkit/client";
+import { createRivetReleaseStore } from "../../../packages/dynamic-apps/src/release-store.js";
 import {
 	ACTOR_BENCHMARK_APP_ID,
 	BENCHMARK_APP_ID,
@@ -66,12 +67,12 @@ export function createBenchmarkApplication(): Hono {
 		...process.env,
 		DYNAMIC_APPS_TIMING_HEADERS: "1",
 	});
-	const pooled = new DynamicAppsExecutor({
+	const pooled = new DynamicAppsExecutor(createRivetReleaseStore(), {
 		...baseConfig,
 		executionMode: "pooled",
 		contextPoolSize: integerEnv("BENCH_CONTEXT_POOL_SIZE", 8, 1, 128),
 	});
-	const ephemeral = new DynamicAppsExecutor({
+	const ephemeral = new DynamicAppsExecutor(createRivetReleaseStore(), {
 		...baseConfig,
 		executionMode: "ephemeral",
 		contextPoolSize: 0,
