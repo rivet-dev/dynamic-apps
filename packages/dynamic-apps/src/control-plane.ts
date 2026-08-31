@@ -36,7 +36,7 @@ async function readBoundedJson(response: Response): Promise<unknown> {
 			if (bytes > MAX_CONTROL_RESPONSE_BYTES) {
 				await reader.cancel("Dynamic Apps control response limit exceeded");
 				throw new DynamicAppsError(
-					"agentos_apps_control_response_limit",
+					"dynamic_apps_control_response_limit",
 					`Rivet control response exceeded ${MAX_CONTROL_RESPONSE_BYTES} bytes`,
 					{ limit: MAX_CONTROL_RESPONSE_BYTES },
 				);
@@ -139,7 +139,7 @@ async function provisionCloudNamespace(
 	const cloudToken = process.env.RIVET_CLOUD_TOKEN;
 	if (!cloudToken) {
 		throw new DynamicAppsError(
-			"agentos_apps_cloud_token_required",
+			"dynamic_apps_cloud_token_required",
 			"RIVET_CLOUD_TOKEN is required",
 		);
 	}
@@ -150,7 +150,7 @@ async function provisionCloudNamespace(
 	}>(
 		cloudUrl("/tokens/api/inspect"),
 		{ headers },
-		"agentos_apps_cloud_token_invalid",
+		"dynamic_apps_cloud_token_invalid",
 		"Rivet Cloud token inspection",
 	);
 	const displayName = appNamespaceDisplayName(appId, connection.namespace);
@@ -170,7 +170,7 @@ async function provisionCloudNamespace(
 			}>(
 				url,
 				{ headers },
-				"agentos_apps_namespace_lookup_failed",
+				"dynamic_apps_namespace_lookup_failed",
 				"Rivet Cloud namespace lookup",
 			);
 			cloudNamespace = listed.namespaces.find(
@@ -195,7 +195,7 @@ async function provisionCloudNamespace(
 				headers,
 				body: JSON.stringify({ displayName }),
 			},
-			"agentos_apps_namespace_create_failed",
+			"dynamic_apps_namespace_create_failed",
 			"Rivet Cloud namespace creation",
 		);
 		cloudNamespace = created.namespace.name;
@@ -207,25 +207,25 @@ async function provisionCloudNamespace(
 		}>(
 			cloudUrl(namespacePath, identity.organization),
 			{ headers },
-			"agentos_apps_namespace_lookup_failed",
+			"dynamic_apps_namespace_lookup_failed",
 			"Rivet Cloud namespace resolution",
 		),
 		checkedJson<{ token: string }>(
 			cloudUrl(`${namespacePath}/tokens/access`, identity.organization),
 			{ method: "POST", headers },
-			"agentos_apps_namespace_token_failed",
+			"dynamic_apps_namespace_token_failed",
 			"Rivet Cloud access token creation",
 		),
 		checkedJson<{ token: string }>(
 			cloudUrl(`${namespacePath}/tokens/secret`, identity.organization),
 			{ method: "POST", headers },
-			"agentos_apps_namespace_token_failed",
+			"dynamic_apps_namespace_token_failed",
 			"Rivet Cloud runner token creation",
 		),
 		checkedJson<{ token: string }>(
 			cloudUrl(`${namespacePath}/tokens/publishable`, identity.organization),
 			{ method: "POST", headers },
-			"agentos_apps_namespace_token_failed",
+			"dynamic_apps_namespace_token_failed",
 			"Rivet Cloud publishable token creation",
 		),
 	]);
@@ -264,7 +264,7 @@ export async function provisionAppNamespace(
 		});
 		if (!response.ok) {
 			throw new DynamicAppsError(
-				"agentos_apps_namespace_lookup_failed",
+				"dynamic_apps_namespace_lookup_failed",
 				`Rivet namespace lookup failed with HTTP ${response.status}`,
 				{ status: response.status },
 			);
@@ -289,7 +289,7 @@ export async function provisionAppNamespace(
 		);
 		if (!response.ok && !(await lookup())) {
 			throw new DynamicAppsError(
-				"agentos_apps_namespace_create_failed",
+				"dynamic_apps_namespace_create_failed",
 				`Rivet namespace creation failed with HTTP ${response.status}`,
 				{ status: response.status },
 			);
@@ -366,7 +366,7 @@ export async function configureAppNamespaceRunner(
 		});
 	} catch (error) {
 		throw new DynamicAppsError(
-			"agentos_apps_runner_config_failed",
+			"dynamic_apps_runner_config_failed",
 			`Rivet runner configuration failed for namespace ${runtime.namespace} and pool ${runtime.pool}`,
 			{
 				namespace: runtime.namespace,

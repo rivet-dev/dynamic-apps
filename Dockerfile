@@ -9,10 +9,16 @@ WORKDIR /app
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/dynamic-apps/package.json packages/dynamic-apps/package.json
+COPY packages/dynamic-apps-core/package.json packages/dynamic-apps-core/package.json
 COPY packages/dynamic-apps-builder/package.json packages/dynamic-apps-builder/package.json
 COPY benchmarks/dynamic-apps/package.json benchmarks/dynamic-apps/package.json
 COPY examples/apps-ai-builder/package.json examples/apps-ai-builder/package.json
 COPY examples/apps-hello-world/package.json examples/apps-hello-world/package.json
+COPY examples/apps-core-quickstart/package.json examples/apps-core-quickstart/package.json
+COPY examples/apps-multiplayer/package.json examples/apps-multiplayer/package.json
+COPY examples/apps-sqlite/package.json examples/apps-sqlite/package.json
+COPY examples/apps-static-website/package.json examples/apps-static-website/package.json
+COPY examples/apps-workflows/package.json examples/apps-workflows/package.json
 COPY tests/e2e/dynamic-apps/package.json tests/e2e/dynamic-apps/package.json
 RUN pnpm install --frozen-lockfile
 

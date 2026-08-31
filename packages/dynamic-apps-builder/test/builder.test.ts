@@ -1,6 +1,7 @@
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
+import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -19,7 +20,7 @@ const builder = join(packageRoot, "cli", "apps-builder.mjs");
 
 describe("apps-builder", () => {
 	test("emits an executable Node ESM dispatcher with Node builtins", async () => {
-		const root = await mkdtemp(join(tmpdir(), "agentos-apps-direct-builder-"));
+		const root = await mkdtemp(join(tmpdir(), "dynamic-apps-direct-builder-"));
 		const workspace = join(root, "workspace");
 		const release = join(root, "release");
 		await mkdir(workspace, { recursive: true });
@@ -74,7 +75,7 @@ describe("apps-builder", () => {
 	});
 
 	test("bundles real RivetKit and invokes it inside agentOS", async () => {
-		const root = await mkdtemp(join(tmpdir(), "agentos-apps-rivetkit-"));
+		const root = await mkdtemp(join(tmpdir(), "dynamic-apps-rivetkit-"));
 		const workspace = join(root, "workspace");
 		const release = join(root, "release");
 		await mkdir(workspace, { recursive: true });
@@ -140,7 +141,7 @@ describe("apps-builder", () => {
 	}, 30_000);
 
 	test("rejects native Node addons in direct agentOS bundles", async () => {
-		const root = await mkdtemp(join(tmpdir(), "agentos-apps-native-addon-"));
+		const root = await mkdtemp(join(tmpdir(), "dynamic-apps-native-addon-"));
 		const workspace = join(root, "workspace");
 		const release = join(root, "release");
 		await mkdir(workspace, { recursive: true });
@@ -173,7 +174,7 @@ describe("apps-builder", () => {
 	});
 
 	test("emits a minimal executable TypeScript release with static assets", async () => {
-		const root = await mkdtemp(join(tmpdir(), "agentos-apps-builder-"));
+		const root = await mkdtemp(join(tmpdir(), "dynamic-apps-builder-"));
 		const workspace = join(root, "workspace");
 		const release = join(root, "release");
 		await mkdir(join(workspace, "src"), { recursive: true });
@@ -282,8 +283,8 @@ describe("apps-builder", () => {
 		});
 	});
 
-	test("emits a small platform-linked actor fetch bundle", async () => {
-		const root = await mkdtemp(join(tmpdir(), "agentos-apps-actor-builder-"));
+	test("emits a self-contained AgentOS RivetKit WASM actor bundle", async () => {
+		const root = await mkdtemp(join(tmpdir(), "dynamic-apps-actor-builder-"));
 		const workspace = join(root, "workspace");
 		const release = join(root, "release");
 		await mkdir(join(workspace, "src"), { recursive: true });
@@ -294,10 +295,15 @@ describe("apps-builder", () => {
 		await writeFile(
 			join(workspace, "src", "index.mjs"),
 			[
+				'import http from "node:http";',
 				'import { actor, setup } from "rivetkit";',
 				"const counter = actor({ state: { count: 0 } });",
 				"const registry = setup({ use: { counter } });",
-				"export default { fetch: (request) => registry.handler(request) };",
+				"http.createServer(async (incoming, outgoing) => {",
+				"  const chunks = []; for await (const chunk of incoming) chunks.push(Buffer.from(chunk));",
+				"  const response = await registry.handler(new Request(new URL(incoming.url ?? '/', 'http://actor.test'), { method: incoming.method, headers: incoming.headers, body: incoming.method === 'GET' || incoming.method === 'HEAD' ? undefined : Buffer.concat(chunks) }));",
+				"  outgoing.statusCode = response.status; response.headers.forEach((value, name) => outgoing.setHeader(name, value)); outgoing.end(Buffer.from(await response.arrayBuffer()));",
+				"}).listen(Number(process.env.PORT), '0.0.0.0');",
 			].join("\n"),
 		);
 		const configPath = join(root, "config.json");
@@ -310,25 +316,86 @@ describe("apps-builder", () => {
 				version: "actor-test",
 				sourceFiles: ["src/index.mjs"],
 				usesRivetKit: true,
-				platformRivetKit: true,
-				maxOutputBytes: 1024 * 1024,
+				directAgentOs: true,
+				maxOutputBytes: 16 * 1024 * 1024,
 				maxOutputFiles: 16,
-				maxFileBytes: 1024 * 1024,
+				maxFileBytes: 8 * 1024 * 1024,
 			}),
 		);
 
 		await execFileAsync(process.execPath, [builder, configPath]);
 		const paths = await listFiles(release);
-		expect(paths).toEqual([
-			"agentos-package.json",
-			"main.mjs",
-			"manifest.json",
-		]);
+		expect(paths).toEqual(
+			expect.arrayContaining([
+				"agentos-package.json",
+				"main.mjs",
+				"manifest.json",
+			]),
+		);
+		expect(
+			paths.some(
+				(path) =>
+					path.startsWith("modules/rivetkit-") && path.endsWith(".wasm"),
+			),
+		).toBe(true);
 		const source = await readFile(join(release, "main.mjs"), "utf8");
-		expect(source).toContain('from"rivetkit"');
-		expect(Buffer.byteLength(source)).toBeLessThan(32 * 1024);
-	});
+		expect(source).not.toContain("DYNAMIC_APPS_ACTOR_RPC");
+		expect(source).not.toContain("/.agentos/ready");
+		expect(source).not.toContain('from"rivetkit"');
+		expect(Buffer.byteLength(source)).toBeGreaterThan(256 * 1024);
+		const port = await freePort();
+		const child = spawn(process.execPath, [join(release, "main.mjs")], {
+			stdio: ["pipe", "pipe", "pipe"],
+			env: {
+				...process.env,
+				PORT: String(port),
+				RIVETKIT_RUNTIME: "wasm",
+				RIVETKIT_RUNTIME_MODE: "serverless",
+			},
+		});
+		let stderr = "";
+		child.stdout.resume();
+		child.stderr.on("data", (chunk) => {
+			stderr += chunk;
+		});
+		await new Promise<void>((resolveReady, rejectReady) => {
+			const timeout = setTimeout(() => {
+				child.kill("SIGKILL");
+				rejectReady(new Error(`actor bundle did not start: ${stderr}`));
+			}, 5_000);
+			const poll = setInterval(() => {
+				void fetch(`http://127.0.0.1:${port}/.agentos/ready`)
+					.then(() => {
+						clearInterval(poll);
+						clearTimeout(timeout);
+						resolveReady();
+					})
+					.catch(() => {});
+			}, 20);
+			child.once("exit", (code) => {
+				clearInterval(poll);
+				clearTimeout(timeout);
+				rejectReady(new Error(`actor bundle exited ${code}: ${stderr}`));
+			});
+		});
+		child.kill("SIGKILL");
+	}, 15_000);
 });
+
+async function freePort(): Promise<number> {
+	const server = createServer();
+	await new Promise<void>((resolve, reject) => {
+		server.once("error", reject);
+		server.listen(0, "127.0.0.1", resolve);
+	});
+	const address = server.address();
+	if (!address || typeof address === "string")
+		throw new Error("failed to allocate port");
+	await new Promise<void>((resolve, reject) =>
+		server.close((error) => (error ? reject(error) : resolve())),
+	);
+	return address.port;
+}
 
 async function listFiles(root: string): Promise<string[]> {
 	const paths: string[] = [];

@@ -13,7 +13,7 @@ const args = Object.fromEntries(
 let version = args.version;
 if (version === "legacy") {
 	const [{ stdout: main }, { stdout: builder }] = await Promise.all([
-		execFileAsync("npm", ["view", "@rivet-dev/agentos-apps@latest", "version"]),
+		execFileAsync("npm", ["view", "@rivet-dev/dynamic-apps@latest", "version"]),
 		execFileAsync("npm", [
 			"view",
 			"@agentos-software/apps-builder@latest",

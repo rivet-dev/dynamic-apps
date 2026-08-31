@@ -1,28 +1,21 @@
-import { createHash } from "node:crypto";
-import {
-	mkdir,
-	mkdtemp,
-	readFile,
-	rm,
-	symlink,
-	writeFile,
-} from "node:fs/promises";
-import { createRequire } from "node:module";
+import { createHash, randomUUID } from "node:crypto";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join, posix } from "node:path";
-import { pathToFileURL } from "node:url";
-import { Worker } from "node:worker_threads";
-import {
-	ACTOR_BUNDLE_PATH,
-	capConcurrencyForMemory,
-	DynamicAppsError,
-	readCgroupMemory,
-} from "@rivet-dev/dynamic-apps-core/internal";
-import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
+import { join } from "node:path";
+import { AgentOs } from "@rivet-dev/agentos-core";
+import { emitDynamicAppsLog } from "./logging.js";
 
-const MAX_ACTOR_FILES = 4_096;
-const MAX_ACTOR_FILE_BYTES = 32 * 1024 * 1024;
-const MAX_ACTOR_ARTIFACT_BYTES = 64 * 1024 * 1024;
+const ACTOR_HTTP_PORT = 3000;
+const HOP_BY_HOP_HEADERS = [
+	"connection",
+	"keep-alive",
+	"proxy-authenticate",
+	"proxy-authorization",
+	"te",
+	"trailer",
+	"transfer-encoding",
+	"upgrade",
+] as const;
 
 interface ActorRuntimeConfig {
 	maxEntries: number;
@@ -31,9 +24,6 @@ interface ActorRuntimeConfig {
 	idleTtlMs: number;
 	maxStartPayloadBytes: number;
 	memoryHighWaterPercent: number;
-	requestConcurrency: number;
-	requestQueueSize: number;
-	requestQueueWaitMs: number;
 	requestTimeoutMs: number;
 }
 
@@ -48,87 +38,47 @@ export interface ActorRuntimeRequest {
 	request: Request;
 }
 
-interface PendingRequest {
-	resolve(response: Response): void;
-	reject(error: unknown): void;
-	controller?: ReadableStreamDefaultController<Uint8Array>;
-	waitingAck: boolean;
-	settled: boolean;
-	abort?: () => void;
-	releaseAdmission(): void;
-	timeout?: ReturnType<typeof setTimeout>;
-}
-
 interface RuntimeEntry {
 	key: string;
 	appId: string;
 	release: string;
 	directory: string;
-	worker: Worker;
-	ready: Promise<void>;
-	pending: Map<string, PendingRequest>;
+	vm: AgentOs;
+	pid: number;
 	active: number;
 	lastUsedAt: number;
 	disposed: boolean;
-	nextRequestId: number;
-	logDisposers: Array<() => void>;
 }
 
-type WorkerMessage =
-	| { type: "ready" }
-	| { type: "head"; id: string; status: number; headers: [string, string][] }
-	| { type: "chunk"; id: string; chunk: Uint8Array }
-	| { type: "end"; id: string }
-	| { type: "error"; id?: string; message: string };
-
+/** Runs RivetKit callbacks in cached agentOS VMs using its native HTTP stream. */
 export class DynamicActorRuntime {
 	readonly config: ActorRuntimeConfig;
 	readonly #entries = new Map<string, RuntimeEntry>();
 	readonly #creating = new Map<string, Promise<RuntimeEntry>>();
-	readonly #admission: ActorAdmission;
 	readonly #timer: ReturnType<typeof setInterval>;
-	#workerReservations = 0;
 	#disposed = false;
 	#disposePromise?: Promise<void>;
 
 	constructor(env: NodeJS.ProcessEnv = process.env) {
-		const requestedMaxEntries = integerEnv(
-			env,
-			"DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES",
-			4,
-			1,
-			1_024,
-		);
-		const heapLimitMb = integerEnv(
-			env,
-			"DYNAMIC_APPS_ACTOR_WORKER_HEAP_LIMIT_MB",
-			96,
-			16,
-			2_048,
-		);
-		const memoryHighWaterPercent = integerEnv(
-			env,
-			"DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT",
-			70,
-			10,
-			95,
-		);
-		const cgroupMemory = readCgroupMemory();
 		this.config = {
-			maxEntries: cgroupMemory
-				? capConcurrencyForMemory({
-						requested: requestedMaxEntries,
-						contextAndVmLimitMb: heapLimitMb,
-						memoryHighWaterPercent,
-						currentBytes: cgroupMemory.currentBytes,
-						maxBytes: cgroupMemory.maxBytes,
-					})
-				: requestedMaxEntries,
-			heapLimitMb,
+			maxEntries: integerEnv(
+				env,
+				"DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES",
+				4,
+				1,
+				1_024,
+			),
+			heapLimitMb: integerEnv(
+				env,
+				"DYNAMIC_APPS_ACTOR_WORKER_HEAP_LIMIT_MB",
+				96,
+				16,
+				2_048,
+			),
 			startTimeoutMs: integerEnv(
 				env,
 				"DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS",
-				10_000,
+				30_000,
 				10,
 				5 * 60_000,
 			),
@@ -142,31 +92,16 @@ export class DynamicActorRuntime {
 			maxStartPayloadBytes: integerEnv(
 				env,
 				"DYNAMIC_APPS_ACTOR_START_PAYLOAD_MAX_BYTES",
-				1024 * 1024,
-				1,
 				16 * 1024 * 1024,
-			),
-			memoryHighWaterPercent,
-			requestConcurrency: integerEnv(
-				env,
-				"DYNAMIC_APPS_ACTOR_REQUEST_CONCURRENCY",
-				64,
 				1,
-				4_096,
+				64 * 1024 * 1024,
 			),
-			requestQueueSize: integerEnv(
+			memoryHighWaterPercent: integerEnv(
 				env,
-				"DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_SIZE",
-				128,
-				0,
-				100_000,
-			),
-			requestQueueWaitMs: integerEnv(
-				env,
-				"DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_WAIT_MS",
-				5_000,
-				1,
-				60_000,
+				"DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT",
+				70,
+				10,
+				95,
 			),
 			requestTimeoutMs: integerEnv(
 				env,
@@ -176,11 +111,6 @@ export class DynamicActorRuntime {
 				5 * 60_000,
 			),
 		};
-		this.#admission = new ActorAdmission(
-			this.config.requestConcurrency,
-			this.config.requestQueueSize,
-			this.config.requestQueueWaitMs,
-		);
 		this.#timer = setInterval(
 			() => void this.#prune(),
 			Math.min(this.config.idleTtlMs, 30_000),
@@ -189,92 +119,77 @@ export class DynamicActorRuntime {
 	}
 
 	async request(input: ActorRuntimeRequest): Promise<Response> {
-		await this.#admission.acquire();
-		let admissionHandedOff = false;
-		try {
-			const body = await readBoundedBody(
-				input.request.body,
-				this.config.maxStartPayloadBytes,
-			);
-			if (!body) {
-				return new Response("RivetKit actor start payload exceeds limit", {
-					status: 413,
-				});
-			}
-			console.info(
-				JSON.stringify({
-					msg: "Dynamic App actor callback received",
-					method: input.request.method,
-					path: new URL(input.request.url).pathname,
-					bodyBytes: body.byteLength,
-					contentLength: input.request.headers.get("content-length"),
-				}),
-			);
-			const entry = await this.#entry(input);
-			try {
-				await entry.ready;
-			} catch (error) {
-				entry.active = Math.max(0, entry.active - 1);
-				entry.lastUsedAt = Date.now();
-				if (this.#entries.size > this.config.maxEntries) void this.#prune();
-				throw error;
-			}
-			const id = String(++entry.nextRequestId);
-			return new Promise<Response>((resolve, reject) => {
-				const pending: PendingRequest = {
-					resolve,
-					reject,
-					waitingAck: false,
-					settled: false,
-					releaseAdmission: () => this.#admission.release(),
-				};
-				const cancel = () => entry.worker.postMessage({ type: "cancel", id });
-				pending.abort = cancel;
-				entry.pending.set(id, pending);
-				admissionHandedOff = true;
-				pending.timeout = setTimeout(() => {
-					emitDynamicAppsLog({
-						level: "error",
-						source: "runtime",
-						message: "Dynamic App actor request timed out",
-						appId: entry.appId,
-						release: entry.release,
-					});
-					this.#failEntry(
-						entry,
-						new Error(
-							`Dynamic App actor request exceeded ${this.config.requestTimeoutMs}ms`,
-						),
-					);
-				}, this.config.requestTimeoutMs);
-				try {
-					entry.worker.postMessage({
-						type: "request",
-						id,
-						method: input.request.method,
-						url: input.request.url,
-						headers: [...input.request.headers.entries()],
-						body,
-					});
-					input.request.signal.addEventListener("abort", cancel, {
-						once: true,
-					});
-					if (input.request.signal.aborted) cancel();
-				} catch (error) {
-					emitDynamicAppsLog({
-						level: "error",
-						source: "runtime",
-						message: "Dynamic App actor worker transport failed",
-						appId: entry.appId,
-						release: entry.release,
-					});
-					this.#settle(entry, id);
-					reject(error);
-				}
+		const body = await readBoundedBody(
+			input.request.body,
+			this.config.maxStartPayloadBytes,
+		);
+		if (!body)
+			return new Response("RivetKit actor start payload exceeds limit", {
+				status: 413,
 			});
-		} finally {
-			if (!admissionHandedOff) this.#admission.release();
+		const entry = await this.#entry(input);
+		const request = new Request(input.request.url, {
+			method: input.request.method,
+			headers: input.request.headers,
+			body:
+				input.request.method === "GET" || input.request.method === "HEAD"
+					? undefined
+					: Buffer.from(body),
+		});
+		let head: Awaited<ReturnType<AgentOs["fetchStreamStart"]>>;
+		try {
+			head = await withTimeout(
+				entry.vm.fetchStreamStart(ACTOR_HTTP_PORT, request),
+				this.config.requestTimeoutMs,
+				`Dynamic App actor response headers exceeded ${this.config.requestTimeoutMs}ms`,
+			);
+		} catch (error) {
+			this.#release(entry);
+			this.#failEntry(entry, error);
+			throw error;
 		}
+
+		let settled = false;
+		const settle = () => {
+			if (settled) return;
+			settled = true;
+			input.request.signal.removeEventListener("abort", cancel);
+			this.#release(entry);
+		};
+		const cancel = () => {
+			if (settled) return;
+			void entry.vm.fetchStreamCancel(head.streamId).catch(() => {});
+			settle();
+		};
+		input.request.signal.addEventListener("abort", cancel, { once: true });
+		if (input.request.signal.aborted) cancel();
+
+		const stream = new ReadableStream<Uint8Array>({
+			pull: async (controller) => {
+				if (settled) return controller.close();
+				try {
+					const chunk = await entry.vm.fetchStreamRead(head.streamId);
+					if (chunk.body.byteLength > 0) controller.enqueue(chunk.body);
+					if (chunk.done) {
+						controller.close();
+						settle();
+					}
+				} catch (error) {
+					controller.error(error);
+					settle();
+				}
+			},
+			cancel: async () => {
+				if (settled) return;
+				await entry.vm.fetchStreamCancel(head.streamId).catch(() => {});
+				settle();
+			},
+		});
+		return new Response(stream, {
+			status: head.status,
+			statusText: head.statusText,
+			headers: proxyResponseHeaders(head.headers),
+		});
 	}
 
 	async invalidate(key: string): Promise<void> {
@@ -286,18 +201,16 @@ export class DynamicActorRuntime {
 
 	diagnostics(): Record<string, number> {
 		const entries = [...this.#entries.values()];
+		const active = entries.reduce((sum, entry) => sum + entry.active, 0);
 		return {
 			workerLimit: this.config.maxEntries,
 			entries: entries.length,
 			creating: this.#creating.size,
-			workerReservations: this.#workerReservations,
-			activeRequests: entries.reduce((sum, entry) => sum + entry.active, 0),
-			pendingRequests: entries.reduce(
-				(sum, entry) => sum + entry.pending.size,
-				0,
-			),
-			admittedRequests: this.#admission.active,
-			queuedRequests: this.#admission.queued,
+			workerReservations: 0,
+			activeRequests: active,
+			pendingRequests: active,
+			admittedRequests: active,
+			queuedRequests: 0,
 		};
 	}
 
@@ -305,16 +218,13 @@ export class DynamicActorRuntime {
 		if (this.#disposePromise !== undefined) return this.#disposePromise;
 		this.#disposed = true;
 		clearInterval(this.#timer);
-		this.#admission.dispose();
 		this.#disposePromise = this.#finishDispose();
 		return this.#disposePromise;
 	}
 
 	async #finishDispose(): Promise<void> {
-		while (this.#creating.size > 0) {
+		while (this.#creating.size > 0)
 			await Promise.allSettled([...this.#creating.values()]);
-			await new Promise<void>((resolve) => setImmediate(resolve));
-		}
 		await Promise.allSettled(
 			[...this.#entries.values()].map((entry) => this.#disposeEntry(entry)),
 		);
@@ -325,319 +235,179 @@ export class DynamicActorRuntime {
 		if (this.#disposed) throw new Error("Dynamic App actor runtime disposed");
 		const existing = this.#entries.get(input.key);
 		if (existing && !existing.disposed) return this.#lease(existing);
-		const pending = this.#creating.get(input.key);
-		if (pending) return this.#lease(await pending);
-		const reservation = this.#reserveWorker();
-		const promise = reservation.then(async () => {
-			const entry = await this.#createEntry(input);
-			if (this.#disposed) {
-				await this.#disposeEntry(entry);
-				throw new Error(
-					"Dynamic App actor runtime disposed during worker creation",
-				);
-			}
-			return entry;
-		});
+		const creating = this.#creating.get(input.key);
+		if (creating) return this.#lease(await creating);
+		const promise = this.#createEntry(input);
 		this.#creating.set(input.key, promise);
-		let reserved = true;
 		try {
 			const entry = await promise;
-			this.#creating.delete(input.key);
-			this.#workerReservations = Math.max(0, this.#workerReservations - 1);
-			reserved = false;
 			if (this.#disposed) {
 				await this.#disposeEntry(entry);
-				throw new Error(
-					"Dynamic App actor runtime disposed during worker creation",
-				);
+				throw new Error("Dynamic App actor runtime disposed during creation");
 			}
 			this.#entries.set(input.key, entry);
 			this.#lease(entry);
 			await this.#prune(entry.key);
 			return entry;
 		} finally {
-			if (reserved) {
-				this.#workerReservations = Math.max(0, this.#workerReservations - 1);
-			}
-			if (this.#creating.get(input.key) === promise) {
+			if (this.#creating.get(input.key) === promise)
 				this.#creating.delete(input.key);
-			}
 		}
-	}
-
-	#reserveWorker(): Promise<void> {
-		if (this.#disposed) throw new Error("Dynamic App actor runtime disposed");
-		if (
-			this.#entries.size + this.#workerReservations <
-			this.config.maxEntries
-		) {
-			this.#workerReservations += 1;
-			return Promise.resolve();
-		}
-		const idle = [...this.#entries.values()]
-			.filter((entry) => entry.active === 0 && !entry.disposed)
-			.sort((a, b) => a.lastUsedAt - b.lastUsedAt)[0];
-		if (!idle) {
-			throw new DynamicAppsError(
-				"agentos_apps_no_capacity",
-				`Dynamic Apps actor worker limit ${this.config.maxEntries} is busy`,
-			);
-		}
-		this.#entries.delete(idle.key);
-		this.#workerReservations += 1;
-		return this.#disposeEntry(idle);
 	}
 
 	#lease(entry: RuntimeEntry): RuntimeEntry {
-		if (entry.disposed) {
-			throw new Error(
-				"Dynamic App actor worker was disposed before request lease",
-			);
-		}
-		entry.active += 1;
+		if (entry.disposed)
+			throw new Error("Dynamic App actor runtime was disposed");
+		entry.active++;
 		entry.lastUsedAt = Date.now();
 		return entry;
 	}
 
-	async #createEntry(input: ActorRuntimeRequest): Promise<RuntimeEntry> {
-		const directory = await mkdtemp(join(tmpdir(), "dynamic-app-actor-"));
-		try {
-			const files = extractActorFiles(await input.loadArtifact());
-			for (const [path, bytes] of files) {
-				const target = join(directory, ...path.split("/"));
-				await mkdir(dirname(target), { recursive: true });
-				await writeFile(target, bytes, { mode: 0o600 });
-			}
-			const rivetkitPackage = await resolvePlatformRivetKitPackage();
-			await mkdir(join(directory, "node_modules"), { recursive: true });
-			await symlink(
-				rivetkitPackage,
-				join(directory, "node_modules", "rivetkit"),
-				"dir",
-			);
-			const entrypoint = pathToFileURL(join(directory, "main.mjs")).href;
-			let readyResolve = () => {};
-			let readyReject = (_error: unknown) => {};
-			const ready = new Promise<void>((resolve, reject) => {
-				readyResolve = resolve;
-				readyReject = reject;
-			});
-			const worker = new Worker(
-				new URL(
-					`data:text/javascript,${encodeURIComponent(ACTOR_WORKER_SOURCE)}`,
-				),
-				{
-					workerData: { entrypoint },
-					env: actorWorkerEnvironment(input),
-					resourceLimits: {
-						maxOldGenerationSizeMb: this.config.heapLimitMb,
-						maxYoungGenerationSizeMb: Math.max(
-							4,
-							Math.min(32, Math.floor(this.config.heapLimitMb / 4)),
-						),
-					},
-					stdout: true,
-					stderr: true,
-				},
-			);
-			const entry: RuntimeEntry = {
-				key: input.key,
-				appId: input.appId ?? "unknown",
-				release: input.release ?? "unknown",
-				directory,
-				worker,
-				ready,
-				pending: new Map(),
-				active: 0,
-				lastUsedAt: Date.now(),
-				disposed: false,
-				nextRequestId: 0,
-				logDisposers: [],
-			};
-			for (const stream of ["stdout", "stderr"] as const) {
-				const output = worker[stream];
-				const decoder = new DynamicAppsLogLineDecoder((message, truncated) =>
-					emitDynamicAppsLog({
-						level: stream === "stdout" ? "info" : "error",
-						source: "actor",
-						message,
-						appId: input.appId ?? "unknown",
-						release: input.release ?? "unknown",
-						stream,
-						...(truncated ? { metadata: { truncated: true } } : {}),
-					}),
-				);
-				const onData = (chunk: Uint8Array) => decoder.write(chunk);
-				output.on("data", onData);
-				entry.logDisposers.push(() => {
-					output.off("data", onData);
-					decoder.end();
-				});
-			}
-			let startupSettled = false;
-			const startupTimer = setTimeout(() => {
-				if (startupSettled || entry.disposed) return;
-				startupSettled = true;
-				const error = new Error(
-					`Dynamic App actor worker startup exceeded ${this.config.startTimeoutMs}ms`,
-				);
-				emitDynamicAppsLog({
-					level: "error",
-					source: "runtime",
-					message: "Dynamic App actor worker startup timed out",
-					appId: entry.appId,
-					release: entry.release,
-				});
-				readyReject(error);
-				this.#failEntry(entry, error);
-			}, this.config.startTimeoutMs);
-			startupTimer.unref?.();
-			const finishStartup = () => {
-				if (startupSettled) return;
-				startupSettled = true;
-				clearTimeout(startupTimer);
-			};
-			worker.on("message", (message: WorkerMessage) => {
-				if (message.type === "ready") {
-					finishStartup();
-					readyResolve();
-					return;
-				}
-				if (message.type === "error" && !message.id) {
-					emitDynamicAppsLog({
-						level: "error",
-						source: "runtime",
-						message: "Dynamic App actor worker reported a transport error",
-						appId: entry.appId,
-						release: entry.release,
-					});
-					finishStartup();
-					readyReject(new Error(message.message));
-					this.#failEntry(entry, new Error(message.message));
-					return;
-				}
-				if (message.id) this.#handleMessage(entry, message);
-			});
-			worker.once("error", (error) => {
-				emitDynamicAppsLog({
-					level: "error",
-					source: "runtime",
-					message: "Dynamic App actor worker failed",
-					appId: entry.appId,
-					release: entry.release,
-				});
-				finishStartup();
-				readyReject(error);
-				this.#failEntry(entry, error);
-			});
-			worker.once("exit", (code) => {
-				finishStartup();
-				if (!entry.disposed) {
-					emitDynamicAppsLog({
-						level: "error",
-						source: "runtime",
-						message: "Dynamic App actor worker exited",
-						appId: entry.appId,
-						release: entry.release,
-						metadata: { exitCode: code },
-					});
-					const error = new Error(
-						`Dynamic App actor worker exited with ${code}`,
-					);
-					readyReject(error);
-					this.#failEntry(entry, error);
-				}
-			});
-			return entry;
-		} catch (error) {
-			await rm(directory, { recursive: true, force: true });
-			throw error;
-		}
-	}
-
-	#handleMessage(entry: RuntimeEntry, message: WorkerMessage): void {
-		if (!("id" in message) || !message.id) return;
-		const pending = entry.pending.get(message.id);
-		if (!pending || pending.settled) return;
-		if (message.type === "head") {
-			if (pending.timeout) {
-				clearTimeout(pending.timeout);
-				pending.timeout = undefined;
-			}
-			const stream = new ReadableStream<Uint8Array>({
-				start: (controller) => {
-					pending.controller = controller;
-				},
-				pull: () => {
-					if (!pending.waitingAck) return;
-					pending.waitingAck = false;
-					entry.worker.postMessage({ type: "ack", id: message.id });
-				},
-				cancel: () => {
-					entry.worker.postMessage({ type: "cancel", id: message.id });
-					this.#settle(entry, message.id);
-				},
-			});
-			pending.resolve(
-				new Response(stream, {
-					status: message.status,
-					headers: message.headers,
-				}),
-			);
-			return;
-		}
-		if (message.type === "chunk") {
-			pending.controller?.enqueue(new Uint8Array(message.chunk));
-			if ((pending.controller?.desiredSize ?? 1) > 0) {
-				entry.worker.postMessage({ type: "ack", id: message.id });
-			} else {
-				pending.waitingAck = true;
-			}
-			return;
-		}
-		if (message.type === "end") {
-			pending.controller?.close();
-			this.#settle(entry, message.id);
-			return;
-		}
-		if (message.type === "error") {
-			const error = new Error(message.message);
-			if (pending.controller) pending.controller.error(error);
-			else pending.reject(error);
-			this.#settle(entry, message.id);
-		}
-	}
-
-	#settle(entry: RuntimeEntry, id: string): void {
-		const pending = entry.pending.get(id);
-		if (!pending || pending.settled) return;
-		pending.settled = true;
-		entry.pending.delete(id);
-		if (pending.timeout) clearTimeout(pending.timeout);
-		pending.releaseAdmission();
+	#release(entry: RuntimeEntry): void {
 		entry.active = Math.max(0, entry.active - 1);
 		entry.lastUsedAt = Date.now();
 		if (this.#entries.size > this.config.maxEntries) void this.#prune();
 	}
 
+	async #createEntry(input: ActorRuntimeRequest): Promise<RuntimeEntry> {
+		const directory = await mkdtemp(
+			join(tmpdir(), "dynamic-app-actor-agentos-"),
+		);
+		const artifactPath = join(directory, "release.aospkg");
+		let vm: AgentOs | undefined;
+		try {
+			await chmod(directory, 0o700);
+			await writeFile(artifactPath, await input.loadArtifact(), {
+				mode: 0o600,
+			});
+			vm = await AgentOs.create({
+				sidecar: { kind: "shared", pool: "dynamic-apps-actors" },
+				defaultSoftware: false,
+				loopbackExemptPorts: loopbackExemptPorts(input.endpoint),
+				mounts: [
+					{
+						path: "/app",
+						readOnly: true,
+						plugin: {
+							id: "agentos_packages",
+							config: {
+								kind: "tar",
+								tarPath: artifactPath,
+								root: "/",
+								readOnly: true,
+							},
+						},
+					},
+				],
+				permissions: {
+					fs: "allow",
+					childProcess: "allow",
+					process: "allow",
+					env: "allow",
+					network: "allow",
+				},
+				limits: { jsRuntime: { v8HeapLimitMb: this.config.heapLimitMb } },
+			});
+			const pendingLogs: Array<["stdout" | "stderr", Uint8Array]> = [];
+			const readyNonce = randomUUID();
+			const readyMarker = `DYNAMIC_APPS_SERVER_READY:${readyNonce}`;
+			let readyBuffer = "";
+			let resolveReady = () => {};
+			let rejectReady = (_error: unknown) => {};
+			const ready = new Promise<void>((resolve, reject) => {
+				resolveReady = resolve;
+				rejectReady = reject;
+			});
+			let entry: RuntimeEntry | undefined;
+			const process = await vm.process.spawn("node", ["/app/actor/main.mjs"], {
+				cwd: "/app/actor",
+				env: stringEnvironment({
+					...actorWorkerEnvironment(input),
+					DYNAMIC_APPS_READY_NONCE: readyNonce,
+				}),
+				onStdout: (data) => {
+					readyBuffer = `${readyBuffer}${new TextDecoder().decode(data)}`.slice(
+						-4_096,
+					);
+					if (readyBuffer.includes(readyMarker)) resolveReady();
+					if (entry) this.#logGuest(entry, "stdout", data);
+					else pendingLogs.push(["stdout", data]);
+				},
+				onStderr: (data) =>
+					entry
+						? this.#logGuest(entry, "stderr", data)
+						: pendingLogs.push(["stderr", data]),
+			});
+			entry = {
+				key: input.key,
+				appId: input.appId ?? "unknown",
+				release: input.release ?? "unknown",
+				directory,
+				vm,
+				pid: process.pid,
+				active: 0,
+				lastUsedAt: Date.now(),
+				disposed: false,
+			};
+			for (const [stream, data] of pendingLogs)
+				this.#logGuest(entry, stream, data);
+			const processExit = vm.process.wait(process.pid);
+			void processExit.then((exit) => {
+				const error = new Error(
+					`Dynamic App agentOS actor process exited with ${exit.exitCode ?? 1}`,
+				);
+				rejectReady(error);
+				if (!entry || entry.disposed) return;
+				this.#failEntry(entry, error);
+			});
+			await withTimeout(
+				ready,
+				this.config.startTimeoutMs,
+				`Dynamic App agentOS actor startup exceeded ${this.config.startTimeoutMs}ms`,
+			);
+			return entry;
+		} catch (error) {
+			await vm?.dispose().catch(() => {});
+			await rm(directory, { recursive: true, force: true }).catch(() => {});
+			throw error;
+		}
+	}
+
 	#failEntry(entry: RuntimeEntry, error: unknown): void {
 		this.#entries.delete(entry.key);
-		for (const [id, pending] of entry.pending) {
-			if (pending.controller) pending.controller.error(error);
-			else pending.reject(error);
-			this.#settle(entry, id);
-		}
+		emitDynamicAppsLog({
+			level: "error",
+			source: "actor",
+			message:
+				error instanceof Error ? (error.stack ?? error.message) : String(error),
+			appId: entry.appId,
+			release: entry.release,
+		});
 		void this.#disposeEntry(entry);
+	}
+
+	#logGuest(
+		entry: Pick<RuntimeEntry, "appId" | "release">,
+		stream: "stdout" | "stderr",
+		data: Uint8Array,
+	): void {
+		emitDynamicAppsLog({
+			level: stream === "stdout" ? "info" : "error",
+			source: "actor",
+			message: new TextDecoder().decode(data).slice(0, 64 * 1024),
+			appId: entry.appId,
+			release: entry.release,
+			stream,
+		});
 	}
 
 	async #prune(protectedKey?: string): Promise<void> {
 		if (this.#disposed) return;
 		const now = Date.now();
 		const memoryPressure = await this.#memoryPressure();
-		const entries = [...this.#entries.values()].sort(
+		for (const entry of [...this.#entries.values()].sort(
 			(a, b) => a.lastUsedAt - b.lastUsedAt,
-		);
-		for (const entry of entries) {
+		)) {
 			if (
 				entry.key !== protectedKey &&
 				entry.active === 0 &&
@@ -674,26 +444,35 @@ export class DynamicActorRuntime {
 	async #disposeEntry(entry: RuntimeEntry): Promise<void> {
 		if (entry.disposed) return;
 		entry.disposed = true;
-		for (const [id, pending] of entry.pending) {
-			pending.reject(new Error("Dynamic App actor worker disposed"));
-			pending.controller?.error(new Error("Dynamic App actor worker disposed"));
-			this.#settle(entry, id);
-		}
-		for (const dispose of entry.logDisposers.splice(0)) dispose();
 		const results = await Promise.allSettled([
-			entry.worker.terminate(),
+			entry.vm.dispose(),
 			rm(entry.directory, { recursive: true, force: true }),
 		]);
 		if (results.some((result) => result.status === "rejected")) {
 			emitDynamicAppsLog({
 				level: "error",
 				source: "runtime",
-				message: "Dynamic App actor worker disposal failed",
+				message: "Dynamic App agentOS actor disposal failed",
 				appId: entry.appId,
 				release: entry.release,
 			});
 		}
 	}
+}
+
+function proxyResponseHeaders(
+	input: Headers | Iterable<readonly [string, string]>,
+): Headers {
+	const headers = new Headers();
+	if (input instanceof Headers) {
+		input.forEach((value, name) => {
+			headers.append(name, value);
+		});
+	} else {
+		for (const [name, value] of input) headers.append(name, value);
+	}
+	for (const name of HOP_BY_HOP_HEADERS) headers.delete(name);
+	return headers;
 }
 
 async function readBoundedBody(
@@ -720,40 +499,22 @@ async function readBoundedBody(
 	}
 }
 
-let platformRivetKitPackage: Promise<string> | undefined;
-
-function resolvePlatformRivetKitPackage(): Promise<string> {
-	platformRivetKitPackage ??= (async () => {
-		const hostRequire = createRequire(import.meta.url);
-		const rivetkitEntry = hostRequire.resolve("rivetkit");
-		return findPackageRoot(rivetkitEntry);
-	})();
-	return platformRivetKitPackage;
-}
-
-async function findPackageRoot(entrypoint: string): Promise<string> {
-	let directory = dirname(entrypoint);
-	for (;;) {
-		try {
-			const value = JSON.parse(
-				await readFile(join(directory, "package.json"), "utf8"),
-			) as { name?: unknown };
-			if (typeof value.name === "string" && value.name) return directory;
-		} catch (error) {
-			if (
-				typeof error !== "object" ||
-				error === null ||
-				!("code" in error) ||
-				error.code !== "ENOENT"
-			) {
-				throw error;
-			}
-		}
-		const parent = dirname(directory);
-		if (parent === directory) {
-			throw new Error(`Could not find package root for ${entrypoint}`);
-		}
-		directory = parent;
+async function withTimeout<T>(
+	promise: Promise<T>,
+	timeoutMs: number,
+	message: string,
+): Promise<T> {
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	try {
+		return await Promise.race([
+			promise,
+			new Promise<never>((_, reject) => {
+				timer = setTimeout(() => reject(new Error(message)), timeoutMs);
+				timer.unref?.();
+			}),
+		]);
+	} finally {
+		if (timer) clearTimeout(timer);
 	}
 }
 
@@ -768,100 +529,52 @@ export function actorWorkerEnvironment(
 	const endpointToken = endpoint.password
 		? decodeURIComponent(endpoint.password)
 		: undefined;
-	if (endpointNamespace && endpointNamespace !== input.namespace) {
+	if (endpointNamespace && endpointNamespace !== input.namespace)
 		throw new Error(
 			`Dynamic App actor endpoint namespace ${endpointNamespace} does not match ${input.namespace}`,
 		);
-	}
 	endpoint.username = "";
 	endpoint.password = "";
 	return {
 		NODE_ENV: "production",
-		RIVETKIT_RUNTIME: "native",
+		PORT: String(ACTOR_HTTP_PORT),
+		RIVETKIT_RUNTIME: "wasm",
 		RIVETKIT_RUNTIME_MODE: "serverless",
 		RIVET_ENDPOINT: endpoint.toString().replace(/\/$/u, ""),
 		RIVET_NAMESPACE: input.namespace,
 		...(endpointToken ? { RIVET_TOKEN: endpointToken } : {}),
 		RIVET_POOL: input.pool,
-		RIVET_RUNNER: input.pool,
-		RIVET_RUNNER_POOL: input.pool,
 		RIVET_ENVOY_VERSION: String(actorEnvoyVersion(input.key)),
+		...(process.env.AGENTOS_DEBUG_HTTP_BRIDGE
+			? { AGENTOS_DEBUG_HTTP_BRIDGE: process.env.AGENTOS_DEBUG_HTTP_BRIDGE }
+			: {}),
 	};
+}
+
+function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
+	return Object.fromEntries(
+		Object.entries(env).filter(
+			(entry): entry is [string, string] => typeof entry[1] === "string",
+		),
+	);
+}
+
+function loopbackExemptPorts(endpoint: string): number[] {
+	const url = new URL(endpoint);
+	if (
+		url.hostname !== "127.0.0.1" &&
+		url.hostname !== "localhost" &&
+		url.hostname !== "[::1]"
+	) {
+		return [];
+	}
+	return [Number(url.port || (url.protocol === "https:" ? 443 : 80))];
 }
 
 function actorEnvoyVersion(key: string): number {
 	return (
 		createHash("sha256").update(key).digest().readUInt32BE(0) & 0x7fffffff || 1
 	);
-}
-
-function extractActorFiles(artifact: Uint8Array): Map<string, Uint8Array> {
-	const buffer = Buffer.from(
-		artifact.buffer,
-		artifact.byteOffset,
-		artifact.byteLength,
-	);
-	if (
-		buffer.byteLength < 16 ||
-		buffer[0] !== 137 ||
-		buffer.subarray(1, 4).toString("ascii") !== "AOS"
-	) {
-		throw new Error("Dynamic App actor artifact is not an AOSP package");
-	}
-	let offset = 16 + buffer.readUInt32LE(8) + buffer.readUInt32LE(12);
-	let total = 0;
-	const output = new Map<string, Uint8Array>();
-	while (offset + 512 <= buffer.byteLength) {
-		const header = buffer.subarray(offset, offset + 512);
-		if (header.every((value) => value === 0)) break;
-		const name = tarString(header.subarray(0, 100));
-		const prefix = tarString(header.subarray(345, 500));
-		const path = `${prefix ? `${prefix}/` : ""}${name}`.replace(/^\.\//, "");
-		const size = Number.parseInt(
-			tarString(header.subarray(124, 136)) || "0",
-			8,
-		);
-		const type = String.fromCharCode(header[156] ?? 0);
-		if (!Number.isSafeInteger(size) || size < 0) {
-			throw new Error("Dynamic App actor artifact has an invalid tar entry");
-		}
-		const dataOffset = offset + 512;
-		const next = dataOffset + Math.ceil(size / 512) * 512;
-		if (next > buffer.byteLength) {
-			throw new Error("Dynamic App actor artifact is truncated");
-		}
-		if (path.startsWith("actor/") && (type === "\0" || type === "0")) {
-			const relative = posix.normalize(path.slice("actor/".length));
-			if (
-				!relative ||
-				relative === "." ||
-				relative === ".." ||
-				relative.startsWith("../") ||
-				posix.isAbsolute(relative) ||
-				size > MAX_ACTOR_FILE_BYTES
-			) {
-				throw new Error("Dynamic App actor artifact contains an invalid path");
-			}
-			total += size;
-			if (total > MAX_ACTOR_ARTIFACT_BYTES || output.size >= MAX_ACTOR_FILES) {
-				throw new Error("Dynamic App actor artifact exceeds extraction limits");
-			}
-			output.set(
-				relative,
-				new Uint8Array(buffer.subarray(dataOffset, dataOffset + size)),
-			);
-		}
-		offset = next;
-	}
-	if (!output.has(ACTOR_BUNDLE_PATH.slice("actor/".length))) {
-		throw new Error("Dynamic App artifact has no actor bundle");
-	}
-	return output;
-}
-
-function tarString(bytes: Uint8Array): string {
-	const end = bytes.indexOf(0);
-	return Buffer.from(end < 0 ? bytes : bytes.subarray(0, end)).toString("utf8");
 }
 
 function integerEnv(
@@ -872,159 +585,10 @@ function integerEnv(
 	maximum: number,
 ): number {
 	const value = Number(env[name] ?? fallback);
-	if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
+	if (!Number.isSafeInteger(value) || value < minimum || value > maximum)
 		throw new Error(`${name} must be an integer from ${minimum} to ${maximum}`);
-	}
 	return value;
 }
-
-class ActorAdmission {
-	readonly capacity: number;
-	readonly #maxQueued: number;
-	readonly #waitMs: number;
-	#active = 0;
-	#disposed = false;
-	#queue: Array<{ resolve(): void; reject(error: unknown): void }> = [];
-
-	constructor(capacity: number, maxQueued: number, waitMs: number) {
-		this.capacity = capacity;
-		this.#maxQueued = maxQueued;
-		this.#waitMs = waitMs;
-	}
-
-	get active(): number {
-		return this.#active;
-	}
-
-	get queued(): number {
-		return this.#queue.length;
-	}
-
-	async acquire(): Promise<void> {
-		if (this.#disposed) throw new Error("actor runtime disposed");
-		if (this.#active < this.capacity) {
-			this.#active += 1;
-			return;
-		}
-		if (this.#queue.length >= this.#maxQueued) {
-			throw new DynamicAppsError(
-				"agentos_apps_no_capacity",
-				"Dynamic Apps actor callback queue is full",
-			);
-		}
-		await new Promise<void>((resolve, reject) => {
-			let settled = false;
-			const item = {
-				resolve: () => {
-					if (settled) return;
-					settled = true;
-					clearTimeout(timer);
-					this.#active += 1;
-					resolve();
-				},
-				reject: (error: unknown) => {
-					if (settled) return;
-					settled = true;
-					clearTimeout(timer);
-					reject(error);
-				},
-			};
-			const timer = setTimeout(() => {
-				const offset = this.#queue.indexOf(item);
-				if (offset >= 0) this.#queue.splice(offset, 1);
-				item.reject(
-					new DynamicAppsError(
-						"agentos_apps_no_capacity",
-						`Dynamic Apps actor callback queue exceeded ${this.#waitMs}ms`,
-					),
-				);
-			}, this.#waitMs);
-			this.#queue.push(item);
-		});
-	}
-
-	release(): void {
-		if (this.#active <= 0) return;
-		this.#active -= 1;
-		this.#queue.shift()?.resolve();
-	}
-
-	dispose(): void {
-		this.#disposed = true;
-		for (const item of this.#queue.splice(0)) {
-			item.reject(new Error("actor runtime disposed"));
-		}
-	}
-}
-
-const ACTOR_WORKER_SOURCE = `
-import { parentPort, workerData } from "node:worker_threads";
-if (!parentPort) throw new Error("Dynamic App actor worker has no parent port");
-const { handler } = await import(workerData.entrypoint);
-if (typeof handler !== "function") throw new TypeError("Dynamic App actor fetch handler is invalid");
-const requests = new Map();
-const acknowledgements = new Map();
-const waitForAck = (id) => new Promise((resolve) => acknowledgements.set(id, resolve));
-const finishAck = (id) => { const resolve = acknowledgements.get(id); acknowledgements.delete(id); resolve?.(); };
-const describeError = (error) => {
-  if (!(error instanceof Error)) return String(error);
-  const details = [error.stack || error.message];
-  let cause = error.cause;
-  for (let depth = 0; cause !== undefined && depth < 4; depth += 1) {
-    details.push("Caused by: " + (cause instanceof Error ? cause.stack || cause.message : String(cause)));
-    cause = cause instanceof Error ? cause.cause : undefined;
-  }
-  return details.join("\\n");
-};
-parentPort.on("message", (message) => {
-  if (message.type === "ack") { finishAck(message.id); return; }
-  if (message.type === "cancel") {
-    requests.get(message.id)?.abort(new Error("host cancelled actor callback"));
-    finishAck(message.id);
-    return;
-  }
-  if (message.type !== "request") return;
-  void (async () => {
-    const controller = new AbortController();
-    requests.set(message.id, controller);
-    try {
-      const response = await handler(new Request(message.url, {
-        method: message.method,
-        headers: message.headers,
-        body: message.method === "GET" || message.method === "HEAD" ? undefined : message.body,
-        signal: controller.signal,
-      }));
-      parentPort.postMessage({
-        type: "head",
-        id: message.id,
-        status: response.status,
-        headers: [...response.headers.entries()],
-      });
-      if (response.body) {
-        const reader = response.body.getReader();
-        try {
-          for (;;) {
-            const chunk = await reader.read();
-            if (chunk.done) break;
-            const bytes = new Uint8Array(chunk.value);
-            parentPort.postMessage({ type: "chunk", id: message.id, chunk: bytes }, [bytes.buffer]);
-            await waitForAck(message.id);
-          }
-        } finally {
-          reader.releaseLock();
-        }
-      }
-      parentPort.postMessage({ type: "end", id: message.id });
-    } catch (error) {
-      parentPort.postMessage({ type: "error", id: message.id, message: describeError(error) });
-    } finally {
-      requests.delete(message.id);
-      finishAck(message.id);
-    }
-  })();
-});
-parentPort.postMessage({ type: "ready" });
-`;
 
 let defaultActorRuntime: DynamicActorRuntime | undefined;
 

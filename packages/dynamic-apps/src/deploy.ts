@@ -24,7 +24,7 @@ interface DeploymentActorGroup {
 export interface DeployAppOptions {
 	/** An ordinary RivetKit client. The default client is created lazily. */
 	client?: {
-		agentOSAppsApp: DeploymentActorGroup;
+		dynamicAppsApp: DeploymentActorGroup;
 	};
 }
 
@@ -46,7 +46,7 @@ export async function deployApp(
 		scaling: input.scaling,
 	};
 	const result = await deployThroughStableActor(
-		options.client.agentOSAppsApp,
+		options.client.dynamicAppsApp,
 		input.appId,
 		prepared,
 	);

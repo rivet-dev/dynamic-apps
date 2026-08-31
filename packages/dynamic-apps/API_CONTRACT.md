@@ -89,7 +89,7 @@ interface PreparedDeployAppInput {
 
 interface DeployAppOptions {
 	client?: {
-		agentOSAppsApp: {
+		dynamicAppsApp: {
 			get?(key: string | string[]): {
 				deploy(
 					input: PreparedDeployAppInput,
@@ -198,16 +198,16 @@ export.
   stored as `direct/main.mjs`; supported Node builtins resolve inside agentOS
   and the bundle is validated before activation.
 - Native Node addons and static-only output are rejected in the first preview.
-- A declared `rivetkit` dependency enables a second, platform-linked
-  `actor/main.mjs` bundle. RivetKit itself is supplied by the host rather than
-  installed into every app artifact. Both bundles must validate before the
-  release can activate.
+- A declared `rivetkit` dependency enables a second self-contained
+  `actor/main.mjs` bundle with RivetKit's WebAssembly runtime. The actor bundle
+  runs inside agentOS; RivetKit and uploaded app code are not imported into the
+  host process. Both bundles must validate before the release can activate.
 
 ### Rivet and actor call
 
 - The app state actor key is exactly `[input.appId]` and its client property
-  remains `agentOSAppsApp` so the structural injected-client contract works.
-- If an injected client implements `agentOSAppsApp.get`, deployment first calls
+  remains `dynamicAppsApp` so the structural injected-client contract works.
+- If an injected client implements `dynamicAppsApp.get`, deployment first calls
   `get([input.appId]).deploy(preparedInput)` so an existing stable actor is
   resolved without a datacenter creation constraint. Only an actor-scoped
   `not_found` falls back to
@@ -248,7 +248,7 @@ export.
   metadata for direct HTTP and has no deleted scaler/replica effect.
 - `endpoint`, `namespace`, deterministic `pool`, and an optional namespace-scoped
   publishable `token` are returned. The pool is
-  `agentos-apps-${sha256(appId).slice(0, 16)}`. Direct HTTP does not execute in
+  `dynamic-apps-${sha256(appId).slice(0, 16)}`. Direct HTTP does not execute in
   that pool. Actor-enabled apps use it as their stable app actor runner pool.
 - `createNamespace` remains source-compatible but is deprecated and ignored.
 
@@ -326,7 +326,7 @@ Thrown or rejected errors caught by the router use the existing JSON shape:
 ```json
 {
 	"error": {
-		"code": "agentos_apps_error_code",
+		"code": "dynamic_apps_error_code",
 		"message": "message"
 	}
 }
@@ -336,11 +336,11 @@ The router preserves this exception mapping:
 
 | Error | HTTP status |
 | --- | ---: |
-| `agentos_apps_invalid_app_id` | 400 |
-| `agentos_apps_not_deployed` | 404 |
-| `agentos_apps_region_not_deployed` | 404 |
-| `agentos_apps_request_limit` | 413 |
-| other `agentos_apps_*` | 503 |
+| `dynamic_apps_invalid_app_id` | 400 |
+| `dynamic_apps_not_deployed` | 404 |
+| `dynamic_apps_region_not_deployed` | 404 |
+| `dynamic_apps_request_limit` | 413 |
+| other `dynamic_apps_*` | 503 |
 | unknown/untyped error | 500 |
 
 Replica identity/count/cold-start headers and benchmark timing headers are not
@@ -349,38 +349,47 @@ part of the retained API.
 ## App-defined RivetKit actor contract
 
 An application that declares `rivetkit` mounts `registry.handler()` at
-`/api/rivet` and `/api/rivet/*` in its default exported fetch router. It must
-not call `registry.start()` or `serve()` because Dynamic Apps owns the HTTP
-listener. The same mounted router serves ordinary direct requests.
+`/api/rivet/*` in its default exported fetch router. When
+`RIVETKIT_RUNTIME_MODE=serverless`, it must also listen on the numeric `PORT`
+provided by Dynamic Apps. The same router serves ordinary direct requests. The
+server entrypoint should await its listening callback. Dynamic Apps treats
+successful module evaluation as readiness and does not poll an application
+health route.
 
 On activation, deployment configures the returned `namespace` and `pool` with
-an authenticated serverless callback to the private `agentOSAppsApp` actor.
+an authenticated serverless callback to the private `dynamicAppsApp` actor.
 Failure to configure that runner rolls the active pointer back. The callback
 accepts only Rivet Engine traffic with the per-app secret and only the active
 actor-enabled release.
 
-The callback lazily verifies and extracts `actor/main.mjs`, then caches one
-worker thread per active release. The worker uses the platform's pinned
-RivetKit native runtime and the app namespace/pool connection. Actor
-state, actions, events, connections, request/response streaming, backpressure,
-and cancellation use the ordinary RivetKit protocol. Worker entries are
-bounded by count, V8 heap, idle TTL, callback body size, and container memory
-pressure. They do not receive the deployment actor's control credential.
+The callback lazily verifies and mounts the release package in agentOS, then
+starts `actor/main.mjs` with `RIVETKIT_RUNTIME=wasm` and
+`RIVETKIT_RUNTIME_MODE=serverless`. Actor state, actions, events, and
+connections use the ordinary RivetKit protocol. The retained runtime count is
+an idle-cache target, not a callback admission limit; active callbacks are not
+rejected or evicted because the target is full. Guest runtimes do not receive
+the deployment actor's control credential.
+
+Rivet Engine's `/start` response is an SSE control stream. It contains the
+exact encoded runner ID/protocol version once, then keepalive pings, and stays
+open for the serverless runner lifespan; actor requests travel separately over
+RivetKit's outbound WebSocket. The host forwards the guest server's response
+through agentOS's native VM HTTP streaming API and propagates cancellation. The
+runner response is not mocked or serialized through process stdio.
 
 Runner configuration uses the ordinary `RIVET_ENDPOINT` credential by default.
 `DYNAMIC_APPS_CONTROL_TOKEN` can provide a separate token with datacenter-list
 and runner-config create/update permissions; it is used only for those control
-calls and is never included in the actor worker environment.
+calls and is never included in the sandboxed actor environment.
 
-The actor worker uses `RIVET_PUBLIC_ENDPOINT` when present. If
+The sandboxed actor runtime uses `RIVET_PUBLIC_ENDPOINT` when present. If
 `RIVET_ENDPOINT` contains credentials and no public endpoint is configured,
 actor-enabled activation fails instead of forwarding the host secret. URL auth
 is split into explicit endpoint, namespace, and publishable-token fields before
-the worker creates its RivetKit registry.
+the guest creates its RivetKit registry.
 
-Actor bundle execution shares a process with the host and is not a mutually
-hostile-code security boundary. Direct HTTP remains inside agentOS and never
-enters the actor worker.
+Both direct and actor bundle execution use agentOS as the hostile-code security
+boundary. Uploaded application modules are never evaluated by host Node.
 
 ## Deliberate runtime narrowing
 
@@ -421,29 +430,29 @@ execution-limit failures return the JSON exception shape; this is an explicit
 replacement for the old mid-stream failure behavior.
 
 An oversized response header/status envelope fails with
-`agentos_apps_response_header_limit` in the JSON exception shape. The agentOS
+`dynamic_apps_response_header_limit` in the JSON exception shape. The agentOS
 request ABI enforces the logical body and header maxima before and after base64
 expansion.
 
 The retained deploy/source/control error codes are locked by golden tests,
-including `agentos_apps_invalid_app_id`, `agentos_apps_invalid_source`,
-`agentos_apps_source_symlink`, `agentos_apps_source_file_type`,
-`agentos_apps_file_limit`, `agentos_apps_file_size_limit`,
-`agentos_apps_source_limit`, `agentos_apps_invalid_files`,
-`agentos_apps_file_count_limit`, `agentos_apps_duplicate_file_path`,
-`agentos_apps_invalid_file`, `agentos_apps_entrypoint_not_found`,
-`agentos_apps_invalid_package_json`, `agentos_apps_dependency_limit`,
-`agentos_apps_invalid_regions`, `agentos_apps_invalid_region`,
-`agentos_apps_invalid_scaling`, `agentos_apps_invalid_config`,
-`agentos_apps_app_id_mismatch`, `agentos_apps_namespace_changed`,
-`agentos_apps_build_write_failed`, `agentos_apps_install_failed`,
-`agentos_apps_build_failed`, `agentos_apps_pack_failed`,
-`agentos_apps_build_artifact_size_limit`,
-`agentos_apps_build_artifact_truncated`,
-`agentos_apps_native_addon_unsupported`,
-`agentos_apps_control_response_limit`,
-`agentos_apps_namespace_lookup_failed`,
-`agentos_apps_namespace_create_failed`, and `host_registry_not_ready`.
+including `dynamic_apps_invalid_app_id`, `dynamic_apps_invalid_source`,
+`dynamic_apps_source_symlink`, `dynamic_apps_source_file_type`,
+`dynamic_apps_file_limit`, `dynamic_apps_file_size_limit`,
+`dynamic_apps_source_limit`, `dynamic_apps_invalid_files`,
+`dynamic_apps_file_count_limit`, `dynamic_apps_duplicate_file_path`,
+`dynamic_apps_invalid_file`, `dynamic_apps_entrypoint_not_found`,
+`dynamic_apps_invalid_package_json`, `dynamic_apps_dependency_limit`,
+`dynamic_apps_invalid_regions`, `dynamic_apps_invalid_region`,
+`dynamic_apps_invalid_scaling`, `dynamic_apps_invalid_config`,
+`dynamic_apps_app_id_mismatch`, `dynamic_apps_namespace_changed`,
+`dynamic_apps_build_write_failed`, `dynamic_apps_install_failed`,
+`dynamic_apps_build_failed`, `dynamic_apps_pack_failed`,
+`dynamic_apps_build_artifact_size_limit`,
+`dynamic_apps_build_artifact_truncated`,
+`dynamic_apps_native_addon_unsupported`,
+`dynamic_apps_control_response_limit`,
+`dynamic_apps_namespace_lookup_failed`,
+`dynamic_apps_namespace_create_failed`, and `host_registry_not_ready`.
 
 ## Mandatory verification and deletion gates
 

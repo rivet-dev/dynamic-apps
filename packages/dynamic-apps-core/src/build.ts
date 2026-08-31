@@ -109,7 +109,7 @@ export function readBuildConfig(
 		const maximum = DEFAULT_BUILD_CONFIG[key];
 		if (!Number.isSafeInteger(value) || value < 1 || value > maximum) {
 			throw new DynamicAppsError(
-				"agentos_apps_invalid_config",
+				"dynamic_apps_invalid_config",
 				`${key} must be an integer between 1 and ${maximum}`,
 				{ name: key, maximum },
 			);
@@ -167,14 +167,14 @@ export function validateDeployment(
 ): BuildPlan {
 	if (!input || typeof input !== "object" || !input.files) {
 		fail(
-			"agentos_apps_invalid_files",
+			"dynamic_apps_invalid_files",
 			"deployApp files must contain the complete application tree",
 		);
 	}
 	const files = Object.entries(input.files);
 	if (files.length === 0 || files.length > limits.maxFiles) {
 		fail(
-			"agentos_apps_file_count_limit",
+			"dynamic_apps_file_count_limit",
 			`deployment must contain between 1 and ${limits.maxFiles} files`,
 			{ observed: files.length, limit: limits.maxFiles },
 		);
@@ -185,13 +185,13 @@ export function validateDeployment(
 		const normalizedPath = normalizeAppPath(path);
 		if (normalizedFiles[normalizedPath]) {
 			fail(
-				"agentos_apps_duplicate_file_path",
+				"dynamic_apps_duplicate_file_path",
 				`multiple deployment paths normalize to ${normalizedPath}`,
 			);
 		}
 		if (!(content instanceof Uint8Array)) {
 			fail(
-				"agentos_apps_invalid_file",
+				"dynamic_apps_invalid_file",
 				`deployment file ${path} must be a Uint8Array`,
 			);
 		}
@@ -200,7 +200,7 @@ export function validateDeployment(
 	}
 	if (sourceBytes > limits.maxSourceBytes) {
 		fail(
-			"agentos_apps_source_limit",
+			"dynamic_apps_source_limit",
 			`deployment source is ${sourceBytes} bytes, exceeding maxSourceBytes ${limits.maxSourceBytes}`,
 			{ observed: sourceBytes, limit: limits.maxSourceBytes },
 		);
@@ -209,7 +209,7 @@ export function validateDeployment(
 	const packageJsonSource = textFile(normalizedFiles, "package.json");
 	if (!packageJsonSource) {
 		fail(
-			"agentos_apps_entrypoint_not_found",
+			"dynamic_apps_entrypoint_not_found",
 			"direct applications must contain package.json and a server entrypoint",
 		);
 	}
@@ -224,7 +224,7 @@ export function validateDeployment(
 		packageJson = JSON.parse(packageJsonSource);
 	} catch (error) {
 		fail(
-			"agentos_apps_invalid_package_json",
+			"dynamic_apps_invalid_package_json",
 			"package.json is not valid JSON",
 			{ error: String(error) },
 		);
@@ -242,7 +242,7 @@ export function validateDeployment(
 	);
 	if (dependencyCount > limits.maxDependencies) {
 		fail(
-			"agentos_apps_dependency_limit",
+			"dynamic_apps_dependency_limit",
 			`deployment has ${dependencyCount} dependencies, exceeding maxDependencies ${limits.maxDependencies}`,
 			{ observed: dependencyCount, limit: limits.maxDependencies },
 		);
@@ -280,7 +280,7 @@ export function validateDeployment(
 		}
 	}
 	fail(
-		"agentos_apps_entrypoint_not_found",
+		"dynamic_apps_entrypoint_not_found",
 		"could not infer a direct server entrypoint",
 	);
 }
@@ -298,7 +298,7 @@ export function throwCommandFailure(
 	maxOutputBytes: number,
 ): never {
 	fail(
-		`agentos_apps_${kind}_failed`,
+		`dynamic_apps_${kind}_failed`,
 		`${command} failed with exit code ${result.exitCode}`,
 		{
 			exitCode: result.exitCode,
@@ -316,7 +316,7 @@ function artifactResult(
 ): BuiltAppRelease {
 	if (!(bytesInput instanceof Uint8Array) || bytesInput.byteLength > maxBytes) {
 		fail(
-			"agentos_apps_build_artifact_size_limit",
+			"dynamic_apps_build_artifact_size_limit",
 			`cached artifact exceeds ${maxBytes} bytes`,
 		);
 	}
@@ -433,7 +433,7 @@ async function buildRelease(
 		const failedWrite = writes.find((entry) => !entry.success);
 		if (failedWrite) {
 			fail(
-				"agentos_apps_build_write_failed",
+				"dynamic_apps_build_write_failed",
 				`failed to write build input ${failedWrite.path}: ${failedWrite.error ?? "unknown error"}`,
 				{ path: failedWrite.path, error: failedWrite.error },
 			);
@@ -518,7 +518,7 @@ async function buildRelease(
 		);
 		if (nativeAddonCheck.exitCode === 42) {
 			fail(
-				"agentos_apps_native_addon_unsupported",
+				"dynamic_apps_native_addon_unsupported",
 				"application contains native Node addons",
 				{
 					files: boundedOutput(
@@ -546,9 +546,8 @@ async function buildRelease(
 					release: "/release/direct",
 					entrypoint: "direct-runner.mjs",
 					sourceFiles: Object.keys(input.files),
-					usesRivetKit: false,
-					directIsolate: true,
-					stubRivetKit: plan.usesRivetKit,
+					usesRivetKit: plan.usesRivetKit,
+					directAgentOs: true,
 					maxOutputBytes: config.maxBuildArtifactBytes,
 					maxOutputFiles: config.maxBuildArtifactFiles,
 					maxFileBytes: config.maxBuildArtifactFileBytes,
@@ -558,7 +557,7 @@ async function buildRelease(
 		const failedConfigWrite = configWrites.find((entry) => !entry.success);
 		if (failedConfigWrite) {
 			fail(
-				"agentos_apps_build_write_failed",
+				"dynamic_apps_build_write_failed",
 				`failed to write Apps builder input ${failedConfigWrite.path}`,
 			);
 		}
@@ -591,8 +590,7 @@ async function buildRelease(
 						entrypoint: "actor-runner.mjs",
 						sourceFiles: Object.keys(input.files),
 						usesRivetKit: true,
-						directIsolate: false,
-						platformRivetKit: true,
+						directAgentOs: true,
 						maxOutputBytes: config.maxBuildArtifactBytes,
 						maxOutputFiles: config.maxBuildArtifactFiles,
 						maxFileBytes: config.maxBuildArtifactFileBytes,
@@ -601,7 +599,7 @@ async function buildRelease(
 			]);
 			if (actorConfigWrite.some((entry) => !entry.success)) {
 				fail(
-					"agentos_apps_build_write_failed",
+					"dynamic_apps_build_write_failed",
 					"failed to write actor Apps builder input",
 				);
 			}
@@ -638,7 +636,7 @@ async function buildRelease(
 		);
 		if (validation.exitCode !== 0) {
 			fail(
-				"agentos_apps_invalid_handler",
+				"dynamic_apps_invalid_handler",
 				"application entrypoint could not be imported as a direct fetch handler",
 				{
 					stderr: boundedOutput(validation.stderr, config.maxBuildOutputBytes),
@@ -653,7 +651,7 @@ async function buildRelease(
 		]);
 		if (rootManifestWrite.some((entry) => !entry.success)) {
 			fail(
-				"agentos_apps_build_write_failed",
+				"dynamic_apps_build_write_failed",
 				"failed to write root application package manifest",
 			);
 		}
@@ -687,14 +685,14 @@ async function buildRelease(
 			archiveSize > config.maxBuildArtifactBytes
 		) {
 			fail(
-				"agentos_apps_build_artifact_size_limit",
+				"dynamic_apps_build_artifact_size_limit",
 				`built application archive is ${archiveSize} bytes, limit is ${config.maxBuildArtifactBytes}`,
 			);
 		}
 		const sourceTar = Buffer.from(await build.readArtifact());
 		if (sourceTar.byteLength !== archiveSize) {
 			fail(
-				"agentos_apps_build_artifact_truncated",
+				"dynamic_apps_build_artifact_truncated",
 				`build artifact contained ${sourceTar.byteLength} bytes, expected ${archiveSize}`,
 			);
 		}
@@ -741,7 +739,7 @@ export function createBuildVmFactory(
 	};
 	return async () => {
 		const outputDirectory = await mkdtemp(
-			join(tmpdir(), "agentos-apps-build-output-"),
+			join(tmpdir(), "dynamic-apps-build-output-"),
 		);
 		await chmod(outputDirectory, 0o777);
 		const artifactGuestPath = "/agentos-app-output/agentos-app.tar";

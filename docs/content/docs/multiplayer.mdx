@@ -1,0 +1,19 @@
+---
+title: "Multiplayer"
+description: "Share realtime state between every client connected to an app."
+---
+
+An actor holds the shared state for one room and broadcasts events to every
+connected client. [View the complete example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-multiplayer).
+
+The server is the generated app. The client shows how your own system connects
+to the actors inside it.
+
+<CodeGroup>
+<CodeSnippet file="examples/apps-multiplayer/fixtures/app/src/index.ts" title="Server" />
+<CodeSnippet file="examples/apps-multiplayer/src/client.ts" region="client" title="Client" />
+</CodeGroup>
+
+Dynamic Apps does not wrap RivetKit's action, event, or connection APIs. See
+[Events](https://rivet.dev/actors/docs/events/) and
+[Connections](https://rivet.dev/actors/docs/connections/) in Rivet Actors.

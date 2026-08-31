@@ -37,10 +37,10 @@ function ordinaryRoutingError(error: unknown): Response | undefined {
 	}
 	const code = errorCode(error);
 	const message = error instanceof Error ? error.message : "";
-	if (code === "agentos_apps_not_deployed") {
+	if (code === "dynamic_apps_not_deployed") {
 		return new Response("Dynamic App has no active release", { status: 503 });
 	}
-	if (code === "agentos_apps_region_not_deployed") {
+	if (code === "dynamic_apps_region_not_deployed") {
 		const region = (error as { metadata?: { requestedRegion?: unknown } })
 			.metadata?.requestedRegion;
 		return new Response(
@@ -48,12 +48,12 @@ function ordinaryRoutingError(error: unknown): Response | undefined {
 			{ status: 421 },
 		);
 	}
-	if (code === "agentos_apps_no_region") {
+	if (code === "dynamic_apps_no_region") {
 		return new Response("Dynamic App has no configured region", {
 			status: 503,
 		});
 	}
-	if (code === "agentos_apps_request_limit") {
+	if (code === "dynamic_apps_request_limit") {
 		if (message.includes("URL")) {
 			return new Response("Request URL exceeds Dynamic Apps limit", {
 				status: 414,
@@ -83,20 +83,20 @@ function exceptionResponse(error: unknown): Response {
 	if (ordinary) return ordinary;
 	const code = errorCode(error);
 	const status =
-		code === "agentos_apps_invalid_app_id"
+		code === "dynamic_apps_invalid_app_id"
 			? 400
-			: code === "agentos_apps_not_deployed" ||
-					code === "agentos_apps_region_not_deployed"
+			: code === "dynamic_apps_not_deployed" ||
+					code === "dynamic_apps_region_not_deployed"
 				? 404
-				: code === "agentos_apps_request_limit"
+				: code === "dynamic_apps_request_limit"
 					? 413
-					: code?.startsWith("agentos_apps_")
+					: code?.startsWith("dynamic_apps_")
 						? 503
 						: 500;
 	return Response.json(
 		{
 			error: {
-				code: code ?? "agentos_apps_internal_error",
+				code: code ?? "dynamic_apps_internal_error",
 				message:
 					error instanceof Error
 						? error.message

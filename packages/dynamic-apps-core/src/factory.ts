@@ -23,7 +23,7 @@ export function createDynamicApps<TDeployment, TDeployOptions = undefined>(
 		typeof options.watchActiveRelease !== "function"
 	) {
 		throw new DynamicAppsError(
-			"agentos_apps_invalid_config",
+			"dynamic_apps_invalid_config",
 			"createDynamicApps requires publishRelease, loadActiveRelease, and watchActiveRelease hooks",
 		);
 	}
@@ -98,7 +98,7 @@ export function createDynamicApps<TDeployment, TDeployOptions = undefined>(
 
 function disposedError(): DynamicAppsError {
 	return new DynamicAppsError(
-		"agentos_apps_executor_disposed",
+		"dynamic_apps_executor_disposed",
 		"Dynamic Apps executor is shutting down",
 	);
 }

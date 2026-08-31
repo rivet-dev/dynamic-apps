@@ -1,7 +1,12 @@
 import { readFile } from "node:fs/promises";
 import { anthropic } from "@ai-sdk/anthropic";
 import { serve } from "@hono/node-server";
-import { appsRouter, deployApp } from "@rivet-dev/dynamic-apps";
+import {
+	appsRouter,
+	deployApp,
+	rivetActorsSkill,
+	webServerSkill,
+} from "@rivet-dev/dynamic-apps";
 import { generateText } from "ai";
 import { Hono } from "hono";
 
@@ -53,9 +58,11 @@ async function revise(
 		model: anthropic(process.env.AI_MODEL ?? "claude-sonnet-4-5"),
 		maxOutputTokens: 8_000,
 		prompt: [
+			// These skills tell the model how to structure, build, and serve the generated code.
+			webServerSkill,
+			rivetActorsSkill,
 			'Return JSON only as {"files":{"path":"content"}}.',
 			`You may edit only: ${editablePaths.join(", ")}.`,
-			"The app must export a default object with fetch(request) returning a Web Response.",
 			`User request: ${prompt}`,
 			diagnostics ? `Previous build diagnostics:\n${diagnostics}` : "",
 			`Current files:\n${JSON.stringify(files)}`,
@@ -80,7 +87,7 @@ async function generateApp(appId: string, prompt: string) {
 				error !== null &&
 				"code" in error &&
 				typeof error.code === "string" &&
-				error.code.startsWith("agentos_apps_");
+				error.code.startsWith("dynamic_apps_");
 			if (!appsError || attempt === maxRepairs) {
 				throw error;
 			}
@@ -101,13 +108,7 @@ async function generateApp(appId: string, prompt: string) {
 }
 
 const server = new Hono();
-const dispatchRegistry = (request: Request) => {
-	const headers = new Headers(request.headers);
-	headers.set("x-agentos-app-registry-dispatch", "1");
-	return appsRouter.fetch(new Request(request, { headers }));
-};
-server.all("/api/rivet", (c) => dispatchRegistry(c.req.raw));
-server.all("/api/rivet/*", (c) => dispatchRegistry(c.req.raw));
+server.all("/api/rivet/*", (c) => appsRouter.fetch(c.req.raw));
 
 // An agent or any other part of the system can call this route. A generic
 // deployment endpoint could accept multipart files; this example generates the

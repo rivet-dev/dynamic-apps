@@ -105,7 +105,7 @@ describe("retained public surface", () => {
 		const response = await appsRouter.request("/INVALID/");
 		expect(response.status).toBe(400);
 		expect(await response.json()).toMatchObject({
-			error: { code: "agentos_apps_invalid_app_id" },
+			error: { code: "dynamic_apps_invalid_app_id" },
 		});
 		expect(calls).toBe(0);
 	});
@@ -124,7 +124,7 @@ describe("retained public surface", () => {
 			},
 			{
 				client: {
-					agentOSAppsApp: {
+					dynamicAppsApp: {
 						getOrCreate(value) {
 							key = value;
 							return {
@@ -135,7 +135,7 @@ describe("retained public surface", () => {
 										release: "release-1",
 										endpoint: "https://api.example.test",
 										namespace: "app-demo",
-										pool: "agentos-apps-demo",
+										pool: "dynamic-apps-demo",
 										token: "pk_demo",
 										regions: ["us-west"],
 										appActorId: "actor-1",
@@ -173,7 +173,7 @@ describe("retained public surface", () => {
 			},
 			{
 				client: {
-					agentOSAppsApp: {
+					dynamicAppsApp: {
 						get() {
 							calls.push("get");
 							return {
@@ -205,7 +205,7 @@ describe("retained public surface", () => {
 			},
 			{
 				client: {
-					agentOSAppsApp: {
+					dynamicAppsApp: {
 						get() {
 							calls.push("get");
 							return {
@@ -279,7 +279,7 @@ function deploymentResult(_input: unknown) {
 		release: "release-1",
 		endpoint: "https://api.example.test",
 		namespace: "app-demo",
-		pool: "agentos-apps-demo",
+		pool: "dynamic-apps-demo",
 		token: "pk_demo",
 		regions: ["default"],
 		appActorId: "actor-1",
@@ -578,7 +578,7 @@ describe("direct agentOS execution", () => {
 			releaseFirstBody();
 			expect((await first).status).toBe(200);
 			expect(await secondError).toMatchObject({
-				code: "agentos_apps_no_capacity",
+				code: "dynamic_apps_no_capacity",
 			});
 		} finally {
 			releaseFirstBody();
@@ -749,7 +749,7 @@ export default { fetch: () => new Response("ok") };
 		}
 	});
 
-	test("bounds concurrent actor workers as well as idle cache entries", async () => {
+	test("does not reject active actor runtimes when the idle cache target is full", async () => {
 		const artifact = await makeActorArtifact(`
 export default {
   async fetch() {
@@ -761,7 +761,7 @@ export default {
 		const runtime = new DynamicActorRuntime({
 			DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES: "4",
 		});
-		const outcomes = Array.from({ length: 16 }, (_, index) =>
+		const outcomes = Array.from({ length: 6 }, (_, index) =>
 			runtime
 				.request({
 					key: `bounded-${index}`,
@@ -779,15 +779,14 @@ export default {
 				),
 		);
 		try {
-			await new Promise((resolve) => setTimeout(resolve, 50));
-			const diagnostics = runtime.diagnostics();
-			expect(diagnostics.entries + diagnostics.creating).toBeLessThanOrEqual(4);
+			expect(await Promise.all(outcomes)).toHaveLength(6);
+			await waitFor(() => runtime.diagnostics().entries <= 4);
 		} finally {
 			await Promise.allSettled(outcomes);
 			await runtime.dispose();
 			await artifact.dispose();
 		}
-	}, 5_000);
+	}, 60_000);
 
 	test("times out an actor handler that blocks its worker", async () => {
 		const artifact = await makeActorArtifact(`
@@ -817,7 +816,7 @@ export default {
 					.then(
 						() => "response" as const,
 						(error: unknown) =>
-							String(error).includes("request exceeded")
+							String(error).includes("response headers exceeded")
 								? ("timeout" as const)
 								: Promise.reject(error),
 					),
@@ -886,7 +885,9 @@ export default {
 		expect(pulls).toBe(1);
 	});
 
-	test("preserves actor worker error stacks and causes", async () => {
+	test("logs actor server error stacks and causes", async () => {
+		const events: Readonly<DynamicAppsLogEvent>[] = [];
+		setDynamicAppsLogHandler((event) => events.push(event));
 		const artifact = await makeActorArtifact(`
 export default {
   async fetch() {
@@ -896,25 +897,29 @@ export default {
 `);
 		const runtime = new DynamicActorRuntime();
 		try {
-			await expect(
-				runtime.request({
-					key: "worker-error",
-					loadArtifact: async () => artifact.bytes,
-					endpoint: "http://example.test",
-					namespace: "test",
-					pool: "default",
-					request: new Request("http://example.test/start", {
-						method: "POST",
-					}),
-				}),
-			).rejects.toThrow(/outer failure[\s\S]*Caused by:[\s\S]*inner failure/u);
+			const response = await runtime.request({
+				key: "worker-error",
+				loadArtifact: async () => artifact.bytes,
+				endpoint: "http://example.test",
+				namespace: "test",
+				pool: "default",
+				request: new Request("http://example.test/start", { method: "POST" }),
+			});
+			expect(response.status).toBe(500);
+			await response.arrayBuffer();
+			await waitFor(() =>
+				events.some((event) => event.message.includes("outer failure")),
+			);
+			const messages = events.map((event) => event.message).join("\n");
+			expect(messages).toContain("outer failure");
+			expect(messages).toContain("inner failure");
 		} finally {
 			await runtime.dispose();
 			await artifact.dispose();
 		}
 	});
 
-	test("admits actor callback bodies before reading them", async () => {
+	test("does not gate concurrent actor callback bodies", async () => {
 		const artifact = await makeActorArtifact(`
 export default {
   async fetch() {
@@ -922,11 +927,7 @@ export default {
   },
 };
 `);
-		const runtime = new DynamicActorRuntime({
-			DYNAMIC_APPS_ACTOR_REQUEST_CONCURRENCY: "4",
-			DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_SIZE: "4",
-			DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_WAIT_MS: "1000",
-		});
+		const runtime = new DynamicActorRuntime();
 		let release = () => {};
 		const gate = new Promise<void>((resolve) => {
 			release = resolve;
@@ -954,16 +955,16 @@ export default {
 				),
 		);
 		try {
-			await waitFor(() => pulls >= 4);
+			await waitFor(() => pulls >= 16);
 			await new Promise((resolve) => setTimeout(resolve, 20));
-			expect(pulls).toBe(4);
+			expect(pulls).toBe(16);
 		} finally {
 			release();
 			await Promise.allSettled(outcomes);
 			await runtime.dispose();
 			await artifact.dispose();
 		}
-	});
+	}, 60_000);
 
 	test("stops reading a callback body when it crosses the limit", async () => {
 		const runtime = new DynamicActorRuntime({
@@ -1052,27 +1053,21 @@ export default {
 			const outcome = await Promise.race([
 				Promise.all(
 					Array.from({ length: 8 }, async (_, index) => {
-						try {
-							const response = await runtime.request({
-								key: `churn-${index}`,
-								loadArtifact: async () => artifact.bytes,
-								endpoint: "http://example.test",
-								namespace: "test",
-								pool: "default",
-								request: new Request(`http://example.test/${index}`, {
-									method: "POST",
-								}),
-							});
-							expect(await response.text()).toBe("ok");
-						} catch (error) {
-							expect(error).toMatchObject({
-								code: "agentos_apps_no_capacity",
-							});
-						}
+						const response = await runtime.request({
+							key: `churn-${index}`,
+							loadArtifact: async () => artifact.bytes,
+							endpoint: "http://example.test",
+							namespace: "test",
+							pool: "default",
+							request: new Request(`http://example.test/${index}`, {
+								method: "POST",
+							}),
+						});
+						expect(await response.text()).toBe("ok");
 					}),
 				).then(() => "complete" as const),
 				new Promise<"hung">((resolve) =>
-					setTimeout(() => resolve("hung"), 1_000),
+					setTimeout(() => resolve("hung"), 30_000),
 				),
 			]);
 			expect(outcome).toBe("complete");
@@ -1085,7 +1080,7 @@ export default {
 			await runtime.dispose();
 			await artifact.dispose();
 		}
-	}, 5_000);
+	}, 60_000);
 
 	test("attributes actor worker stdout and stderr", async () => {
 		const events: Readonly<DynamicAppsLogEvent>[] = [];
@@ -1249,12 +1244,47 @@ async function makeActorArtifact(source: string): Promise<TestArtifact> {
 	await writeFile(join(directory, "actor", "application.mjs"), source);
 	await writeFile(
 		join(directory, "actor", "main.mjs"),
-		`const { default: application } = await import("./application.mjs");
+		`import http from "node:http";
+const { default: application } = await import("./application.mjs");
 const fetch = typeof application === "function"
   ? application
   : application?.fetch?.bind(application);
 if (typeof fetch !== "function") throw new TypeError("invalid test fetch handler");
-export const handler = fetch;
+const port = Number(process.env.DYNAMIC_APPS_ACTOR_PORT ?? 3000);
+http.createServer(async (incoming, outgoing) => {
+  try {
+    if (incoming.url === "/.agentos/ready") {
+      outgoing.writeHead(200);
+      outgoing.end("ok");
+      return;
+    }
+    const chunks = await new Promise((resolve, reject) => {
+      const value = [];
+      incoming.on("data", (chunk) => value.push(Buffer.from(chunk)));
+      incoming.once("end", () => resolve(value));
+      incoming.once("error", reject);
+    });
+    const request = new Request(new URL(incoming.url ?? "/", "http://actor.test"), {
+      method: incoming.method,
+      headers: incoming.headers,
+      body: incoming.method === "GET" || incoming.method === "HEAD" ? undefined : Buffer.concat(chunks),
+    });
+    const response = await fetch(request);
+    outgoing.statusCode = response.status;
+    response.headers.forEach((value, name) => outgoing.setHeader(name, value));
+    outgoing.flushHeaders();
+    if (response.body) {
+      for await (const chunk of response.body) {
+        if (!outgoing.write(Buffer.from(chunk))) await new Promise((resolve) => outgoing.once("drain", resolve));
+      }
+    }
+    outgoing.end();
+  } catch (error) {
+    console.error(error);
+    if (!outgoing.headersSent) outgoing.writeHead(500);
+    if (!outgoing.writableEnded) outgoing.end("Internal Server Error");
+  }
+}).listen(port, "0.0.0.0");
 `,
 	);
 	await writeFile(

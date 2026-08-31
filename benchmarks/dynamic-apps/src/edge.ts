@@ -22,7 +22,7 @@ interface AppHandle {
 }
 
 interface StateClient {
-	agentOSAppsApp: {
+	dynamicAppsApp: {
 		getOrCreate(key: string[]): AppHandle;
 	};
 }
@@ -84,7 +84,7 @@ export function createBenchmarkApplication(): Hono {
 		| undefined;
 	let actorApplicationClient: ActorApplicationClient | undefined;
 	const getActorApplicationDeployment = () => {
-		actorApplicationDeployment ??= deployActorBenchmarkFixture(client)
+		actorApplicationDeployment ??= deployActorBenchmarkFixture()
 			.then((deployment) => {
 				actorApplicationResolvedDeployment = deployment;
 				return deployment;
@@ -101,12 +101,7 @@ export function createBenchmarkApplication(): Hono {
 		) as unknown as ActorApplicationClient;
 		return actorApplicationClient;
 	};
-	const privateRegistry = (request: Request) => {
-		const headers = new Headers(request.headers);
-		headers.set("x-agentos-app-registry-dispatch", "1");
-		return appsRouter.fetch(new Request(request, { headers }));
-	};
-	app.all("/api/rivet/*", (c) => privateRegistry(c.req.raw));
+	app.all("/api/rivet/*", (c) => appsRouter.fetch(c.req.raw));
 
 	app.all("/bench/noop", () => {
 		const startedAt = performance.now();
@@ -148,7 +143,7 @@ export function createBenchmarkApplication(): Hono {
 
 	app.all("/bench/actor/resolve", async () => {
 		const startedAt = performance.now();
-		const handle = client.agentOSAppsApp.getOrCreate([BENCHMARK_APP_ID]);
+		const handle = client.dynamicAppsApp.getOrCreate([BENCHMARK_APP_ID]);
 		const actorId = await handle.resolve();
 		const response = Response.json({ ok: true, actorId });
 		response.headers.set(
@@ -159,7 +154,7 @@ export function createBenchmarkApplication(): Hono {
 	});
 	app.all("/bench/actor/action", async () => {
 		const startedAt = performance.now();
-		const resolution = await client.agentOSAppsApp
+		const resolution = await client.dynamicAppsApp
 			.getOrCreate([BENCHMARK_APP_ID])
 			.resolveDeployment();
 		const response = Response.json({ ok: true, resolution });
@@ -245,7 +240,7 @@ export function createBenchmarkApplication(): Hono {
 	});
 	app.get("/bench/setup", async () => {
 		try {
-			const deployment = await client.agentOSAppsApp
+			const deployment = await client.dynamicAppsApp
 				.getOrCreate([BENCHMARK_APP_ID])
 				.resolveDeployment();
 			return Response.json({ status: "ready", deployment });
@@ -254,7 +249,7 @@ export function createBenchmarkApplication(): Hono {
 				typeof error === "object" && error !== null && "code" in error
 					? String(error.code)
 					: undefined;
-			if (code === "agentos_apps_not_deployed") {
+			if (code === "dynamic_apps_not_deployed") {
 				return Response.json({ status: "not-started" }, { status: 404 });
 			}
 			throw error;

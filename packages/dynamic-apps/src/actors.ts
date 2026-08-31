@@ -30,7 +30,9 @@ const DEFAULT_MAX_REGIONS = 8;
 const DEFAULT_MAX_REQUEST_BYTES = 1024 * 1024;
 const DEFAULT_MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
 const MAX_REPLICAS = 128;
-export const ARTIFACT_CHUNK_BYTES = 512 * 1024;
+// Keep the raw payload comfortably below the Engine action-message limit after
+// Uint8Array JSON/base64 serialization and protocol framing.
+export const ARTIFACT_CHUNK_BYTES = 128 * 1024;
 const MAX_ARTIFACT_BYTES = 64 * 1024 * 1024;
 const MAX_ARTIFACT_CHUNKS = Math.ceil(
 	MAX_ARTIFACT_BYTES / ARTIFACT_CHUNK_BYTES,
@@ -65,6 +67,7 @@ export interface StoredAppRelease extends AppReleaseInfo {
 
 export interface AppState {
 	activeRelease: string | null;
+	activatingRelease?: string | null;
 	namespace: string | null;
 	revision: number;
 	cloudNamespace?: string | null;
@@ -75,7 +78,7 @@ export interface AppState {
 }
 
 export interface DynamicAppsActors {
-	agentOSAppsApp: AnyActorDefinition;
+	dynamicAppsApp: AnyActorDefinition;
 }
 
 interface BeginReleasePublishInput {
@@ -152,7 +155,7 @@ async function actorBoundary<T>(run: () => Promise<T>): Promise<T> {
 function positiveInteger(value: number, name: string, maximum: number): number {
 	if (!Number.isInteger(value) || value < 1 || value > maximum) {
 		fail(
-			"agentos_apps_invalid_config",
+			"dynamic_apps_invalid_config",
 			`${name} must be an integer between 1 and ${maximum}`,
 			{ name, maximum },
 		);
@@ -167,7 +170,7 @@ export function normalizeScaling(
 		input !== undefined &&
 		(typeof input !== "object" || input === null || Array.isArray(input))
 	) {
-		fail("agentos_apps_invalid_scaling", "scaling must be an object");
+		fail("dynamic_apps_invalid_scaling", "scaling must be an object");
 	}
 	const minReplicas = input?.minReplicas ?? 0;
 	const maxReplicas = input?.maxReplicas ?? 128;
@@ -178,7 +181,7 @@ export function normalizeScaling(
 		minReplicas > MAX_REPLICAS
 	) {
 		fail(
-			"agentos_apps_invalid_scaling",
+			"dynamic_apps_invalid_scaling",
 			`scaling.minReplicas must be an integer between 0 and ${MAX_REPLICAS}`,
 		);
 	}
@@ -186,7 +189,7 @@ export function normalizeScaling(
 	positiveInteger(targetConcurrency, "scaling.targetConcurrency", 1_024);
 	if (minReplicas > maxReplicas) {
 		fail(
-			"agentos_apps_invalid_scaling",
+			"dynamic_apps_invalid_scaling",
 			"scaling.minReplicas cannot exceed scaling.maxReplicas",
 		);
 	}
@@ -198,19 +201,19 @@ function normalizeRegions(
 	fallbackRegion: string,
 ): string[] {
 	if (regions !== undefined && !Array.isArray(regions)) {
-		fail("agentos_apps_invalid_regions", "regions must be an array");
+		fail("dynamic_apps_invalid_regions", "regions must be an array");
 	}
 	const unique = [...new Set(regions ?? [fallbackRegion || "default"])];
 	if (unique.length === 0 || unique.length > DEFAULT_MAX_REGIONS) {
 		fail(
-			"agentos_apps_invalid_regions",
+			"dynamic_apps_invalid_regions",
 			`an app must have between 1 and ${DEFAULT_MAX_REGIONS} regions`,
 		);
 	}
 	for (const region of unique) {
 		if (!/^[a-z0-9][a-z0-9-]{0,62}$/.test(region)) {
 			fail(
-				"agentos_apps_invalid_region",
+				"dynamic_apps_invalid_region",
 				`invalid region ${JSON.stringify(region)}`,
 			);
 		}
@@ -220,7 +223,7 @@ function normalizeRegions(
 
 export async function migrateAppsTables(database: RawAccess): Promise<void> {
 	await database.execute(`
-		CREATE TABLE IF NOT EXISTS agentos_apps_releases (
+		CREATE TABLE IF NOT EXISTS dynamic_apps_releases (
 			release_id TEXT PRIMARY KEY,
 			created_at INTEGER NOT NULL,
 			status TEXT NOT NULL,
@@ -238,7 +241,7 @@ export async function migrateAppsTables(database: RawAccess): Promise<void> {
 			uses_rivetkit INTEGER NOT NULL DEFAULT 0
 				CHECK (uses_rivetkit IN (0, 1))
 		);
-		CREATE TABLE IF NOT EXISTS agentos_apps_release_files (
+		CREATE TABLE IF NOT EXISTS dynamic_apps_release_files (
 			release_id TEXT NOT NULL,
 			path TEXT NOT NULL,
 			chunk_index INTEGER NOT NULL,
@@ -246,28 +249,28 @@ export async function migrateAppsTables(database: RawAccess): Promise<void> {
 			byte_length INTEGER NOT NULL,
 			PRIMARY KEY (release_id, path, chunk_index)
 		);
-		CREATE TABLE IF NOT EXISTS agentos_apps_artifact_chunks (
+		CREATE TABLE IF NOT EXISTS dynamic_apps_artifact_chunks (
 			release_id TEXT NOT NULL,
 			chunk_index INTEGER NOT NULL,
 			content BLOB NOT NULL,
 			byte_length INTEGER NOT NULL,
 			PRIMARY KEY (release_id, chunk_index)
 		);
-		CREATE INDEX IF NOT EXISTS idx_agentos_apps_releases_created_at
-			ON agentos_apps_releases(created_at);
+		CREATE INDEX IF NOT EXISTS idx_dynamic_apps_releases_created_at
+			ON dynamic_apps_releases(created_at);
 	`);
 	const columns = await database.execute<{ name: string }>(
-		"PRAGMA table_info(agentos_apps_releases)",
+		"PRAGMA table_info(dynamic_apps_releases)",
 	);
 	if (!columns.some((column) => column.name === "callback_secret")) {
 		await database.execute(
-			`ALTER TABLE agentos_apps_releases
+			`ALTER TABLE dynamic_apps_releases
 			 ADD COLUMN callback_secret TEXT NOT NULL DEFAULT ''`,
 		);
 	}
 	if (!columns.some((column) => column.name === "uses_rivetkit")) {
 		await database.execute(
-			`ALTER TABLE agentos_apps_releases
+			`ALTER TABLE dynamic_apps_releases
 			 ADD COLUMN uses_rivetkit INTEGER NOT NULL DEFAULT 0
 			 CHECK (uses_rivetkit IN (0, 1))`,
 		);
@@ -280,21 +283,21 @@ async function deleteReleaseFilesBatched(
 ): Promise<void> {
 	for (let batch = 0; batch < MAX_SOURCE_CHUNKS; batch += 1) {
 		const rows = await database.execute<{ chunks: number }>(
-			`SELECT COUNT(*) AS chunks FROM agentos_apps_release_files
+			`SELECT COUNT(*) AS chunks FROM dynamic_apps_release_files
 			 WHERE release_id = ?`,
 			releaseId,
 		);
 		if (Number(rows[0]?.chunks ?? 0) === 0) return;
 		await database.execute(
-			`DELETE FROM agentos_apps_release_files WHERE rowid IN (
-				SELECT rowid FROM agentos_apps_release_files
+			`DELETE FROM dynamic_apps_release_files WHERE rowid IN (
+				SELECT rowid FROM dynamic_apps_release_files
 				WHERE release_id = ? ORDER BY path, chunk_index LIMIT 1
 			)`,
 			releaseId,
 		);
 	}
 	fail(
-		"agentos_apps_source_cleanup_limit",
+		"dynamic_apps_source_cleanup_limit",
 		`source cleanup exceeded ${MAX_SOURCE_CHUNKS} bounded batches`,
 	);
 }
@@ -315,7 +318,7 @@ async function persistReleaseFilesBatched(
 				(index + 1) * SOURCE_CHUNK_BYTES,
 			);
 			await database.execute(
-				`INSERT INTO agentos_apps_release_files
+				`INSERT INTO dynamic_apps_release_files
 				 (release_id, path, chunk_index, content, byte_length)
 				 VALUES (?, ?, ?, ?, ?)`,
 				releaseId,
@@ -334,21 +337,21 @@ async function deleteArtifactChunksBatched(
 ): Promise<void> {
 	for (let batch = 0; batch < MAX_ARTIFACT_CHUNKS; batch += 1) {
 		const rows = await database.execute<{ chunks: number }>(
-			`SELECT COUNT(*) AS chunks FROM agentos_apps_artifact_chunks
+			`SELECT COUNT(*) AS chunks FROM dynamic_apps_artifact_chunks
 			 WHERE release_id = ?`,
 			releaseId,
 		);
 		if (Number(rows[0]?.chunks ?? 0) === 0) return;
 		await database.execute(
-			`DELETE FROM agentos_apps_artifact_chunks WHERE rowid IN (
-				SELECT rowid FROM agentos_apps_artifact_chunks
+			`DELETE FROM dynamic_apps_artifact_chunks WHERE rowid IN (
+				SELECT rowid FROM dynamic_apps_artifact_chunks
 				WHERE release_id = ? ORDER BY chunk_index LIMIT 1
 			)`,
 			releaseId,
 		);
 	}
 	fail(
-		"agentos_apps_artifact_cleanup_limit",
+		"dynamic_apps_artifact_cleanup_limit",
 		`artifact cleanup exceeded ${MAX_ARTIFACT_CHUNKS} bounded batches`,
 	);
 }
@@ -394,7 +397,7 @@ async function getStoredRelease(
 	releaseId: string,
 ): Promise<StoredAppRelease | undefined> {
 	const rows = await database.execute<ReleaseRow>(
-		"SELECT * FROM agentos_apps_releases WHERE release_id = ?",
+		"SELECT * FROM dynamic_apps_releases WHERE release_id = ?",
 		releaseId,
 	);
 	return rows[0] ? releaseFromRow(rows[0]) : undefined;
@@ -404,7 +407,7 @@ async function listStoredReleases(
 	database: RawAccess,
 ): Promise<StoredAppRelease[]> {
 	const rows = await database.execute<ReleaseRow>(
-		"SELECT * FROM agentos_apps_releases ORDER BY created_at ASC",
+		"SELECT * FROM dynamic_apps_releases ORDER BY created_at ASC",
 	);
 	return rows.map(releaseFromRow);
 }
@@ -419,7 +422,7 @@ async function readStoredArtifact(
 		byte_length: number;
 	}>(
 		`SELECT chunk_index, content, byte_length
-		 FROM agentos_apps_artifact_chunks
+		 FROM dynamic_apps_artifact_chunks
 		 WHERE release_id = ? ORDER BY chunk_index ASC`,
 		release.release,
 	);
@@ -432,7 +435,7 @@ async function readStoredArtifact(
 		rows.length > MAX_ARTIFACT_CHUNKS
 	) {
 		fail(
-			"agentos_apps_artifact_manifest_invalid",
+			"dynamic_apps_artifact_manifest_invalid",
 			`artifact ${release.release} has an invalid chunk count`,
 		);
 	}
@@ -453,7 +456,7 @@ async function readStoredArtifact(
 			content.byteLength !== expected
 		) {
 			fail(
-				"agentos_apps_artifact_manifest_invalid",
+				"dynamic_apps_artifact_manifest_invalid",
 				`artifact ${release.release} contains an invalid chunk`,
 			);
 		}
@@ -466,7 +469,7 @@ async function readStoredArtifact(
 		createHash("sha256").update(artifact).digest("hex") !== release.artifactHash
 	) {
 		fail(
-			"agentos_apps_artifact_hash_mismatch",
+			"dynamic_apps_artifact_hash_mismatch",
 			`artifact ${release.release} failed hash verification`,
 		);
 	}
@@ -515,7 +518,7 @@ function actorPublicEndpoint(
 	const endpoint = new URL(raw);
 	if (!publicEndpoint && (endpoint.username || endpoint.password)) {
 		throw new DynamicAppsError(
-			"agentos_apps_public_endpoint_required",
+			"dynamic_apps_public_endpoint_required",
 			"RIVET_PUBLIC_ENDPOINT is required to run app actors when RIVET_ENDPOINT contains credentials",
 		);
 	}
@@ -530,7 +533,7 @@ function validateBeginInput(
 	const appId = c.key[0];
 	if (!appId || c.key.length !== 1 || input.appId !== appId) {
 		fail(
-			"agentos_apps_app_id_mismatch",
+			"dynamic_apps_app_id_mismatch",
 			"deployApp appId must match the stable application actor key",
 			{ appId: input.appId, actorKey: c.key },
 		);
@@ -547,7 +550,7 @@ function validateBeginInput(
 		!Number.isSafeInteger(input.createdAt) ||
 		input.createdAt < 0
 	) {
-		fail("agentos_apps_publish_invalid", "release publish metadata is invalid");
+		fail("dynamic_apps_publish_invalid", "release publish metadata is invalid");
 	}
 	return appId;
 }
@@ -563,7 +566,7 @@ function releaseIdFor(input: {
 	usesRivetKit: boolean;
 }): string {
 	const hash = createHash("sha256");
-	hash.update("agentos-apps-rivet-release-v1\0");
+	hash.update("dynamic-apps-rivet-release-v1\0");
 	for (const value of [
 		input.buildId,
 		input.artifactHash,
@@ -644,7 +647,7 @@ async function beginReleasePublishLocked(
 	}
 	await deleteArtifactChunksBatched(c.db, releaseId);
 	await c.db.execute(
-		`INSERT INTO agentos_apps_releases (
+		`INSERT INTO dynamic_apps_releases (
 			release_id, created_at, status, entrypoint,
 			artifact_hash, artifact_bytes, build_error,
 			regions_json, scaling_json, namespace, envoy_version,
@@ -697,14 +700,14 @@ async function writeReleaseChunk(
 		!(input.content instanceof Uint8Array)
 	) {
 		fail(
-			"agentos_apps_invalid_artifact_chunk",
+			"dynamic_apps_invalid_artifact_chunk",
 			"release chunk metadata is invalid or superseded",
 		);
 	}
 	const release = await getStoredRelease(c.db, input.release);
 	if (!release || release.status !== "building") {
 		fail(
-			"agentos_apps_artifact_not_building",
+			"dynamic_apps_artifact_not_building",
 			`release ${input.release} is not accepting artifact chunks`,
 		);
 	}
@@ -715,13 +718,13 @@ async function writeReleaseChunk(
 			: ARTIFACT_CHUNK_BYTES;
 	if (input.index >= chunks || input.content.byteLength !== expected) {
 		fail(
-			"agentos_apps_invalid_artifact_chunk",
+			"dynamic_apps_invalid_artifact_chunk",
 			`artifact chunk ${input.index} has an invalid length`,
 		);
 	}
 	const content = new Uint8Array(input.content);
 	await c.db.execute(
-		`INSERT INTO agentos_apps_artifact_chunks
+		`INSERT INTO dynamic_apps_artifact_chunks
 		 (release_id, chunk_index, content, byte_length)
 		 VALUES (?, ?, ?, ?)
 		 ON CONFLICT(release_id, chunk_index) DO UPDATE SET
@@ -744,7 +747,7 @@ async function commitReleasePublishLocked(
 		input.sequence !== state.latestPublishSequence
 	) {
 		fail(
-			"agentos_apps_publish_superseded",
+			"dynamic_apps_publish_superseded",
 			"a newer release publish superseded this upload",
 		);
 	}
@@ -754,7 +757,7 @@ async function commitReleasePublishLocked(
 		(release.status !== "building" && release.status !== "ready")
 	) {
 		fail(
-			"agentos_apps_artifact_not_ready",
+			"dynamic_apps_artifact_not_ready",
 			`release ${input.release} cannot be committed`,
 		);
 	}
@@ -768,7 +771,7 @@ async function commitReleasePublishLocked(
 		input.chunks > MAX_ARTIFACT_CHUNKS
 	) {
 		fail(
-			"agentos_apps_artifact_manifest_invalid",
+			"dynamic_apps_artifact_manifest_invalid",
 			"release commit has an invalid artifact chunk count",
 		);
 	}
@@ -778,7 +781,7 @@ async function commitReleasePublishLocked(
 	}
 	if (release.status !== "ready") {
 		await c.db.execute(
-			`UPDATE agentos_apps_releases SET status = 'ready', build_error = NULL
+			`UPDATE dynamic_apps_releases SET status = 'ready', build_error = NULL
 			 WHERE release_id = ?`,
 			release.release,
 		);
@@ -786,7 +789,7 @@ async function commitReleasePublishLocked(
 	}
 	const appId = c.key[0];
 	if (!appId)
-		fail("agentos_apps_invalid_app_id", "application actor key is missing");
+		fail("dynamic_apps_invalid_app_id", "application actor key is missing");
 	const runtime = await provisionAppNamespace(
 		appId,
 		resolveDefaultRivetConnection(),
@@ -800,17 +803,36 @@ async function commitReleasePublishLocked(
 	state.runnerToken = runtime.runnerToken ?? null;
 	state.publicToken = runtime.publicToken ?? null;
 	if (release.usesRivetKit) {
-		actorPublicEndpoint(release, state);
+		const publicEndpoint = actorPublicEndpoint(release, state);
 		if (
 			runtime.endpoint.replace(/\/$/, "") !==
 			release.runtimeEndpoint.replace(/\/$/, "")
 		) {
 			fail(
-				"agentos_apps_runtime_changed",
+				"dynamic_apps_runtime_changed",
 				"the app actor Rivet endpoint does not match the deployment runtime",
 			);
 		}
+		state.activatingRelease = release.release;
 		try {
+			const metadataResponse = await getDefaultActorRuntime().request({
+				key: `${release.release}:${release.artifactHash}`,
+				appId,
+				release: release.release,
+				loadArtifact: () => readStoredArtifact(c.db, release),
+				endpoint: publicEndpoint,
+				namespace: release.namespace,
+				pool: release.runtimePool,
+				request: new Request("http://dynamic-app.internal/api/rivet/metadata", {
+					headers: { "user-agent": "RivetEngine/prewarm" },
+				}),
+			});
+			if (!metadataResponse.ok) {
+				throw new Error(
+					`Dynamic App actor metadata prewarm returned HTTP ${metadataResponse.status}`,
+				);
+			}
+			await metadataResponse.arrayBuffer();
 			await configureAppNamespaceRunner(
 				c.actorId,
 				{
@@ -822,6 +844,7 @@ async function commitReleasePublishLocked(
 				release.callbackSecret,
 			);
 		} catch (error) {
+			state.activatingRelease = null;
 			c.log.error({
 				msg: "Dynamic App actor runner configuration failed",
 				release: release.release,
@@ -831,6 +854,7 @@ async function commitReleasePublishLocked(
 		}
 	}
 	state.activeRelease = release.release;
+	state.activatingRelease = null;
 	state.revision += 1;
 	c.broadcast("releaseActivated", {
 		revision: state.revision,
@@ -849,7 +873,7 @@ async function commitReleasePublishLocked(
 		await deleteArtifactChunksBatched(c.db, candidate.release);
 		await deleteReleaseFilesBatched(c.db, candidate.release);
 		await c.db.execute(
-			"DELETE FROM agentos_apps_releases WHERE release_id = ?",
+			"DELETE FROM dynamic_apps_releases WHERE release_id = ?",
 			candidate.release,
 		);
 		retained -= 1;
@@ -864,7 +888,7 @@ function deploymentForRelease(
 ): Deployment & { appActorId: string; usesRivetKit: boolean } {
 	const appId = c.key[0];
 	if (!appId)
-		fail("agentos_apps_invalid_app_id", "application actor key is missing");
+		fail("dynamic_apps_invalid_app_id", "application actor key is missing");
 	return {
 		appId,
 		release: release.release,
@@ -888,8 +912,9 @@ export function createAppsActors(
 		const callbackPath = normalizeActorCallbackPath(request);
 		if (!callbackPath) return new Response("Not Found", { status: 404 });
 		const state = c.state as AppState;
-		const release = state.activeRelease
-			? await getStoredRelease(c.db, state.activeRelease)
+		const routedRelease = state.activatingRelease ?? state.activeRelease;
+		const release = routedRelease
+			? await getStoredRelease(c.db, routedRelease)
 			: undefined;
 		if (!release || release.status !== "ready" || !release.usesRivetKit) {
 			return new Response("Dynamic App has no active actor registry", {
@@ -920,7 +945,7 @@ export function createAppsActors(
 		}
 	};
 
-	const agentOSAppsApp = actor({
+	const dynamicAppsApp = actor({
 		options: { actionTimeout: 16 * 60_000 },
 		db: db({ onMigrate: migrateAppsTables }),
 		onRequest: forwardActorRequest,
@@ -972,7 +997,7 @@ export function createAppsActors(
 						const appId = c.key[0];
 						if (!appId || c.key.length !== 1 || input.appId !== appId) {
 							fail(
-								"agentos_apps_app_id_mismatch",
+								"dynamic_apps_app_id_mismatch",
 								"deployApp appId must match the stable application actor key",
 							);
 						}
@@ -1038,7 +1063,7 @@ export function createAppsActors(
 				const appId = c.key[0];
 				if (!appId) {
 					fail(
-						"agentos_apps_invalid_app_id",
+						"dynamic_apps_invalid_app_id",
 						"application actor key is missing",
 					);
 				}
@@ -1051,19 +1076,19 @@ export function createAppsActors(
 					release.entrypoint !== DIRECT_ENTRYPOINT
 				) {
 					fail(
-						"agentos_apps_not_deployed",
+						"dynamic_apps_not_deployed",
 						"app has no active direct release; call app.deploy() first",
 					);
 				}
 				if (requestedRegion && !release.regions.includes(requestedRegion)) {
 					fail(
-						"agentos_apps_region_not_deployed",
+						"dynamic_apps_region_not_deployed",
 						`app is not deployed in requested region ${requestedRegion}`,
 						{ requestedRegion, regions: release.regions },
 					);
 				}
 				const region = requestedRegion ?? release.regions[0];
-				if (!region) fail("agentos_apps_no_region", "active app has no region");
+				if (!region) fail("dynamic_apps_no_region", "active app has no region");
 				return {
 					appId,
 					release: release.release,
@@ -1088,14 +1113,14 @@ export function createAppsActors(
 					release.entrypoint !== DIRECT_ENTRYPOINT
 				) {
 					fail(
-						"agentos_apps_artifact_not_ready",
+						"dynamic_apps_artifact_not_ready",
 						`artifact for release ${releaseId} is not ready`,
 					);
 				}
 				const rows = await c.db.execute<{ chunks: number; bytes: number }>(
 					`SELECT COUNT(*) AS chunks,
 					 COALESCE(SUM(byte_length), 0) AS bytes
-					 FROM agentos_apps_artifact_chunks WHERE release_id = ?`,
+					 FROM dynamic_apps_artifact_chunks WHERE release_id = ?`,
 					releaseId,
 				);
 				const chunks = Number(rows[0]?.chunks ?? 0);
@@ -1106,7 +1131,7 @@ export function createAppsActors(
 					bytes !== release.artifactBytes
 				) {
 					fail(
-						"agentos_apps_artifact_manifest_invalid",
+						"dynamic_apps_artifact_manifest_invalid",
 						`artifact ${releaseId} failed persisted manifest validation`,
 					);
 				}
@@ -1129,7 +1154,7 @@ export function createAppsActors(
 					index >= MAX_ARTIFACT_CHUNKS
 				) {
 					fail(
-						"agentos_apps_invalid_artifact_chunk",
+						"dynamic_apps_invalid_artifact_chunk",
 						`artifact chunk index must be between 0 and ${MAX_ARTIFACT_CHUNKS - 1}`,
 					);
 				}
@@ -1137,7 +1162,7 @@ export function createAppsActors(
 					content: Uint8Array;
 					byte_length: number;
 				}>(
-					`SELECT content, byte_length FROM agentos_apps_artifact_chunks
+					`SELECT content, byte_length FROM dynamic_apps_artifact_chunks
 					 WHERE release_id = ? AND chunk_index = ?`,
 					releaseId,
 					index,
@@ -1145,7 +1170,7 @@ export function createAppsActors(
 				const row = rows[0];
 				if (!row) {
 					fail(
-						"agentos_apps_artifact_chunk_not_found",
+						"dynamic_apps_artifact_chunk_not_found",
 						`artifact chunk ${index} for release ${releaseId} was not found`,
 					);
 				}
@@ -1155,7 +1180,7 @@ export function createAppsActors(
 					content.byteLength > ARTIFACT_CHUNK_BYTES
 				) {
 					fail(
-						"agentos_apps_artifact_chunk_invalid",
+						"dynamic_apps_artifact_chunk_invalid",
 						`artifact chunk ${index} failed length validation`,
 					);
 				}
@@ -1172,7 +1197,7 @@ export function createAppsActors(
 			},
 		},
 	});
-	return { agentOSAppsApp };
+	return { dynamicAppsApp };
 }
 
 /** @internal Preserves callback streaming until runtime admission. */

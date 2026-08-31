@@ -9,7 +9,7 @@ export const APP_CALLBACK_SECRET_HEADER = "x-agentos-app-callback-token";
 /** Stable compatibility pool retained in deployApp's result. */
 export function appRunnerPool(appId: string): string {
 	const suffix = createHash("sha256").update(appId).digest("hex").slice(0, 16);
-	return `agentos-apps-${suffix}`;
+	return `dynamic-apps-${suffix}`;
 }
 
 async function readBoundedText(response: Response): Promise<string> {

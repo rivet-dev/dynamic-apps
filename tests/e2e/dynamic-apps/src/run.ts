@@ -8,10 +8,14 @@ import getPort from "get-port";
 const fast = process.argv.includes("--fast");
 const buildOnly = process.argv.includes("--build-only");
 const sanity = process.argv.includes("--sanity");
-const root = await mkdtemp(join(tmpdir(), "agentos-apps-e2e-"));
+const root = await mkdtemp(join(tmpdir(), "dynamic-apps-e2e-"));
 const databasePath = join(root, "db");
 await mkdir(databasePath, { recursive: true });
-const guardPort = await getPort();
+const configuredGuardPort = Number(process.env.DYNAMIC_APPS_E2E_ENGINE_PORT);
+const guardPort =
+	Number.isInteger(configuredGuardPort) && configuredGuardPort > 0
+		? configuredGuardPort
+		: await getPort();
 const peerPort = await getPort({ exclude: [guardPort] });
 const metricsPort = await getPort({ exclude: [guardPort, peerPort] });
 const endpoint = `http://127.0.0.1:${guardPort}`;
@@ -48,15 +52,15 @@ const engine = spawn(getEnginePath(), ["--config", configPath, "start"], {
 try {
 	await waitUntilHealthy(endpoint, engine);
 	process.env.RIVET_ENDPOINT = endpoint;
-	process.env.AGENTOS_APPS_E2E_FAST = fast ? "1" : "0";
-	process.env.AGENTOS_APPS_E2E_BUILD_ONLY = buildOnly ? "1" : "0";
+	process.env.DYNAMIC_APPS_E2E_FAST = fast ? "1" : "0";
+	process.env.DYNAMIC_APPS_E2E_BUILD_ONLY = buildOnly ? "1" : "0";
 	if (fast) {
-		process.env.AGENTOS_APPS_E2E_ARTIFACT_CACHE = join(
+		process.env.DYNAMIC_APPS_E2E_ARTIFACT_CACHE = join(
 			tmpdir(),
-			"agentos-apps-artifact-cache-v16",
+			"dynamic-apps-artifact-cache-v1",
 		);
 	} else {
-		delete process.env.AGENTOS_APPS_E2E_ARTIFACT_CACHE;
+		delete process.env.DYNAMIC_APPS_E2E_ARTIFACT_CACHE;
 	}
 	delete process.env.RIVET_ENGINE;
 	delete process.env.RIVET_RUN_ENGINE;

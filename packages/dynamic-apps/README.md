@@ -38,12 +38,14 @@ bodies are not supported.
 ## App-defined actors
 
 An app that declares `rivetkit` mounts the registry handler in its normal fetch
-router. Dynamic Apps owns the listener, so the application must not call
-`registry.start()` or `serve()`:
+router and starts an HTTP server on `PORT` when it runs in serverless mode.
+Dynamic Apps waits for the server entrypoint's listening callback before
+forwarding callbacks:
 
 ```ts
 import { actor, setup } from "rivetkit";
 import { Hono } from "hono";
+import { serve } from "@hono/node-server";
 
 const counter = actor({
 	state: { value: 0 },
@@ -58,8 +60,24 @@ const registry = setup({ use: { counter } });
 const app = new Hono();
 app.all("/api/rivet/*", (c) => registry.handler(c.req.raw));
 app.all("*", () => new Response("ok"));
+if (process.env.RIVETKIT_RUNTIME_MODE === "serverless") {
+	await new Promise((resolve, reject) => {
+		const server = serve(
+			{
+				fetch: app.fetch,
+				port: Number(process.env.PORT),
+				hostname: "0.0.0.0",
+			},
+			resolve,
+		);
+		server.once("error", reject);
+	});
+}
 export default app;
 ```
+
+Awaiting Hono's listening callback makes module completion the readiness signal;
+Dynamic Apps does not poll an application health route.
 
 Use the unchanged `deployApp` result to create the app client:
 
@@ -99,16 +117,20 @@ receiver that accepts child-namespace lifecycle callbacks; Dynamic Apps appends
 `/api/rivet` to that origin.
 
 Actor requests follow the normal Rivet Engine path. The app's serverless
-callback loads its verified actor bundle into a bounded process-local worker
-thread and uses the host's pinned RivetKit native runtime. State, actions,
-events, connections, and streaming actor responses are handled by RivetKit;
-ordinary HTTP for the same app still uses the agentOS evaluation path.
+callback mounts its verified artifact in agentOS and runs the bundled RivetKit
+WebAssembly runtime in serverless mode. State, actions, events, connections,
+and streaming actor responses are handled by RivetKit inside the sandbox;
+ordinary HTTP for the same app uses the agentOS evaluation path.
 
-Callback admission happens before the request body is read. The worker cache
-is a strict process limit across active and idle app bundles; a new bundle is
-rejected with `agentos_apps_no_capacity` when every worker slot is busy.
-Existing bundles continue sharing their worker up to the callback concurrency
-limit.
+Rivet Engine requires `/api/rivet/start` to return a long-lived SSE control
+stream containing the real runner-init packet and keepalive pings. Actor traffic
+does not travel in this response; it uses RivetKit's outbound WebSocket. Dynamic
+Apps forwards the server's response with agentOS's native VM HTTP stream,
+including backpressure and cancellation. No app code executes in the host.
+
+Dynamic Apps does not impose a separate actor-callback concurrency gate. The
+configured actor runtime count controls retained idle entries only; active
+AgentOS runtimes are not rejected or evicted because that target is full.
 
 ## Host integration
 
@@ -121,14 +143,7 @@ import { Hono } from "hono";
 
 const server = new Hono();
 
-const dispatchRegistry = (request: Request) => {
-	const headers = new Headers(request.headers);
-	headers.set("x-agentos-app-registry-dispatch", "1");
-	return appsRouter.fetch(new Request(request, { headers }));
-};
-
-server.all("/api/rivet", (c) => dispatchRegistry(c.req.raw));
-server.all("/api/rivet/*", (c) => dispatchRegistry(c.req.raw));
+server.all("/api/rivet/*", (c) => appsRouter.fetch(c.req.raw));
 server.route("/apps", appsRouter);
 
 serve({ fetch: server.fetch, port: 3000 });
@@ -180,21 +195,18 @@ number of retained contexts remain idle afterward.
 | `DYNAMIC_APPS_EXECUTION_TIMEOUT_MS` | `30000` |
 | `DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES` | `4` |
 | `DYNAMIC_APPS_ACTOR_WORKER_HEAP_LIMIT_MB` | `96` |
-| `DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS` | `10000` |
+| `DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS` | `30000` |
 | `DYNAMIC_APPS_ACTOR_WORKER_IDLE_TTL_MS` | `30000` |
-| `DYNAMIC_APPS_ACTOR_START_PAYLOAD_MAX_BYTES` | `1048576` |
-| `DYNAMIC_APPS_ACTOR_REQUEST_CONCURRENCY` | `64` |
-| `DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_SIZE` | `128` |
-| `DYNAMIC_APPS_ACTOR_REQUEST_QUEUE_WAIT_MS` | `5000` |
+| `DYNAMIC_APPS_ACTOR_START_PAYLOAD_MAX_BYTES` | `16777216` |
 | `DYNAMIC_APPS_ACTOR_REQUEST_TIMEOUT_MS` | `30000` |
 
-Inside a finite cgroup, execution concurrency, both context-pool limits, and
-the actor-worker limit are upper bounds. At startup they are reduced when
+Inside a finite cgroup, direct execution concurrency and both direct
+context-pool limits are upper bounds. At startup they are reduced when
 necessary to keep the configured heap cost below
 `DYNAMIC_APPS_MEMORY_HIGH_WATER_PERCENT`, with host and payload headroom. They
 are unchanged when the cgroup has no finite memory limit. Effective direct
-concurrency appears as `executionConcurrency` in executor diagnostics, and the
-effective actor limit appears as `workerLimit` in actor diagnostics.
+concurrency appears as `executionConcurrency` in executor diagnostics. The
+actor `workerLimit` diagnostic is the retained-idle target, not admission.
 
 `DYNAMIC_APPS_CONTROL_TOKEN` optionally overrides only the token used by
 Dynamic Apps Engine control-plane requests when running against a local or
@@ -223,7 +235,7 @@ setDynamicAppsLogHandler((event) => {
 });
 ```
 
-The handler receives application stdout/stderr, actor worker output, build
+The handler receives application stdout/stderr, sandboxed actor output, build
 phases, and runtime events. Enqueue into a logging SDK rather than performing a
 blocking network request in the callback.
 
@@ -236,7 +248,6 @@ Successful pooled contexts are reset and reinitialized; failed, timed-out, or
 aborted contexts are deleted.
 
 agentOS supplies the filesystem, process, environment, and network permission
-boundary for direct HTTP. App actor code still runs in a bounded worker thread
-inside the host process. Run one trust domain per container and keep the host
-and agentOS runtime patched; do not treat actor workers as a boundary for
-mutually hostile tenants.
+boundary for both direct HTTP and app-defined actors. RivetKit actors use the
+bundled WASM runtime; uploaded app code is never imported into the Dynamic Apps
+host process.

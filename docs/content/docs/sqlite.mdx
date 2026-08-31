@@ -1,0 +1,20 @@
+---
+title: "SQLite"
+description: "Store durable relational data in an actor-owned SQLite database."
+---
+
+Apps that depend on `rivetkit` can define actors. Each actor owns its own
+SQLite database, so a generated app gets durable relational data without any
+extra infrastructure. [View the complete example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-sqlite).
+
+The server is the generated app. The client shows how your own system connects
+to the actors inside it.
+
+<CodeGroup>
+<CodeSnippet file="examples/apps-sqlite/fixtures/app/src/index.ts" title="Server" />
+<CodeSnippet file="examples/apps-sqlite/src/client.ts" region="client" title="Client" />
+</CodeGroup>
+
+`deployApp()` returns the endpoint, namespace, pool, and token the ordinary
+RivetKit client needs. See [SQLite in Rivet Actors](https://rivet.dev/actors/docs/sqlite/)
+for the full database API.

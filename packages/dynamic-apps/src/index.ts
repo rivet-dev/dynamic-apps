@@ -7,3 +7,4 @@ export {
 	setDynamicAppsLogHandler,
 } from "./logging.js";
 export { appsRouter } from "./router.js";
+export { rivetActorsSkill, webServerSkill } from "./skills.js";

@@ -6,7 +6,7 @@ import {
 } from "./fixture.js";
 
 const actorClient = createClient() as unknown as {
-	agentOSAppsApp: {
+	dynamicAppsApp: {
 		getOrCreate(key: string[]): ActorHandle;
 		getForId(actorId: string): ActorHandle;
 	};
@@ -16,10 +16,10 @@ interface ActorHandle {
 }
 const actorId = process.env.BENCH_APP_ACTOR_ID;
 const actor = actorId
-	? actorClient.agentOSAppsApp.getForId(actorId)
-	: actorClient.agentOSAppsApp.getOrCreate([BENCHMARK_APP_ID]);
+	? actorClient.dynamicAppsApp.getForId(actorId)
+	: actorClient.dynamicAppsApp.getOrCreate([BENCHMARK_APP_ID]);
 const deploymentClient = {
-	agentOSAppsApp: { getOrCreate: () => actor },
+	dynamicAppsApp: { getOrCreate: () => actor },
 } as unknown as BenchmarkDeploymentClient;
 const deployment = await deployBenchmarkFixture(deploymentClient);
 const resolvedActorId = await actor.resolve();

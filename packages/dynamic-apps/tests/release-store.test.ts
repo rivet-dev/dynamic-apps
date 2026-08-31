@@ -50,7 +50,7 @@ describe("Rivet release store", () => {
 			},
 		};
 		const store = createRivetReleaseStore({
-			agentOSAppsApp: {
+			dynamicAppsApp: {
 				get: () => handle as never,
 				getOrCreate: () => handle as never,
 			},
@@ -59,7 +59,7 @@ describe("Rivet release store", () => {
 			appId: "demo",
 			buildId: "b".repeat(64),
 			artifact: {
-				format: "agentos-apps-direct-v2",
+				format: "dynamic-apps-direct-v2",
 				entrypoint: "direct-v2/main.mjs",
 				hash: createHash("sha256").update(bytes).digest("hex"),
 				bytes,
@@ -119,7 +119,7 @@ describe("Rivet release store", () => {
 			},
 			async getArtifactManifest() {
 				return {
-					format: "agentos-apps-direct-v2",
+					format: "dynamic-apps-direct-v2",
 					hash,
 					bytes: bytes.byteLength,
 					chunks: 1,
@@ -131,7 +131,7 @@ describe("Rivet release store", () => {
 			},
 		};
 		const store = createRivetReleaseStore({
-			agentOSAppsApp: {
+			dynamicAppsApp: {
 				get: () => handle as never,
 				getOrCreate: () => handle as never,
 			},
@@ -182,7 +182,7 @@ describe("Rivet release store", () => {
 			},
 		};
 		const store = createRivetReleaseStore({
-			agentOSAppsApp: {
+			dynamicAppsApp: {
 				get: () => handle as never,
 				getOrCreate: () => handle as never,
 			},

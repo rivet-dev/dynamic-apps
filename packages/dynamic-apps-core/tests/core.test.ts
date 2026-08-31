@@ -182,7 +182,7 @@ function release(
 		appId,
 		release: `release-${name}`,
 		artifact: {
-			format: "agentos-apps-direct-v2",
+			format: "dynamic-apps-direct-v2",
 			entrypoint: "direct-v2/main.mjs",
 			hash: createHash("sha256").update(bytes).digest("hex"),
 			bytes: new Uint8Array(bytes),

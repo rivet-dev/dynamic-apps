@@ -1,0 +1,19 @@
+---
+title: "Workflows"
+description: "Run durable multi-step jobs that sleep, scale to zero, and resume."
+---
+
+An actor's `run` workflow executes when the actor is created. Each step is
+durable, so the job survives restarts and the app scales to zero while it
+sleeps. [View the complete example](https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-workflows).
+
+The server is the generated app. The client shows how your own system connects
+to the actors inside it.
+
+<CodeGroup>
+<CodeSnippet file="examples/apps-workflows/fixtures/app/src/index.ts" title="Server" />
+<CodeSnippet file="examples/apps-workflows/src/client.ts" region="client" title="Client" />
+</CodeGroup>
+
+See [Workflows in Rivet Actors](https://rivet.dev/actors/docs/workflows/) for
+steps, loops, queues, and error handling.

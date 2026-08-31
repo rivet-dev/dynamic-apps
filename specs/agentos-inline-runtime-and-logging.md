@@ -11,7 +11,7 @@ through the agentOS library's headless JavaScript API in the Compute process;
 they must not start an execution actor, guest process, HTTP listener, or nested
 Node server.
 
-Keep the existing deployment implementation and durable `agentOSAppsApp`
+Keep the existing deployment implementation and durable `dynamicAppsApp`
 state actor. It remains responsible for building releases in an agentOS build
 VM, persisting release artifacts in actor SQLite, activation, rollback, and
 release invalidation events.
@@ -21,7 +21,7 @@ application, actor, build, and runtime logs to stdout or its logging provider.
 
 ```text
 deployApp
-  -> agentOSAppsApp[appId]
+  -> dynamicAppsApp[appId]
   -> existing agentOS build VM
   -> immutable AOSP artifact in actor SQLite
 
@@ -42,15 +42,17 @@ warm direct request
 app-defined actor request
   -> Rivet gateway
   -> authenticated Dynamic Apps callback
-  -> existing bounded Node worker
-  -> real RivetKit WASM registry
+  -> cached AgentOS VM and guest process
+  -> real RivetKit WASM serverless registry
+  -> agentOS native VM HTTP stream
 ```
 
-The app-defined actor worker remains in this revision. It does not use
-`isolated-vm`, and its streaming response protocol is required for RivetKit
-connections and events. Replacing that worker with one-shot agentOS
-`evaluate()` would regress streaming semantics. The worker must, however,
-forward stdout and stderr through the new log hook.
+App-defined actors use agentOS as the mandatory hostile-code boundary. The app
+listens on the supplied `PORT`, and Dynamic Apps forwards the real response head
+and chunks with agentOS's native VM HTTP stream. The init packet is not mocked:
+Engine uses its encoded runner ID and protocol version. Actor traffic travels
+over RivetKit's outbound WebSocket; the SSE stream carries init, keepalive, and
+connection lifetime only.
 
 ## Non-goals
 
@@ -284,11 +286,11 @@ The direct release must be a Node-targeted ESM bundle, not a browser IIFE.
 - Continue rejecting native `.node` addons.
 - Delete the Dynamic Apps RivetKit stub entirely.
 - For an app importing RivetKit, build the direct bundle with the real RivetKit
-  runtime. The app mounts `registry.handler()` in its exported fetch router and
-  does not call `registry.start()` or `serve()`; actor startup remains
-  host-managed.
-- Keep the separate platform-linked actor bundle used by the existing bounded
-  actor worker.
+  runtime. The app mounts `registry.handler()` in its exported fetch router. In
+  serverless mode it calls `serve()` on `PORT` and awaits the listening
+  callback; Dynamic Apps starts the actor entrypoint as a normal Node program.
+- Build the separate actor entrypoint with RivetKit and its WASM asset bundled
+  for execution inside AgentOS.
 - Continue validating both bundles before activating a release.
 
 The direct dispatcher should be an exported async function in
@@ -312,10 +314,11 @@ Include `appId`, release, request ID, and stream.
 
 ### App-defined actors
 
-Create actor workers with `stdout: true` and `stderr: true`, consume both Node
-streams, and use the same bounded line decoder. Add `appId` and release to
-`ActorRuntimeRequest` so output can be attributed. Emit with
-`source: "actor"`. Keep worker transport errors as runtime error events.
+Consume the AgentOS guest process stdout and stderr with the same bounded line
+decoder. There is no Dynamic Apps actor RPC framing: HTTP requests and response
+bodies use agentOS's native VM HTTP stream. Add `appId` and release to
+`ActorRuntimeRequest` so output can be attributed. Emit application output with
+`source: "actor"` and transport failures as runtime errors.
 
 ### Build and host runtime
 
@@ -372,7 +375,7 @@ The file must contain no import from `isolated-vm`, no custom `Request` or
 
 Implement the public event types, the process-global handler setter, frozen
 event construction, message/metadata bounds, handler-error isolation, and the
-incremental UTF-8 line decoder shared by direct executions and actor workers.
+incremental UTF-8 line decoder shared by direct executions and actor guests.
 
 #### `packages/dynamic-apps/src/index.ts`
 
@@ -381,12 +384,15 @@ alongside the unchanged `appsRouter` and `deployApp` exports.
 
 #### `packages/dynamic-apps/src/actor-runtime.ts`
 
-- retain the bounded Node worker and real RivetKit WASM runtime;
+- mount the verified release in AgentOS and start the bundled RivetKit WASM
+  serverless entrypoint as a guest process;
 - add `appId` and release attribution to `ActorRuntimeRequest`;
-- opt into worker stdout/stderr streams and forward them through the shared
-  line decoder and log emitter;
-- emit bounded worker startup, exit, timeout, and transport errors; and
-- dispose stream listeners with each worker entry.
+- wait for the guest entrypoint to report that its HTTP listening callback
+  completed, then forward every callback route through agentOS's native VM HTTP
+  stream; preserve the real `/start` SSE stream, cancellation, and backpressure;
+- treat the retained-runtime count as an idle-cache target rather than callback
+  admission, with no Dynamic Apps concurrency queue; and
+- dispose the AgentOS VM and mounted artifact with each runtime entry.
 
 #### `packages/dynamic-apps/src/actors.ts`
 
@@ -432,8 +438,7 @@ native artifacts disappear from the lockfile.
 - add an explicit `directAgentOs` build mode using `platform: "node"`, ESM,
   and the existing bounded filesystem plugin;
 - bundle real RivetKit plus its WASM asset for actor-enabled direct bundles;
-- continue keeping RivetKit external only for the platform-linked actor bundle;
-  and
+- bundle RivetKit WASM in both direct and actor AgentOS bundles; and
 - retain native-addon rejection and output limits.
 
 #### `packages/dynamic-apps-builder/test/builder.test.ts`
@@ -485,8 +490,8 @@ network permission boundary. Keep native addons unsupported.
 
 Add a brief public page titled **Collecting logs**:
 
-1. Explain that application `console.log`/stdout, `console.error`/stderr, actor
-   worker output, and host runtime summaries become structured events.
+1. Explain that application `console.log`/stdout, `console.error`/stderr,
+   sandboxed actor output, and host runtime summaries become structured events.
 2. Show `setDynamicAppsLogHandler((event) =>
    process.stdout.write(JSON.stringify(event) + "\\n"))` as the recommended
    Cloud Run/Rivet Compute aggregation path.

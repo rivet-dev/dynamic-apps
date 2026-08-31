@@ -6,7 +6,7 @@ const MAX_FILE_PATH_BYTES = 1_024;
 export const DIRECT_ENTRYPOINT = "direct-v2/main.mjs";
 export const DIRECT_BUNDLE_PATH = "direct/main.mjs";
 export const ACTOR_BUNDLE_PATH = "actor/main.mjs";
-export const DIRECT_RUNTIME_FORMAT = "agentos-apps-direct-v2";
+export const DIRECT_RUNTIME_FORMAT = "dynamic-apps-direct-v2";
 
 export function normalizeAppPath(input: string): string {
 	if (typeof input !== "string" || input.length === 0 || input.includes("\0")) {
@@ -39,7 +39,7 @@ export function canonicalDeploymentHash(input: {
 	deploymentIdentity?: string;
 }): string {
 	const hash = createHash("sha256");
-	hash.update("agentos-apps-release-v19-mounted-hono-router\0");
+	hash.update("dynamic-apps-release-v19-mounted-hono-router\0");
 	const field = (value: string | Uint8Array) => {
 		const bytes = typeof value === "string" ? Buffer.from(value) : value;
 		const length = Buffer.allocUnsafe(8);
@@ -71,7 +71,15 @@ export function directRunnerSource(input: {
 }): string {
 	const entrypoint = `./${normalizeAppPath(input.entrypoint)}`;
 	return `const dynamicAppsModuleImportStartedAt = performance.now();
-const application = await import(${JSON.stringify(entrypoint)});
+const dynamicAppsPreviousRuntimeMode = process.env.RIVETKIT_RUNTIME_MODE;
+delete process.env.RIVETKIT_RUNTIME_MODE;
+let application;
+try {
+  application = await import(${JSON.stringify(entrypoint)});
+} finally {
+  if (dynamicAppsPreviousRuntimeMode === undefined) delete process.env.RIVETKIT_RUNTIME_MODE;
+  else process.env.RIVETKIT_RUNTIME_MODE = dynamicAppsPreviousRuntimeMode;
+}
 const dynamicAppsModuleImportMs = performance.now() - dynamicAppsModuleImportStartedAt;
 const exported = application.default;
 const appFetch = typeof exported === "function"
@@ -139,18 +147,15 @@ export async function dispatch(input) {
 `;
 }
 
-/** Host-owned wrapper for the app's mounted actor callback handler. */
+/** Initializes RivetKit WASM, then starts the application's own HTTP server. */
 export function actorRunnerSource(entrypointInput: string): string {
 	const entrypoint = `./${normalizeAppPath(entrypointInput)}`;
-	return `import application from ${JSON.stringify(entrypoint)};
-const appFetch = typeof application === "function"
-  ? application
-  : typeof application?.fetch === "function"
-    ? application.fetch.bind(application)
-    : undefined;
-if (!appFetch) {
-  throw new TypeError("Dynamic App using RivetKit must default export a fetch handler with registry.handler() mounted under /api/rivet");
-}
-export const handler = appFetch;
+	return `import { readFile } from "node:fs/promises";
+import initializeRivetKit from "@rivetkit/rivetkit-wasm";
+
+const wasmUrl = new URL(__AGENTOS_RIVETKIT_WASM_PATH__, import.meta.url);
+await initializeRivetKit({ module_or_path: await readFile(wasmUrl) });
+await import(${JSON.stringify(entrypoint)});
+console.log("DYNAMIC_APPS_SERVER_READY:" + (process.env.DYNAMIC_APPS_READY_NONCE ?? ""));
 `;
 }

@@ -141,7 +141,7 @@ export type DeployAppInput =
 	  });
 
 export interface ReleaseArtifact {
-	format: "agentos-apps-direct-v2";
+	format: "dynamic-apps-direct-v2";
 	entrypoint: "direct-v2/main.mjs";
 	hash: string;
 	bytes: Uint8Array;
@@ -528,7 +528,7 @@ Implement `createDynamicApps` with no module-level mutable state:
 8. `diagnostics()` delegates to the executor and adds no credentials or
    artifact contents.
 9. `dispose()` is idempotent and delegates to the executor. After disposal,
-   deploy and request operations fail with `agentos_apps_executor_disposed`.
+   deploy and request operations fail with `dynamic_apps_executor_disposed`.
 
 The factory keeps an instance-local disposed flag and set of in-flight deploy
 promises. Check the flag before source preparation and again after build but
@@ -673,9 +673,9 @@ export function createAppsRouter(
 ```
 
 Move the existing handler body unchanged except for calling the injected
-executor. Remove `PRIVATE_REGISTRY_SENTINEL`, `handlePrivateAppsRegistry`,
-`requestOverride`, `setRouterRequestOverride`, and the custom `router.fetch`
-override. Those belong only to the Rivet wrapper.
+executor. Remove private-registry dispatch, `handlePrivateAppsRegistry`,
+`requestOverride`, `setRouterRequestOverride`, and any custom `router.fetch`
+override. Registry routing belongs only to the Rivet wrapper.
 
 Unit tests inject an `AppRequestExecutor`; do not add a new global test seam.
 
@@ -874,7 +874,7 @@ Do not cache artifacts in `release-store.ts`; core owns caching.
 
 ### Actor persistence protocol
 
-Keep `agentOSAppsApp` and all current tables. Extend `AppState` with optional
+Keep `dynamicAppsApp` and all current tables. Extend `AppState` with optional
 fields so old serialized state needs no migration:
 
 ```ts
@@ -931,7 +931,7 @@ after a newer `beginReleasePublish` has superseded it.
 Under the existing per-actor `serialized` lock:
 
 1. Require `sequence === latestPublishSequence`. Otherwise throw
-   `agentos_apps_publish_superseded` and keep the current active release.
+   `dynamic_apps_publish_superseded` and keep the current active release.
 2. Load the building/ready row and verify expected chunk count and total bytes.
 3. Stream/read all stored chunks in order and compute SHA-256; compare it to the
    expected hash. Do not mark ready on mismatch.
@@ -976,7 +976,7 @@ The top-level adapter `deployApp` behaves as follows:
 - With no injected `options.client`, delegate to the default core instance so
   the build occurs before the release-store upload.
 - With `options.client`, retain the current `prepareSource` plus
-  `client.agentOSAppsApp.get/getOrCreate(...).deploy(preparedInput)` path exactly.
+  `client.dynamicAppsApp.get/getOrCreate(...).deploy(preparedInput)` path exactly.
 
 This preserves existing injected-client behavior while making the ordinary
 path use the new core architecture. Add a code comment explaining why the two
@@ -1007,10 +1007,15 @@ The core router does not know about the private Rivet registry. In adapter
 `router.ts`:
 
 1. Obtain `defaultDynamicApps.appsRouter`.
-2. Preserve the existing custom `fetch` behavior for the private sentinel
-   header and `/api/rivet` paths.
+2. Register an ordinary `/api/rivet/*` Hono route that forwards to the private
+   registry handler only when the raw request path is rooted at `/api/rivet/`.
+   This keeps mounting the router at `/apps` from intercepting an app named
+   `api` whose own path begins with `/rivet/`.
 3. Delegate all ordinary app traffic to the core router.
 4. Export the wrapped value as `appsRouter` with the current exact Hono type.
+
+Do not add a bare `/api/rivet` route, a sentinel header, or a custom `fetch`
+override.
 
 Do not restore `setRouterRequestOverride`; adapter tests should instantiate a
 core factory with fake hooks or exercise the wrapped router directly.
