@@ -56,6 +56,7 @@ const STRESS_CASES = [
 	"actorHandlerStall",
 	"actorShutdown",
 	"directShutdown",
+	"actorMemory",
 ] as const;
 
 type StressCase = (typeof STRESS_CASES)[number];
@@ -179,6 +180,12 @@ async function main(): Promise<void> {
 		8,
 		10_000,
 	);
+	const actorMemoryBytes = integerEnv(
+		"STRESS_ACTOR_MEMORY_BYTES",
+		32 * 1024 * 1024,
+		1024 * 1024,
+		128 * 1024 * 1024,
+	);
 	const baselineMemory = memorySnapshot();
 	const artifacts = await Promise.all(
 		Array.from({ length: appCount + 3 }, (_, index) =>
@@ -208,6 +215,10 @@ async function main(): Promise<void> {
   },
 };`,
 	);
+	const actorMemoryArtifact = await createActorArtifact(
+		"actor-memory",
+		actorMemorySource(actorMemoryBytes),
+	);
 	const result: StressResult = {
 		config: {
 			appCount,
@@ -219,6 +230,7 @@ async function main(): Promise<void> {
 			responseBytes,
 			coldFanout,
 			actorChurnRequests,
+			actorMemoryBytes,
 		},
 		cases: {},
 		memory: { baseline: baselineMemory, final: baselineMemory },
@@ -288,6 +300,9 @@ async function main(): Promise<void> {
 		await runStressCase(result, selectedCases, "directShutdown", () =>
 			directShutdownStress(artifacts[0] as Artifact, concurrency),
 		);
+		await runStressCase(result, selectedCases, "actorMemory", () =>
+			actorMemoryStress(actorMemoryArtifact, concurrency, actorMemoryBytes),
+		);
 	} finally {
 		await Promise.allSettled([
 			...artifacts.map((artifact) => artifact.dispose()),
@@ -295,6 +310,7 @@ async function main(): Promise<void> {
 			actorTrafficArtifact.dispose(),
 			directStallArtifact.dispose(),
 			actorHandlerStallArtifact.dispose(),
+			actorMemoryArtifact.dispose(),
 		]);
 	}
 
@@ -1068,6 +1084,53 @@ async function directShutdownStress(
 	}
 }
 
+async function actorMemoryStress(
+	artifact: Artifact,
+	concurrency: number,
+	allocationBytes: number,
+): Promise<unknown> {
+	const requestedWorkers = Math.min(concurrency, 4);
+	const runtime = new DynamicActorRuntime({
+		DYNAMIC_APPS_ACTOR_WORKER_MAX_ENTRIES: String(requestedWorkers),
+		DYNAMIC_APPS_ACTOR_WORKER_HEAP_LIMIT_MB: "96",
+	});
+	let completed = 0;
+	let rejected = 0;
+	const rss = rssSampler();
+	try {
+		await runConcurrent(requestedWorkers, requestedWorkers, async (index) => {
+			try {
+				const response = await runtime.request({
+					key: `memory-${index}`,
+					loadArtifact: async () => artifact.bytes,
+					endpoint: "http://stress.test",
+					namespace: "stress",
+					pool: "default",
+					request: new Request(`http://stress.test/memory/${index}`, {
+						method: "POST",
+					}),
+				});
+				assert.equal(Number(await response.text()), allocationBytes);
+				completed += 1;
+			} catch (error) {
+				if (!isErrorCode(error, "agentos_apps_no_capacity")) throw error;
+				rejected += 1;
+			}
+		});
+		return {
+			requestedWorkers,
+			allocationBytes,
+			completed,
+			rejected,
+			peakRssBytes: rss.peak(),
+			diagnostics: runtime.diagnostics(),
+		};
+	} finally {
+		rss.stop();
+		await runtime.dispose();
+	}
+}
+
 function executorConfig(input: {
 	appEntries: number;
 	concurrency: number;
@@ -1152,6 +1215,19 @@ export const registry = {
     counter += 1;
     const requestBytes = (await request.arrayBuffer()).byteLength;
     return Response.json({ counter, requestBytes });
+  },
+};
+`;
+}
+
+function actorMemorySource(allocationBytes: number): string {
+	return `
+let retained;
+export const registry = {
+  handler() {
+    retained = new Uint8Array(${allocationBytes});
+    retained.fill(1);
+    return new Response(String(retained.byteLength));
   },
 };
 `;
