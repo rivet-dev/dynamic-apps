@@ -288,46 +288,53 @@ export class DynamicAppsExecutor {
 			cacheOutcome: "app-hit",
 			isolateMode: this.config.isolateMode,
 		};
-		const envelope = await measure(trace, "request-buffer", () =>
-			serializeRequest(request),
-		);
-		if (this.#ensureRegistry) {
-			await measure(trace, "registry-ready", ensurePrivateAppsRegistry);
-		}
-		const requestedRegion =
-			request.headers.get("x-agentos-app-region") ?? undefined;
-		const { entry, hit } = this.#appEntry(appId);
-		if (!hit) trace.cacheOutcome = "app-miss";
-		entry.refs += 1;
-		entry.lastUsedAt = Date.now();
+		let admitted = false;
 		try {
-			const mapping = entry.mapping
-				? entry.mapping
-				: await this.#resolveAndPrepare(entry, trace);
-			if (
-				requestedRegion &&
-				!mapping.resolution.regions.includes(requestedRegion)
-			) {
-				throw new DynamicAppsError(
-					"agentos_apps_region_not_deployed",
-					`app is not deployed in requested region ${requestedRegion}`,
-					{ requestedRegion, regions: mapping.resolution.regions },
-				);
+			await measure(trace, "execution-queue", () => this.#semaphore.acquire());
+			admitted = true;
+			const envelope = await measure(trace, "request-buffer", () =>
+				serializeRequest(request),
+			);
+			if (this.#ensureRegistry) {
+				await measure(trace, "registry-ready", ensurePrivateAppsRegistry);
 			}
-			trace.release = mapping.resolution.release;
-			mapping.runtime.refs += 1;
-			mapping.runtime.lastUsedAt = Date.now();
+			const requestedRegion =
+				request.headers.get("x-agentos-app-region") ?? undefined;
+			const { entry, hit } = this.#appEntry(appId);
+			if (!hit) trace.cacheOutcome = "app-miss";
+			entry.refs += 1;
+			entry.lastUsedAt = Date.now();
 			try {
-				const response = await this.#execute(mapping.runtime, envelope, trace);
-				this.#finishTrace(response.headers, trace);
-				return response;
+				const mapping = entry.mapping
+					? entry.mapping
+					: await this.#resolveAndPrepare(entry, trace);
+				if (
+					requestedRegion &&
+					!mapping.resolution.regions.includes(requestedRegion)
+				) {
+					throw new DynamicAppsError(
+						"agentos_apps_region_not_deployed",
+						`app is not deployed in requested region ${requestedRegion}`,
+						{ requestedRegion, regions: mapping.resolution.regions },
+					);
+				}
+				trace.release = mapping.resolution.release;
+				mapping.runtime.refs += 1;
+				mapping.runtime.lastUsedAt = Date.now();
+				try {
+					const response = await this.#execute(mapping.runtime, envelope, trace);
+					this.#finishTrace(response.headers, trace);
+					return response;
+				} finally {
+					mapping.runtime.refs -= 1;
+					void this.#maybeDisposeRuntime(mapping.runtime);
+				}
 			} finally {
-				mapping.runtime.refs -= 1;
-				void this.#maybeDisposeRuntime(mapping.runtime);
+				entry.refs -= 1;
+				void this.#pruneCaches();
 			}
 		} finally {
-			entry.refs -= 1;
-			void this.#pruneCaches();
+			if (admitted) this.#semaphore.release();
 		}
 	}
 
@@ -623,7 +630,6 @@ export class DynamicAppsExecutor {
 		trace: RequestTrace,
 	): Promise<Response> {
 		let slot: IsolateSlot | undefined;
-		let acquiredExecution = false;
 		let prewarmActive = false;
 		let completedSuccessfully = false;
 		try {
@@ -633,8 +639,6 @@ export class DynamicAppsExecutor {
 				);
 				prewarmActive = true;
 			}
-			await measure(trace, "execution-queue", () => this.#semaphore.acquire());
-			acquiredExecution = true;
 			if (!slot) {
 				if (prewarmActive) runtime.prewarmOverflowCreates += 1;
 				slot = await measure(trace, "isolate-create", () =>
@@ -694,7 +698,6 @@ export class DynamicAppsExecutor {
 				runtime.inUse -= 1;
 				this.#ensurePool(runtime);
 			}
-			if (acquiredExecution) this.#semaphore.release();
 		}
 	}
 
