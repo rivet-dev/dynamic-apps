@@ -521,6 +521,42 @@ describe("actor callback resource limits", () => {
 			await runtime.dispose();
 		}
 	});
+
+	test("fails an actor worker whose startup never completes", async () => {
+		const artifact = await makeActorArtifact("while (true) {}");
+		const runtime = new DynamicActorRuntime({
+			DYNAMIC_APPS_ACTOR_WORKER_START_TIMEOUT_MS: "50",
+		});
+		try {
+			const outcome = await Promise.race([
+				runtime
+					.request({
+						key: "stalled",
+						loadArtifact: async () => artifact.bytes,
+						endpoint: "http://example.test",
+						namespace: "test",
+						pool: "default",
+						request: new Request("http://example.test/start", {
+							method: "POST",
+						}),
+					})
+					.then(
+						() => ({ status: "response" as const }),
+						(error: unknown) => ({ status: "error" as const, error }),
+					),
+				new Promise<{ status: "hung" }>((resolve) =>
+					setTimeout(() => resolve({ status: "hung" }), 250),
+				),
+			]);
+			expect(outcome).toMatchObject({ status: "error" });
+			if (outcome.status === "error") {
+				expect(String(outcome.error)).toContain("startup exceeded");
+			}
+		} finally {
+			await runtime.dispose();
+			await artifact.dispose();
+		}
+	});
 });
 
 async function waitForCleanPool(
@@ -623,6 +659,31 @@ globalThis.__dynamicAppDispatch = async function(inputJson) {
 		bytes: packed,
 		hash: createHash("sha256").update(packed).digest("hex"),
 		release: `release-${marker}`,
+		dispose: () => rm(directory, { recursive: true, force: true }),
+	};
+}
+
+async function makeActorArtifact(source: string): Promise<TestArtifact> {
+	const directory = await mkdtemp(join(tmpdir(), "dynamic-apps-actor-test-"));
+	const archive = join(directory, "app.tar");
+	await mkdir(join(directory, "actor"));
+	await writeFile(join(directory, "actor", "main.mjs"), source);
+	await writeFile(
+		join(directory, "agentos-package.json"),
+		JSON.stringify({ name: "dynamic-actor-test", version: "1.0.0" }),
+	);
+	await execFileAsync(
+		"tar",
+		["-cf", archive, "actor", "agentos-package.json"],
+		{ cwd: directory },
+	);
+	const packed = new Uint8Array(
+		packAospkgFromTarBytes(await readFile(archive)).bytes,
+	);
+	return {
+		bytes: packed,
+		hash: createHash("sha256").update(packed).digest("hex"),
+		release: "release-actor-stall",
 		dispose: () => rm(directory, { recursive: true, force: true }),
 	};
 }
