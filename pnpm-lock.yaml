@@ -223,6 +223,9 @@ importers:
       '@rivet-dev/dynamic-apps':
         specifier: workspace:*
         version: link:../../packages/dynamic-apps
+      '@rivet-dev/workflows':
+        specifier: 1.0.0
+        version: 1.0.0(rivetkit@2.3.11(better-sqlite3@12.11.1)(ws@8.21.3))
       hono:
         specifier: ^4.13.5
         version: 4.13.5
@@ -1460,6 +1463,12 @@ packages:
   '@rivet-dev/agentos-toolchain@0.2.18':
     resolution: {integrity: sha512-fYtRK4VlJzJGLPnKrGzlRJYQnTcO2YeL1jEn1N2MB4FtAxc1BIbszPC70oCE9g8JcdEbhQ8+aPYBKR3VoVAePQ==}
     hasBin: true
+
+  '@rivet-dev/workflows@1.0.0':
+    resolution: {integrity: sha512-FKuG0l716jImDlR3NaobFx0pifd0zDf/oeNXi25yHGiFWWwxQMePmS7OT04Onn2JmJw1+dqnTALot/UfXn10oA==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      rivetkit: 2.3.11
 
   '@rivetkit/bare-ts@0.6.2':
     resolution: {integrity: sha512-3qndQUQXLdwafMEqfhz24hUtDPcsf1Bu3q52Kb8MqeH8JUh3h6R4HYW3ZJXiQsLcyYyFM68PuIwlLRlg1xDEpg==}
@@ -4866,6 +4875,15 @@ snapshots:
   '@rivet-dev/agentos-toolchain@0.2.18':
     dependencies:
       '@rivetkit/bare-ts': 0.6.2
+
+  '@rivet-dev/workflows@1.0.0(rivetkit@2.3.11(better-sqlite3@12.11.1)(ws@8.21.3))':
+    dependencies:
+      '@rivetkit/bare-ts': 0.6.2
+      cbor-x: 1.6.5
+      fdb-tuple: 1.0.0
+      pino: 9.14.0
+      rivetkit: 2.3.11(better-sqlite3@12.11.1)(ws@8.21.3)
+      vbare: 0.0.4
 
   '@rivetkit/bare-ts@0.6.2': {}
 
