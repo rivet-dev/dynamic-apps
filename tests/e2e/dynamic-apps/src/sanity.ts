@@ -23,7 +23,7 @@ const deployment = await deployApp({
 			main: "index.js",
 			dependencies: {
 				hono: "4.13.5",
-				rivetkit: "2.3.27",
+				rivetkit: "2.3.29",
 			},
 		}),
 		"index.js": `

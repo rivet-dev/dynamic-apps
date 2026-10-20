@@ -229,6 +229,9 @@ setDynamicAppsVmOptions(({ appId }) => ({
 }));
 ```
 
+App code, including actor code, calls host functions as globals, for example
+`await github.createIssue({ title })`.
+
 VMs are cached per release, so set the options before the first request.
 Changed options apply only to VMs created afterwards.
 

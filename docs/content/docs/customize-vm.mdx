@@ -32,9 +32,8 @@ options apply only to VMs created afterwards.
 
 Apps with actors can still listen inside the VM and reach Rivet under a `deny`
 or rule-set network policy, unless your own rules explicitly deny that access.
-Inline JavaScript calls a host function as
-`await github.createIssue({ title })`. Actor code runs as a Node.js process and
-calls it through its CLI, `agentos-github create-issue --title <title>`.
+App code, including actor code, calls a host function as a global:
+`await github.createIssue({ title })`.
 
 With [Core](/dynamic-apps/docs/core), use the `vm` option instead:
 

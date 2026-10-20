@@ -1179,7 +1179,6 @@ export default {
 			};
 		});
 		const artifact = await makeActorArtifact(`
-import { execFileSync } from "node:child_process";
 export default {
   async fetch() {
     let egress;
@@ -1189,7 +1188,7 @@ export default {
     } catch (error) {
       egress = "denied";
     }
-    const issue = JSON.parse(execFileSync("agentos-gatekeeper", ["create-issue", "--title", "hello"], { encoding: "utf8" }));
+    const issue = await gatekeeper.createIssue({ title: "hello" });
     return Response.json({ egress, issue });
   },
 };
@@ -1208,7 +1207,7 @@ export default {
 			});
 			expect(await response.json()).toEqual({
 				egress: "denied",
-				issue: { ok: true, result: { id: 7 } },
+				issue: { id: 7 },
 			});
 			expect(contexts).toEqual([{ appId: "gadget-1", release: "release-vm" }]);
 			expect(calls).toEqual([{ appId: "gadget-1", input: { title: "hello" } }]);
