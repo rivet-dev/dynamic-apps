@@ -213,6 +213,29 @@ only `getOrCreate()` retain the original behavior.
 `DYNAMIC_APPS_LOG_REQUESTS=1` emits structured request timing records through
 the configured log handler without request/response bodies or credentials.
 
+## Configuring app VMs
+
+`setDynamicAppsVmOptions(options)` sets the agentOS options for every app VM,
+including VMs that run app-defined actors. A function receives
+`{ appId, release }` and is called once per release VM, so permissions and host
+functions can differ per app:
+
+```ts
+import { setDynamicAppsVmOptions } from "@rivet-dev/dynamic-apps";
+
+setDynamicAppsVmOptions(({ appId }) => ({
+	permissions: { network: "deny" },
+	hostFunctions: { github: githubHostFunctionsFor(appId) },
+}));
+```
+
+VMs are cached per release, so set the options before the first request.
+Changed options apply only to VMs created afterwards.
+
+Actor VMs keep VM-local listeners, VM-local loopback HTTP, and the Rivet Engine
+endpoint reachable under a `deny` or rule-set network policy. Rules you add are
+evaluated after these, so an explicit deny rule for that access still wins.
+
 ## Collecting logs
 
 Register one synchronous handler during host startup:

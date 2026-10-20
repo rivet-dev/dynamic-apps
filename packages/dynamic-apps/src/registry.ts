@@ -9,6 +9,8 @@ export const privateAppsRegistry = setup({
 	// Artifact chunks are binary deployment traffic and expand during RivetKit
 	// action serialization. The default 64 KiB action limit is too small.
 	maxIncomingMessageSize: 1024 * 1024,
+	// The app-state actor does not use the optional Services sidecar.
+	startServices: false,
 	use: createAppsActors({
 		artifactCache: artifactCacheDirectory
 			? {

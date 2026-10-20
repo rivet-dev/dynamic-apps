@@ -15,15 +15,18 @@ import {
 	DynamicAppsExecutor,
 	directRunnerSource,
 	type ExecutorReleaseSource,
+	GUEST_FORMAT_ERROR_SOURCE,
 	normalizeAppPath,
 	prepareSource,
 	readExecutorConfig,
 } from "@rivet-dev/dynamic-apps-core/internal";
 import { Hono } from "hono";
 import { afterEach, describe, expect, test } from "vitest";
+import { z } from "zod";
 import {
 	actorWorkerEnvironment,
 	DynamicActorRuntime,
+	resolveActorAgentOsOptions,
 } from "../src/actor-runtime.js";
 import { forwardActorCallbackRequest } from "../src/actors.js";
 import { resolveDefaultRivetConnection } from "../src/control-plane.js";
@@ -32,6 +35,7 @@ import {
 	type DynamicAppsLogEvent,
 	setDynamicAppsLogHandler,
 } from "../src/logging.js";
+import { setDynamicAppsVmOptions } from "../src/vm-options.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -57,6 +61,7 @@ const setRouterRequestOverride = (
 afterEach(() => {
 	setRouterRequestOverride();
 	setDynamicAppsLogHandler(undefined);
+	setDynamicAppsVmOptions(undefined);
 });
 
 describe("retained public surface", () => {
@@ -264,7 +269,7 @@ describe("retained public surface", () => {
 				pool: "app-pool",
 			}),
 		).toMatchObject({
-			RIVETKIT_RUNTIME: "native",
+			RIVETKIT_RUNTIME: "wasm",
 			RIVET_ENDPOINT: "https://api.rivet.dev",
 			RIVET_NAMESPACE: "app-namespace",
 			RIVET_TOKEN: "pk_example",
@@ -1081,6 +1086,138 @@ export default {
 		}
 	}, 60_000);
 
+	test("keeps the Engine reachable under a host network policy", () => {
+		const resolve = (network: "allow" | "deny" | undefined) =>
+			resolveActorAgentOsOptions(
+				network === undefined ? undefined : { permissions: { network } },
+				"/tmp/release.aospkg",
+				96,
+				"https://api.rivet.dev",
+			).permissions?.network;
+		expect(resolve(undefined)).toBe("allow");
+		expect(resolve("allow")).toBe("allow");
+		expect(resolve("deny")).toEqual({
+			default: "deny",
+			rules: [
+				{
+					mode: "allow",
+					operations: ["listen"],
+					patterns: ["tcp://**", "unix:**"],
+				},
+				{
+					mode: "allow",
+					operations: ["http"],
+					patterns: [
+						"tcp://127.0.0.1:*",
+						"tcp://localhost:*",
+						"tcp://::1:*",
+						"unix:**",
+					],
+				},
+				{
+					mode: "allow",
+					operations: ["*"],
+					patterns: ["dns://api.rivet.dev", "tcp://api.rivet.dev:443"],
+				},
+			],
+		});
+		const options = resolveActorAgentOsOptions(
+			{
+				permissions: {
+					network: {
+						default: "deny",
+						rules: [
+							{ mode: "allow", operations: ["*"], patterns: ["dns://a.test"] },
+						],
+					},
+				},
+			},
+			"/tmp/release.aospkg",
+			96,
+			"http://localhost:6420",
+		);
+		expect(options.permissions?.network).toMatchObject({
+			default: "deny",
+			rules: [
+				{ operations: ["listen"] },
+				{ operations: ["http"] },
+				{ patterns: ["dns://localhost", "tcp://localhost:6420"] },
+				{ patterns: ["dns://a.test"] },
+			],
+		});
+		expect(options.loopbackExemptPorts).toEqual([6420]);
+		expect(
+			resolveActorAgentOsOptions(
+				{ permissions: { network: "deny" } },
+				"/tmp/release.aospkg",
+				96,
+				"http://[::1]:6420/api",
+			).permissions?.network,
+		).toMatchObject({
+			rules: [{}, {}, { patterns: ["dns://::1", "tcp://::1:6420"] }],
+		});
+	});
+
+	test("applies per-app VM options to actor workers", async () => {
+		const contexts: Array<{ appId: string; release: string }> = [];
+		const calls: unknown[] = [];
+		setDynamicAppsVmOptions((context) => {
+			contexts.push(context);
+			return {
+				permissions: { network: "deny" },
+				hostFunctions: {
+					gatekeeper: {
+						createIssue: {
+							inputSchema: z.object({ title: z.string() }),
+							execute: async (input) => {
+								calls.push({ appId: context.appId, input });
+								return { id: 7 };
+							},
+						},
+					},
+				},
+			};
+		});
+		const artifact = await makeActorArtifact(`
+import { execFileSync } from "node:child_process";
+export default {
+  async fetch() {
+    let egress;
+    try {
+      await fetch("https://example.com/");
+      egress = "allowed";
+    } catch (error) {
+      egress = "denied";
+    }
+    const issue = JSON.parse(execFileSync("agentos-gatekeeper", ["create-issue", "--title", "hello"], { encoding: "utf8" }));
+    return Response.json({ egress, issue });
+  },
+};
+`);
+		const runtime = new DynamicActorRuntime();
+		try {
+			const response = await runtime.request({
+				key: "vm-options",
+				appId: "gadget-1",
+				release: "release-vm",
+				loadArtifact: async () => artifact.bytes,
+				endpoint: "http://example.test",
+				namespace: "test",
+				pool: "default",
+				request: new Request("http://example.test/start", { method: "POST" }),
+			});
+			expect(await response.json()).toEqual({
+				egress: "denied",
+				issue: { ok: true, result: { id: 7 } },
+			});
+			expect(contexts).toEqual([{ appId: "gadget-1", release: "release-vm" }]);
+			expect(calls).toEqual([{ appId: "gadget-1", input: { title: "hello" } }]);
+		} finally {
+			await runtime.dispose();
+			await artifact.dispose();
+		}
+	});
+
 	test("attributes actor worker stdout and stderr", async () => {
 		const events: Readonly<DynamicAppsLogEvent>[] = [];
 		setDynamicAppsLogHandler((event) => events.push(event));
@@ -1249,6 +1386,7 @@ const fetch = typeof application === "function"
   ? application
   : application?.fetch?.bind(application);
 if (typeof fetch !== "function") throw new TypeError("invalid test fetch handler");
+${GUEST_FORMAT_ERROR_SOURCE}
 const port = Number(process.env.DYNAMIC_APPS_ACTOR_PORT ?? 3000);
 http.createServer(async (incoming, outgoing) => {
   try {
@@ -1279,7 +1417,7 @@ http.createServer(async (incoming, outgoing) => {
     }
     outgoing.end();
   } catch (error) {
-    console.error(error);
+    console.error(formatError(error));
     if (!outgoing.headersSent) outgoing.writeHead(500);
     if (!outgoing.writableEnded) outgoing.end("Internal Server Error");
   }

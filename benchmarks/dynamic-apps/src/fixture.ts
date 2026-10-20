@@ -61,7 +61,7 @@ export async function deployActorBenchmarkFixture(
 					main: "index.js",
 					dependencies: {
 						hono: "4.13.5",
-						rivetkit: "2.3.11",
+						rivetkit: "2.3.27",
 					},
 				}),
 				"index.js": `

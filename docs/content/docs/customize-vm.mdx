@@ -1,18 +1,48 @@
 ---
 title: "Customize the VM"
-description: "Configure the agentOS VM that builds and serves each app."
+description: "Configure the agentOS VM that serves each app."
 skill: true
 ---
 
-With [Core](/dynamic-apps/docs/core), use the `vm` option to configure the
-agentOS VM that serves each app:
+Call `setDynamicAppsVmOptions` during host startup to configure the agentOS VM
+that serves each app, including apps with Rivet Actors. Pass a function to give
+each app its own permissions and host functions:
+
+```ts
+import { setDynamicAppsVmOptions } from "@rivet-dev/dynamic-apps";
+import { z } from "zod";
+
+setDynamicAppsVmOptions(({ appId }) => ({
+  // Block outbound network access from app code.
+  permissions: { network: "deny" },
+  // Host functions run in your server, so credentials never enter the VM.
+  hostFunctions: {
+    github: {
+      createIssue: {
+        inputSchema: z.object({ title: z.string() }),
+        execute: ({ title }) => createIssueFor(appId, title),
+      },
+    },
+  },
+}));
+```
+
+VMs are cached per release, so call it before the first request. Changed
+options apply only to VMs created afterwards.
+
+Apps with actors can still listen inside the VM and reach Rivet under a `deny`
+or rule-set network policy, unless your own rules explicitly deny that access.
+Inline JavaScript calls a host function as
+`await github.createIssue({ title })`. Actor code runs as a Node.js process and
+calls it through its CLI, `agentos-github create-issue --title <title>`.
+
+With [Core](/dynamic-apps/docs/core), use the `vm` option instead:
 
 ```ts
 const dynamicApps = createDynamicApps({
   // Release hooks omitted.
   vm: {
     software: [firstPackage, secondPackage],
-    onAgentStderr: (event) => logger.error(event),
     onLimitWarning: (warning) => logger.warn(warning),
   },
 });

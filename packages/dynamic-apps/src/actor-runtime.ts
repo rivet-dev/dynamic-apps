@@ -2,12 +2,17 @@ import { createHash, randomUUID } from "node:crypto";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { AgentOs } from "@rivet-dev/agentos-core";
+import { AgentOs, type AgentOsOptions } from "@rivet-dev/agentos-core";
 import type {
 	ApplicationServerRuntime,
 	ApplicationServerRuntimeRequest,
 } from "@rivet-dev/dynamic-apps-core";
-import { emitDynamicAppsLog } from "./logging.js";
+import {
+	resolveRuntimeAgentOsOptions,
+	resolveVmOptions,
+} from "@rivet-dev/dynamic-apps-core/internal";
+import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
+import { getDynamicAppsVmOptions } from "./vm-options.js";
 
 const ACTOR_HTTP_PORT = 3000;
 const HOP_BY_HOP_HEADERS = [
@@ -48,6 +53,12 @@ export interface ActorRuntimeRequest
 	/** @deprecated Use environment. */
 	pool?: string;
 	request: Request;
+}
+
+interface GuestLogLine {
+	stream: "stdout" | "stderr";
+	message: string;
+	truncated: boolean;
 }
 
 interface RuntimeEntry {
@@ -264,21 +275,27 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 		if (existing && !existing.disposed) return this.#lease(existing);
 		const creating = this.#creating.get(input.key);
 		if (creating) return this.#lease(await creating);
-		const promise = this.#createEntry(input);
+		const promise = this.#createAndPublish(input);
 		this.#creating.set(input.key, promise);
+		const entry = this.#lease(await promise);
+		await this.#prune(entry.key);
+		return entry;
+	}
+
+	// Tracks creation through publication or disposal, so dispose() waits for
+	// the whole operation and the key leaves #creating before the promise settles.
+	// #entry only starts a creation when none is pending for the key.
+	async #createAndPublish(input: ActorRuntimeRequest): Promise<RuntimeEntry> {
 		try {
-			const entry = await promise;
+			const entry = await this.#createEntry(input);
 			if (this.#disposed) {
 				await this.#disposeEntry(entry);
 				throw new Error("Dynamic App actor runtime disposed during creation");
 			}
 			this.#entries.set(input.key, entry);
-			this.#lease(entry);
-			await this.#prune(entry.key);
 			return entry;
 		} finally {
-			if (this.#creating.get(input.key) === promise)
-				this.#creating.delete(input.key);
+			this.#creating.delete(input.key);
 		}
 	}
 
@@ -308,35 +325,18 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 			await writeFile(artifactPath, await input.loadArtifact(), {
 				mode: 0o600,
 			});
-			vm = await AgentOs.create({
-				sidecar: { kind: "shared", pool: "dynamic-apps-actors" },
-				defaultSoftware: false,
-				loopbackExemptPorts: loopbackExemptPorts(environment.RIVET_ENDPOINT),
-				mounts: [
-					{
-						path: "/app",
-						readOnly: true,
-						plugin: {
-							id: "agentos_packages",
-							config: {
-								kind: "tar",
-								tarPath: artifactPath,
-								root: "/",
-								readOnly: true,
-							},
-						},
-					},
-				],
-				permissions: {
-					fs: "allow",
-					childProcess: "allow",
-					process: "allow",
-					env: "allow",
-					network: "allow",
-				},
-				limits: { jsRuntime: { v8HeapLimitMb: this.config.heapLimitMb } },
-			});
-			const pendingLogs: Array<["stdout" | "stderr", Uint8Array]> = [];
+			vm = await AgentOs.create(
+				resolveActorAgentOsOptions(
+					await resolveVmOptions(getDynamicAppsVmOptions(), {
+						appId: input.appId ?? "unknown",
+						release: input.release ?? "unknown",
+					}),
+					artifactPath,
+					this.config.heapLimitMb,
+					environment.RIVET_ENDPOINT,
+				),
+			);
+			const pendingLogs: Array<[GuestLogLine["stream"], string, boolean]> = [];
 			const readyNonce = randomUUID();
 			const readyMarker = `DYNAMIC_APPS_SERVER_READY:${readyNonce}`;
 			let readyBuffer = "";
@@ -347,6 +347,16 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 				rejectReady = reject;
 			});
 			let entry: RuntimeEntry | undefined;
+			const logLine =
+				(stream: GuestLogLine["stream"]) =>
+				(message: string, truncated: boolean) => {
+					// The readiness marker is a platform handshake, not application output.
+					if (message === readyMarker) return;
+					if (entry) this.#logGuest(entry, { stream, message, truncated });
+					else pendingLogs.push([stream, message, truncated]);
+				};
+			const stdoutLines = new DynamicAppsLogLineDecoder(logLine("stdout"));
+			const stderrLines = new DynamicAppsLogLineDecoder(logLine("stderr"));
 			const process = await vm.process.spawn("node", ["/app/actor/main.mjs"], {
 				cwd: "/app/actor",
 				env: stringEnvironment({
@@ -359,13 +369,9 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 						-4_096,
 					);
 					if (readyBuffer.includes(readyMarker)) resolveReady();
-					if (entry) this.#logGuest(entry, "stdout", data);
-					else pendingLogs.push(["stdout", data]);
+					stdoutLines.write(data);
 				},
-				onStderr: (data) =>
-					entry
-						? this.#logGuest(entry, "stderr", data)
-						: pendingLogs.push(["stderr", data]),
+				onStderr: (data) => stderrLines.write(data),
 			});
 			entry = {
 				key: input.key,
@@ -378,17 +384,30 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 				lastUsedAt: Date.now(),
 				disposed: false,
 			};
-			for (const [stream, data] of pendingLogs)
-				this.#logGuest(entry, stream, data);
+			for (const [stream, message, truncated] of pendingLogs)
+				this.#logGuest(entry, { stream, message, truncated });
 			const processExit = vm.process.wait(process.pid);
-			void processExit.then((exit) => {
-				const error = new Error(
-					`Dynamic App agentOS actor process exited with ${exit.exitCode ?? 1}`,
-				);
+			const onProcessEnd = (error: Error) => {
+				stdoutLines.end();
+				stderrLines.end();
 				rejectReady(error);
 				if (!entry || entry.disposed) return;
 				this.#failEntry(entry, error);
-			});
+			};
+			// agentOS rejects the wait when the VM is disposed before it observes the
+			// exit, which is the normal outcome of disposing a running entry.
+			void processExit.then(
+				(exit) =>
+					onProcessEnd(
+						new Error(
+							`Dynamic App agentOS actor process exited with ${exit.exitCode ?? 1}`,
+						),
+					),
+				(error: unknown) =>
+					onProcessEnd(
+						error instanceof Error ? error : new Error(String(error)),
+					),
+			);
 			await withTimeout(
 				ready,
 				this.config.startTimeoutMs,
@@ -403,7 +422,7 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 	}
 
 	#failEntry(entry: RuntimeEntry, error: unknown): void {
-		this.#entries.delete(entry.key);
+		this.#forget(entry);
 		emitDynamicAppsLog({
 			level: "error",
 			source: "actor",
@@ -417,16 +436,16 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 
 	#logGuest(
 		entry: Pick<RuntimeEntry, "appId" | "release">,
-		stream: "stdout" | "stderr",
-		data: Uint8Array,
+		line: GuestLogLine,
 	): void {
 		emitDynamicAppsLog({
-			level: stream === "stdout" ? "info" : "error",
+			level: line.stream === "stdout" ? "info" : "error",
 			source: "actor",
-			message: new TextDecoder().decode(data).slice(0, 64 * 1024),
+			message: line.message,
 			appId: entry.appId,
 			release: entry.release,
-			stream,
+			stream: line.stream,
+			...(line.truncated ? { metadata: { truncated: true } } : {}),
 		});
 	}
 
@@ -444,7 +463,7 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 					now - entry.lastUsedAt >= this.config.idleTtlMs ||
 					this.#entries.size > this.config.maxEntries)
 			) {
-				this.#entries.delete(entry.key);
+				this.#forget(entry);
 				await this.#disposeEntry(entry);
 			}
 		}
@@ -468,6 +487,11 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 		} catch {
 			return false;
 		}
+	}
+
+	// A stale entry must not evict a newer entry published under the same key.
+	#forget(entry: RuntimeEntry): void {
+		if (this.#entries.get(entry.key) === entry) this.#entries.delete(entry.key);
 	}
 
 	async #disposeEntry(entry: RuntimeEntry): Promise<void> {
@@ -606,6 +630,82 @@ function stringEnvironment(env: NodeJS.ProcessEnv): Record<string, string> {
 			(entry): entry is [string, string] => typeof entry[1] === "string",
 		),
 	);
+}
+
+type NetworkPermissions = NonNullable<AgentOsOptions["permissions"]>["network"];
+
+/**
+ * Resolves an actor VM's options. The actor server listens inside the VM and
+ * its RivetKit runtime must reach the Engine, so both stay allowed under any
+ * network policy the host configures.
+ */
+export function resolveActorAgentOsOptions(
+	base: AgentOsOptions | undefined,
+	artifactPath: string,
+	heapLimitMb: number,
+	engineEndpoint: string | undefined,
+): AgentOsOptions {
+	const options = resolveRuntimeAgentOsOptions(
+		{
+			...base,
+			sidecar: base?.sidecar ?? { kind: "shared", pool: "dynamic-apps-actors" },
+		},
+		artifactPath,
+		heapLimitMb,
+	);
+	return {
+		...options,
+		loopbackExemptPorts: [
+			...(base?.loopbackExemptPorts ?? []),
+			...loopbackExemptPorts(engineEndpoint),
+		],
+		permissions: {
+			...options.permissions,
+			network: withActorServerAccess(
+				options.permissions?.network,
+				engineEndpoint,
+			),
+		},
+	};
+}
+
+function withActorServerAccess(
+	network: NetworkPermissions,
+	engineEndpoint: string | undefined,
+): NetworkPermissions {
+	if (network === undefined || network === "allow") return network;
+	// These mirror agentOS's VM-local defaults. Dynamic Apps reaches the actor
+	// server over VM-local loopback HTTP.
+	const rules = [
+		{
+			mode: "allow" as const,
+			operations: ["listen"],
+			patterns: ["tcp://**", "unix:**"],
+		},
+		{
+			mode: "allow" as const,
+			operations: ["http"],
+			patterns: [
+				"tcp://127.0.0.1:*",
+				"tcp://localhost:*",
+				"tcp://::1:*",
+				"unix:**",
+			],
+		},
+	];
+	if (engineEndpoint) {
+		const url = new URL(engineEndpoint);
+		const port = url.port || (url.protocol === "https:" ? "443" : "80");
+		// agentOS formats IPv6 resources without the URL's brackets.
+		const host = url.hostname.replace(/^\[(.*)\]$/u, "$1");
+		rules.push({
+			mode: "allow",
+			operations: ["*"],
+			patterns: [`dns://${host}`, `tcp://${host}:${port}`],
+		});
+	}
+	if (network === "deny") return { default: "deny", rules };
+	return { ...network, rules: [...rules, ...network.rules] };
 }
 
 function loopbackExemptPorts(endpoint: string | undefined): number[] {

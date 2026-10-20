@@ -135,13 +135,29 @@ export interface DynamicAppsOptions<TDeployment, TDeployOptions = undefined> {
 	): Promise<Unsubscribe>;
 	executor?: Partial<ExecutorConfig>;
 	/** Additional options passed to every application-serving VM. */
-	vm?: AgentOsOptions;
+	vm?: DynamicAppsVmOptions;
 	/** Shared HTTP runtime used by releases that contain RivetKit actors. */
 	serverRuntime?: ApplicationServerRuntime;
 	build?: Partial<BuildConfig>;
 	artifactCache?: BuildArtifactCache;
 	logger?: DynamicAppsLogger;
 }
+
+/** The release an application-serving VM is created for. */
+export interface DynamicAppsVmContext {
+	appId: string;
+	release: string;
+}
+
+/**
+ * agentOS options for application-serving VMs. A function is called once per
+ * release VM, so options such as permissions or host functions can differ per app.
+ */
+export type DynamicAppsVmOptions =
+	| AgentOsOptions
+	| ((
+			context: DynamicAppsVmContext,
+	  ) => AgentOsOptions | Promise<AgentOsOptions>);
 
 export interface DynamicApps<TDeployment, TDeployOptions = undefined> {
 	deployApp(

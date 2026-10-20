@@ -2,8 +2,6 @@ import { createHash } from "node:crypto";
 import { chmod, mkdtemp, readFile, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import sh from "@agentos-software/sh";
-import tar from "@agentos-software/tar";
 import {
 	AgentOs,
 	type AgentOsOptions,
@@ -715,8 +713,9 @@ export function createBuildVmFactory(
 	config: BuildConfig,
 ): () => Promise<BuildHandle> {
 	const options: AgentOsOptions = {
-		defaultSoftware: false,
-		software: [sh, tar, appsBuilder],
+		// agentOS vendors the shell and tar the build runs in its default software.
+		defaultSoftware: true,
+		software: [appsBuilder],
 		permissions: {
 			fs: "allow",
 			childProcess: "allow",

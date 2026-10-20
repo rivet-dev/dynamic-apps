@@ -7,6 +7,8 @@ export {
 	type ExecutorReleaseSource,
 	readExecutorConfig,
 	resolveExecutorConfig,
+	resolveRuntimeAgentOsOptions,
+	resolveVmOptions,
 } from "./executor.js";
 export {
 	type DynamicAppsLogEvent,
@@ -28,6 +30,7 @@ export {
 	DIRECT_ENTRYPOINT,
 	DIRECT_RUNTIME_FORMAT,
 	directRunnerSource,
+	GUEST_FORMAT_ERROR_SOURCE,
 	normalizeAppPath,
 } from "./runtime.js";
 export { prepareSource, validateAppId } from "./source.js";

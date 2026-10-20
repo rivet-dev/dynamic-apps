@@ -70,7 +70,7 @@ package.json
   },
   "dependencies": {
     "hono": "4.13.5",
-    "rivetkit": "2.3.11"
+    "rivetkit": "2.3.27"
   },
   "devDependencies": {
     "@types/node": "22.20.1",

@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -21,10 +22,13 @@ const metricsPort = await getPort({ exclude: [guardPort, peerPort] });
 const endpoint = `http://127.0.0.1:${guardPort}`;
 const peerEndpoint = `http://127.0.0.1:${peerPort}`;
 const configPath = join(root, "engine.json");
+// Rivet Engine requires an admin token to start.
+const adminToken = randomBytes(32).toString("hex");
 await writeFile(
 	configPath,
 	JSON.stringify({
 		file_system: { path: databasePath },
+		auth: { admin_token: adminToken },
 		guard: { host: "127.0.0.1", port: guardPort },
 		api_peer: { host: "127.0.0.1", port: peerPort },
 		metrics: { host: "127.0.0.1", port: metricsPort },
@@ -52,6 +56,7 @@ const engine = spawn(getEnginePath(), ["--config", configPath, "start"], {
 try {
 	await waitUntilHealthy(endpoint, engine);
 	process.env.RIVET_ENDPOINT = endpoint;
+	process.env.RIVET_TOKEN = adminToken;
 	process.env.DYNAMIC_APPS_E2E_FAST = fast ? "1" : "0";
 	process.env.DYNAMIC_APPS_E2E_BUILD_ONLY = buildOnly ? "1" : "0";
 	if (fast) {

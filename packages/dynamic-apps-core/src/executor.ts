@@ -11,6 +11,8 @@ import { validateAppId } from "./source.js";
 import type {
 	ActiveRelease,
 	ApplicationServerRuntime,
+	DynamicAppsVmContext,
+	DynamicAppsVmOptions,
 	ReleaseInvalidation,
 	ReleaseLoadContext,
 	Unsubscribe,
@@ -370,6 +372,14 @@ export function resolveRuntimeAgentOsOptions(
 	};
 }
 
+/** Resolves configured VM options for one release VM. */
+export async function resolveVmOptions(
+	options: DynamicAppsVmOptions | undefined,
+	context: DynamicAppsVmContext,
+): Promise<AgentOsOptions | undefined> {
+	return typeof options === "function" ? await options(context) : options;
+}
+
 function invalidExecutorConfig(name: string): DynamicAppsError {
 	return new DynamicAppsError(
 		"dynamic_apps_invalid_config",
@@ -381,7 +391,7 @@ export class DynamicAppsExecutor {
 	readonly config: ExecutorConfig;
 	readonly #source: ExecutorReleaseSource;
 	readonly #serverRuntime?: ApplicationServerRuntime;
-	readonly #vmOptions?: AgentOsOptions;
+	readonly #vmOptions?: DynamicAppsVmOptions;
 	readonly #semaphore: Semaphore;
 	readonly #apps = new Map<string, AppCacheEntry>();
 	readonly #runtimes = new Map<string, PreparedRuntime>();
@@ -395,7 +405,7 @@ export class DynamicAppsExecutor {
 	constructor(
 		source: ExecutorReleaseSource,
 		config: ExecutorConfig,
-		vmOptions?: AgentOsOptions,
+		vmOptions?: DynamicAppsVmOptions,
 		serverRuntime?: ApplicationServerRuntime,
 	) {
 		this.config = config;
@@ -753,10 +763,13 @@ export class DynamicAppsExecutor {
 		try {
 			await chmod(directory, 0o700);
 			await writeFile(artifactPath, artifact, { mode: 0o600 });
-			vm = await measureOptional(trace, "vm-prepare", () =>
+			vm = await measureOptional(trace, "vm-prepare", async () =>
 				AgentOs.create(
 					resolveRuntimeAgentOsOptions(
-						this.#vmOptions,
+						await resolveVmOptions(this.#vmOptions, {
+							appId: resolution.appId,
+							release: resolution.release,
+						}),
 						artifactPath,
 						this.config.contextHeapLimitMb,
 					),

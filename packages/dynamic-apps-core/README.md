@@ -73,14 +73,13 @@ each request. `ephemeral` mode creates a fresh context per request while reusing
 the immutable release VM. Use container isolation between trust domains.
 
 Pass additional VM configuration through `vm`. This supports any
-number of agentOS software packages as well as runtime observability callbacks:
+number of agentOS software packages as well as the limit warning callback:
 
 ```ts
 const dynamicApps = createDynamicApps({
 	// Release hooks omitted.
 	vm: {
 		software: [firstPackage, secondPackage],
-		onAgentStderr: (event) => logger.error(event),
 		onLimitWarning: (warning) => logger.warn(warning),
 	},
 });

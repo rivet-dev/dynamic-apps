@@ -139,6 +139,21 @@ export async function dispatch(input) {
 `;
 }
 
+/**
+ * Guest-side `formatError(error)` that renders an error's stack and cause chain.
+ * The guest console prints only an error's name and message, so actor runners
+ * log handler failures through this instead.
+ */
+export const GUEST_FORMAT_ERROR_SOURCE = `function formatError(error) {
+  const lines = [];
+  for (let current = error, depth = 0; current !== undefined && depth < 8; depth++) {
+    const text = current instanceof Error ? (current.stack ?? String(current)) : String(current);
+    lines.push(depth === 0 ? text : "Caused by: " + text);
+    current = current instanceof Error ? current.cause : undefined;
+  }
+  return lines.join("\\n");
+}`;
+
 /** Initializes RivetKit WASM and hosts the application's exported fetch handler. */
 export function actorRunnerSource(entrypointInput: string): string {
 	const entrypoint = `./${normalizeAppPath(entrypointInput)}`;
@@ -158,9 +173,18 @@ const fetch = typeof application === "function"
 if (!fetch) {
   throw new TypeError("Dynamic App entrypoint default export must be a fetch handler");
 }
+${GUEST_FORMAT_ERROR_SOURCE}
+async function handle(request, ...rest) {
+  try {
+    return await fetch(request, ...rest);
+  } catch (error) {
+    console.error(formatError(error));
+    return new Response("Internal Server Error", { status: 500 });
+  }
+}
 await new Promise((resolve, reject) => {
   const server = serve({
-    fetch,
+    fetch: handle,
     port: Number(process.env.PORT),
     hostname: "0.0.0.0",
   }, resolve);

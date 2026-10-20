@@ -3,21 +3,19 @@ import { describe, expect, test, vi } from "vitest";
 import { resolveRuntimeAgentOsOptions } from "../src/executor.js";
 
 describe("agentOS runtime options", () => {
-	test("preserves multiple software packages and observability callbacks", () => {
+	test("preserves multiple software packages and the limit warning callback", () => {
 		const software = [
 			{ packagePath: "/packages/one" },
 			{ packagePath: "/packages/two" },
 		];
-		const onAgentStderr = vi.fn();
 		const onLimitWarning = vi.fn();
 		const options = resolveRuntimeAgentOsOptions(
-			{ software, onAgentStderr, onLimitWarning },
+			{ software, onLimitWarning },
 			"/tmp/release.aospkg",
 			96,
 		);
 
 		expect(options.software).toEqual(software);
-		expect(options.onAgentStderr).toBe(onAgentStderr);
 		expect(options.onLimitWarning).toBe(onLimitWarning);
 		expect(options.defaultSoftware).toBe(false);
 		expect(options.limits?.jsRuntime?.v8HeapLimitMb).toBe(96);

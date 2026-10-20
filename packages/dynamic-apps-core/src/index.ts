@@ -10,6 +10,8 @@ export type {
 	DynamicApps,
 	DynamicAppsLogger,
 	DynamicAppsOptions,
+	DynamicAppsVmContext,
+	DynamicAppsVmOptions,
 	ExecutionMode,
 	ExecutorConfig,
 	PublishReleaseInput,

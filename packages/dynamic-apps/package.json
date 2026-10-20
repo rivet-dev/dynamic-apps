@@ -26,21 +26,22 @@
 		"node": ">=22.0.0"
 	},
 	"scripts": {
-		"build": "tsup src/index.ts --format esm --dts --sourcemap --clean --external rivetkit --external @rivet-dev/agentos-core --external @rivet-dev/agentos-toolchain --external @rivet-dev/dynamic-apps-builder --external @agentos-software/sh --external @agentos-software/tar",
+		"build": "tsup src/index.ts --format esm --dts --sourcemap --clean --external rivetkit --external @rivet-dev/agentos-core --external @rivet-dev/agentos-toolchain --external @rivet-dev/dynamic-apps-builder",
 		"check-types": "tsc --noEmit",
 		"test": "vitest run"
 	},
 	"dependencies": {
-		"@rivet-dev/agentos-core": "0.2.18",
+		"@rivet-dev/agentos-core": "0.4.2",
 		"@rivet-dev/dynamic-apps-core": "workspace:0.3.0",
 		"hono": "^4.13.5",
-		"rivetkit": "2.3.11"
+		"rivetkit": "2.3.27"
 	},
 	"devDependencies": {
-		"@rivet-dev/agentos-toolchain": "0.2.18",
+		"@rivet-dev/agentos-toolchain": "0.4.2",
 		"@types/node": "^22.19.15",
 		"tsup": "^8.4.0",
 		"typescript": "^5.7.3",
-		"vitest": "^2.1.8"
+		"vitest": "^2.1.8",
+		"zod": "4.5.4"
 	}
 }
