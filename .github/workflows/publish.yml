@@ -51,12 +51,17 @@ jobs:
         run: |
           set -euo pipefail
           npm ping
+          existing=0
           for package in @rivet-dev/dynamic-apps-builder @rivet-dev/dynamic-apps-core @rivet-dev/dynamic-apps; do
             if npm view "$package@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
-              echo "$package@${{ steps.release.outputs.version }} already exists" >&2
-              exit 1
+              echo "::notice::$package@${{ steps.release.outputs.version }} already exists and will be skipped"
+              existing=$((existing + 1))
             fi
           done
+          if [ "$existing" -eq 3 ]; then
+            echo "all packages already exist at ${{ steps.release.outputs.version }}" >&2
+            exit 1
+          fi
       - run: node scripts/set-release-version.mjs ${{ steps.release.outputs.version }}
       - run: pnpm build
       - run: pnpm check-types
@@ -70,16 +75,21 @@ jobs:
           # setup-node provides a dummy token value; clear it so npm uses
           # trusted publishing through the job's OIDC identity.
           NODE_AUTH_TOKEN: ""
-        run: >-
-          npm publish
-          .pack/rivet-dev-dynamic-apps-builder-${{ steps.release.outputs.version }}.tgz
-          --access public
-          --provenance
-          --tag ${{ steps.release.outputs.npm_tag }}
+        run: |
+          set -euo pipefail
+          if npm view "@rivet-dev/dynamic-apps-builder@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
+            echo "::notice::@rivet-dev/dynamic-apps-builder@${{ steps.release.outputs.version }} is already published, skipping"
+            exit 0
+          fi
+          npm publish \
+            .pack/rivet-dev-dynamic-apps-builder-${{ steps.release.outputs.version }}.tgz \
+            --access public \
+            --provenance \
+            --tag ${{ steps.release.outputs.npm_tag }}
       - name: Wait for builder registry visibility
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 30); do
+          for attempt in $(seq 1 240); do
             if npm view "@rivet-dev/dynamic-apps-builder@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
               exit 0
             fi
@@ -90,16 +100,21 @@ jobs:
       - name: Publish core
         env:
           NODE_AUTH_TOKEN: ""
-        run: >-
-          npm publish
-          .pack/rivet-dev-dynamic-apps-core-${{ steps.release.outputs.version }}.tgz
-          --access public
-          --provenance
-          --tag ${{ steps.release.outputs.npm_tag }}
+        run: |
+          set -euo pipefail
+          if npm view "@rivet-dev/dynamic-apps-core@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
+            echo "::notice::@rivet-dev/dynamic-apps-core@${{ steps.release.outputs.version }} is already published, skipping"
+            exit 0
+          fi
+          npm publish \
+            .pack/rivet-dev-dynamic-apps-core-${{ steps.release.outputs.version }}.tgz \
+            --access public \
+            --provenance \
+            --tag ${{ steps.release.outputs.npm_tag }}
       - name: Wait for core registry visibility
         run: |
           set -euo pipefail
-          for attempt in $(seq 1 30); do
+          for attempt in $(seq 1 240); do
             if npm view "@rivet-dev/dynamic-apps-core@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
               exit 0
             fi
@@ -112,12 +127,17 @@ jobs:
           # setup-node provides a dummy token value; clear it so npm uses
           # trusted publishing through the job's OIDC identity.
           NODE_AUTH_TOKEN: ""
-        run: >-
-          npm publish
-          .pack/rivet-dev-dynamic-apps-${{ steps.release.outputs.version }}.tgz
-          --access public
-          --provenance
-          --tag ${{ steps.release.outputs.npm_tag }}
+        run: |
+          set -euo pipefail
+          if npm view "@rivet-dev/dynamic-apps@${{ steps.release.outputs.version }}" version >/dev/null 2>&1; then
+            echo "::notice::@rivet-dev/dynamic-apps@${{ steps.release.outputs.version }} is already published, skipping"
+            exit 0
+          fi
+          npm publish \
+            .pack/rivet-dev-dynamic-apps-${{ steps.release.outputs.version }}.tgz \
+            --access public \
+            --provenance \
+            --tag ${{ steps.release.outputs.npm_tag }}
       - name: Create release tag
         if: steps.release.outputs.real_release == 'true'
         env:
