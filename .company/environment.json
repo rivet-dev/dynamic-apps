@@ -1,0 +1,16 @@
+{
+	"$schema": "https://api.thecompany.company/schemas/v1/environment.json",
+	"scripts": {
+		"install": {
+			"command": "set -euo pipefail\nexport DEBIAN_FRONTEND=noninteractive\nsudo apt-get update -y\nsudo apt-get install -y --no-install-recommends ca-certificates curl gnupg\ncurl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash -\nsudo apt-get install -y --no-install-recommends nodejs\nsudo corepack enable\npnpm install --frozen-lockfile\npnpm build",
+			"timeout": 1800
+		},
+		"prepare": {
+			"command": "set -euo pipefail\npnpm install --frozen-lockfile",
+			"timeout": 600
+		}
+	},
+	"env": {
+		"COREPACK_ENABLE_DOWNLOAD_PROMPT": "0"
+	}
+}
