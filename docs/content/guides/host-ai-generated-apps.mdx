@@ -1,0 +1,173 @@
+---
+title: "Host AI-Generated Apps"
+description: "Deploy each app that your app builder generates as its own live app, with its own URL, backend, and data."
+---
+
+import ExampleLinkBar from "@/components/docs/ExampleLinkBar.astro";
+
+<ExampleLinkBar href="https://github.com/rivet-dev/dynamic-apps/tree/main/examples/apps-ai-builder" />
+
+<Diagram
+  id="host-ai-generated-apps"
+  label="Your app builder posts a prompt to the /deploy/:name route on your server. The route asks an LLM to write the app's files, then publishes them as that project's Dynamic App with deployApp. If the build fails, deployApp returns the build errors, and the route sends them back to the LLM to fix the files before deploying again. Later a visitor opens the app's URL, and appsRouter on your server passes the request to the fetch handler of that project's Dynamic App. If the generated app defines Rivet Actors, it calls actions on them, and each one keeps its data in its own SQLite database. The numbers show the order of the calls. There is one Dynamic App per user project."
+  stackLabel="One per user project"
+  nodes={[
+    { id: "builder", x: 20, y: 40, w: 150, title: "App builder", subtitle: "your UI or agent" },
+    { id: "visitor", x: 20, y: 230, w: 150, title: "Visitor", subtitle: "opens the app" },
+    { id: "server", kind: "group", x: 300, y: 10, w: 190, h: 290, title: "Your server" },
+    { id: "deploy", kind: "slot", x: 315, y: 52, w: 160, h: 36, title: "`/deploy/:name`" },
+    { id: "router", kind: "slot", x: 315, y: 242, w: 160, h: 36, title: "`appsRouter`" },
+    { id: "llm", x: 650, y: 34, title: "LLM", subtitle: "writes the files" },
+    { id: "app", x: 650, y: 230, product: "dynamic-apps", stack: true, title: "Dynamic App", subtitle: "generated code" },
+    { id: "actors", x: 650, y: 370, product: "actors", stack: true, optional: true, title: "App Actors", subtitle: "own SQLite each" },
+  ]}
+  edges={[
+    { from: "builder", to: "deploy", label: "prompt", step: 1 },
+    { from: "deploy", to: "llm", fromOffset: -10, toOffset: -4, label: "write files", labelAt: [548, 52], labelAnchor: "start", step: 2 },
+    { from: "deploy", to: "app", fromSide: "right", toSide: "top", fromOffset: 0, toOffset: 25, via: [[590, 70], [590, 150], [760, 150]], label: "`deployApp`", labelAt: [636, 142], labelAnchor: "start", step: 3 },
+    { from: "app", to: "deploy", kind: "reply", fromSide: "top", toSide: "right", fromOffset: -55, toOffset: 11, via: [[680, 192], [530, 192], [530, 81]], label: "build errors", labelAt: [568, 184], labelAnchor: "start", step: 4 },
+    { from: "visitor", to: "router", label: "app URL", step: 5 },
+    { from: "router", to: "app", label: "`fetch`", step: 6 },
+    { from: "app", to: "actors", label: "actions", labelAt: [760, 346], labelAnchor: "start", step: 7 },
+  ]}
+/>
+
+Your app builder turns each user's prompt into a running app, and your own server builds, deploys, and serves it.
+
+What we'll build:
+
+- A `/deploy/:name` route that turns a user's prompt into an app's files and deploys them.
+- A build and repair loop that sends build errors back to the model before anything goes live.
+- One Dynamic App per user project, served from your own server at its own path.
+- App Actors that give each project its own backend state and SQLite database.
+
+<Note>
+Dynamic Apps is in preview and its API is subject to change.
+</Note>
+
+<Steps>
+
+<Step title="Install">
+
+Use Node.js 22:
+
+```sh
+npm add @rivet-dev/dynamic-apps @ai-sdk/anthropic ai zod hono @hono/node-server
+npm add --save-dev tsx
+npm pkg set type=module
+```
+
+</Step>
+
+<Step title="Configure">
+
+Set your model key. `AI_MODEL` is optional and defaults to `claude-sonnet-4-5`:
+
+```sh
+ANTHROPIC_API_KEY=sk-ant-...
+AI_MODEL=claude-sonnet-4-5
+```
+
+In local development, Dynamic Apps connects to the local Rivet Engine, so there is nothing else to set. To deploy to Rivet Cloud, also set `RIVET_CLOUD_TOKEN`. See [Connect to Rivet](/dynamic-apps/docs/connect).
+
+</Step>
+
+<Step title="Limit what the model can write">
+
+The model starts from a small seed app and may only change a fixed list of files:
+
+<CodeGroup>
+<CodeSnippet file="examples/apps-ai-builder/src/server.ts" title="server.ts" region="limits" />
+<CodeSnippet file="examples/apps-ai-builder/fixtures/app/src/index.ts" title="fixtures/app/src/index.ts" />
+</CodeGroup>
+
+- `loadSeed` reads the seed from `fixtures/app/`. It's a Hono app that default-exports its fetch handler, which is the layout `deployApp` expects. Starting from files that already build gives the model less to get wrong.
+- `validateFiles` keeps only the paths in `editablePaths` and rejects any file over 64 KiB. Anything else the model returns is dropped, so it can't add a lockfile, a config file, or a file outside the project.
+- `maxRepairs` caps how many times a failed build goes back to the model. It's used in the deploy step.
+
+<Warning>
+Generated code is untrusted. Each app builds and runs in its own agentOS VM, but your server decides what the model may write and who may call the route that deploys it. Put authentication and rate limits in front of `/deploy/:name` before you expose it.
+</Warning>
+
+</Step>
+
+<Step title="Generate the files">
+
+`revise` asks the model for the complete file tree. It writes the first version and fixes each failed build:
+
+<CodeSnippet file="examples/apps-ai-builder/src/server.ts" title="server.ts" region="generate" />
+
+- `generateObject` with `filesSchema` makes the model return a map from path to file contents, so there is no code to cut out of a chat reply.
+- `webServerSkill` and `rivetActorsSkill` come from `@rivet-dev/dynamic-apps`. They give the model a starter project that builds and the rules for serving it, such as exporting a fetch handler instead of opening a port. With `rivetActorsSkill` the model can add Rivet Actors for state that lasts. See [Generate](/dynamic-apps/docs/generate).
+- The prompt always includes the current files. On a repair it also includes the diagnostics from the failed build, so the model edits what it wrote instead of starting over.
+
+</Step>
+
+<Step title="Deploy and repair build errors">
+
+`generateApp` deploys the files and loops until a build succeeds:
+
+<CodeSnippet file="examples/apps-ai-builder/src/server.ts" title="server.ts" region="deploy" />
+
+- `deployApp` installs dependencies and runs `npm run build` in a sandboxed build VM. When the build fails, it rejects with an error whose `code` starts with `dynamic_apps_` and whose `metadata` holds the compiler output.
+- Only errors with a `dynamic_apps_` code go back to the model, such as a failed build or a missing entrypoint. Any other error is thrown right away. After `maxRepairs` failed attempts the last error is thrown too.
+- The diagnostics are capped at 16 KiB so a long compiler log doesn't fill the prompt.
+- A failed build never replaces the active release. Visitors keep the last working version until a new one builds. See [Deploy](/dynamic-apps/docs/deploy).
+- `appId` is the project name from the URL. Deploying the same name again replaces that project's app, and each name gets its own Rivet namespace for its Actors and data.
+
+</Step>
+
+<Step title="Route requests">
+
+The server has a route that deploys apps and a router that serves them:
+
+<CodeSnippet file="examples/apps-ai-builder/src/server.ts" title="server.ts" region="routes" />
+
+- `POST /deploy/:name` checks that the prompt is a string of at most 4,000 characters, then returns what `deployApp` returns: the app's release, endpoint, namespace, pool, and a token when one is needed.
+- `server.route("/apps", appsRouter)` serves every app under its own path. A request to `/apps/team-board/api/items` reaches the `team-board` app's fetch handler as `/api/items`. See [Route](/dynamic-apps/docs/routing).
+- `/api/rivet/*` is a private callback that lets Rivet reach your server to manage deployments. Forward it to `appsRouter` as shown.
+- Requests run in a cached agentOS VM inside the same process, so there is no extra network hop between your server and the app.
+
+<Note>
+This example serves apps by path, such as `/apps/:name/`. This guide does not cover custom domains or a subdomain per app.
+</Note>
+
+</Step>
+
+<Step title="Try it">
+
+Start the server:
+
+```sh
+npx tsx src/server.ts
+```
+
+Ask for an app:
+
+```sh
+curl -X POST http://localhost:3000/deploy/team-board \
+  -H "content-type: application/json" \
+  -d '{"prompt":"Build a team board where people post ideas and vote on them."}'
+```
+
+The request returns after the app is built and live. Then open `http://localhost:3000/apps/team-board/`. Send another prompt to the same name to replace it with a new version.
+
+</Step>
+
+</Steps>
+
+## Next steps
+
+- [SQLite](/dynamic-apps/docs/sqlite): connect to a generated app's Actors from your own code.
+- [Multiplayer](/dynamic-apps/docs/multiplayer): build apps where many users share live state.
+- [Workflows](/dynamic-apps/docs/workflows): run long, multi-step jobs inside a generated app.
+- [Frontends & Static Sites](/dynamic-apps/docs/static-websites): add `public/index.html` to `editablePaths` and the seed so the model can write a frontend.
+- [Authentication](/dynamic-apps/docs/authentication): add middleware that checks who can open each app.
+- [Collecting Logs](/dynamic-apps/docs/logging): see build and runtime logs from generated apps.
+
+## Related docs
+
+- [Generate](/dynamic-apps/docs/generate): the skills and the file schema.
+- [Deploy](/dynamic-apps/docs/deploy): bundle requirements and the repair loop.
+- [Route](/dynamic-apps/docs/routing): how `appsRouter` maps paths to apps.
+- [Architecture](/dynamic-apps/docs/architecture): how builds and requests run in agentOS VMs.

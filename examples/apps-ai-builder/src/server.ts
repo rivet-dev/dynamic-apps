@@ -11,6 +11,7 @@ import { generateObject } from "ai";
 import { Hono } from "hono";
 import { z } from "zod";
 
+// docs:start limits
 const editablePaths = [
 	"package.json",
 	"tsconfig.json",
@@ -46,6 +47,7 @@ function validateFiles(value: Record<string, string>): Record<string, string> {
 	}
 	return files;
 }
+// docs:end limits
 
 // docs:start generate
 async function revise(
@@ -73,6 +75,7 @@ async function revise(
 }
 // docs:end generate
 
+// docs:start deploy
 async function generateApp(appId: string, prompt: string) {
 	let files = await revise(prompt, await loadSeed());
 	for (let attempt = 0; attempt <= maxRepairs; attempt += 1) {
@@ -106,7 +109,9 @@ async function generateApp(appId: string, prompt: string) {
 	}
 	throw new Error("unreachable");
 }
+// docs:end deploy
 
+// docs:start routes
 const server = new Hono();
 server.all("/api/rivet/*", (c) => appsRouter.fetch(c.req.raw));
 
@@ -126,6 +131,7 @@ server.post("/deploy/:name", async (context) => {
 	);
 });
 server.route("/apps", appsRouter);
+// docs:end routes
 
 serve({
 	fetch: server.fetch,
