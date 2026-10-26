@@ -1,0 +1,40 @@
+---
+title: "Database per Generated App"
+description: "Give every app your users generate its own SQLite database without provisioning a database for each one."
+---
+
+<Diagram
+  id="database-per-ai-generated-app"
+  label="Your app builder publishes a generated app's code with deployApp and creates no database. When a user of the generated app sends the first request, appsRouter on your server passes it to the fetch handler of that app's Dynamic App. The app calls an action on its Actor, which creates its SQLite database on first use, runs the app's own migrations, and queries it with c.db. The numbers show the order of the calls. There is one Dynamic App per generated app, and each of its Actors has its own SQLite database."
+  stackLabel="One per generated app"
+  nodes={[
+    { id: "builder", x: 20, y: 40, w: 150, title: "App builder", subtitle: "your platform" },
+    { id: "user", x: 20, y: 160, w: 150, title: "App user", subtitle: "first request" },
+    { id: "server", kind: "group", x: 300, y: 138, w: 170, h: 84, title: "Your server" },
+    { id: "router", kind: "slot", x: 315, y: 172, w: 140, h: 36, title: "`appsRouter`" },
+    { id: "app", x: 600, y: 160, w: 180, product: "dynamic-apps", stack: true, title: "Generated app", subtitle: "`fetch` handler" },
+    { id: "actor", x: 600, y: 280, w: 180, product: "actors", stack: true, title: "App Actor", subtitle: "SQLite in `c.db`" },
+  ]}
+  edges={[
+    { from: "builder", to: "app", toSide: "top", via: [[690, 70]], label: "`deployApp`, code only", step: 1 },
+    { from: "user", to: "router", label: "request", step: 2 },
+    { from: "router", to: "app", label: "`fetch`", step: 3 },
+    { from: "app", to: "actor", label: "action", labelAt: [717, 261], labelAnchor: "start", step: 4 },
+  ]}
+  notes={[{ x: 580, y: 306, text: "created on first use", anchor: "end" }, { x: 580, y: 324, text: "migrated by app code", anchor: "end" }]}
+/>
+
+## TODO
+
+This page is not written yet. The outline below is what it will cover.
+
+### What we'll build
+
+- A generated app whose Actors store its data in SQLite, with tables the app defines in its own code.
+- Migrations that run inside the Actor when it starts, so a new release can change the schema.
+- A deploy step that ships only code, with no database to create, connect, or pay for per app.
+- A way for your platform to read an app's data through the same Actor actions.
+
+### Similar tools
+
+This is the same job as Supabase for AI builders, Neon for AI agents with claimable Postgres, Turso with a database per app, or Convex for AI app builders. On Rivet the database is part of each app's Actors, so it exists as soon as the app gets its first request and needs no connection string.

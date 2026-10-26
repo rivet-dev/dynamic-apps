@@ -1,0 +1,48 @@
+---
+title: "Host AI-Generated Apps"
+description: "Deploy each app that your app builder generates as its own live app, with its own URL, backend, and data."
+---
+
+<Diagram
+  id="host-ai-generated-apps"
+  label="A user of your app builder sends a prompt to the /generate route on your server. The route asks an LLM to write the app's files, then publishes them as that project's Dynamic App with deployApp. Later a visitor opens the app's URL, and appsRouter on your server passes the request to the fetch handler of that project's Dynamic App. The app calls actions on its own Actors, which keep its data in their own SQLite databases. The numbers show the order of the calls. There is one Dynamic App per user project, with its own Actors."
+  stackLabel="One per user project"
+  nodes={[
+    { id: "builder", x: 20, y: 40, w: 150, title: "App builder", subtitle: "user's prompt" },
+    { id: "visitor", x: 20, y: 170, w: 150, title: "Visitor", subtitle: "opens the app" },
+    { id: "server", kind: "group", x: 300, y: 10, w: 190, h: 230, title: "Your server" },
+    { id: "generate", kind: "slot", x: 315, y: 52, w: 160, h: 36, title: "`/generate`" },
+    { id: "router", kind: "slot", x: 315, y: 182, w: 160, h: 36, title: "`appsRouter`" },
+    { id: "llm", x: 630, y: 40, title: "LLM", subtitle: "writes the files" },
+    { id: "app", x: 630, y: 170, product: "dynamic-apps", stack: true, title: "Dynamic App", subtitle: "generated code" },
+    { id: "actors", x: 630, y: 300, product: "actors", stack: true, title: "App Actors", subtitle: "own SQLite each" },
+  ]}
+  edges={[
+    { from: "builder", to: "generate", label: "prompt", step: 1 },
+    { from: "generate", to: "llm", fromOffset: -6, toOffset: -6, label: "write files", step: 2 },
+    { from: "generate", to: "app", fromSide: "right", toSide: "top", fromOffset: 8, via: [[560, 78], [560, 135], [715, 135]], label: "`deployApp`", step: 3 },
+    { from: "visitor", to: "router", label: "app URL", step: 4 },
+    { from: "router", to: "app", label: "`fetch`", step: 5 },
+    { from: "app", to: "actors", label: "actions", labelAt: [740, 276], labelAnchor: "start", step: 6 },
+  ]}
+/>
+
+## TODO
+
+This page is not written yet. The outline below is what it will cover.
+
+### What we'll build
+
+- A `/generate` route that turns a user's prompt into an app's files and deploys them.
+- A build and repair loop that sends build errors back to the model before anything goes live.
+- One Dynamic App per user project, served from your own server at its own path.
+- App Actors that give each project its own backend state and SQLite database.
+
+### Similar tools
+
+This is the same job as Vercel for Platforms with the v0 Platform API, Cloudflare Workers for Platforms, Freestyle, or Netlify. On Rivet the apps run inside your own server through a router you control, and each one comes with durable Actors instead of a separate database to set up.
+
+### Open questions
+
+- `appsRouter` serves each app under a path such as `/apps/:appId/`. Custom domains and wildcard subdomains per app are unverified.
+- Dynamic Apps is in preview, and its API may change before general availability.
