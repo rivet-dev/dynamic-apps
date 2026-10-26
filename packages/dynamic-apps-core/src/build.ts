@@ -358,6 +358,7 @@ export async function buildAppRelease(
 			`manifest@${appBundleManifestVersion}`,
 			"direct@2",
 			`actors@${plan.usesRivetKit ? 1 : 0}`,
+			`maxResponseBytes@${config.maxResponseBytes}`,
 			"esbuild-wasm@0.27.4",
 		].join(";"),
 	});
