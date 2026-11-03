@@ -1,0 +1,92 @@
+---
+title: "Dev Servers"
+description: "Run development servers in agentOS and share them with signed preview links."
+skill: true
+---
+
+Dynamic Apps deploys finished applications as immutable releases. During the
+code-generation loop, use agentOS when an agent needs to run a conventional
+development server with hot reload. A signed preview link forwards HTTP traffic
+to the server inside the VM without exposing a host port.
+
+When the application is ready, pass its files to `deployApp()` as described in
+[Deploy](/dynamic-apps/docs/deploy).
+
+## Configure previews
+
+Preview links are available from the actor-based `@rivet-dev/agentos` package:
+
+```sh
+npm add @rivet-dev/agentos
+```
+
+Configure their default and maximum lifetimes on the VM:
+
+```ts title="server.ts"
+import { agentOS, setup } from "@rivet-dev/agentos";
+
+const vm = agentOS({
+  software: [],
+  preview: {
+    defaultExpiresInSeconds: 3600,
+    maxExpiresInSeconds: 86400,
+  },
+});
+
+export const registry = setup({ use: { vm } });
+registry.start();
+```
+
+## Start the dev server
+
+Connect to a VM, install the generated application's dependencies, and start its
+dev server on a known port. This example assumes the agent wrote the project to
+`/home/agentos/app` and its `dev` script listens on port `3000`:
+
+```ts title="client.ts"
+import { createClient } from "@rivet-dev/agentos/client";
+import type { registry } from "./server";
+
+const client = createClient<typeof registry>({
+  endpoint: "http://localhost:6420",
+});
+const agent = client.vm.getOrCreate("my-agent");
+
+await agent.process.exec("npm install --prefix /home/agentos/app");
+await agent.process.spawn("npm", [
+  "run",
+  "dev",
+  "--prefix",
+  "/home/agentos/app",
+]);
+```
+
+Use a fixed port in the generated project's dev-server configuration. Wait for
+the process's readiness output before opening the preview.
+
+## Create a preview link
+
+Create a signed link for the dev server's port. The second argument is the
+lifetime in seconds:
+
+```ts
+const preview = await agent.createPreviewUrl(3000, 3600);
+
+console.log("Preview path:", preview.path);
+console.log("Expires at:", new Date(preview.expiresAt));
+```
+
+The returned path is publicly accessible through the agentOS actor endpoint and
+supports nested routes, query strings, and browser requests. Treat it as a
+bearer credential: keep lifetimes short and do not put secrets in the URL.
+Preview tokens survive VM sleep and wake.
+
+Revoke a link as soon as it is no longer needed:
+
+```ts
+await agent.expirePreviewUrl(preview.token);
+```
+
+For server-to-server access that should not be public, use
+`agent.network.httpRequest()` instead. See [Networking & Previews](/agentos/docs/networking)
+for request proxying, expiration limits, and security details.
