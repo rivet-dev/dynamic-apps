@@ -5,6 +5,7 @@ import {
 	appsRouter,
 	deployApp,
 	rivetActorsSkill,
+	startDynamicAppsHost,
 	webServerSkill,
 } from "@rivet-dev/dynamic-apps";
 import { generateObject } from "ai";
@@ -132,6 +133,9 @@ server.post("/deploy/:name", async (context) => {
 });
 server.route("/apps", appsRouter);
 // docs:end routes
+
+// Start running deployed apps' actors as soon as the host boots.
+await startDynamicAppsHost();
 
 serve({
 	fetch: server.fetch,

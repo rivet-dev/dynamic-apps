@@ -1,5 +1,16 @@
-import { appsRouter, deployApp } from "@rivet-dev/dynamic-apps";
+import {
+	appsRouter,
+	deployApp,
+	setDynamicAppsLogHandler,
+} from "@rivet-dev/dynamic-apps";
 import { createClient } from "rivetkit/client";
+
+// Guest output is otherwise dropped, which hides why an app fails.
+setDynamicAppsLogHandler((event) => {
+	if (event.level === "error" || event.source === "actor") {
+		console.error(JSON.stringify(event));
+	}
+});
 
 const appId = "dynamic-apps-direct-e2e";
 const ACTOR_APP_ID = "dynamic-apps-actor-e2e";
@@ -56,14 +67,13 @@ assert(
 	"load leaked isolate state",
 );
 
-const actorDeployment = await deployActorFixture();
+const actorDeployment = await deployActorFixture("v1");
 const actorClient = createClient({
 	namespace: actorDeployment.namespace,
 	poolName: actorDeployment.pool,
 }) as unknown as ActorApplicationClient;
-const actor = await actorClient.counter
-	.getOrCreate([`e2e-${Date.now()}`])
-	.connect();
+const actorKey = [`e2e-${Date.now()}`];
+const actor = await actorClient.counter.getOrCreate(actorKey).connect();
 let unsubscribe = () => {};
 const observedEvent = new Promise<number>((resolve, reject) => {
 	const timeout = setTimeout(
@@ -81,7 +91,6 @@ unsubscribe();
 const actorSecond = await actor.add(3);
 const actorCurrent = await actor.inspect();
 await actor.dispose();
-await actorClient.dispose();
 assert(actorFirst === 2, "actor action returned the wrong initial state");
 assert(actorEvent === 2, "actor event returned the wrong state");
 assert(actorSecond === 5, "actor action did not preserve state");
@@ -89,7 +98,10 @@ assert(actorCurrent === 5, "actor inspect returned the wrong state");
 const actorHttpResponse = await appsRouter.request(
 	`/${ACTOR_APP_ID}/direct-http`,
 );
-assert(actorHttpResponse.ok, "actor app direct HTTP request failed");
+assert(
+	actorHttpResponse.ok,
+	`actor app direct HTTP request failed with ${actorHttpResponse.status}: ${await actorHttpResponse.clone().text()}`,
+);
 const actorHttp = (await actorHttpResponse.json()) as {
 	ok: boolean;
 	workload: string;
@@ -98,6 +110,33 @@ assert(
 	actorHttp.ok && actorHttp.workload === "actor-and-direct-http",
 	"actor app direct HTTP returned the wrong response",
 );
+
+// A guest that exits is restarted by its supervisor, and the Engine moves the
+// actor to the new envoy with its state intact.
+const counterHandle = actorClient.counter.getOrCreate(actorKey);
+await counterHandle.crash().catch(() => {});
+const afterCrash = await eventually(
+	() => counterHandle.inspect(),
+	(value) => value === 5,
+	"actor did not recover after its envoy crashed",
+);
+
+// A new release starts its envoy before the previous one drains, and the
+// actor keeps its state across the rollout.
+const actorRedeployment = await deployActorFixture("v2");
+const redeployedRelease = await eventually(
+	() => counterHandle.release(),
+	(value) => value === "v2",
+	"actor did not move to the redeployed release",
+);
+const afterRedeploy = await counterHandle.inspect();
+assert(afterRedeploy === 5, "actor state was lost across the redeploy");
+await eventually(
+	() => connectedNodeVersions(actorRedeployment),
+	(versions) => versions.length === 1,
+	"the previous release's envoy did not drain",
+);
+await actorClient.dispose();
 
 console.log(
 	JSON.stringify(
@@ -116,6 +155,9 @@ console.log(
 				current: actorCurrent,
 				observedEvent: actorEvent,
 				directHttp: actorHttp,
+				afterCrash,
+				redeployedRelease,
+				afterRedeploy,
 			},
 			totalMs: performance.now() - startedAt,
 		},
@@ -133,12 +175,15 @@ interface ActorApplicationClient {
 				inspect(): Promise<number>;
 				dispose(): Promise<void>;
 			}>;
+			inspect(): Promise<number>;
+			release(): Promise<string>;
+			crash(): Promise<void>;
 		};
 	};
 	dispose(): Promise<void>;
 }
 
-async function deployActorFixture() {
+async function deployActorFixture(marker: string) {
 	return deployApp({
 		appId: ACTOR_APP_ID,
 		files: {
@@ -150,7 +195,7 @@ async function deployActorFixture() {
 				main: "index.js",
 				dependencies: {
 					hono: "4.13.5",
-					rivetkit: "2.3.29",
+					rivetkit: "3.0.2",
 				},
 			}),
 			"index.js": `
@@ -169,12 +214,17 @@ const counter = actor({
     inspect(c) {
       return c.state.count;
     },
+    release() {
+      return ${JSON.stringify(marker)};
+    },
+    crash() {
+      setTimeout(() => process.exit(1), 10);
+    },
   },
 });
 
-const registry = setup({ use: { counter } });
+export const registry = setup({ use: { counter } });
 const app = new Hono();
-app.all("/api/rivet/*", (c) => registry.handler(c.req.raw));
 app.all("*", () => Response.json({ ok: true, workload: "actor-and-direct-http" }));
 export default app;
 `,
@@ -225,6 +275,50 @@ async function request(path: string): Promise<{
 		);
 	}
 	return response.json();
+}
+
+/** Polls until `check` passes; recovery and rollout finish asynchronously. */
+async function eventually<T>(
+	read: () => Promise<T>,
+	check: (value: T) => boolean,
+	message: string,
+	timeoutMs = 60_000,
+): Promise<T> {
+	const deadline = Date.now() + timeoutMs;
+	let last: unknown;
+	while (Date.now() < deadline) {
+		try {
+			const value = await read();
+			if (check(value)) return value;
+			last = value;
+		} catch (error) {
+			last = error;
+		}
+		await new Promise((resolve) => setTimeout(resolve, 250));
+	}
+	throw new Error(`${message}; last result: ${String(last)}`);
+}
+
+async function connectedNodeVersions(deployment: {
+	endpoint: string;
+	namespace: string;
+	pool: string;
+}): Promise<number[]> {
+	const url = new URL(
+		`/pools/${encodeURIComponent(deployment.pool)}/nodes`,
+		deployment.endpoint,
+	);
+	url.searchParams.set("namespace", deployment.namespace);
+	const response = await fetch(url, {
+		headers: { authorization: `Bearer ${process.env.RIVET_TOKEN}` },
+	});
+	if (!response.ok) throw new Error(`node listing returned ${response.status}`);
+	const body = (await response.json()) as {
+		nodes: Array<{ version: number; connected: boolean; stopping: boolean }>;
+	};
+	return body.nodes
+		.filter((node) => node.connected && !node.stopping)
+		.map((node) => node.version);
 }
 
 function assert(condition: unknown, message: string): asserts condition {

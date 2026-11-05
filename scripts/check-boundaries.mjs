@@ -114,9 +114,7 @@ for (const identity of [
 
 const runtime = await read("packages/dynamic-apps-core/src/runtime.ts");
 assert(
-	runtime.includes(
-		'hash.update("dynamic-apps-release-v19-mounted-hono-router\\0")',
-	),
+	runtime.includes('hash.update("dynamic-apps-release-v20-rivet-v3-envoy\\0")'),
 	"release hash domain changed",
 );
 

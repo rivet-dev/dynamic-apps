@@ -356,7 +356,6 @@ describe("apps-builder", () => {
 				PORT: String(port),
 				DYNAMIC_APPS_READY_NONCE: "builder-test",
 				RIVETKIT_RUNTIME: "wasm",
-				RIVETKIT_RUNTIME_MODE: "serverless",
 			},
 		});
 		let stderr = "";

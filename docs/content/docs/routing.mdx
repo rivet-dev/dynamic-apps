@@ -8,16 +8,20 @@ skill: true
 
 ## Getting started
 
-Mount it at any prefix and forward the private `/api/rivet/*` callback to it:
+Mount it at any prefix. Forwarding `/api/rivet/*` to it exposes the host's
+Rivet health, metadata, and metrics routes:
 
 ```ts
-import { appsRouter } from "@rivet-dev/dynamic-apps";
+import { appsRouter, startDynamicAppsHost } from "@rivet-dev/dynamic-apps";
 import { Hono } from "hono";
 
 const server = new Hono();
 
 server.all("/api/rivet/*", (c) => appsRouter.fetch(c.req.raw));
 server.route("/apps", appsRouter);
+
+// Start running deployed apps' actors when the host boots.
+await startDynamicAppsHost();
 ```
 
 A request to `/apps/example/api/items` reaches that app's handler as

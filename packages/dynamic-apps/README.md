@@ -37,9 +37,8 @@ bodies are not supported.
 
 ## App-defined actors
 
-An app that declares `rivetkit` mounts the registry handler in its exported
-fetch router. Dynamic Apps owns the HTTP listener and uses the same cached
-agentOS process for ordinary routes and Rivet callbacks:
+An app that declares `rivetkit` exports its registry as `registry` next to its
+default fetch handler:
 
 ```ts
 import { actor, setup } from "rivetkit";
@@ -54,16 +53,14 @@ const counter = actor({
 	},
 });
 
-const registry = setup({ use: { counter } });
+export const registry = setup({ use: { counter } });
 const app = new Hono();
-app.all("/api/rivet/*", (c) => registry.handler(c.req.raw));
 app.all("*", () => new Response("ok"));
 export default app;
 ```
 
-Do not call `serve()`, `registry.start()`, or bind a port in application code.
-Dynamic Apps starts the platform listener and waits for its listening callback;
-it does not poll an application health route.
+Do not call `serve()`, `registry.start()`, `registry.handler()`, or bind a port
+in application code. Dynamic Apps runs the registry and the HTTP listener.
 
 Use the unchanged `deployApp` result to create the app client:
 
@@ -95,37 +92,35 @@ npx @rivetkit/cli deploy \
   --env RIVET_CLOUD_TOKEN="$RIVET_CLOUD_TOKEN"
 ```
 
-By default, the app actor callback enters through the host app actor's Rivet
-gateway and authenticates with the publishable credential from
-`RIVET_PUBLIC_ENDPOINT`. This keeps the child app namespace separate from the
-host registry namespace. `DYNAMIC_APPS_CALLBACK_URL` is only for a custom
-receiver that accepts child-namespace lifecycle callbacks; Dynamic Apps appends
-`/api/rivet` to that origin.
+Actors run on Rivet v3. When a RivetKit release is activated, the app's
+private actor boots the release's artifact in an agentOS VM and starts the
+exported registry as a long-lived envoy in the app's namespace and pool. The
+release only becomes active once that envoy has connected. The VM stays running
+while the release is active, so it does not scale to zero or out: each RivetKit
+app holds one VM on one host process. Deploying a new release starts its envoy
+first, then drains the previous one so its actors move to the new release.
 
-Actor requests follow the normal Rivet Engine path. The app's serverless
-callback mounts its verified artifact in agentOS and runs the bundled RivetKit
-WebAssembly runtime in serverless mode. State, actions, events, connections,
-and streaming actor responses are handled by RivetKit inside the sandbox. The
-same listener serves the app's ordinary HTTP routes without importing the app a
-second time.
+If the guest process exits, the host restarts it with backoff. If a host
+process stops gracefully, the app actor moves to another host and starts the
+envoy there. Every host also wakes each RivetKit app once a minute, which
+restarts the envoy of an app whose host process died without a graceful
+shutdown.
 
-Rivet Engine requires `/api/rivet/start` to return a long-lived SSE control
-stream containing the real runner-init packet and keepalive pings. Actor traffic
-does not travel in this response; it uses RivetKit's outbound WebSocket. Dynamic
-Apps forwards the server's response with agentOS's native VM HTTP stream,
-including backpressure and cancellation. No app code executes in the host.
+Envoys authenticate with the credentials in `RIVET_PUBLIC_ENDPOINT`, or with
+the namespace secret token that Dynamic Apps provisions on Rivet Cloud. App
+code receives that credential, so on a self-hosted Engine give
+`RIVET_PUBLIC_ENDPOINT` a token scoped to app namespaces, not an admin token.
 
-Dynamic Apps does not impose a separate actor-callback concurrency gate. The
-configured actor runtime count controls retained idle entries only; active
-AgentOS runtimes are not rejected or evicted because that target is full.
+Ordinary HTTP routes of a RivetKit app run in separate cached agentOS VMs that
+do not start an envoy. No app code executes in the host.
 
 ## Host integration
 
-Mount application traffic and the private Rivet callback separately:
+Mount application traffic and the host registry's Rivet routes separately:
 
 ```ts
 import { serve } from "@hono/node-server";
-import { appsRouter } from "@rivet-dev/dynamic-apps";
+import { appsRouter, startDynamicAppsHost } from "@rivet-dev/dynamic-apps";
 import { Hono } from "hono";
 
 const server = new Hono();
@@ -133,8 +128,14 @@ const server = new Hono();
 server.all("/api/rivet/*", (c) => appsRouter.fetch(c.req.raw));
 server.route("/apps", appsRouter);
 
+await startDynamicAppsHost();
 serve({ fetch: server.fetch, port: 3000 });
 ```
+
+Call `startDynamicAppsHost()` once when the host boots. It starts the host's
+private actors and the loop that restarts app envoys after a host dies. Without
+it a host only joins after its first request, so after every host restarts,
+apps that serve only actor traffic would stay offline.
 
 Run Node 22 or newer normally:
 

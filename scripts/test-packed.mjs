@@ -105,6 +105,7 @@ if (
 		"rivetActorsSkill",
 		"setDynamicAppsLogHandler",
 		"setDynamicAppsVmOptions",
+		"startDynamicAppsHost",
 		"webServerSkill",
 	])
 ) {

@@ -1,8 +1,8 @@
 # Rivet Dynamic Apps
 
 > [!WARNING]
-> Dynamic Apps currently supports only Rivet 2.x. Rivet 3.x support is coming
-> soon.
+> Dynamic Apps requires Rivet 3.x. Apps that use RivetKit run as an always-on
+> envoy per app and do not scale to zero.
 
 Build user-generated request handlers in a sandboxed deployment VM, keep their
 release state in a Rivet actor, and serve cache-hit requests from bounded local

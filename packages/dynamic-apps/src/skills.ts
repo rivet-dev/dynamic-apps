@@ -70,7 +70,7 @@ package.json
   },
   "dependencies": {
     "hono": "4.13.5",
-    "rivetkit": "2.3.29"
+    "rivetkit": "3.0.2"
   },
   "devDependencies": {
     "@types/node": "22.20.1",
@@ -119,7 +119,6 @@ const counter = actor({
 export const registry = setup({ use: { counter } });
 
 const app = new Hono();
-app.all("/api/rivet/*", (context) => registry.handler(context.req.raw));
 app.get("/", (context) =>
   context.json({ ok: true, message: "Rivet Actors app is running" }),
 );
@@ -127,7 +126,7 @@ app.get("/", (context) =>
 export default app;
 ~~~
 
-Export the fetch handler and do not call serve() or registry.start(); Dynamic Apps owns the HTTP listener. Keep the build script as "tsc" so deployment failures include TypeScript diagnostics. The example above works without reading external documentation.
+Export the fetch handler as the default export and the RivetKit registry as "registry". Do not call serve(), registry.start(), or registry.handler(); Dynamic Apps owns the HTTP listener and runs the registry for you. Keep the build script as "tsc" so deployment failures include TypeScript diagnostics. The example above works without reading external documentation.
 
 Optional reference links:
 - Rivet Actors: https://rivet.dev/actors/docs/

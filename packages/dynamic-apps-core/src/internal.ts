@@ -30,6 +30,7 @@ export {
 	DIRECT_ENTRYPOINT,
 	DIRECT_RUNTIME_FORMAT,
 	directRunnerSource,
+	ENVOY_SHUTDOWN_PATH,
 	GUEST_FORMAT_ERROR_SOURCE,
 	normalizeAppPath,
 } from "./runtime.js";

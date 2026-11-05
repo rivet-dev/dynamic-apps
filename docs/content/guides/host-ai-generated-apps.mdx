@@ -125,7 +125,7 @@ The server has a route that deploys apps and a router that serves them:
 
 - `POST /deploy/:name` checks that the prompt is a string of at most 4,000 characters, then returns what `deployApp` returns: the app's release, endpoint, namespace, pool, and a token when one is needed.
 - `server.route("/apps", appsRouter)` serves every app under its own path. A request to `/apps/team-board/api/items` reaches the `team-board` app's fetch handler as `/api/items`. See [Route](/dynamic-apps/docs/routing).
-- `/api/rivet/*` is a private callback that lets Rivet reach your server to manage deployments. Forward it to `appsRouter` as shown.
+- `/api/rivet/*` exposes the host's Rivet health, metadata, and metrics routes. Forward it to `appsRouter` as shown.
 - Requests run in a cached agentOS VM inside the same process, so there is no extra network hop between your server and the app.
 
 <Note>

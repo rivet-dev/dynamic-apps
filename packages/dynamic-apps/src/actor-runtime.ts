@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -14,7 +14,7 @@ import {
 import { DynamicAppsLogLineDecoder, emitDynamicAppsLog } from "./logging.js";
 import { getDynamicAppsVmOptions } from "./vm-options.js";
 
-const ACTOR_HTTP_PORT = 3000;
+export const ACTOR_HTTP_PORT = 3000;
 const HOP_BY_HOP_HEADERS = [
 	"connection",
 	"keep-alive",
@@ -65,9 +65,8 @@ interface RuntimeEntry {
 	key: string;
 	appId: string;
 	release: string;
-	directory: string;
+	launched: LaunchedActorVm;
 	vm: AgentOs;
-	pid: number;
 	active: number;
 	lastUsedAt: number;
 	disposed: boolean;
@@ -314,111 +313,31 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 	}
 
 	async #createEntry(input: ActorRuntimeRequest): Promise<RuntimeEntry> {
-		const directory = await mkdtemp(
-			join(tmpdir(), "dynamic-app-actor-agentos-"),
-		);
-		const artifactPath = join(directory, "release.aospkg");
-		let vm: AgentOs | undefined;
-		try {
-			const environment = resolveWorkerEnvironment(input);
-			await chmod(directory, 0o700);
-			await writeFile(artifactPath, await input.loadArtifact(), {
-				mode: 0o600,
-			});
-			vm = await AgentOs.create(
-				resolveActorAgentOsOptions(
-					await resolveVmOptions(getDynamicAppsVmOptions(), {
-						appId: input.appId ?? "unknown",
-						release: input.release ?? "unknown",
-					}),
-					artifactPath,
-					this.config.heapLimitMb,
-					environment.RIVET_ENDPOINT,
-				),
-			);
-			const pendingLogs: Array<[GuestLogLine["stream"], string, boolean]> = [];
-			const readyNonce = randomUUID();
-			const readyMarker = `DYNAMIC_APPS_SERVER_READY:${readyNonce}`;
-			let readyBuffer = "";
-			let resolveReady = () => {};
-			let rejectReady = (_error: unknown) => {};
-			const ready = new Promise<void>((resolve, reject) => {
-				resolveReady = resolve;
-				rejectReady = reject;
-			});
-			let entry: RuntimeEntry | undefined;
-			const logLine =
-				(stream: GuestLogLine["stream"]) =>
-				(message: string, truncated: boolean) => {
-					// The readiness marker is a platform handshake, not application output.
-					if (message === readyMarker) return;
-					if (entry) this.#logGuest(entry, { stream, message, truncated });
-					else pendingLogs.push([stream, message, truncated]);
-				};
-			const stdoutLines = new DynamicAppsLogLineDecoder(logLine("stdout"));
-			const stderrLines = new DynamicAppsLogLineDecoder(logLine("stderr"));
-			const process = await vm.process.spawn("node", ["/app/actor/main.mjs"], {
-				cwd: "/app/actor",
-				env: stringEnvironment({
-					...environment,
-					PORT: String(ACTOR_HTTP_PORT),
-					DYNAMIC_APPS_READY_NONCE: readyNonce,
-				}),
-				onStdout: (data) => {
-					readyBuffer = `${readyBuffer}${new TextDecoder().decode(data)}`.slice(
-						-4_096,
-					);
-					if (readyBuffer.includes(readyMarker)) resolveReady();
-					stdoutLines.write(data);
-				},
-				onStderr: (data) => stderrLines.write(data),
-			});
-			entry = {
-				key: input.key,
-				appId: input.appId ?? "unknown",
-				release: input.release ?? "unknown",
-				directory,
-				vm,
-				pid: process.pid,
-				active: 0,
-				lastUsedAt: Date.now(),
-				disposed: false,
-			};
-			for (const [stream, message, truncated] of pendingLogs)
-				this.#logGuest(entry, { stream, message, truncated });
-			const processExit = vm.process.wait(process.pid);
-			const onProcessEnd = (error: Error) => {
-				stdoutLines.end();
-				stderrLines.end();
-				rejectReady(error);
-				if (!entry || entry.disposed) return;
-				this.#failEntry(entry, error);
-			};
-			// agentOS rejects the wait when the VM is disposed before it observes the
-			// exit, which is the normal outcome of disposing a running entry.
-			void processExit.then(
-				(exit) =>
-					onProcessEnd(
-						new Error(
-							`Dynamic App agentOS actor process exited with ${exit.exitCode ?? 1}`,
-						),
-					),
-				(error: unknown) =>
-					onProcessEnd(
-						error instanceof Error ? error : new Error(String(error)),
-					),
-			);
-			await withTimeout(
-				ready,
-				this.config.startTimeoutMs,
-				`Dynamic App agentOS actor startup exceeded ${this.config.startTimeoutMs}ms`,
-			);
-			return entry;
-		} catch (error) {
-			await vm?.dispose().catch(() => {});
-			await rm(directory, { recursive: true, force: true }).catch(() => {});
-			throw error;
-		}
+		const appId = input.appId ?? "unknown";
+		const release = input.release ?? "unknown";
+		let entry: RuntimeEntry | undefined;
+		const launched = await launchActorVm({
+			appId,
+			release,
+			artifact: await input.loadArtifact(),
+			environment: resolveWorkerEnvironment(input),
+			heapLimitMb: this.config.heapLimitMb,
+			startTimeoutMs: this.config.startTimeoutMs,
+			onExit: (error) => {
+				if (entry && !entry.disposed) this.#failEntry(entry, error);
+			},
+		});
+		entry = {
+			key: input.key,
+			appId,
+			release,
+			launched,
+			vm: launched.vm,
+			active: 0,
+			lastUsedAt: Date.now(),
+			disposed: false,
+		};
+		return entry;
 	}
 
 	#failEntry(entry: RuntimeEntry, error: unknown): void {
@@ -432,21 +351,6 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 			release: entry.release,
 		});
 		void this.#disposeEntry(entry);
-	}
-
-	#logGuest(
-		entry: Pick<RuntimeEntry, "appId" | "release">,
-		line: GuestLogLine,
-	): void {
-		emitDynamicAppsLog({
-			level: line.stream === "stdout" ? "info" : "error",
-			source: "actor",
-			message: line.message,
-			appId: entry.appId,
-			release: entry.release,
-			stream: line.stream,
-			...(line.truncated ? { metadata: { truncated: true } } : {}),
-		});
 	}
 
 	async #prune(protectedKey?: string): Promise<void> {
@@ -497,20 +401,172 @@ export class DynamicActorRuntime implements ApplicationServerRuntime {
 	async #disposeEntry(entry: RuntimeEntry): Promise<void> {
 		if (entry.disposed) return;
 		entry.disposed = true;
-		const results = await Promise.allSettled([
-			entry.vm.dispose(),
-			rm(entry.directory, { recursive: true, force: true }),
-		]);
-		if (results.some((result) => result.status === "rejected")) {
-			emitDynamicAppsLog({
-				level: "error",
-				source: "runtime",
-				message: "Dynamic App agentOS actor disposal failed",
-				appId: entry.appId,
-				release: entry.release,
-			});
-		}
+		await entry.launched.dispose();
 	}
+}
+
+/** One running agentOS VM hosting a release's actor runner process. */
+export interface LaunchedActorVm {
+	vm: AgentOs;
+	pid: number;
+	/** Settles once the guest process ends, with the reason it ended. */
+	exited: Promise<Error>;
+	/** Whether the guest process has already ended. */
+	hasExited(): boolean;
+	/** Why the guest process ended; only meaningful once it has. */
+	exitError(): Error;
+	/** Disposes the VM and its artifact directory; safe to call repeatedly. */
+	dispose(): Promise<void>;
+}
+
+/**
+ * Boots an agentOS VM over a release artifact and starts its actor runner,
+ * resolving once the runner reports readiness. `onExit` runs once when the
+ * guest process ends for any reason, including disposal.
+ */
+export async function launchActorVm(input: {
+	appId: string;
+	release: string;
+	artifact: Uint8Array;
+	environment: Record<string, string>;
+	heapLimitMb: number;
+	startTimeoutMs: number;
+	onExit?: (error: Error) => void;
+}): Promise<LaunchedActorVm> {
+	const directory = await mkdtemp(join(tmpdir(), "dynamic-app-actor-agentos-"));
+	const artifactPath = join(directory, "release.aospkg");
+	let vm: AgentOs | undefined;
+	try {
+		await chmod(directory, 0o700);
+		await writeFile(artifactPath, input.artifact, { mode: 0o600 });
+		vm = await AgentOs.create(
+			resolveActorAgentOsOptions(
+				await resolveVmOptions(getDynamicAppsVmOptions(), {
+					appId: input.appId,
+					release: input.release,
+				}),
+				artifactPath,
+				input.heapLimitMb,
+				input.environment.RIVET_ENDPOINT,
+			),
+		);
+		const createdVm = vm;
+		const readyNonce = randomUUID();
+		const readyMarker = `DYNAMIC_APPS_SERVER_READY:${readyNonce}`;
+		let readyBuffer = "";
+		let resolveReady = () => {};
+		let rejectReady = (_error: unknown) => {};
+		const ready = new Promise<void>((resolve, reject) => {
+			resolveReady = resolve;
+			rejectReady = reject;
+		});
+		const logLine =
+			(stream: GuestLogLine["stream"]) =>
+			(message: string, truncated: boolean) => {
+				// The readiness marker is a platform handshake, not application output.
+				if (message === readyMarker) return;
+				logGuest(input, { stream, message, truncated });
+			};
+		const stdoutLines = new DynamicAppsLogLineDecoder(logLine("stdout"));
+		const stderrLines = new DynamicAppsLogLineDecoder(logLine("stderr"));
+		const process = await vm.process.spawn("node", ["/app/actor/main.mjs"], {
+			cwd: "/app/actor",
+			env: stringEnvironment({
+				...input.environment,
+				PORT: String(ACTOR_HTTP_PORT),
+				DYNAMIC_APPS_READY_NONCE: readyNonce,
+			}),
+			onStdout: (data) => {
+				readyBuffer = `${readyBuffer}${new TextDecoder().decode(data)}`.slice(
+					-4_096,
+				);
+				if (readyBuffer.includes(readyMarker)) resolveReady();
+				stdoutLines.write(data);
+			},
+			onStderr: (data) => stderrLines.write(data),
+		});
+		// agentOS rejects the wait when the VM is disposed before it observes the
+		// exit, which is the normal outcome of disposing a running VM.
+		const exited = vm.process.wait(process.pid).then(
+			(exit) =>
+				new Error(
+					`Dynamic App agentOS actor process exited with ${exit.exitCode ?? 1}`,
+				),
+			(error: unknown) =>
+				error instanceof Error ? error : new Error(String(error)),
+		);
+		let exitError: Error | undefined;
+		void exited.then((error) => {
+			exitError = error;
+			stdoutLines.end();
+			stderrLines.end();
+			rejectReady(error);
+			input.onExit?.(error);
+		});
+		let disposePromise: Promise<void> | undefined;
+		const dispose = () => {
+			disposePromise ??= disposeVm(input, createdVm, directory);
+			return disposePromise;
+		};
+		try {
+			await withTimeout(
+				ready,
+				input.startTimeoutMs,
+				`Dynamic App agentOS actor startup exceeded ${input.startTimeoutMs}ms`,
+			);
+		} catch (error) {
+			await dispose();
+			throw error;
+		}
+		return {
+			vm,
+			pid: process.pid,
+			exited,
+			hasExited: () => exitError !== undefined,
+			exitError: () =>
+				exitError ?? new Error("Dynamic App agentOS actor is still running"),
+			dispose,
+		};
+	} catch (error) {
+		await vm?.dispose().catch(() => {});
+		await rm(directory, { recursive: true, force: true }).catch(() => {});
+		throw error;
+	}
+}
+
+async function disposeVm(
+	owner: { appId: string; release: string },
+	vm: AgentOs,
+	directory: string,
+): Promise<void> {
+	const results = await Promise.allSettled([
+		vm.dispose(),
+		rm(directory, { recursive: true, force: true }),
+	]);
+	if (results.some((result) => result.status === "rejected")) {
+		emitDynamicAppsLog({
+			level: "error",
+			source: "runtime",
+			message: "Dynamic App agentOS actor disposal failed",
+			appId: owner.appId,
+			release: owner.release,
+		});
+	}
+}
+
+function logGuest(
+	owner: { appId: string; release: string },
+	line: GuestLogLine,
+): void {
+	emitDynamicAppsLog({
+		level: line.stream === "stdout" ? "info" : "error",
+		source: "actor",
+		message: line.message,
+		appId: owner.appId,
+		release: owner.release,
+		stream: line.stream,
+		...(line.truncated ? { metadata: { truncated: true } } : {}),
+	});
 }
 
 function proxyResponseHeaders(
@@ -574,7 +630,6 @@ async function withTimeout<T>(
 /** @internal */
 export function actorWorkerEnvironment(input: {
 	endpoint: string;
-	key: string;
 	namespace: string;
 	pool: string;
 }): NodeJS.ProcessEnv {
@@ -595,12 +650,10 @@ export function actorWorkerEnvironment(input: {
 		NODE_ENV: "production",
 		PORT: String(ACTOR_HTTP_PORT),
 		RIVETKIT_RUNTIME: "wasm",
-		RIVETKIT_RUNTIME_MODE: "serverless",
 		RIVET_ENDPOINT: endpoint.toString().replace(/\/$/u, ""),
 		RIVET_NAMESPACE: input.namespace,
 		...(endpointToken ? { RIVET_TOKEN: endpointToken } : {}),
 		RIVET_POOL: input.pool,
-		RIVET_ENVOY_VERSION: String(actorEnvoyVersion(input.key)),
 		...(process.env.AGENTOS_DEBUG_HTTP_BRIDGE
 			? { AGENTOS_DEBUG_HTTP_BRIDGE: process.env.AGENTOS_DEBUG_HTTP_BRIDGE }
 			: {}),
@@ -617,7 +670,6 @@ function resolveWorkerEnvironment(
 	return stringEnvironment(
 		actorWorkerEnvironment({
 			endpoint: input.endpoint,
-			key: input.key,
 			namespace: input.namespace,
 			pool: input.pool,
 		}),
@@ -719,12 +771,6 @@ function loopbackExemptPorts(endpoint: string | undefined): number[] {
 		return [];
 	}
 	return [Number(url.port || (url.protocol === "https:" ? 443 : 80))];
-}
-
-function actorEnvoyVersion(key: string): number {
-	return (
-		createHash("sha256").update(key).digest().readUInt32BE(0) & 0x7fffffff || 1
-	);
 }
 
 function integerEnv(

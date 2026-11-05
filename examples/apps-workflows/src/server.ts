@@ -1,5 +1,9 @@
 import { serve } from "@hono/node-server";
-import { appsRouter, deployApp } from "@rivet-dev/dynamic-apps";
+import {
+	appsRouter,
+	deployApp,
+	startDynamicAppsHost,
+} from "@rivet-dev/dynamic-apps";
 import { Hono } from "hono";
 
 const server = new Hono();
@@ -17,5 +21,8 @@ server.post("/deploy/:name", async (c) =>
 );
 
 server.route("/apps", appsRouter);
+
+// Start running deployed apps' actors as soon as the host boots.
+await startDynamicAppsHost();
 
 serve({ fetch: server.fetch, port: Number(process.env.PORT ?? 3000) });

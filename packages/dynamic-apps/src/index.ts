@@ -10,6 +10,7 @@ export {
 	type DynamicAppsLogSource,
 	setDynamicAppsLogHandler,
 } from "./logging.js";
+export { startDynamicAppsHost } from "./registry.js";
 export { appsRouter } from "./router.js";
 export { rivetActorsSkill, webServerSkill } from "./skills.js";
 export { setDynamicAppsVmOptions } from "./vm-options.js";

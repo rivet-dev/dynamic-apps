@@ -140,12 +140,16 @@ export function createRivetReleaseStore(
 	const drivers = new Map<string, DriverEntry>();
 	const getClient = () =>
 		(client ??= createClient() as unknown as ReleaseStoreClient);
+	// An injected client already reaches a running host registry.
+	const ensureHostRegistry = clientInput
+		? async () => {}
+		: ensurePrivateAppsRegistry;
 
 	const publishRelease = async (
 		input: PublishReleaseInput,
 		options?: RivetDeployOptions,
 	): Promise<Deployment> => {
-		await ensurePrivateAppsRegistry();
+		await ensureHostRegistry();
 		const group = getClient().dynamicAppsApp;
 		const driver = drivers.get(input.appId);
 		let handle: AppReleaseHandle;
@@ -274,14 +278,13 @@ export function createRivetReleaseStore(
 			maxRequestBytes: resolution.maxRequestBytes,
 			maxResponseBytes: resolution.maxResponseBytes,
 			...(resolution.usesRivetKit &&
-			resolution.serverlessEndpoint &&
+			resolution.actorEndpoint &&
 			resolution.runtimePool
 				? {
 						server: {
 							environment: definedEnvironment(
 								actorWorkerEnvironment({
-									endpoint: resolution.serverlessEndpoint,
-									key: `${resolution.release}:${resolution.artifactHash}`,
+									endpoint: resolution.actorEndpoint,
 									namespace: resolution.namespace,
 									pool: resolution.runtimePool,
 								}),
@@ -296,7 +299,7 @@ export function createRivetReleaseStore(
 		appId: string,
 		invalidate: ReleaseInvalidation,
 	): Promise<Unsubscribe> => {
-		await ensurePrivateAppsRegistry();
+		await ensureHostRegistry();
 		const existing = drivers.get(appId);
 		if (existing) {
 			await existing.ready;

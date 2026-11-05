@@ -2,11 +2,9 @@ import { createHash } from "node:crypto";
 import { controlFetch } from "./control-request.js";
 
 const MAX_ENGINE_RESPONSE_BYTES = 1024 * 1024;
-const MAX_ENGINE_DATACENTERS = 128;
+const MAX_POOL_NODE_PAGES = 64;
 
-export const APP_CALLBACK_SECRET_HEADER = "x-agentos-app-callback-token";
-
-/** Stable compatibility pool retained in deployApp's result. */
+/** Stable node pool that hosts one app's actors. */
 export function appRunnerPool(appId: string): string {
 	const suffix = createHash("sha256").update(appId).digest("hex").slice(0, 16);
 	return `dynamic-apps-${suffix}`;
@@ -42,91 +40,83 @@ function engineUrl(endpoint: string, path: string[], namespace: string): URL {
 	return url;
 }
 
-/** Point an app namespace's stable pool at its authenticated callback URL. */
-export async function ensureServerlessRunnerConfig(input: {
+interface EngineControl {
 	endpoint: string;
 	namespace: string;
-	url: string;
-	pool: string;
 	token?: string;
-	callbackToken?: string;
-	callbackSecret: string;
-}): Promise<void> {
-	const headers = {
+}
+
+function controlHeaders(token?: string): Record<string, string> {
+	return {
 		accept: "application/json",
 		"content-type": "application/json",
-		...(input.token ? { authorization: `Bearer ${input.token}` } : {}),
+		...(token ? { authorization: `Bearer ${token}` } : {}),
 	};
-	const datacentersResponse = await controlFetch(
-		engineUrl(input.endpoint, ["datacenters"], input.namespace),
-		{ headers },
-	);
-	const datacentersText = await readBoundedText(datacentersResponse);
-	if (!datacentersResponse.ok) {
-		throw new Error(
-			`Rivet datacenter lookup failed with HTTP ${datacentersResponse.status}: ${datacentersText}`,
-		);
-	}
-	const parsed = JSON.parse(datacentersText) as {
-		datacenters?: Array<{ name?: unknown }>;
-	};
-	if (
-		!Array.isArray(parsed.datacenters) ||
-		parsed.datacenters.length === 0 ||
-		parsed.datacenters.length > MAX_ENGINE_DATACENTERS
-	) {
-		throw new Error("Rivet datacenter lookup returned an invalid count");
-	}
-	const datacenters: Record<string, unknown> = {};
-	for (const datacenter of parsed.datacenters) {
-		if (typeof datacenter.name !== "string" || !datacenter.name) {
-			throw new Error("Rivet datacenter lookup returned an invalid name");
-		}
-		datacenters[datacenter.name] = {
-			serverless: {
-				url: input.url,
-				headers: {
-					[APP_CALLBACK_SECRET_HEADER]: input.callbackSecret,
-					...(input.callbackToken
-						? { "x-rivet-token": input.callbackToken }
-						: {}),
-				},
-				request_lifespan: 60 * 60,
-				metadata_poll_interval: 1_000,
-				max_runners: 1_024,
-				min_runners: 0,
-				runners_margin: 0,
-				slots_per_runner: 1,
-			},
-			metadata: {},
-			drain_on_version_upgrade: true,
-		};
-	}
+}
+
+/**
+ * Creates or updates the node pool an app's envoy connects to. The pool must
+ * exist before the envoy connects, because the Engine rejects connections to
+ * unknown pools. Newer node versions drain older ones so a missed graceful
+ * shutdown still moves actors to the active release.
+ */
+export async function ensureEnvoyPool(
+	input: EngineControl & { pool: string },
+): Promise<void> {
 	const response = await controlFetch(
-		engineUrl(input.endpoint, ["runner-configs", input.pool], input.namespace),
-		{ method: "PUT", headers, body: JSON.stringify({ datacenters }) },
+		engineUrl(input.endpoint, ["pools", input.pool], input.namespace),
+		{
+			method: "PUT",
+			headers: controlHeaders(input.token),
+			body: JSON.stringify({ drain_on_version_upgrade: true }),
+		},
 	);
 	const body = await readBoundedText(response);
 	if (!response.ok) {
 		throw new Error(
-			`Rivet runner config upsert failed with HTTP ${response.status}: ${body}`,
+			`Rivet pool upsert failed with HTTP ${response.status}: ${body}`,
 		);
 	}
+}
 
-	// Publish the registry protocol synchronously so the first actor allocation
-	// cannot race the background metadata poller into the legacy runner path.
-	const refreshResponse = await controlFetch(
-		engineUrl(
+/** Whether a connected, non-draining node of `version` serves `pool`. */
+export async function poolHasConnectedNode(
+	input: EngineControl & { pool: string; version: number },
+): Promise<boolean> {
+	let cursor: string | undefined;
+	for (let page = 0; page < MAX_POOL_NODE_PAGES; page += 1) {
+		const url = engineUrl(
 			input.endpoint,
-			["runner-configs", input.pool, "refresh-metadata"],
+			["pools", input.pool, "nodes"],
 			input.namespace,
-		),
-		{ method: "POST", headers, body: "{}" },
-	);
-	const refreshBody = await readBoundedText(refreshResponse);
-	if (!refreshResponse.ok) {
-		throw new Error(
-			`Rivet runner metadata refresh failed with HTTP ${refreshResponse.status}: ${refreshBody}`,
 		);
+		if (cursor) url.searchParams.set("cursor", cursor);
+		const response = await controlFetch(url, {
+			headers: controlHeaders(input.token),
+		});
+		const body = await readBoundedText(response);
+		if (!response.ok) {
+			throw new Error(
+				`Rivet pool node listing failed with HTTP ${response.status}: ${body}`,
+			);
+		}
+		const parsed = JSON.parse(body) as {
+			nodes?: Array<{
+				version?: unknown;
+				connected?: unknown;
+				stopping?: unknown;
+			}>;
+			pagination?: { cursor?: string | null };
+		};
+		const found = parsed.nodes?.some(
+			(node) =>
+				node.version === input.version &&
+				node.connected === true &&
+				node.stopping !== true,
+		);
+		if (found) return true;
+		cursor = parsed.pagination?.cursor ?? undefined;
+		if (!cursor) return false;
 	}
+	return false;
 }

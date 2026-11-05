@@ -2,6 +2,10 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { setup } from "rivetkit";
 import { createAppsActors } from "./actors.js";
+import {
+	startEnvoyReconciler,
+	stopEnvoyReconcilerForTest,
+} from "./envoy-reconciler.js";
 
 const artifactCacheDirectory = process.env.DYNAMIC_APPS_E2E_ARTIFACT_CACHE;
 
@@ -44,25 +48,36 @@ export const privateAppsRegistry = setup({
 
 let startPromise: Promise<void> | undefined;
 
-export function isServerlessRuntime(): boolean {
-	return process.env.RIVETKIT_RUNTIME_MODE === "serverless";
-}
-
-/** Ensure the private app-state actor is registered with a local/envoy Engine. */
+/**
+ * Registers the private app-state actors with the Engine and starts the loop
+ * that restarts app envoys after a host process dies.
+ */
 export async function ensurePrivateAppsRegistry(): Promise<void> {
-	if (isServerlessRuntime()) return;
-	startPromise ??= privateAppsRegistry.startAndWait().catch((error) => {
-		startPromise = undefined;
-		throw error;
-	});
+	startPromise ??= privateAppsRegistry.startAndWait().then(
+		() => startEnvoyReconciler(),
+		(error) => {
+			startPromise = undefined;
+			throw error;
+		},
+	);
 	await startPromise;
 }
 
-/** Handle the host's explicit root /api/rivet callback routes. */
+/**
+ * Starts this host's part of Dynamic Apps: the private actors that run each
+ * app's envoy and the loop that restarts envoys after a host dies. Call it once
+ * when the host process boots. Without it a host joins only after its first
+ * request, so apps that serve only actor traffic can stay offline after every
+ * host restarts.
+ */
+export async function startDynamicAppsHost(): Promise<void> {
+	await ensurePrivateAppsRegistry();
+}
+
+/** Handle the host's explicit root /api/rivet routes. */
 export async function handlePrivateAppsRegistry(
 	request: Request,
 ): Promise<Response> {
-	if (isServerlessRuntime()) return privateAppsRegistry.handler(request);
 	await ensurePrivateAppsRegistry();
 	const path = new URL(request.url).pathname.replace(/\/+$/, "") || "/";
 	if (request.method === "GET" && path === "/api/rivet/health") {
@@ -79,6 +94,7 @@ export async function handlePrivateAppsRegistry(
 
 /** @internal */
 export async function shutdownPrivateAppsRegistryForTest(): Promise<void> {
+	stopEnvoyReconcilerForTest();
 	await privateAppsRegistry.shutdown();
 	startPromise = undefined;
 }

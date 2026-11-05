@@ -52,6 +52,6 @@ export interface AppRouteResolution {
 	maxRequestBytes: number;
 	maxResponseBytes: number;
 	usesRivetKit: boolean;
-	serverlessEndpoint?: string;
+	actorEndpoint?: string;
 	runtimePool?: string;
 }

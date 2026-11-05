@@ -39,7 +39,7 @@ export function canonicalDeploymentHash(input: {
 	deploymentIdentity?: string;
 }): string {
 	const hash = createHash("sha256");
-	hash.update("dynamic-apps-release-v19-mounted-hono-router\0");
+	hash.update("dynamic-apps-release-v20-rivet-v3-envoy\0");
 	const field = (value: string | Uint8Array) => {
 		const bytes = typeof value === "string" ? Buffer.from(value) : value;
 		const length = Buffer.allocUnsafe(8);
@@ -154,7 +154,17 @@ export const GUEST_FORMAT_ERROR_SOURCE = `function formatError(error) {
   return lines.join("\\n");
 }`;
 
-/** Initializes RivetKit WASM and hosts the application's exported fetch handler. */
+/** Path of the envoy runner's control endpoint that drains its registry. */
+export const ENVOY_SHUTDOWN_PATH = "/.dynamic-apps/envoy/shutdown";
+
+/**
+ * Initializes RivetKit WASM and runs the application in one of two modes.
+ *
+ * The default mode hosts the application's exported fetch handler for direct
+ * HTTP traffic. With `DYNAMIC_APPS_RUNNER_MODE=envoy` it instead starts the
+ * exported registry as a long-lived envoy that hosts the application's actors,
+ * and serves only a control endpoint that drains that envoy.
+ */
 export function actorRunnerSource(entrypointInput: string): string {
 	const entrypoint = `./${normalizeAppPath(entrypointInput)}`;
 	return `import { readFile } from "node:fs/promises";
@@ -164,23 +174,45 @@ import initializeRivetKit from "@rivetkit/rivetkit-wasm";
 const wasmUrl = new URL(__AGENTOS_RIVETKIT_WASM_PATH__, import.meta.url);
 await initializeRivetKit({ module_or_path: await readFile(wasmUrl) });
 const applicationModule = await import(${JSON.stringify(entrypoint)});
-const application = applicationModule.default;
-const fetch = typeof application === "function"
-  ? application
-  : typeof application?.fetch === "function"
-    ? application.fetch.bind(application)
-    : undefined;
-if (!fetch) {
-  throw new TypeError("Dynamic App entrypoint default export must be a fetch handler");
-}
 ${GUEST_FORMAT_ERROR_SOURCE}
-async function handle(request, ...rest) {
-  try {
-    return await fetch(request, ...rest);
-  } catch (error) {
-    console.error(formatError(error));
-    return new Response("Internal Server Error", { status: 500 });
+let handle;
+if (process.env.DYNAMIC_APPS_RUNNER_MODE === "envoy") {
+  const registry = applicationModule.registry;
+  if (typeof registry?.start !== "function" || typeof registry?.shutdown !== "function") {
+    throw new TypeError(
+      "Dynamic Apps using RivetKit must export the registry from the entrypoint: export const registry = setup(...)",
+    );
   }
+  registry.start();
+  let shutdown;
+  handle = async (request) => {
+    const url = new URL(request.url);
+    if (request.method !== "POST" || url.pathname !== ${JSON.stringify(ENVOY_SHUTDOWN_PATH)}) {
+      return new Response("Not Found", { status: 404 });
+    }
+    // The guest exits once drained so the host can dispose its VM cleanly.
+    shutdown ??= registry.shutdown().finally(() => setTimeout(() => process.exit(0), 0));
+    await shutdown;
+    return new Response("drained");
+  };
+} else {
+  const application = applicationModule.default;
+  const fetch = typeof application === "function"
+    ? application
+    : typeof application?.fetch === "function"
+      ? application.fetch.bind(application)
+      : undefined;
+  if (!fetch) {
+    throw new TypeError("Dynamic App entrypoint default export must be a fetch handler");
+  }
+  handle = async (request, ...rest) => {
+    try {
+      return await fetch(request, ...rest);
+    } catch (error) {
+      console.error(formatError(error));
+      return new Response("Internal Server Error", { status: 500 });
+    }
+  };
 }
 await new Promise((resolve, reject) => {
   const server = serve({

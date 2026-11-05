@@ -61,7 +61,7 @@ export async function deployActorBenchmarkFixture(
 					main: "index.js",
 					dependencies: {
 						hono: "4.13.5",
-						rivetkit: "2.3.29",
+						rivetkit: "3.0.2",
 					},
 				}),
 				"index.js": `
@@ -100,9 +100,8 @@ const counter = actor({
 	},
 });
 
-const registry = setup({ use: { counter } });
+export const registry = setup({ use: { counter } });
 const app = new Hono();
-app.all("/api/rivet/*", (c) => registry.handler(c.req.raw));
 app.all("*", () => Response.json({ ok: true, workload: "actor-and-direct-http" }));
 export default app;
 `,
