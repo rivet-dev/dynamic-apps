@@ -1,17 +1,16 @@
+import { setup, workflow } from "@rivet-dev/workflows";
 import { Hono } from "hono";
-import { actor, setup } from "rivetkit";
-import { workflow } from "rivetkit/workflow";
 
 type Status = "placed" | "paid" | "shipped" | "delivered";
 
 // The workflow runs when the actor is created. Each step is durable, so the
 // actor can sleep, scale to zero, and resume exactly where it left off.
-const order = actor({
+const order = workflow({
 	state: { status: "placed" as Status },
 	actions: {
 		status: (c) => c.state.status,
 	},
-	run: workflow(async (wf) => {
+	run: async (wf) => {
 		await wf.step("charge", async (c) => {
 			c.state.status = "paid";
 		});
@@ -22,7 +21,7 @@ const order = actor({
 		await wf.step("deliver", async (c) => {
 			c.state.status = "delivered";
 		});
-	}),
+	},
 });
 
 export const registry = setup({ use: { order } });
