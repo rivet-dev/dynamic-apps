@@ -1,5 +1,9 @@
 import { serve } from "@hono/node-server";
-import { appsRouter, deployApp } from "@rivet-dev/dynamic-apps";
+import {
+	appsRouter,
+	deployApp,
+	startDynamicAppsHost,
+} from "@rivet-dev/dynamic-apps";
 import { Hono } from "hono";
 
 const server = new Hono();
@@ -13,6 +17,9 @@ await deployApp({
 	source: new URL("../fixtures/app/", import.meta.url),
 });
 // docs:end deploy
+
+// Start running deployed apps' actors as soon as the host boots.
+await startDynamicAppsHost();
 
 serve({ fetch: server.fetch, port: Number(process.env.PORT ?? 3000) });
 console.log("Open http://localhost:3000/apps/static-website/");

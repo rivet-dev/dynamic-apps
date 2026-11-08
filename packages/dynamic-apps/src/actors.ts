@@ -1,4 +1,4 @@
-import { createHash, randomUUID, timingSafeEqual } from "node:crypto";
+import { createHash } from "node:crypto";
 import type { BuildArtifactCache } from "@rivet-dev/dynamic-apps-core";
 import {
 	buildAppRelease,
@@ -8,14 +8,17 @@ import {
 } from "@rivet-dev/dynamic-apps-core/internal";
 import { type AnyActorDefinition, actor, UserError } from "rivetkit";
 import { db, type RawAccess } from "rivetkit/db";
-import { getDefaultActorRuntime } from "./actor-runtime.js";
 import {
-	configureAppNamespaceRunner,
 	provisionAppNamespace,
 	resolveDefaultRivetConnection,
 	unprovisionedAppNamespace,
 } from "./control-plane.js";
-import { APP_CALLBACK_SECRET_HEADER } from "./runtime.js";
+import {
+	AppEnvoySupervisor,
+	EnvoySupervisorStoppedError,
+	type EnvoyTarget,
+} from "./envoy-supervisor.js";
+import { ensureEnvoyPool } from "./runtime.js";
 import type {
 	AppReleaseInfo,
 	AppRouteResolution,
@@ -40,6 +43,12 @@ const SOURCE_CHUNK_BYTES = 512 * 1024;
 const MAX_SOURCE_CHUNKS =
 	Math.ceil((4 * 1024 * 1024) / SOURCE_CHUNK_BYTES) + 2_000;
 const RELEASE_PATTERN = /^[a-f0-9]{64}$/;
+const ENVOY_RETRY_BASE_DELAY_MS = 1_000;
+const ENVOY_RETRY_MAX_DELAY_MS = 30_000;
+/** Key of the singleton actor that lists apps running an envoy. */
+export const ENVOY_INDEX_KEY = ["envoys"];
+/** Largest page of app IDs the envoy index returns in one call. */
+export const ENVOY_INDEX_MAX_PAGE = 256;
 
 type AnyActorContext = {
 	actorId: string;
@@ -48,6 +57,8 @@ type AnyActorContext = {
 	state: unknown;
 	db: RawAccess;
 	keepAwake<T>(promise: Promise<T>): Promise<T>;
+	abortSignal: AbortSignal;
+	client(): unknown;
 	broadcast(name: string, ...args: unknown[]): void;
 	log: {
 		info(value: unknown): void;
@@ -60,7 +71,6 @@ export interface StoredAppRelease extends AppReleaseInfo {
 	namespace: string;
 	runtimeEndpoint: string;
 	runtimePool: string;
-	callbackSecret: string;
 	usesRivetKit: boolean;
 }
 
@@ -74,10 +84,23 @@ export interface AppState {
 	publicToken?: string | null;
 	publishSequence?: number;
 	latestPublishSequence?: number;
+	/**
+	 * Highest node version reserved for this app's envoy. It only grows, so a
+	 * node left from an earlier attempt can never pass a later connection check.
+	 */
+	envoyVersion?: number;
+	/** Node version that `envoyRelease` runs at; set together with it. */
+	envoyActiveVersion?: number;
+	/**
+	 * Release the app runs as an envoy, or null when it runs none. Undefined in
+	 * state written before Rivet v3 envoys existed.
+	 */
+	envoyRelease?: string | null;
 }
 
 export interface DynamicAppsActors {
 	dynamicAppsApp: AnyActorDefinition;
+	dynamicAppsEnvoyIndex: AnyActorDefinition;
 }
 
 interface BeginReleasePublishInput {
@@ -262,6 +285,8 @@ export async function migrateAppsTables(database: RawAccess): Promise<void> {
 	const columns = await database.execute<{ name: string }>(
 		"PRAGMA table_info(dynamic_apps_releases)",
 	);
+	// Unused since Rivet v3 removed serverless callbacks; kept so every database
+	// has the same schema.
 	if (!columns.some((column) => column.name === "callback_secret")) {
 		await database.execute(
 			`ALTER TABLE dynamic_apps_releases
@@ -369,7 +394,6 @@ interface ReleaseRow extends Record<string, unknown> {
 	namespace: string;
 	runtime_endpoint: string;
 	runtime_pool: string;
-	callback_secret: string;
 	uses_rivetkit: number;
 }
 
@@ -387,7 +411,6 @@ function releaseFromRow(row: ReleaseRow): StoredAppRelease {
 		namespace: row.namespace,
 		runtimeEndpoint: row.runtime_endpoint,
 		runtimePool: row.runtime_pool,
-		callbackSecret: row.callback_secret ?? "",
 		usesRivetKit: Number(row.uses_rivetkit ?? 0) === 1,
 	};
 }
@@ -474,32 +497,6 @@ async function readStoredArtifact(
 		);
 	}
 	return artifact;
-}
-
-function normalizeActorCallbackPath(
-	request: Request,
-): "/api/rivet/metadata" | "/api/rivet/start" | undefined {
-	if (!request.headers.get("user-agent")?.startsWith("RivetEngine/")) return;
-	const pathname = new URL(request.url).pathname;
-	if (request.method === "GET" && pathname.endsWith("/metadata")) {
-		return "/api/rivet/metadata";
-	}
-	if (
-		(request.method === "GET" || request.method === "POST") &&
-		pathname.endsWith("/start")
-	) {
-		return "/api/rivet/start";
-	}
-	return;
-}
-
-function validCallbackSecret(request: Request, expected: string): boolean {
-	const received = request.headers.get(APP_CALLBACK_SECRET_HEADER);
-	if (!received || !expected) return false;
-	return timingSafeEqual(
-		createHash("sha256").update(received).digest(),
-		createHash("sha256").update(expected).digest(),
-	);
 }
 
 function actorPublicEndpoint(
@@ -625,13 +622,7 @@ async function beginReleasePublishLocked(
 		pool: runtime.pool,
 		usesRivetKit: input.usesRivetKit,
 	});
-	const releases = await listStoredReleases(c.db);
 	const existing = await getStoredRelease(c.db, releaseId);
-	const callbackSecret = input.usesRivetKit
-		? existing?.callbackSecret ||
-			releases.find((candidate) => candidate.callbackSecret)?.callbackSecret ||
-			randomUUID()
-		: "";
 	const sequence = (state.publishSequence ?? 0) + 1;
 	state.publishSequence = sequence;
 	state.latestPublishSequence = sequence;
@@ -660,8 +651,8 @@ async function beginReleasePublishLocked(
 			release_id, created_at, status, entrypoint,
 			artifact_hash, artifact_bytes, build_error,
 			regions_json, scaling_json, namespace, envoy_version,
-			runtime_endpoint, runtime_pool, callback_secret, uses_rivetkit
-		) VALUES (?, ?, 'building', ?, ?, ?, NULL, ?, ?, ?, 1, ?, ?, ?, ?)
+			runtime_endpoint, runtime_pool, uses_rivetkit
+		) VALUES (?, ?, 'building', ?, ?, ?, NULL, ?, ?, ?, 1, ?, ?, ?)
 		ON CONFLICT(release_id) DO UPDATE SET
 			status = 'building', entrypoint = excluded.entrypoint,
 			artifact_hash = excluded.artifact_hash,
@@ -671,7 +662,6 @@ async function beginReleasePublishLocked(
 			namespace = excluded.namespace,
 			runtime_endpoint = excluded.runtime_endpoint,
 			runtime_pool = excluded.runtime_pool,
-			callback_secret = excluded.callback_secret,
 			uses_rivetkit = excluded.uses_rivetkit`,
 		releaseId,
 		existing?.createdAt ?? input.createdAt,
@@ -683,7 +673,6 @@ async function beginReleasePublishLocked(
 		runtime.namespace,
 		runtime.endpoint,
 		runtime.pool,
-		callbackSecret,
 		input.usesRivetKit ? 1 : 0,
 	);
 	return {
@@ -812,7 +801,6 @@ async function commitReleasePublishLocked(
 	state.runnerToken = runtime.runnerToken ?? null;
 	state.publicToken = runtime.publicToken ?? null;
 	if (release.usesRivetKit) {
-		const publicEndpoint = actorPublicEndpoint(release, state);
 		if (
 			runtime.endpoint.replace(/\/$/, "") !==
 			release.runtimeEndpoint.replace(/\/$/, "")
@@ -822,49 +810,56 @@ async function commitReleasePublishLocked(
 				"the app actor Rivet endpoint does not match the deployment runtime",
 			);
 		}
-		state.activatingRelease = release.release;
+		// Each activation reserves a higher node version so the Engine drains the
+		// previous release's envoy even if its graceful shutdown is missed.
+		const version = (state.envoyVersion ?? 0) + 1;
+		state.envoyVersion = version;
 		try {
-			const metadataResponse = await getDefaultActorRuntime().request({
-				key: `${release.release}:${release.artifactHash}`,
-				appId,
-				release: release.release,
-				loadArtifact: () => readStoredArtifact(c.db, release),
-				endpoint: publicEndpoint,
+			await ensureEnvoyPool({
+				endpoint: release.runtimeEndpoint,
 				namespace: release.namespace,
 				pool: release.runtimePool,
-				request: new Request("http://dynamic-app.internal/api/rivet/metadata", {
-					headers: { "user-agent": "RivetEngine/prewarm" },
-				}),
+				token: runtime.controlToken,
 			});
-			if (!metadataResponse.ok) {
-				throw new Error(
-					`Dynamic App actor metadata prewarm returned HTTP ${metadataResponse.status}`,
-				);
-			}
-			await metadataResponse.arrayBuffer();
-			await configureAppNamespaceRunner(
-				c.actorId,
-				{
-					endpoint: release.runtimeEndpoint,
-					namespace: release.namespace,
-					pool: release.runtimePool,
-					controlToken: runtime.controlToken,
-				},
-				release.callbackSecret,
+			// Registering first is safe because the recovery loop only wakes the
+			// app, which then runs whatever release state names.
+			await envoyIndex(c).register(appId);
+			await appEnvoy(c).supervisor.activate(
+				envoyTarget(c, release, state, version, runtime.controlToken),
+				{ waitForConnection: true },
 			);
 		} catch (error) {
-			state.activatingRelease = null;
 			c.log.error({
-				msg: "Dynamic App actor runner configuration failed",
+				msg: "Dynamic App envoy activation failed",
 				release: release.release,
 				error: error instanceof Error ? error.stack : String(error),
 			});
+			// Without a previous envoy, nothing should hold the actor awake.
+			if (!state.envoyRelease) await stopAppEnvoy(c);
 			throw error;
 		}
+		state.envoyRelease = release.release;
+		state.envoyActiveVersion = version;
+	}
+	const hadEnvoy = !release.usesRivetKit && Boolean(state.envoyRelease);
+	if (!release.usesRivetKit) {
+		await stopAppEnvoy(c);
+		state.envoyRelease = null;
 	}
 	state.activeRelease = release.release;
-	state.activatingRelease = null;
 	state.revision += 1;
+	if (hadEnvoy) {
+		// A stale index entry is harmless: waking an app without an envoy does
+		// nothing. So a failed cleanup must not fail the deploy.
+		await envoyIndex(c)
+			.unregister(appId)
+			.catch((error: unknown) =>
+				c.log.error({
+					msg: "failed to remove app from the envoy index",
+					error: error instanceof Error ? error.message : String(error),
+				}),
+			);
+	}
 	c.broadcast("releaseActivated", {
 		revision: state.revision,
 		release: release.release,
@@ -910,53 +905,192 @@ function deploymentForRelease(
 	};
 }
 
+interface AppEnvoy {
+	supervisor: AppEnvoySupervisor;
+	/** Lets the owning actor sleep again once it no longer runs an envoy. */
+	release(): void;
+}
+
+const appEnvoys = new Map<string, AppEnvoy>();
+
+/**
+ * Returns the app actor's envoy supervisor, creating it on first use. While
+ * the supervisor exists it holds the actor awake, and when the actor begins to
+ * stop it drains the envoy inside the actor's shutdown grace.
+ */
+function appEnvoy(c: AnyActorContext): AppEnvoy {
+	const existing = appEnvoys.get(c.actorId);
+	if (existing) return existing;
+	const supervisor = new AppEnvoySupervisor();
+	let release = () => {};
+	const released = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	const entry: AppEnvoy = { supervisor, release };
+	appEnvoys.set(c.actorId, entry);
+	const stopping = new Promise<void>((resolve) => {
+		if (c.abortSignal.aborted) resolve();
+		else
+			c.abortSignal.addEventListener("abort", () => resolve(), { once: true });
+	});
+	void c.keepAwake(
+		Promise.race([released, stopping.then(() => supervisor.stop())]).finally(
+			() => {
+				if (appEnvoys.get(c.actorId) === entry) appEnvoys.delete(c.actorId);
+			},
+		),
+	);
+	return entry;
+}
+
+/** Drains the app's envoy, if any, and lets the actor sleep again. */
+async function stopAppEnvoy(c: AnyActorContext): Promise<void> {
+	const entry = appEnvoys.get(c.actorId);
+	if (!entry) return;
+	appEnvoys.delete(c.actorId);
+	try {
+		await entry.supervisor.stop();
+	} finally {
+		entry.release();
+	}
+}
+
+function envoyTarget(
+	c: AnyActorContext,
+	release: StoredAppRelease,
+	state: AppState,
+	version: number,
+	controlToken?: string,
+): EnvoyTarget {
+	const appId = c.key[0];
+	if (!appId)
+		fail("dynamic_apps_invalid_app_id", "application actor key is missing");
+	return {
+		appId,
+		release: release.release,
+		version,
+		endpoint: actorPublicEndpoint(release, state),
+		namespace: release.namespace,
+		pool: release.runtimePool,
+		controlToken,
+		loadArtifact: () => readStoredArtifact(c.db, release),
+	};
+}
+
+/**
+ * Starts the app's envoy if this actor runs one and is not already running
+ * it. Called whenever the actor wakes, so an app whose host process went away
+ * serves actors again as soon as anything wakes its app actor.
+ */
+function ensureActiveEnvoy(c: AnyActorContext): void {
+	if (appEnvoys.has(c.actorId)) return;
+	const state = c.state as AppState;
+	if (state.envoyRelease === undefined) {
+		void c.keepAwake(resolveLegacyEnvoyRelease(c));
+		return;
+	}
+	if (!state.envoyRelease) return;
+	const entry = appEnvoy(c);
+	void c.keepAwake(
+		(async () => {
+			for (let attempt = 0; ; attempt += 1) {
+				// Stop once the actor stops or a later activation replaced this envoy.
+				if (c.abortSignal.aborted || appEnvoys.get(c.actorId) !== entry) {
+					return;
+				}
+				// The running version, never a reservation an activation still holds.
+				const releaseId = state.envoyRelease;
+				const version = state.envoyActiveVersion;
+				if (!releaseId || version === undefined) {
+					await stopAppEnvoy(c);
+					return;
+				}
+				try {
+					const release = await getStoredRelease(c.db, releaseId);
+					if (!release?.usesRivetKit || release.status !== "ready") {
+						throw new Error(
+							`envoy release ${releaseId} is not a ready RivetKit release`,
+						);
+					}
+					// Nothing else serves the pool yet, so the guest's own startup is
+					// enough; waiting for the Engine would only delay recovery.
+					await entry.supervisor.activate(
+						envoyTarget(c, release, state, version),
+						{ waitForConnection: false },
+					);
+					return;
+				} catch (error) {
+					if (error instanceof EnvoySupervisorStoppedError) return;
+					const delay = Math.min(
+						ENVOY_RETRY_BASE_DELAY_MS * 2 ** attempt,
+						ENVOY_RETRY_MAX_DELAY_MS,
+					);
+					c.log.error({
+						msg: "Dynamic App envoy failed to start; retrying",
+						release: releaseId,
+						delayMs: delay,
+						error: error instanceof Error ? error.stack : String(error),
+					});
+					await abortableDelay(delay, c.abortSignal);
+				}
+			}
+		})(),
+	);
+}
+
+/**
+ * Settles `envoyRelease` for state written before Rivet v3 envoys. Their
+ * artifacts were built for serverless callbacks and cannot run as an envoy, so
+ * a RivetKit app must be redeployed; any other app simply runs no envoy.
+ */
+async function resolveLegacyEnvoyRelease(c: AnyActorContext): Promise<void> {
+	const state = c.state as AppState;
+	const release = state.activeRelease
+		? await getStoredRelease(c.db, state.activeRelease)
+		: undefined;
+	if (release?.usesRivetKit) {
+		c.log.error({
+			msg: "Dynamic App release was built before Rivet v3 envoys; redeploy the app to run its actors",
+			release: release.release,
+		});
+		return;
+	}
+	state.envoyRelease = null;
+}
+
+function abortableDelay(ms: number, signal: AbortSignal): Promise<void> {
+	return new Promise((resolve) => {
+		const timer = setTimeout(done, ms);
+		function done() {
+			clearTimeout(timer);
+			signal.removeEventListener("abort", done);
+			resolve();
+		}
+		signal.addEventListener("abort", done, { once: true });
+	});
+}
+
+interface EnvoyIndexHandle {
+	register(appId: string): Promise<void>;
+	unregister(appId: string): Promise<void>;
+}
+
+function envoyIndex(c: AnyActorContext): EnvoyIndexHandle {
+	const client = c.client() as {
+		dynamicAppsEnvoyIndex: {
+			getOrCreate(key: string[]): EnvoyIndexHandle;
+		};
+	};
+	return client.dynamicAppsEnvoyIndex.getOrCreate(ENVOY_INDEX_KEY);
+}
+
 export function createAppsActors(
 	options: { artifactCache?: BuildArtifactCache } = {},
 ): DynamicAppsActors {
-	const forwardActorRequest = async (
-		c: AnyActorContext,
-		request: Request,
-	): Promise<Response> => {
-		const callbackPath = normalizeActorCallbackPath(request);
-		if (!callbackPath) return new Response("Not Found", { status: 404 });
-		const state = c.state as AppState;
-		const routedRelease = state.activatingRelease ?? state.activeRelease;
-		const release = routedRelease
-			? await getStoredRelease(c.db, routedRelease)
-			: undefined;
-		if (!release || release.status !== "ready" || !release.usesRivetKit) {
-			return new Response("Dynamic App has no active actor registry", {
-				status: 503,
-			});
-		}
-		if (!validCallbackSecret(request, release.callbackSecret)) {
-			return new Response("Unauthorized", { status: 401 });
-		}
-		try {
-			return await getDefaultActorRuntime().request({
-				key: `${release.release}:${release.artifactHash}`,
-				appId: c.key[0],
-				release: release.release,
-				loadArtifact: () => readStoredArtifact(c.db, release),
-				endpoint: actorPublicEndpoint(release, state),
-				namespace: release.namespace,
-				pool: release.runtimePool,
-				request: forwardActorCallbackRequest(request, callbackPath),
-			});
-		} catch (error) {
-			c.log.error({
-				msg: "Dynamic App actor callback failed",
-				release: release.release,
-				error: error instanceof Error ? error.stack : String(error),
-			});
-			throw error;
-		}
-	};
-
 	const dynamicAppsApp = actor({
 		options: { actionTimeout: 16 * 60_000 },
 		db: db({ onMigrate: migrateAppsTables }),
-		onRequest: forwardActorRequest,
+		onWake: (c: AnyActorContext) => ensureActiveEnvoy(c),
 		createState: (): AppState => ({
 			activeRelease: null,
 			namespace: null,
@@ -966,8 +1100,16 @@ export function createAppsActors(
 			publicToken: null,
 			publishSequence: 0,
 			latestPublishSequence: 0,
+			envoyRelease: null,
 		}),
 		actions: {
+			/**
+			 * Wakes the app so it restarts its envoy after its host process went
+			 * away. The Engine only notices a lost actor when something touches it.
+			 */
+			ensureEnvoy: (c: AnyActorContext) => {
+				ensureActiveEnvoy(c);
+			},
 			beginReleasePublish: (
 				c: AnyActorContext,
 				input: BeginReleasePublishInput,
@@ -1112,7 +1254,7 @@ export function createAppsActors(
 					usesRivetKit: release.usesRivetKit,
 					...(release.usesRivetKit
 						? {
-								serverlessEndpoint: actorPublicEndpoint(release, state),
+								actorEndpoint: actorPublicEndpoint(release, state),
 								runtimePool: release.runtimePool,
 							}
 						: {}),
@@ -1210,27 +1352,40 @@ export function createAppsActors(
 			},
 		},
 	});
-	return { dynamicAppsApp };
+	const dynamicAppsEnvoyIndex = actor({
+		createState: (): EnvoyIndexState => ({ apps: {} }),
+		actions: {
+			register: (c: { state: EnvoyIndexState }, appId: string) => {
+				c.state.apps[appId] = true;
+			},
+			unregister: (c: { state: EnvoyIndexState }, appId: string) => {
+				delete c.state.apps[appId];
+			},
+			/** One page of app IDs after `after`, in sorted order. */
+			list: (
+				c: { state: EnvoyIndexState },
+				after: string | null,
+				limit: number,
+			): { appIds: string[]; next: string | null } => {
+				const pageSize = Math.min(
+					Math.max(1, Math.floor(limit)),
+					ENVOY_INDEX_MAX_PAGE,
+				);
+				const appIds = Object.keys(c.state.apps)
+					.filter((appId) => after === null || appId > after)
+					.sort()
+					.slice(0, pageSize);
+				return {
+					appIds,
+					next: appIds.length === pageSize ? (appIds.at(-1) ?? null) : null,
+				};
+			},
+		},
+	});
+	return { dynamicAppsApp, dynamicAppsEnvoyIndex };
 }
 
-/** @internal Preserves callback streaming until runtime admission. */
-export function forwardActorCallbackRequest(
-	request: Request,
-	callbackPath: string,
-): Request {
-	const url = new URL(request.url);
-	url.pathname = callbackPath;
-	const headers = new Headers(request.headers);
-	headers.delete(APP_CALLBACK_SECRET_HEADER);
-	const body =
-		request.method === "GET" || request.method === "HEAD"
-			? undefined
-			: request.body;
-	return new Request(url, {
-		method: request.method,
-		headers,
-		body,
-		signal: request.signal,
-		...(body ? { duplex: "half" } : {}),
-	} as RequestInit & { duplex?: "half" });
+/** Apps whose active release runs an envoy, so hosts can wake them after a crash. */
+interface EnvoyIndexState {
+	apps: Record<string, true>;
 }

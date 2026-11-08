@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { DynamicAppsError } from "@rivet-dev/dynamic-apps-core/internal";
 import { controlFetch } from "./control-request.js";
-import { appRunnerPool, ensureServerlessRunnerConfig } from "./runtime.js";
+import { appRunnerPool } from "./runtime.js";
 
 const DEFAULT_ENDPOINT = "http://localhost:6420";
 const DEFAULT_CLOUD_ENDPOINT = "https://cloud-api.rivet.dev";
@@ -281,10 +281,7 @@ export async function provisionAppNamespace(
 			{
 				method: "POST",
 				headers,
-				body: JSON.stringify({
-					name: namespace,
-					display_name: `Dynamic App ${appId}`,
-				}),
+				body: JSON.stringify({ name: namespace }),
 			},
 		);
 		if (!response.ok && !(await lookup())) {
@@ -315,77 +312,4 @@ export function unprovisionedAppNamespace(
 		pool: appRunnerPool(appId),
 		controlToken: connection.token,
 	};
-}
-
-function serverlessAppCallback(
-	appActorId: string,
-	connection: ResolvedRivetConnection,
-): { url: string; token?: string } {
-	const configured = process.env.DYNAMIC_APPS_CALLBACK_URL;
-	if (configured) {
-		return { url: new URL("/api/rivet", configured).toString() };
-	}
-
-	const publicEndpoint = process.env.RIVET_PUBLIC_ENDPOINT;
-	const callbackConnection = publicEndpoint
-		? resolveRivetConnection(publicEndpoint)
-		: connection;
-	return {
-		url: new URL(
-			`/gateway/${encodeURIComponent(appActorId)}/request/.agentos/apps/rivet`,
-			callbackConnection.endpoint,
-		).toString(),
-		...(callbackConnection.token ? { token: callbackConnection.token } : {}),
-	};
-}
-
-function resolveRivetConnection(rawEndpoint: string): ResolvedRivetConnection {
-	const url = new URL(rawEndpoint);
-	const namespace = url.username
-		? decodeURIComponent(url.username)
-		: (process.env.RIVET_NAMESPACE ?? "default");
-	const token = url.password ? decodeURIComponent(url.password) : undefined;
-	url.username = "";
-	url.password = "";
-	return {
-		endpoint: url.toString().replace(/\/$/, ""),
-		namespace,
-		...(token ? { token } : {}),
-	};
-}
-
-/** Configure the nested actor pool only after its release is ready. */
-export async function configureAppNamespaceRunner(
-	appActorId: string,
-	runtime: {
-		endpoint: string;
-		namespace: string;
-		pool: string;
-		controlToken?: string;
-	},
-	callbackSecret: string,
-	callbackConnection = resolveDefaultRivetConnection(),
-): Promise<void> {
-	try {
-		const callback = serverlessAppCallback(appActorId, callbackConnection);
-		await ensureServerlessRunnerConfig({
-			endpoint: runtime.endpoint,
-			namespace: runtime.namespace,
-			url: callback.url,
-			pool: runtime.pool,
-			token: runtime.controlToken,
-			callbackToken: callback.token,
-			callbackSecret,
-		});
-	} catch (error) {
-		throw new DynamicAppsError(
-			"dynamic_apps_runner_config_failed",
-			`Rivet runner configuration failed for namespace ${runtime.namespace} and pool ${runtime.pool}`,
-			{
-				namespace: runtime.namespace,
-				pool: runtime.pool,
-				error: error instanceof Error ? error.message : String(error),
-			},
-		);
-	}
 }

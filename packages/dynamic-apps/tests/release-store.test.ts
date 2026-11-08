@@ -1,23 +1,12 @@
 import { createHash } from "node:crypto";
-import { afterEach, describe, expect, test } from "vitest";
+import { describe, expect, test } from "vitest";
 import {
 	ARTIFACT_CHUNK_BYTES,
 	createRivetReleaseStore,
 } from "../src/release-store.js";
 
-const previousRuntimeMode = process.env.RIVETKIT_RUNTIME_MODE;
-
-afterEach(() => {
-	if (previousRuntimeMode === undefined) {
-		delete process.env.RIVETKIT_RUNTIME_MODE;
-	} else {
-		process.env.RIVETKIT_RUNTIME_MODE = previousRuntimeMode;
-	}
-});
-
 describe("Rivet release store", () => {
 	test("publishes sequential chunks and returns only Deployment fields", async () => {
-		process.env.RIVETKIT_RUNTIME_MODE = "serverless";
 		const bytes = Uint8Array.from(
 			{ length: ARTIFACT_CHUNK_BYTES + 7 },
 			(_, index) => index % 251,
@@ -83,7 +72,6 @@ describe("Rivet release store", () => {
 	});
 
 	test("subscribes, downloads, verifies, and releases a driver", async () => {
-		process.env.RIVETKIT_RUNTIME_MODE = "serverless";
 		const bytes = new Uint8Array([1, 2, 3, 4]);
 		const hash = createHash("sha256").update(bytes).digest("hex");
 		let disposed = 0;
@@ -114,7 +102,7 @@ describe("Rivet release store", () => {
 					maxRequestBytes: 1024,
 					maxResponseBytes: 1024,
 					usesRivetKit: true,
-					serverlessEndpoint: "https://demo:runtime-token@example.test",
+					actorEndpoint: "https://demo:runtime-token@example.test",
 					runtimePool: "actor-pool",
 				};
 			},
@@ -149,8 +137,10 @@ describe("Rivet release store", () => {
 			RIVET_POOL: "actor-pool",
 			RIVET_TOKEN: "runtime-token",
 			RIVETKIT_RUNTIME: "wasm",
-			RIVETKIT_RUNTIME_MODE: "serverless",
 		});
+		expect(release?.server?.environment).not.toHaveProperty(
+			"RIVETKIT_RUNTIME_MODE",
+		);
 		expect(timings).toEqual([
 			"actor-connect",
 			"actor-resolve",
@@ -163,7 +153,6 @@ describe("Rivet release store", () => {
 	});
 
 	test("cleans up a failed connection and allows a later retry", async () => {
-		process.env.RIVETKIT_RUNTIME_MODE = "serverless";
 		let attempts = 0;
 		let disposed = 0;
 		let listenersRemoved = 0;

@@ -24,7 +24,6 @@ const room = actor({
 export const registry = setup({ use: { room } });
 
 const app = new Hono();
-app.all("/api/rivet/*", (c) => registry.handler(c.req.raw));
 app.get("/", (c) =>
 	c.json({ message: "Use the RivetKit client to join a room." }),
 );

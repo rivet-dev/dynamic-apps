@@ -21,7 +21,8 @@ Each app gets its own Rivet namespace, which provides it:
 
 - Complete per-tenant isolation
 - Per-user billing
-- Infrastructure that costs nothing when idle
+- Its own node pool. Apps that define actors keep one agentOS VM running while
+  deployed, so they do not scale to zero.
 
 ## Connecting to Rivet
 

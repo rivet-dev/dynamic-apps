@@ -28,7 +28,6 @@ import {
 	DynamicActorRuntime,
 	resolveActorAgentOsOptions,
 } from "../src/actor-runtime.js";
-import { forwardActorCallbackRequest } from "../src/actors.js";
 import { resolveDefaultRivetConnection } from "../src/control-plane.js";
 import { deployApp } from "../src/deploy.js";
 import {
@@ -264,7 +263,6 @@ describe("retained public surface", () => {
 		expect(
 			actorWorkerEnvironment({
 				endpoint: "https://app-namespace:pk_example@api.rivet.dev",
-				key: "release:hash",
 				namespace: "app-namespace",
 				pool: "app-pool",
 			}),
@@ -870,24 +868,6 @@ export default {
 			await artifact.dispose();
 		}
 	}, 60_000);
-
-	test("forwards actor callback bodies without eager buffering", async () => {
-		let pulls = 0;
-		const source = streamingRequest("http://example.test/api/rivet/start", {
-			pull(controller) {
-				pulls += 1;
-				controller.enqueue(Uint8Array.of(1, 2, 3));
-				controller.close();
-			},
-		});
-		const forwarded = forwardActorCallbackRequest(source, "/start");
-		expect(pulls).toBe(0);
-		expect(new URL(forwarded.url).pathname).toBe("/start");
-		expect(new Uint8Array(await forwarded.arrayBuffer())).toEqual(
-			Uint8Array.of(1, 2, 3),
-		);
-		expect(pulls).toBe(1);
-	});
 
 	test("logs actor server error stacks and causes", async () => {
 		const events: Readonly<DynamicAppsLogEvent>[] = [];
